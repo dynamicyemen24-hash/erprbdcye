@@ -398,13 +398,17 @@ export default function LoginView({
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => {
+                        triggerHaptic('light');
                         setCachedUser(null);
                         setIdentifier('');
+                        try { localStorage.removeItem('rbd_user'); } catch {}
+                        setTimeout(() => identifierInputRef.current?.focus(), 50);
                       }}
-                      className="text-[11px] text-zinc-400 hover:text-slate-900 dark:hover:text-white font-bold"
+                      className="text-[11px] text-zinc-400 hover:text-slate-900 dark:hover:text-white font-bold underline cursor-pointer"
                     >
-                      {isRtl ? 'حساب آخر' : 'Switch'}
+                      {isRtl ? 'حساب آخر / دخول جديد' : 'Switch / New Login'}
                     </button>
                   </div>
 

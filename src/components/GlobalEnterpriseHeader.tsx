@@ -296,7 +296,11 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
               }}
               onLogout={() => {
                 setCurrentUser(null);
-                try { localStorage.removeItem('rbd_user'); } catch (e) {}
+                try { 
+                  localStorage.removeItem('rbd_user'); 
+                  localStorage.removeItem('roh_user'); 
+                  localStorage.removeItem('rbd_token');
+                } catch (e) {}
               }}
             />
           </div>
