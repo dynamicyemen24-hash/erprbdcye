@@ -67,7 +67,8 @@ const BiometricSecurityGate = React.lazy(() => import('./components/BiometricSec
 const NexoraAICopilotDrawer = React.lazy(() => import('./components/NexoraAICopilotDrawer'));
 const AppMatrixLauncherModal = React.lazy(() => import('./components/AppMatrixLauncherModal'));
 const UniversalCommandCenter = React.lazy(() => import('./components/UniversalCommandCenter'));
-const KeyboardShortcutsModal = React.lazy(() => import('./components/KeyboardShortcutsModal'));
+const CustomizableShortcutsModal = React.lazy(() => import('./components/shortcuts/CustomizableShortcutsManagerModal'));
+const FastRecordRetrievalDrawer = React.lazy(() => import('./components/records/FastRecordRetrievalDrawer'));
 
 import { 
   EnterpriseLogo,
@@ -152,6 +153,7 @@ export default function App() {
     sysSettings,
     beneficiaries,
     sponsorships,
+    activities,
     approvalRequests,
     serverStats,
     consolidatedKpis,
@@ -374,16 +376,20 @@ export default function App() {
 
   const [isSystemsDockPinned, setIsSystemsDockPinned] = useState<boolean>(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [isRecordRetrievalOpen, setIsRecordRetrievalOpen] = useState<boolean>(false);
   
   // NexoraOS Context Controls
   const [activeRolePerspective, setActiveRolePerspective] = useState<'executive' | 'manager' | 'field'>('executive');
   const [organizationId, setOrganizationId] = useState<string>('hq');
   const [fiscalYear, setFiscalYear] = useState<string>('FY2026');
 
-  // Global Keyboard Shortcuts (Ctrl+K, F1 for Docs, ?, Esc to close modals)
+  // Global Keyboard Shortcuts (Ctrl+K, Ctrl+Shift+F for Record Finder, F1 for Docs, ?, Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        setIsRecordRetrievalOpen(prev => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         setIsCommandCenterOpen(prev => !prev);
       } else if ((e.ctrlKey || e.metaKey) && e.key === '/') {
@@ -401,6 +407,7 @@ export default function App() {
         setShowAppLauncherModal(false);
         setIsCommandCenterOpen(false);
         setIsShortcutsModalOpen(false);
+        setIsRecordRetrievalOpen(false);
         setIsMobileMenuOpen(false);
       }
     };
@@ -970,10 +977,22 @@ export default function App() {
       </React.Suspense>
 
       <React.Suspense fallback={null}>
-        <KeyboardShortcutsModal 
+        <CustomizableShortcutsModal 
           lang={lang}
           isOpen={isShortcutsModalOpen}
           onClose={() => setIsShortcutsModalOpen(false)}
+        />
+      </React.Suspense>
+
+      <React.Suspense fallback={null}>
+        <FastRecordRetrievalDrawer 
+          lang={lang}
+          isOpen={isRecordRetrievalOpen}
+          onClose={() => setIsRecordRetrievalOpen(false)}
+          onNavigate={(tab) => handleSelectTab(tab as ActiveTab)}
+          projects={projects}
+          programs={programs}
+          activities={activities}
         />
       </React.Suspense>
 
