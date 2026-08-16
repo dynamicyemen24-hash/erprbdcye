@@ -31,10 +31,10 @@ import {
   Grid,
   ArrowRight,
   ArrowLeft,
-  Filter,
-  CheckCircle2
+  Filter
 } from 'lucide-react';
 import { Project, User as UserType } from '../types';
+import { fuzzyMatchArabic, normalizeArabicText } from '../core/utils/arabicSearch';
 
 interface ERPSearchBarProps {
   lang: 'ar' | 'en';
@@ -252,13 +252,13 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
   // Search Domains matching query
   const searchDomains = domains.filter(d => {
     if (!query) return false;
-    const q = query.toLowerCase();
+    const q = query.trim();
     return (
-      d.code.toLowerCase().includes(q) ||
-      d.titleAr.toLowerCase().includes(q) ||
-      d.titleEn.toLowerCase().includes(q) ||
-      d.prefixEn.toLowerCase().includes(q) ||
-      d.prefixAr.toLowerCase().includes(q)
+      fuzzyMatchArabic(q, d.code) > 0 ||
+      fuzzyMatchArabic(q, d.titleAr) > 0 ||
+      fuzzyMatchArabic(q, d.titleEn) > 0 ||
+      fuzzyMatchArabic(q, d.prefixEn) > 0 ||
+      fuzzyMatchArabic(q, d.prefixAr) > 0
     );
   }).map(d => ({ ...d, searchType: 'domain' as const }));
 
@@ -266,55 +266,32 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
   const searchBeneficiaries = beneficiaries.filter(b => {
     if (activeDomainCode !== 'ALL' && activeDomainCode !== 'NEB-06') return false;
     if (!cleanQuery) return true;
-    return (
-      (b.full_name_ar || '').toLowerCase().includes(cleanQuery) ||
-      (b.beneficiary_code || '').toLowerCase().includes(cleanQuery) ||
-      (b.phone_primary || '').toLowerCase().includes(cleanQuery) ||
-      (b.governorate || '').toLowerCase().includes(cleanQuery) ||
-      (b.district || '').toLowerCase().includes(cleanQuery) ||
-      (b.category_code || '').toLowerCase().includes(cleanQuery)
-    );
+    const targetStr = `${b.full_name_ar || ''} ${b.full_name || ''} ${b.beneficiary_code || ''} ${b.phone_primary || ''} ${b.governorate || ''} ${b.district || ''} ${b.category_code || ''}`;
+    return fuzzyMatchArabic(cleanQuery, targetStr) > 0;
   }).map(b => ({ ...b, searchType: 'beneficiary' as const }));
 
   // Search Projects
   const searchProjects = projects.filter(p => {
     if (activeDomainCode !== 'ALL' && activeDomainCode !== 'NEB-02' && activeDomainCode !== 'NEB-03' && activeDomainCode !== 'NEB-04' && activeDomainCode !== 'NEB-05' && activeDomainCode !== 'NEB-10') return false;
     if (!cleanQuery) return true;
-    return (
-      (p.name_ar || '').toLowerCase().includes(cleanQuery) ||
-      (p.name_en || '').toLowerCase().includes(cleanQuery) ||
-      (p.code || '').toLowerCase().includes(cleanQuery) ||
-      (p.description || '').toLowerCase().includes(cleanQuery) ||
-      (p.location_name || '').toLowerCase().includes(cleanQuery) ||
-      ((p as any).sector || '').toLowerCase().includes(cleanQuery) ||
-      (p.currency_code || '').toLowerCase().includes(cleanQuery) ||
-      (p.budget || '').toString().includes(cleanQuery)
-    );
+    const targetStr = `${p.name_ar || ''} ${p.name_en || ''} ${(p as any).project_code || p.code || ''} ${p.description || ''} ${p.location_name || ''} ${(p as any).sector || ''}`;
+    return fuzzyMatchArabic(cleanQuery, targetStr) > 0;
   }).map(p => ({ ...p, searchType: 'project' as const }));
 
   // Search Staff / Users
   const searchUsers = users.filter(u => {
     if (activeDomainCode !== 'ALL' && activeDomainCode !== 'NEB-09') return false;
     if (!cleanQuery) return true;
-    return (
-      (u.name || '').toLowerCase().includes(cleanQuery) ||
-      (u.name_ar || '').toLowerCase().includes(cleanQuery) ||
-      (u.email || '').toLowerCase().includes(cleanQuery) ||
-      (u.phone || '').toLowerCase().includes(cleanQuery) ||
-      ((u as any).role || u.position_code || '').toLowerCase().includes(cleanQuery)
-    );
+    const targetStr = `${u.name || ''} ${u.name_ar || ''} ${u.email || ''} ${u.phone || ''} ${(u as any).role || u.position_code || ''}`;
+    return fuzzyMatchArabic(cleanQuery, targetStr) > 0;
   }).map(u => ({ ...u, searchType: 'user' as const }));
 
-  // Search Documents (Smart Indexing Mock)
+  // Search Documents
   const searchDocuments = MOCK_DOCUMENTS.filter(d => {
     if (activeDomainCode !== 'ALL' && activeDomainCode !== d.domain) return false;
     if (!cleanQuery) return true;
-    return (
-      (d.title_ar || '').toLowerCase().includes(cleanQuery) ||
-      (d.title_en || '').toLowerCase().includes(cleanQuery) ||
-      (d.type || '').toLowerCase().includes(cleanQuery) ||
-      (d.author || '').toLowerCase().includes(cleanQuery)
-    );
+    const targetStr = `${d.title_ar || ''} ${d.title_en || ''} ${d.type || ''} ${d.author || ''}`;
+    return fuzzyMatchArabic(cleanQuery, targetStr) > 0;
   }).map(d => ({ ...d, searchType: 'document' as const }));
 
   // Combine results according to category filter

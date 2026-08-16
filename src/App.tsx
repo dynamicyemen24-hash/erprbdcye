@@ -956,6 +956,7 @@ export default function App() {
           onClose={() => setIsCommandCenterOpen(false)}
           onNavigate={(tab) => handleSelectTab(tab as ActiveTab)}
           projects={projects}
+          programs={programs}
           beneficiaries={beneficiaries}
           users={users}
           density={layoutDensity}
