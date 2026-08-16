@@ -42,6 +42,8 @@ import {
 import { Project, User as UserType, TabId } from '../types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { fuzzyMatchArabic, normalizeArabicText } from '../core/utils/arabicSearch';
+import { parseNaturalLanguageQuery, StructuredERPQuery } from '../core/services/naturalLanguageQuery';
+import { useResumeIntelligence } from '../core/services/resumeIntelligence';
 
 interface UniversalCommandCenterProps {
   lang: 'ar' | 'en';
@@ -109,6 +111,11 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
       return ['rep-exec', 'act-new-voucher', 'act-new-beneficiary', 'dom-neb10'];
     }
   });
+
+  const { resumeState } = useResumeIntelligence();
+  const nlpResult: StructuredERPQuery = useMemo(() => {
+    return parseNaturalLanguageQuery(query);
+  }, [query]);
 
   // Voice recognition state
   const [isListening, setIsListening] = useState(false);
@@ -607,6 +614,57 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
             </button>
           ))}
         </div>
+
+        {/* Resume Intelligence & NLP Guided Filter Header */}
+        {!query && resumeState && (
+          <div 
+            onClick={() => {
+              triggerHaptic('success');
+              onNavigate(resumeState.lastActiveTab);
+              onClose();
+            }}
+            className="mx-3 mt-2 p-3 bg-gradient-to-r from-emerald-500/10 via-amber-500/10 to-transparent border border-emerald-500/30 rounded-2xl flex items-center justify-between gap-3 text-xs font-bold cursor-pointer hover:border-emerald-500/60 transition-all shadow-xs"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                <History className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    {isRtl ? 'أكمل من حيث توقفت (Resume Work)' : 'Resume where you left off'}
+                  </span>
+                  <span className="text-[9px] font-mono text-zinc-400">
+                    {new Date(resumeState.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <p className="font-black text-slate-900 dark:text-white truncate">
+                  {isRtl ? resumeState.viewTitleAr : resumeState.viewTitleEn}
+                  {resumeState.lastOpenedRecord && ` • ${resumeState.lastOpenedRecord.code || resumeState.lastOpenedRecord.titleAr}`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-[11px] font-black shrink-0">
+              <span>{isRtl ? 'استكمال فوري' : 'Resume'}</span>
+              <CornerDownLeft className="w-3.5 h-3.5" />
+            </div>
+          </div>
+        )}
+
+        {query && nlpResult.confidence >= 0.7 && (
+          <div className="mx-3 mt-2 p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="font-bold text-emerald-950 dark:text-emerald-200 truncate">
+                {isRtl ? nlpResult.explanationAr : nlpResult.explanationEn}
+              </span>
+            </div>
+            <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0">
+              NLP Intent ({Math.round(nlpResult.confidence * 100)}%)
+            </span>
+          </div>
+        )}
 
         {/* Results List */}
         <div className="max-h-[420px] overflow-y-auto custom-scrollbar p-2 space-y-1">

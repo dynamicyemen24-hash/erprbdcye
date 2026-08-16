@@ -99,6 +99,7 @@ import { updateFavicon } from './core/utils/faviconUtils';
 import { TabContentRenderer } from './app/components';
 const ProjectStatusOverviewWidget = React.lazy(() => import('./components/ProjectStatusOverviewWidget'));
 import { ActiveTab } from './core/types';
+import { resumeIntelligenceService } from './core/services/resumeIntelligence';
 
 export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
@@ -329,6 +330,29 @@ export default function App() {
     setDrillDownFilters({});
     setOpenTabs(prev => prev.includes(tab) ? prev : [...prev, tab]);
     setActiveTab(tab);
+    
+    // Resume Intelligence Tracking
+    const tabNames: Record<string, { ar: string; en: string }> = {
+      dashboard: { ar: 'اللوحة القيادية الاستراتيجية', en: 'Strategic Dashboard' },
+      programs: { ar: 'البرامج التنموية', en: 'Development Programs' },
+      projects: { ar: 'المشاريع الميدانية', en: 'Field Projects' },
+      activities: { ar: 'الأنشطة والمهام الميدانية WBS', en: 'WBS Activities' },
+      beneficiaries: { ar: 'سجل المستفيدين والخدمات', en: 'Beneficiaries Registry' },
+      sponsorships: { ar: 'كفالات الأيتام والرعاية', en: 'Orphan Sponsorships' },
+      finance: { ar: 'النظام المالي والحسابات IPSAS', en: 'Financial Ledger' },
+      reports: { ar: 'التقارير ومؤشرات الأثر', en: 'Impact Reports' },
+      users: { ar: 'الموارد البشرية والكادر', en: 'Human Resources' },
+      contracts: { ar: 'العقود والمشتريات', en: 'Contracts & Procurement' },
+      currencies: { ar: 'العملات وأسعار الصرف', en: 'Currencies & Rates' },
+      settings: { ar: 'إعدادات النظام', en: 'System Settings' },
+      geospatial: { ar: 'خريطة الأثر الجغرافي', en: 'Geospatial Map' }
+    };
+    const info = tabNames[tab] || { ar: tab, en: tab };
+    resumeIntelligenceService.recordActivity({
+      lastActiveTab: tab,
+      viewTitleAr: info.ar,
+      viewTitleEn: info.en
+    });
   }, []);
 
   const handleDrillDown = useCallback((tab: ActiveTab, filters: typeof drillDownFilters) => {
