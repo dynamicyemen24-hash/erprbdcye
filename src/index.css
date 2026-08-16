@@ -1,0 +1,320 @@
+@import "tailwindcss";
+
+/* Configure the dark: variant to follow the application-managed .dark class
+   (instead of the OS media query) so the in-app theme toggle actually works. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --spacing-safe-bottom: env(safe-area-inset-bottom);
+  --spacing-safe-top: env(safe-area-inset-top);
+  --spacing-safe-left: env(safe-area-inset-left);
+  --spacing-safe-right: env(safe-area-inset-right);
+
+  /* Map dynamic enterprise branding CSS variables into Tailwind v4 Theme */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-dark-bg: var(--brand-dark-bg);
+  --color-brand-light-bg: var(--brand-light-bg);
+}
+
+/* NexoraOS Design System 2.0 Z-Index Layer Governance Tokens */
+:root {
+  /* Fallback/Default Enterprise Branding Values */
+  --brand-primary: #059669;
+  --brand-accent: #d97706;
+  --brand-dark-bg: #090d16;
+  --brand-light-bg: #f8fafc;
+
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-popover: 30;
+  --z-tooltip: 40;
+  --z-drawer: 50;
+  --z-dialog: 60;
+  --z-command: 70;
+  --z-critical: 80;
+
+  /* Density Defaults (Comfortable) */
+  --density-padding-y: 0.5rem;
+  --density-padding-x: 0.75rem;
+  --density-row-height: 2.5rem;
+  --density-font-size: 0.75rem;
+}
+
+[data-density="compact"] {
+  --density-padding-y: 0.25rem;
+  --density-padding-x: 0.5rem;
+  --density-row-height: 2rem;
+  --density-font-size: 0.71rem;
+}
+
+[data-density="spacious"] {
+  --density-padding-y: 0.75rem;
+  --density-padding-x: 1rem;
+  --density-row-height: 3.25rem;
+  --density-font-size: 0.82rem;
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Custom sleek horizontal and vertical scrollbar for Workspace Frame */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    scroll-behavior: smooth;
+  }
+  .dark .custom-scrollbar {
+    scrollbar-color: rgba(82, 82, 91, 0.5) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 4px;
+  }
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(82, 82, 91, 0.5);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.7);
+  }
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(113, 113, 122, 0.8);
+  }
+  .custom-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+html {
+  font-family: 'Cairo', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  scroll-behavior: smooth;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tabular Nums utility for financial alignment */
+.tabular-nums, table, .font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Skeleton Shimmer Wave Effect Keyframes */
+@keyframes shimmerWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.4) 25%, rgba(203, 213, 225, 0.8) 50%, rgba(226, 232, 240, 0.4) 75%);
+  background-size: 200% 100%;
+  animation: shimmerWave 1.8s infinite linear;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(90deg, rgba(39, 39, 42, 0.5) 25%, rgba(63, 63, 70, 0.8) 50%, rgba(39, 39, 42, 0.5) 75%);
+  background-size: 200% 100%;
+  animation: shimmerWave 1.8s infinite linear;
+}
+
+/* Quantum Architecture 3.0 Dynamic Ambient Glow Systems */
+.glow-emerald {
+  box-shadow: 0 0 25px -5px rgba(5, 150, 105, 0.25), 0 0 10px -2px rgba(5, 150, 105, 0.15);
+}
+
+.glow-amber {
+  box-shadow: 0 0 25px -5px rgba(217, 119, 6, 0.25), 0 0 10px -2px rgba(217, 119, 6, 0.15);
+}
+
+.glow-rose {
+  box-shadow: 0 0 25px -5px rgba(225, 29, 72, 0.25), 0 0 10px -2px rgba(225, 29, 72, 0.15);
+}
+
+/* Quantum Card Neumorphic Glassmorphism 3.0 */
+.quantum-card {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+}
+
+.light .quantum-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+}
+
+/* Micro-interaction Feedback Utility */
+.active-press {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.active-press:active {
+  transform: scale(0.97);
+}
+
+/* ── Enter/Exit Animation System ────────────────────────────────
+   Provides native implementations for the tailwindcss-animate style
+   utilities previously declared across the app but never defined
+   (animate-in, fade-in, zoom-in-95, slide-in-from-*).
+   Longhand animation-* properties allow Tailwind's duration-/delay-/
+   ease- utilities to override the defaults. */
+@keyframes nexora-enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform: translate3d(var(--tw-enter-x, 0), var(--tw-enter-y, 0), 0) scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), 1);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  }
+}
+
+@keyframes nexora-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes nexora-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.animate-in {
+  animation-name: nexora-enter;
+  animation-duration: 0.2s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.animate-fade-in {
+  animation-name: nexora-fade-in;
+  animation-duration: 0.25s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+.animate-fade-out {
+  animation-name: nexora-fade-out;
+  animation-duration: 0.2s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in, .animate-fade-in, .animate-fade-out {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Enter-state overriders */
+.fade-in { --tw-enter-opacity: 0; }
+.zoom-in-95 { --tw-enter-scale: 0.95; }
+.zoom-in-90 { --tw-enter-scale: 0.9; }
+.slide-in-from-top { --tw-enter-y: -100%; }
+.slide-in-from-top-2 { --tw-enter-y: -0.5rem; }
+.slide-in-from-bottom { --tw-enter-y: 0.5rem; }
+.slide-in-from-bottom-2 { --tw-enter-y: 0.5rem; }
+.slide-in-from-left { --tw-enter-x: -2rem; }
+.slide-in-from-right { --tw-enter-x: 2rem; }
+
+
+
+/* Global Print Layout Optimization */
+@media print {
+  aside,
+  header,
+  .global-enterprise-header,
+  .enterprise-menu-strip,
+  .unified-context-ribbon,
+  .floating-mobile-fab,
+  .mobile-navigation-drawer,
+  .no-print,
+  button,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body, 
+  html, 
+  #root, 
+  main,
+  .flex-1,
+  .overflow-y-auto,
+  .workspace-shell-container {
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Dashboard Print Optimizations */
+  #dashboard-content, .dashboard-grid {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Force all grid containers to single columns during print to prevent A4 truncation */
+  .grid, .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    width: 100% !important;
+  }
+
+  /* Avoid page breaks inside cards */
+  .card, .bg-white, .rounded-xl, .bg-slate-900, .bg-zinc-950, .shadow-sm {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Adjust SVGs and charts sizing for printed pages */
+  svg, .recharts-wrapper {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Force background colors and gradients to print correctly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

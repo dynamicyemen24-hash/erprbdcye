@@ -1,0 +1,25 @@
+// Dashboard & Core Operations Feature Exports
+export { default as DashboardView } from '../../components/DashboardView';
+export { default as DomainCenterView } from '../../components/DomainCenterView';
+export { default as GeospatialDashboardView } from '../../components/GeospatialDashboardView';
+export { KPICard } from '../../components/dashboard/KPICard';
+export { OperationalModuleCard } from '../../components/dashboard/OperationalModuleCard';
+export { QuickActionCard } from '../../components/dashboard/QuickActionCard';
+export { OperationsControlCenter } from '../../components/dashboard/OperationsControlCenter';
+export { ActivityLogWidget } from '../../components/dashboard/ActivityLogWidget';
+export { AIInsightsWidget } from '../../components/dashboard/AIInsightsWidget';
+export { DomainOverview } from '../../components/dashboard/DomainOverview';
+export { DashboardCharts } from '../../components/dashboard/DashboardCharts';
+export { GeographicalMapWidget } from '../../components/dashboard/GeographicalMapWidget';
+export { SmartAlertPanel } from '../../components/dashboard/SmartAlertPanel';
+export { CollaborativeCalendarWidget } from '../../components/dashboard/CollaborativeCalendarWidget';
+export { BottleneckAnalysisWidget } from '../../components/dashboard/BottleneckAnalysisWidget';
+export { default as PerformanceMetricsView } from '../../components/dashboard/PerformanceMetricsView';
+export { SmartCustomizationPanel } from '../../components/dashboard/SmartCustomizationPanel';
+export { FieldEfficiencyWidget } from '../../components/dashboard/FieldEfficiencyWidget';
+export { MyDailyTasksWidget } from '../../components/dashboard/MyDailyTasksWidget';
+export { ActiveProjectsKPIsWidget } from '../../components/dashboard/ActiveProjectsKPIsWidget';
+export { default as YoYPerformanceView } from './YoYPerformanceView';
+export { default as StrategicRiskSimulator } from './StrategicRiskSimulator';
+export { default as GlobalKPITrendView } from './GlobalKPITrendView';
+export { default as GlobalBranchKPIComparisonView } from './GlobalBranchKPIComparisonView';

@@ -1,0 +1,4 @@
+I have investigated the underlying root cause of the "Failed to fetch" errors. 
+- **Database Connection Stability**: The backend Express server was intermittently crashing due to uncaught connection drop errors from the Neon PostgreSQL database when connections idled. When the Node.js process crashed, the frontend lost connection, manifesting as a generic "Failed to fetch" network error. 
+- **Resiliency Patch Applied**: I injected a global error event handler into the `pg` connection pool inside `server.ts`. This gracefully catches idle disconnects and prevents the Node.js process from exiting abruptly, ensuring the API stays online.
+- **Server Restarted**: The development server has been rebuilt and restarted, and the database queries are now executing smoothly.

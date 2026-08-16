@@ -1,0 +1,616 @@
+Total Tables and Views processed: 239
+Base Tables: 165
+Views: 74
+
+--- BASE TABLES WITH ROWS ---
+- account_entity_links: 380 rows
+- account_permissions: 332 rows
+- activities: 267 rows
+- alert_rules: 3 rows
+- approval_thresholds: 8 rows
+- beneficiaries: 418 rows
+- budget_lines: 45 rows
+- chart_of_accounts: 238 rows
+- code_categories: 128 rows
+- code_items: 565 rows
+- control_reviews: 9 rows
+- cost_centers_advanced: 5 rows
+- currencies: 3 rows
+- custom_field_definitions: 5 rows
+- database_records_summary: 128 rows
+- earned_value_metrics: 3 rows
+- fiscal_years: 1 rows
+- geographic_areas: 19 rows
+- hr_delegates: 1 rows
+- hr_staff: 2 rows
+- inventory_items: 9 rows
+- kpi_indicators: 4 rows
+- legacy_report_details: 3 rows
+- legacy_reports: 1 rows
+- migration_staging: 622 rows
+- milestones: 45 rows
+- notification_templates: 5 rows
+- organization_settings: 9 rows
+- organizations: 2 rows
+- parties: 468 rows
+- permissions: 79 rows
+- program_objectives: 5 rows
+- programs: 8 rows
+- project_schedules: 45 rows
+- projects: 16 rows
+- role_permissions: 235 rows
+- roles: 16 rows
+- scheduled_tasks: 4 rows
+- sponsorships: 595 rows
+- system_settings: 23 rows
+- tags: 5 rows
+- user_org_memberships: 1 rows
+- user_roles: 17 rows
+- users: 8 rows
+- warehouses: 3 rows
+- workflow_definitions: 3 rows
+
+--- EMPTY BASE TABLES ---
+There are 119 empty base tables.
+
+--- KEY SETTINGS & BASIC TABLES SCHEMAS ---
+
+=========================================
+Table: organizations (2 rows)
+=========================================
+Columns:
+  - id (uuid) NOT NULL
+  - parent_id (uuid) NULL
+  - name_en (character varying) NOT NULL
+  - name_ar (character varying) NOT NULL
+  - description (text) NULL
+  - logo_url (text) NULL
+  - website (character varying) NULL
+  - email (character varying) NULL
+  - phone (character varying) NULL
+  - address (text) NULL
+  - city (character varying) NULL
+  - country (character varying) NULL
+  - registration_number (character varying) NULL
+  - tax_number (character varying) NULL
+  - license_number (character varying) NULL
+  - license_expiry (date) NULL
+  - type_code (character varying) NULL
+  - subscription_plan (character varying) NULL
+  - subscription_expiry (date) NULL
+  - max_users (integer) NULL
+  - max_storage_gb (integer) NULL
+  - status (character varying) NULL
+  - settings (jsonb) NULL
+  - security_policy (jsonb) NULL
+  - security_level (integer) NOT NULL
+  - created_at (timestamp with time zone) NOT NULL
+  - updated_at (timestamp with time zone) NOT NULL
+  - deleted_at (timestamp with time zone) NULL
+  - version (integer) NULL
+  - sync_status (character varying) NULL
+  - branch_code (character varying) NULL
+  - branch_type (character varying) NULL
+  - region (character varying) NULL
+  - timezone (character varying) NULL
+  - fiscal_year_start_month (integer) NULL
+  - fiscal_year_end_month (integer) NULL
+  - default_currency_code (character varying) NULL
+Sample Rows (Up to 2):
+[
+  {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "parent_id": null,
+    "name_en": "Rohamaa Charity Foundation",
+    "name_ar": "مؤسسة رحماء الخيرية",
+    "description": "منصة رحماء لإدارة المنظمات الخيرية والإنسانية",
+    "logo_url": null,
+    "website": null,
+    "email": "info@rohamaa.org",
+    "phone": "+967000000000",
+    "address": "الشارع الرئيسي",
+    "city": "صنعاء",
+    "country": "اليمن",
+    "registration_number": "REG-2026-0001",
+    "tax_number": "TAX-2026-0001",
+    "license_number": "LIC-2026-0001",
+    "license_expiry": null,
+    "type_code": "charity",
+    "subscription_plan": "enterprise",
+    "subscription_expiry": null,
+    "max_users": 100,
+    "max_storage_gb": 100,
+    "status": "active",
+    "settings": {},
+    "security_policy": {
+      "maxSecurityLevel": 5,
+      "requireDonorConsent": true,
+      "allowAnonymousDonations": true
+    },
+    "security_level": 5,
+    "created_at": "2026-08-04T16:37:30.849Z",
+    "updated_at": "2026-08-04T16:37:30.849Z",
+    "deleted_at": null,
+    "version": 1,
+    "sync_status": "SYNCED",
+    "branch_code": null,
+    "branch_type": null,
+    "region": null,
+    "timezone": "Asia/Riyadh",
+    "fiscal_year_start_month": 1,
+    "fiscal_year_end_month": 12,
+    "default_currency_code": "YER"
+  },
+  {
+    "id": "b1d4d60b-0099-4a28-ad4c-4b32d9f9bfb3",
+    "parent_id": null,
+    "name_en": "Charitable Development Organization",
+    "name_ar": "المؤسسة الخيرية للتنمية",
+    "description": null,
+    "logo_url": null,
+    "website": null,
+    "email": null,
+    "phone": null,
+    "address": null,
+    "city": null,
+    "country": null,
+    "registration_number": null,
+    "tax_number": null,
+    "license_number": null,
+    "license_expiry": null,
+    "type_code": "charity",
+    "subscription_plan": "basic",
+    "subscription_expiry": null,
+    "max_users": 10,
+    "max_storage_gb": 5,
+    "status": "active",
+    "settings": {},
+    "security_policy": {},
+    "security_level": 5,
+    "created_at": "2026-08-04T20:43:03.308Z",
+    "updated_at": "2026-08-04T20:43:03.308Z",
+    "deleted_at": null,
+    "version": 1,
+    "sync_status": "SYNCED",
+    "branch_code": null,
+    "branch_type": null,
+    "region": null,
+    "timezone": "Asia/Riyadh",
+    "fiscal_year_start_month": 1,
+    "fiscal_year_end_month": 12,
+    "default_currency_code": "YER"
+  }
+]
+
+=========================================
+Table: organization_settings (9 rows)
+=========================================
+Columns:
+  - id (uuid) NOT NULL
+  - organization_id (uuid) NOT NULL
+  - setting_key (character varying) NOT NULL
+  - setting_value (jsonb) NULL
+  - description (text) NULL
+  - security_level (integer) NOT NULL
+  - updated_at (timestamp with time zone) NOT NULL
+  - updated_by (uuid) NULL
+Sample Rows (Up to 2):
+[
+  {
+    "id": "fa4b84e2-6496-4fad-bf5c-b8167567d675",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "setting_key": "org_name_ar",
+    "setting_value": "مؤسسة رحماء الخيرية",
+    "description": "اسم المؤسسة بالعربية",
+    "security_level": 5,
+    "updated_at": "2026-08-04T16:37:31.261Z",
+    "updated_by": null
+  },
+  {
+    "id": "8b940fe8-8ff7-44da-93d6-6edfd0c40ec5",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "setting_key": "org_name_en",
+    "setting_value": "Rohamaa Charity Foundation",
+    "description": "اسم المؤسسة بالإنجليزية",
+    "security_level": 5,
+    "updated_at": "2026-08-04T16:37:31.261Z",
+    "updated_by": null
+  }
+]
+
+=========================================
+Table: system_settings (23 rows)
+=========================================
+Columns:
+  - id (uuid) NOT NULL
+  - organization_id (uuid) NOT NULL
+  - setting_key (character varying) NOT NULL
+  - setting_value (jsonb) NOT NULL
+  - setting_type (character varying) NULL
+  - description (text) NULL
+  - is_encrypted (boolean) NULL
+  - is_public (boolean) NULL
+  - created_at (timestamp with time zone) NOT NULL
+  - updated_at (timestamp with time zone) NOT NULL
+Sample Rows (Up to 2):
+[
+  {
+    "id": "9e595f4b-b476-4391-92b3-bd9ac567bed4",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "setting_key": "system_name",
+    "setting_value": "Rohamaa ERP",
+    "setting_type": "string",
+    "description": "اسم النظام",
+    "is_encrypted": false,
+    "is_public": false,
+    "created_at": "2026-08-04T16:37:34.641Z",
+    "updated_at": "2026-08-04T16:37:34.641Z"
+  },
+  {
+    "id": "c6fc9b28-a37b-4381-b035-8d1e507cd5b4",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "setting_key": "system_version",
+    "setting_value": "1.0.0",
+    "setting_type": "string",
+    "description": "إصدار النظام",
+    "is_encrypted": false,
+    "is_public": false,
+    "created_at": "2026-08-04T16:37:34.641Z",
+    "updated_at": "2026-08-04T16:37:34.641Z"
+  }
+]
+
+=========================================
+Table: currencies (3 rows)
+=========================================
+Columns:
+  - id (uuid) NOT NULL
+  - organization_id (uuid) NOT NULL
+  - code (character varying) NOT NULL
+  - name_en (character varying) NOT NULL
+  - name_ar (character varying) NULL
+  - symbol (character varying) NULL
+  - decimal_places (integer) NULL
+  - is_base (boolean) NULL
+  - is_active (boolean) NULL
+  - security_level (integer) NOT NULL
+  - created_at (timestamp with time zone) NOT NULL
+  - deleted_at (timestamp with time zone) NULL
+  - version (integer) NULL
+  - sync_status (character varying) NULL
+Sample Rows (Up to 2):
+[
+  {
+    "id": "92069fbd-622b-4939-846f-3072e7e7cb25",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "code": "YER",
+    "name_en": "Yemeni Rial",
+    "name_ar": "ريال يمني",
+    "symbol": "ر.ي",
+    "decimal_places": 2,
+    "is_base": true,
+    "is_active": true,
+    "security_level": 2,
+    "created_at": "2026-08-04T16:37:31.050Z",
+    "deleted_at": null,
+    "version": 1,
+    "sync_status": "SYNCED"
+  },
+  {
+    "id": "8281e00a-1d4b-4f8e-86e2-df18361a9a03",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "code": "SAR",
+    "name_en": "Saudi Riyal",
+    "name_ar": "ريال سعودي",
+    "symbol": "ر.س",
+    "decimal_places": 2,
+    "is_base": false,
+    "is_active": true,
+    "security_level": 2,
+    "created_at": "2026-08-04T16:37:31.050Z",
+    "deleted_at": null,
+    "version": 1,
+    "sync_status": "SYNCED"
+  }
+]
+Key table 'branches' not found in public schema.
+
+=========================================
+Table: users (8 rows)
+=========================================
+Columns:
+  - id (uuid) NOT NULL
+  - email (character varying) NOT NULL
+  - email_verified (boolean) NULL
+  - password_hash (text) NOT NULL
+  - name (character varying) NOT NULL
+  - name_ar (character varying) NULL
+  - phone (character varying) NULL
+  - image_url (text) NULL
+  - default_language (character varying) NULL
+  - status (character varying) NULL
+  - failed_login_attempts (integer) NULL
+  - locked_until (timestamp with time zone) NULL
+  - password_changed_at (timestamp with time zone) NULL
+  - password_expires_at (timestamp with time zone) NULL
+  - last_login_at (timestamp with time zone) NULL
+  - last_ip_address (inet) NULL
+  - security_level (integer) NOT NULL
+  - deleted_at (timestamp with time zone) NULL
+  - settings (jsonb) NULL
+  - created_at (timestamp with time zone) NOT NULL
+  - updated_at (timestamp with time zone) NOT NULL
+  - department_code (character varying) NULL
+  - position_code (character varying) NULL
+  - employee_id (character varying) NULL
+  - manager_id (uuid) NULL
+  - can_approve (boolean) NULL
+  - max_approval_amount (numeric) NULL
+  - approval_level (integer) NULL
+Sample Rows (Up to 2):
+[
+  {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "email": "admin@rohamaa.org",
+    "email_verified": true,
+    "password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+    "name": "System Administrator",
+    "name_ar": "مدير النظام",
+    "phone": "+967700000001",
+    "image_url": null,
+    "default_language": "ar",
+    "status": "active",
+    "failed_login_attempts": 0,
+    "locked_until": null,
+    "password_changed_at": null,
+    "password_expires_at": null,
+    "last_login_at": null,
+    "last_ip_address": null,
+    "security_level": 5,
+    "deleted_at": null,
+    "settings": {},
+    "created_at": "2026-08-04T16:37:31.481Z",
+    "updated_at": "2026-08-04T16:37:31.481Z",
+    "department_code": null,
+    "position_code": null,
+    "employee_id": null,
+    "manager_id": null,
+    "can_approve": false,
+    "max_approval_amount": "0.00",
+    "approval_level": 0
+  },
+  {
+    "id": "cf82cbd4-ad35-49ba-9131-ef490d1d2e54",
+    "email": "pmo@rohamaa.org",
+    "email_verified": false,
+    "password_hash": "password123",
+    "name": "مدير البرامج",
+    "name_ar": null,
+    "phone": null,
+    "image_url": null,
+    "default_language": "ar",
+    "status": "active",
+    "failed_login_attempts": 0,
+    "locked_until": null,
+    "password_changed_at": null,
+    "password_expires_at": null,
+    "last_login_at": null,
+    "last_ip_address": null,
+    "security_level": 5,
+    "deleted_at": null,
+    "settings": {},
+    "created_at": "2026-08-04T21:15:23.027Z",
+    "updated_at": "2026-08-04T21:15:23.027Z",
+    "department_code": null,
+    "position_code": null,
+    "employee_id": null,
+    "manager_id": null,
+    "can_approve": false,
+    "max_approval_amount": "0.00",
+    "approval_level": 0
+  }
+]
+
+=========================================
+Table: roles (16 rows)
+=========================================
+Columns:
+  - id (uuid) NOT NULL
+  - organization_id (uuid) NULL
+  - code (character varying) NOT NULL
+  - name_en (character varying) NOT NULL
+  - name_ar (character varying) NOT NULL
+  - level (integer) NOT NULL
+  - description (text) NULL
+  - is_system (boolean) NULL
+  - security_level (integer) NOT NULL
+  - created_at (timestamp with time zone) NOT NULL
+Sample Rows (Up to 2):
+[
+  {
+    "id": "1926c726-62a4-426e-b8d5-1a0ba4960a0b",
+    "organization_id": null,
+    "code": "super_admin",
+    "name_en": "Super Admin",
+    "name_ar": "مدير النظام الأعلى",
+    "level": 100,
+    "description": "صلاحيات كاملة على كل النظام",
+    "is_system": true,
+    "security_level": 5,
+    "created_at": "2026-08-04T16:37:21.069Z"
+  },
+  {
+    "id": "6b026764-112b-491c-90f2-01b754af8c3d",
+    "organization_id": null,
+    "code": "org_admin",
+    "name_en": "Organization Admin",
+    "name_ar": "مدير المؤسسة",
+    "level": 80,
+    "description": "إدارة كاملة للمؤسسة",
+    "is_system": true,
+    "security_level": 5,
+    "created_at": "2026-08-04T16:37:21.069Z"
+  }
+]
+
+=========================================
+Table: programs (8 rows)
+=========================================
+Columns:
+  - id (uuid) NOT NULL
+  - organization_id (uuid) NOT NULL
+  - code (character varying) NOT NULL
+  - name_ar (character varying) NOT NULL
+  - name_en (character varying) NOT NULL
+  - description (text) NULL
+  - category_code (character varying) NULL
+  - status_code (character varying) NULL
+  - start_date (date) NULL
+  - end_date (date) NULL
+  - budget (numeric) NULL
+  - budget_base (numeric) NULL
+  - currency_code (character varying) NULL
+  - progress_percent (numeric) NULL
+  - target_beneficiaries (integer) NULL
+  - actual_beneficiaries (integer) NULL
+  - location_name (character varying) NULL
+  - metadata (jsonb) NULL
+  - created_by (uuid) NULL
+  - security_level (integer) NOT NULL
+  - created_at (timestamp with time zone) NOT NULL
+  - updated_at (timestamp with time zone) NOT NULL
+  - deleted_at (timestamp with time zone) NULL
+  - version (integer) NULL
+  - sync_status (character varying) NULL
+  - donor_id (uuid) NULL
+  - manager_id (uuid) NULL
+  - actual_budget (numeric) NULL
+  - currency_id (uuid) NULL
+  - objectives (text) NULL
+  - program_type (character varying) NULL
+  - phase_code (character varying) NULL
+  - priority_code (character varying) NULL
+  - is_shared (boolean) NULL
+  - visibility (character varying) NULL
+  - data_classification (character varying) NULL
+  - compliance_framework (character varying) NULL
+  - shariah_board_approval (boolean) NULL
+  - shariah_approval_date (date) NULL
+  - board_approved (boolean) NULL
+  - board_approval_date (date) NULL
+  - risk_level (character varying) NULL
+  - audit_frequency (character varying) NULL
+  - last_audit_date (date) NULL
+  - next_audit_date (date) NULL
+  - internal_auditor_id (uuid) NULL
+  - external_auditor_id (uuid) NULL
+  - compliance_status (character varying) NULL
+  - reporting_frequency (character varying) NULL
+  - board_report_required (boolean) NULL
+Sample Rows (Up to 2):
+[
+  {
+    "id": "9058e16a-6776-45e0-a3b4-e70ab3ed70c6",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "code": "QURAN",
+    "name_ar": "برنامج تحفيظ القرآن الكريم",
+    "name_en": "Quran Memorization Program",
+    "description": "برنامج شامل لتحفيظ القرآن الكريم",
+    "category_code": "EDUCATION",
+    "status_code": "active",
+    "start_date": "2026-08-04T00:00:00.000Z",
+    "end_date": "2031-08-04T00:00:00.000Z",
+    "budget": "0.00",
+    "budget_base": "0.00",
+    "currency_code": "YER",
+    "progress_percent": "0.00",
+    "target_beneficiaries": 0,
+    "actual_beneficiaries": 0,
+    "location_name": null,
+    "metadata": {},
+    "created_by": "00000000-0000-0000-0000-000000000001",
+    "security_level": 3,
+    "created_at": "2026-08-04T17:08:24.180Z",
+    "updated_at": "2026-08-04T17:08:24.180Z",
+    "deleted_at": null,
+    "version": 1,
+    "sync_status": "SYNCED",
+    "donor_id": null,
+    "manager_id": null,
+    "actual_budget": "0.00",
+    "currency_id": null,
+    "objectives": null,
+    "program_type": "general",
+    "phase_code": "planning",
+    "priority_code": "medium",
+    "is_shared": true,
+    "visibility": "public",
+    "data_classification": "internal",
+    "compliance_framework": null,
+    "shariah_board_approval": false,
+    "shariah_approval_date": null,
+    "board_approved": false,
+    "board_approval_date": null,
+    "risk_level": "medium",
+    "audit_frequency": "quarterly",
+    "last_audit_date": null,
+    "next_audit_date": null,
+    "internal_auditor_id": null,
+    "external_auditor_id": null,
+    "compliance_status": "compliant",
+    "reporting_frequency": "monthly",
+    "board_report_required": true
+  },
+  {
+    "id": "18c62c49-5c3c-4562-b171-3095d7d185b4",
+    "organization_id": "00000000-0000-0000-0000-000000000001",
+    "code": "MOSQUE",
+    "name_ar": "برنامج بناء المساجد",
+    "name_en": "Mosque Construction Program",
+    "description": "برنامج بناء وترميم المساجد",
+    "category_code": "RELIEF",
+    "status_code": "active",
+    "start_date": "2026-08-04T00:00:00.000Z",
+    "end_date": "2031-08-04T00:00:00.000Z",
+    "budget": "0.00",
+    "budget_base": "0.00",
+    "currency_code": "YER",
+    "progress_percent": "0.00",
+    "target_beneficiaries": 0,
+    "actual_beneficiaries": 0,
+    "location_name": null,
+    "metadata": {},
+    "created_by": "00000000-0000-0000-0000-000000000001",
+    "security_level": 3,
+    "created_at": "2026-08-04T17:10:42.028Z",
+    "updated_at": "2026-08-04T17:10:42.028Z",
+    "deleted_at": null,
+    "version": 1,
+    "sync_status": "SYNCED",
+    "donor_id": null,
+    "manager_id": null,
+    "actual_budget": "0.00",
+    "currency_id": null,
+    "objectives": null,
+    "program_type": "general",
+    "phase_code": "planning",
+    "priority_code": "medium",
+    "is_shared": true,
+    "visibility": "public",
+    "data_classification": "internal",
+    "compliance_framework": null,
+    "shariah_board_approval": false,
+    "shariah_approval_date": null,
+    "board_approved": false,
+    "board_approval_date": null,
+    "risk_level": "medium",
+    "audit_frequency": "quarterly",
+    "last_audit_date": null,
+    "next_audit_date": null,
+    "internal_auditor_id": null,
+    "external_auditor_id": null,
+    "compliance_status": "compliant",
+    "reporting_frequency": "monthly",
+    "board_report_required": true
+  }
+]

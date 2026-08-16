@@ -1,0 +1,191 @@
+      {/* Executive KPIs & Financial Dashboard Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
+        {/* KPI 1: Financial Capital Pool */}
+        <div className="bg-white border border-zinc-200/80 p-5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow hover:border-zinc-300 transition-all">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">
+              {lang === 'ar' ? 'الموازنة الاستراتيجية المعتمدة' : 'Total Approved Budgets'}
+            </span>
+            <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600 border border-emerald-100">
+              <Coins className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="text-xl md:text-2xl font-black text-zinc-900 block font-mono">
+              {formatCurrency(stats.financials.totalProgramBudget)}
+            </span>
+            <span className="text-[10px] text-emerald-600 font-black flex items-center gap-1 mt-1.5">
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>{lang === 'ar' ? 'تغطية مالية مرصودة بالكامل' : 'Allocated Programmatic Capital'}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* KPI 2: Active Programs & Projects */}
+        <div className="bg-white border border-zinc-200/80 p-5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow hover:border-zinc-300 transition-all">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">
+              {lang === 'ar' ? 'البرامج والمشاريع التنموية' : 'Active Programs & Deployments'}
+            </span>
+            <div className="p-2 bg-amber-50 rounded-lg text-amber-600 border border-amber-100">
+              <Layers className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="text-xl md:text-2xl font-black text-zinc-900 block font-mono">
+              {formatNumber(stats.counts.programs + stats.counts.projects)}
+            </span>
+            <div className="text-[10px] text-zinc-500 font-bold flex items-center gap-1 mt-1.5">
+              <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-600 rounded font-black font-mono">{stats.counts.programs} PROG</span>
+              <span>•</span>
+              <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-600 rounded font-black font-mono">{stats.counts.projects} PROJ</span>
+            </div>
+          </div>
+        </div>
+
+        {/* KPI 3: Total Verified Beneficiaries */}
+        <div className="bg-white border border-zinc-200/80 p-5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow hover:border-zinc-300 transition-all">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">
+              {lang === 'ar' ? 'المستفيدين الأسر المسجلة' : 'Total Registered Beneficiaries'}
+            </span>
+            <div className="p-2 bg-blue-50 rounded-lg text-blue-600 border border-blue-100">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="text-xl md:text-2xl font-black text-zinc-900 block font-mono">
+              {formatNumber(stats.counts.beneficiaries)}
+            </span>
+            <span className="text-[10px] text-blue-600 font-black flex items-center gap-1 mt-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>{lang === 'ar' ? 'سجلات حيوية مستوفية الأهلية' : 'Verified Demographics Ledger'}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* KPI 4: Active Sponsorships & Circles */}
+        <div className="bg-white border border-zinc-200/80 p-5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow hover:border-zinc-300 transition-all">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">
+              {lang === 'ar' ? 'كفالات الأيتام والطلاب النشطة' : 'Active Sponsors & Quranic Stipends'}
+            </span>
+            <div className="p-2 bg-rose-50 rounded-lg text-rose-600 border border-rose-100">
+              <Heart className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="text-xl md:text-2xl font-black text-zinc-900 block font-mono">
+              {formatNumber(stats.counts.sponsorships)}
+            </span>
+            <span className="text-[10px] text-rose-600 font-black flex items-center gap-1 mt-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{lang === 'ar' ? 'تغطية مالية ورعاية دورية مستمرة' : 'Sustained Social Care & Stipends'}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Dynamic Management Performance Cockpit */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+        
+        {/* KPI: Monthly Expense Velocity */}
+        <div className="bg-white border border-zinc-200/80 p-5 rounded-2xl shadow-sm hover:shadow hover:border-zinc-300 transition-all flex flex-col justify-between">
+          <div className="flex flex-col md:flex-row justify-between items-stretch gap-4">
+            
+            {/* Left Info Column */}
+            <div className="flex-1 flex flex-col justify-between min-h-[110px]">
+              <div>
+                <div className="flex items-center gap-1.5 text-zinc-400">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    {lang === 'ar' ? 'معدل الصرف الشهري الفعلي' : 'Monthly Expense Velocity'}
+                  </span>
+                </div>
+                <span className="text-xl md:text-2xl font-black text-zinc-900 block mt-2 font-mono">
+                  {formatCurrency(monthlyExpenseVelocityData[monthlyExpenseVelocityData.length - 1]?.expense || 0)}
+                </span>
+              </div>
+              
+              <div className="mt-2">
+                <span className="text-[10px] font-bold text-zinc-500 flex items-center gap-1.5 leading-relaxed">
+                  <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded text-[9px] font-black font-mono">
+                    +12.8% MoM
+                  </span>
+                  <span>{lang === 'ar' ? 'معدل استهلاك الموازنة السنوية' : 'Annual budget execution rate'}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Right Mini-Chart Column */}
+            <div className="w-full md:w-32 h-20 md:h-24 self-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyExpenseVelocityData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                  <Tooltip content={<CustomExpenseTooltip />} cursor={{ fill: 'rgba(244, 244, 245, 0.6)' }} />
+                  <Bar 
+                    dataKey="expense" 
+                    fill="#10b981" 
+                    radius={[3, 3, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+          </div>
+        </div>
+
+        {/* KPI: Active Sponsorship Growth */}
+        <div className="bg-white border border-zinc-200/80 p-5 rounded-2xl shadow-sm hover:shadow hover:border-zinc-300 transition-all flex flex-col justify-between">
+          <div className="flex flex-col md:flex-row justify-between items-stretch gap-4">
+            
+            {/* Left Info Column */}
+            <div className="flex-1 flex flex-col justify-between min-h-[110px]">
+              <div>
+                <div className="flex items-center gap-1.5 text-zinc-400">
+                  <Heart className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    {lang === 'ar' ? 'نمو الكفالات المباشرة' : 'Active Sponsorship Growth'}
+                  </span>
+                </div>
+                <span className="text-xl md:text-2xl font-black text-zinc-900 block mt-2 font-mono">
+                  {formatNumber(stats.counts.sponsorships)}
+                </span>
+              </div>
+              
+              <div className="mt-2">
+                <span className="text-[10px] font-bold text-zinc-500 flex items-center gap-1.5 leading-relaxed">
+                  <span className="px-1.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-100 rounded text-[9px] font-black font-mono">
+                    +{activeSponsorshipGrowthData[activeSponsorshipGrowthData.length - 1]?.increase || 0} {lang === 'ar' ? 'جديد' : 'new'}
+                  </span>
+                  <span>{lang === 'ar' ? 'معدل الرعاية الاجتماعية المستهدفة' : 'Targeted welfare coverage target'}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Right Mini-Chart Column */}
+            <div className="w-full md:w-32 h-20 md:h-24 self-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={activeSponsorshipGrowthData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="colorSpons" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Tooltip content={<CustomSponsorshipTooltip />} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="sponsorships" 
+                    stroke="#f43f5e" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorSpons)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+          </div>
+        </div>
+
+      </div>

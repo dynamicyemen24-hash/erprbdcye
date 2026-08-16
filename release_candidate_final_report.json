@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-08-10T17:28:57.935Z",
+  "status": "GREEN",
+  "decision": "FINAL PRODUCTION READY",
+  "tablesCount": 176,
+  "codeCategoriesCount": 128,
+  "codeItemsCount": 565,
+  "crossOrgLeaks": 0,
+  "totalDebits": "1184500.00",
+  "totalCredits": "1184500.00",
+  "debitCreditDiff": "0.00",
+  "transactionTypesCount": 10,
+  "auditRecordsCount": 1
+}

@@ -1,0 +1,644 @@
+[
+  {
+    "name": "v_activities_by_project",
+    "error": "Connection terminated unexpectedly"
+  },
+  {
+    "name": "v_activity_attendance_full_new",
+    "error": "Connection terminated unexpectedly"
+  },
+  {
+    "name": "v_activity_attendance_report",
+    "error": "Connection terminated unexpectedly"
+  },
+  {
+    "name": "v_activity_beneficiaries_full_new",
+    "error": "Connection terminated unexpectedly"
+  },
+  {
+    "name": "v_activity_dashboard",
+    "error": "Connection terminated unexpectedly"
+  },
+  {
+    "name": "v_activity_dashboard_new",
+    "rowCount": 269,
+    "columnCount": 22,
+    "columns": [
+      "id (uuid)",
+      "organization_id (uuid)",
+      "activity_name (character varying)",
+      "activity_name_en (character varying)",
+      "description (text)",
+      "activity_type_code (character varying)",
+      "status_code (character varying)",
+      "start_datetime (timestamp with time zone)",
+      "end_datetime (timestamp with time zone)",
+      "duration_minutes (integer)",
+      "location_name (character varying)",
+      "location_name_ar (character varying)",
+      "budget (numeric)",
+      "currency_code (character varying)",
+      "target_beneficiaries (integer)",
+      "actual_beneficiaries (integer)",
+      "is_recurring (boolean)",
+      "created_at (timestamp with time zone)",
+      "project_id (uuid)",
+      "project_name (character varying)",
+      "program_id (uuid)",
+      "program_name (character varying)"
+    ]
+  },
+  {
+    "name": "v_activity_effectiveness_new",
+    "rowCount": 269,
+    "columnCount": 15,
+    "columns": [
+      "activity_id (uuid)",
+      "activity_name (character varying)",
+      "activity_type_code (character varying)",
+      "status_code (character varying)",
+      "start_datetime (timestamp with time zone)",
+      "end_datetime (timestamp with time zone)",
+      "budget (numeric)",
+      "target_beneficiaries (integer)",
+      "actual_beneficiaries (integer)",
+      "project_id (uuid)",
+      "project_name (character varying)",
+      "program_id (uuid)",
+      "program_name (character varying)",
+      "total_invited (bigint)",
+      "total_attended (bigint)"
+    ]
+  },
+  {
+    "name": "v_activity_hierarchy_new",
+    "rowCount": 269,
+    "columnCount": 29,
+    "columns": [
+      "activity_id (uuid)",
+      "organization_id (uuid)",
+      "activity_name (character varying)",
+      "activity_name_en (character varying)",
+      "description (text)",
+      "activity_type_code (character varying)",
+      "status_code (character varying)",
+      "start_datetime (timestamp with time zone)",
+      "end_datetime (timestamp with time zone)",
+      "duration_minutes (integer)",
+      "location_name (character varying)",
+      "location_name_ar (character varying)",
+      "budget (numeric)",
+      "currency_code (character varying)",
+      "target_beneficiaries (integer)",
+      "actual_beneficiaries (integer)",
+      "is_recurring (boolean)",
+      "project_id (uuid)",
+      "project_name (character varying)",
+      "project_status (character varying)",
+      "program_id (uuid)",
+      "program_name (character varying)",
+      "program_status (character varying)",
+      "total_beneficiaries_invited (bigint)",
+      "total_beneficiaries_attended (bigint)",
+      "total_volunteers (bigint)",
+      "total_attendance_records (bigint)",
+      "actual_spend (numeric)",
+      "completion_rate (numeric)"
+    ]
+  },
+  {
+    "name": "v_activity_implementation_report",
+    "rowCount": 269,
+    "columnCount": 15,
+    "columns": [
+      "activity_id (uuid)",
+      "organization_id (uuid)",
+      "project_name (character varying)",
+      "activity_name (character varying)",
+      "activity_type_code (character varying)",
+      "status_code (character varying)",
+      "start_datetime (timestamp with time zone)",
+      "end_datetime (timestamp with time zone)",
+      "budget (numeric)",
+      "target_beneficiaries (integer)",
+      "actual_beneficiaries (integer)",
+      "participants (bigint)",
+      "attendees (bigint)",
+      "attendance_rate (numeric)",
+      "implementation_status (text)"
+    ]
+  },
+  {
+    "name": "v_activity_performance_analysis",
+    "rowCount": 269,
+    "columnCount": 16,
+    "columns": [
+      "activity_id (uuid)",
+      "organization_id (uuid)",
+      "project_name (character varying)",
+      "activity_name (character varying)",
+      "activity_type_code (character varying)",
+      "status_code (character varying)",
+      "start_datetime (timestamp with time zone)",
+      "end_datetime (timestamp with time zone)",
+      "budget (numeric)",
+      "target_beneficiaries (integer)",
+      "actual_beneficiaries (integer)",
+      "registered_beneficiaries (bigint)",
+      "attended_beneficiaries (bigint)",
+      "attendance_rate (numeric)",
+      "beneficiary_achievement (numeric)",
+      "performance_rating (text)"
+    ]
+  },
+  {
+    "name": "v_activity_volunteers_full_new",
+    "rowCount": 0,
+    "columnCount": 17,
+    "columns": [
+      "id (uuid)",
+      "activity_id (uuid)",
+      "activity_name (character varying)",
+      "activity_type_code (character varying)",
+      "start_datetime (timestamp with time zone)",
+      "project_id (uuid)",
+      "project_name (character varying)",
+      "program_id (uuid)",
+      "program_name (character varying)",
+      "volunteer_id (uuid)",
+      "volunteer_name (character varying)",
+      "volunteer_name_en (character varying)",
+      "phone (character varying)",
+      "email (character varying)",
+      "role (character varying)",
+      "hours_worked (integer)",
+      "assigned_at (timestamp with time zone)"
+    ]
+  },
+  {
+    "name": "v_advanced_business_kpis",
+    "rowCount": 3,
+    "columnCount": 12,
+    "columns": [
+      "organization_id (uuid)",
+      "organization_name (character varying)",
+      "total_programs (bigint)",
+      "active_programs (bigint)",
+      "completed_programs (bigint)",
+      "total_projects (bigint)",
+      "completed_projects (bigint)",
+      "avg_project_progress (numeric)",
+      "total_activities (bigint)",
+      "completed_activities (bigint)",
+      "project_completion_rate (numeric)",
+      "activity_completion_rate (numeric)"
+    ]
+  },
+  {
+    "name": "v_all_migrated_activities",
+    "rowCount": 269,
+    "columnCount": 10,
+    "columns": [
+      "activity_id (uuid)",
+      "activity_name (character varying)",
+      "activity_name_en (character varying)",
+      "project_name (character varying)",
+      "project_category (character varying)",
+      "activity_type_code (character varying)",
+      "status_code (character varying)",
+      "location_name_ar (character varying)",
+      "sponsorship_count (bigint)",
+      "activity_budget (numeric)"
+    ]
+  },
+  {
+    "name": "v_attendance_report",
+    "error": "Connection terminated unexpectedly"
+  },
+  {
+    "name": "v_beneficiaries_detailed",
+    "error": "Connection terminated unexpectedly"
+  },
+  {
+    "name": "v_beneficiaries_detailed_new",
+    "rowCount": 0,
+    "columnCount": 17,
+    "columns": [
+      "id (uuid)",
+      "organization_id (uuid)",
+      "name_ar (character varying)",
+      "name_en (character varying)",
+      "status_code (character varying)",
+      "vulnerability_score (integer)",
+      "merit_score (integer)",
+      "phone (character varying)",
+      "email (character varying)",
+      "address (text)",
+      "city (character varying)",
+      "country (character varying)",
+      "role_code (character varying)",
+      "beneficiary_category_code (character varying)",
+      "family_size (integer)",
+      "is_head_of_household (boolean)",
+      "services_count (bigint)"
+    ]
+  },
+  {
+    "name": "v_beneficiary_geographic_report",
+    "rowCount": 203,
+    "columnCount": 11,
+    "columns": [
+      "organization_id (uuid)",
+      "governorate (character varying)",
+      "district (character varying)",
+      "category_code (character varying)",
+      "beneficiary_count (bigint)",
+      "total_individuals (bigint)",
+      "female_count (bigint)",
+      "male_count (bigint)",
+      "children (bigint)",
+      "adults (bigint)",
+      "elderly (bigint)"
+    ]
+  },
+  {
+    "name": "v_beneficiary_registration_report",
+    "rowCount": 418,
+    "columnCount": 21,
+    "columns": [
+      "beneficiary_id (uuid)",
+      "organization_id (uuid)",
+      "organization_name (character varying)",
+      "beneficiary_code (character varying)",
+      "full_name (character varying)",
+      "full_name_en (character varying)",
+      "national_id (character varying)",
+      "phone (character varying)",
+      "gender_code (character varying)",
+      "age (integer)",
+      "birth_date (date)",
+      "category_code (character varying)",
+      "status_code (character varying)",
+      "governorate (character varying)",
+      "district (character varying)",
+      "family_size (integer)",
+      "financial_status (character varying)",
+      "education_level (character varying)",
+      "registration_date (timestamp with time zone)",
+      "status_ar (text)",
+      "category_ar (text)"
+    ]
+  },
+  {
+    "name": "v_beneficiary_status_report",
+    "rowCount": 4,
+    "columnCount": 11,
+    "columns": [
+      "organization_id (uuid)",
+      "category_code (character varying)",
+      "status_code (character varying)",
+      "total_count (bigint)",
+      "total_individuals (bigint)",
+      "avg_age (numeric)",
+      "males (bigint)",
+      "females (bigint)",
+      "poor (bigint)",
+      "owned_housing (bigint)",
+      "rented_housing (bigint)"
+    ]
+  },
+  {
+    "name": "v_bonuses_incentives_report",
+    "rowCount": 0,
+    "columnCount": 19,
+    "columns": [
+      "allowance_id (uuid)",
+      "organization_id (uuid)",
+      "employee_id (uuid)",
+      "employee_name (character varying)",
+      "department_code (character varying)",
+      "department_name (character varying)",
+      "allowance_type (character varying)",
+      "amount (numeric)",
+      "currency_code (character varying)",
+      "effective_date (date)",
+      "status (character varying)",
+      "metadata (jsonb)",
+      "created_at (timestamp with time zone)",
+      "allowance_type_ar (text)",
+      "status_ar (text)",
+      "bonus_category_ar (text)",
+      "days_active (numeric)",
+      "total_employee_bonuses (numeric)",
+      "bonus_evaluation_ar (text)"
+    ]
+  },
+  {
+    "name": "v_budget_utilization_new",
+    "error": ""
+  },
+  {
+    "name": "v_cash_flow_report",
+    "error": ""
+  },
+  {
+    "name": "v_codes_full",
+    "error": ""
+  },
+  {
+    "name": "v_complete_migration_status",
+    "error": ""
+  },
+  {
+    "name": "v_complete_sponsorships",
+    "error": ""
+  },
+  {
+    "name": "v_current_inventory_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_data_quality_comprehensive_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_database_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_donations_by_intermediary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_donor_intermediary_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_donor_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_employee_payroll_detailed",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_employees_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_endowment_program_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_endowment_projects",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_endowment_returns_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_endowment_transactions",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_executive_budget_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_executive_dashboard",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_executive_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_field_tasks_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_financial_by_branches",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_financial_compliance_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_financial_transactions_detailed_new",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_financial_transactions_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_fixed_assets_comprehensive_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_hr_delegates_complete",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_hr_personnel",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_hr_salaries_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_hr_staff_complete",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_incidents_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_intermediary_performance",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_inventory_valuation_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_ipsas_trial_balance",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_legacy_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_login_attempts_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_migrated_projects",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_migration_final_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_migration_gaps",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_migration_status",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_monthly_donations_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_monthly_payroll_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_nexora_realtime_domain_stats",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_operational_costs_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_operational_revenue_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_payments_collections_analysis",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_payroll_summary_detailed",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_procurement_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_program_beneficiary_impact",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_program_dashboard",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_program_dashboard_new",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_program_performance_analysis",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_program_performance_new",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_programs_detailed",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_programs_sponsorships",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_project_comprehensive_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_project_dashboard",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_project_dashboard_new",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_project_performance_new",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_project_risk_analysis",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_resource_allocation_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_resource_usage_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_risk_comprehensive_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_salary_by_department",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_sales_revenue_summary",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_security_audit_advanced",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_sponsorship_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_sponsorships_beneficiaries",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_sponsorships_classified",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_sponsorships_parties",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_sponsorships_programs",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_statistical_summary_new",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_system_logs_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_system_performance_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_task_advanced_dashboard",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_task_performance_analysis",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  },
+  {
+    "name": "v_work_sessions_report",
+    "error": "getaddrinfo ENOTFOUND ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech"
+  }
+]

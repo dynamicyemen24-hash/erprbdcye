@@ -1,0 +1,369 @@
+{
+  "name": "CSharpNexoraOS™",
+  "displayName": "NexoraOS™",
+  "version": "1.0.0",
+  "edition": "Enterprise",
+  "category": "Intelligent Enterprise Operating System",
+  "description": "نظام ادارة المشاريع الاستثمارية والخيرية نسخة احترافية   ",
+  "mission": "تمكين المؤسسات من تحويل الرؤية والاستراتيجية إلى خطط قابلة للتنفيذ وعمليات قابلة للقياس ونتائج وأثر مستدام، من خلال منصة مؤسسية موحدة تجمع البيانات والموارد والعمليات والأداء والذكاء في منظومة واحدة.",
+  "operatingModel": {
+    "scope": [
+      "Enterprise",
+      "Strategic",
+      "Operational",
+      "Program",
+      "Project",
+      "Department",
+      "Branch",
+      "Field",
+      "Activity",
+      "Task"
+    ],
+    "managementLevels": [
+      "Board and Governance",
+      "Executive Management",
+      "Strategic Management",
+      "Operational Management",
+      "Program Management",
+      "Project Management",
+      "Department Management",
+      "Branch Management",
+      "Field Management",
+      "Frontline Execution"
+    ],
+    "planningHorizons": [
+      "Long-Term",
+      "Strategic",
+      "Annual",
+      "Quarterly",
+      "Monthly",
+      "Weekly",
+      "Daily",
+      "Real-Time"
+    ]
+  },
+  "strategicManagement": {
+    "enabled": true,
+    "capabilities": [
+      "Vision and Mission Management",
+      "Strategic Framework",
+      "Strategic Objectives",
+      "Strategic Themes",
+      "Strategic Initiatives",
+      "Strategic KPIs",
+      "Institutional Priorities",
+      "Strategic Risk Management",
+      "Scenario Planning",
+      "Strategic Portfolio Management",
+      "Balanced Scorecards",
+      "Strategy Execution",
+      "Strategy Review",
+      "Strategic Performance Analytics"
+    ]
+  },
+  "operationalManagement": {
+    "enabled": true,
+    "capabilities": [
+      "Annual Operating Plans",
+      "Department Plans",
+      "Branch Plans",
+      "Operational Objectives",
+      "Operational KPIs",
+      "Programs",
+      "Projects",
+      "Workflows",
+      "Activities",
+      "Tasks",
+      "Schedules",
+      "Resource Allocation",
+      "Operational Budgets",
+      "Operational Risk",
+      "Issue Management",
+      "Performance Monitoring",
+      "Management Reviews"
+    ]
+  },
+  "fieldManagement": {
+    "enabled": true,
+    "capabilities": [
+      "Field Planning",
+      "Field Assignments",
+      "Mobile Operations",
+      "Site Management",
+      "Geographic Operations",
+      "Field Activities",
+      "Field Teams",
+      "Beneficiary and Stakeholder Engagement",
+      "Field Data Collection",
+      "Field Verification",
+      "Attendance and Presence",
+      "Incident Reporting",
+      "Field Monitoring",
+      "Offline Operations",
+      "Mobile Approvals",
+      "Real-Time Field Reporting"
+    ]
+  },
+  "enterpriseCapabilities": [
+    "Enterprise Strategy",
+    "Strategic Planning",
+    "Operational Planning",
+    "Field Operations",
+    "Enterprise Performance Management",
+    "Program Management",
+    "Project Portfolio Management",
+    "Business Process Management",
+    "Workflow Automation",
+    "Financial Management",
+    "Budget Management",
+    "Human Capital Management",
+    "Procurement Management",
+    "Supply Chain Management",
+    "Inventory Management",
+    "Asset Management",
+    "Contract Management",
+    "Partnership Management",
+    "Customer and Beneficiary Management",
+    "Stakeholder Management",
+    "Document and Records Management",
+    "Knowledge Management",
+    "Risk Management",
+    "Compliance Management",
+    "Internal Controls",
+    "Audit Management",
+    "Monitoring and Evaluation",
+    "Impact Management",
+    "Business Intelligence",
+    "Management Reporting",
+    "Data Analytics",
+    "Artificial Intelligence",
+    "Decision Intelligence",
+    "Notifications",
+    "Enterprise Search",
+    "Identity and Access Management",
+    "Security and Auditability"
+  ],
+  "organizationalModel": {
+    "supportsMultiEntity": true,
+    "supportsMultiOrganization": true,
+    "supportsMultiBranch": true,
+    "supportsMultiDepartment": true,
+    "supportsMultiProject": true,
+    "supportsMultiProgram": true,
+    "supportsMultiLocation": true,
+    "supportsMultiActivity": true,
+    "supportsMultiCurrency": true,
+    "supportsMultiLanguage": true,
+    "supportsMultiTenant": true
+  },
+  "executionModel": {
+    "strategyToExecution": true,
+    "planningToBudget": true,
+    "budgetToExecution": true,
+    "planToProject": true,
+    "projectToActivity": true,
+    "activityToTask": true,
+    "taskToEvidence": true,
+    "executionToMeasurement": true,
+    "measurementToDecision": true,
+    "decisionToAction": true
+  },
+  "performanceManagement": {
+    "enabled": true,
+    "frameworks": [
+      "OKRs",
+      "KPIs",
+      "Balanced Scorecard",
+      "Results-Based Management",
+      "Objectives and Key Results",
+      "Theory of Change",
+      "Logical Framework",
+      "Impact Measurement"
+    ],
+    "capabilities": [
+      "Objective Management",
+      "Indicator Management",
+      "Target Management",
+      "Baseline Management",
+      "Actual Performance",
+      "Performance Trends",
+      "Performance Dashboards",
+      "Variance Analysis",
+      "Corrective Actions",
+      "Performance Reviews",
+      "Impact Analysis"
+    ]
+  },
+  "resourceManagement": {
+    "capabilities": [
+      "Financial Resources",
+      "Human Resources",
+      "Physical Resources",
+      "Digital Resources",
+      "Time",
+      "Equipment",
+      "Vehicles",
+      "Facilities",
+      "Inventory",
+      "Budgets",
+      "Grants",
+      "Funding",
+      "Donor Resources",
+      "Partner Resources"
+    ]
+  },
+  "governance": {
+    "enabled": true,
+    "capabilities": [
+      "Policies",
+      "Delegations",
+      "Authorities",
+      "Approvals",
+      "Committees",
+      "Decision Records",
+      "Internal Controls",
+      "Risk Registers",
+      "Compliance",
+      "Audit Trails",
+      "Conflict Management",
+      "Accountability"
+    ]
+  },
+  "intelligence": {
+    "enabled": true,
+    "capabilities": [
+      "AI Executive Assistant",
+      "Strategic Planning Assistant",
+      "Operational Planning Assistant",
+      "Field Operations Assistant",
+      "Decision Intelligence",
+      "Predictive Analytics",
+      "Trend Detection",
+      "Risk Detection",
+      "Anomaly Detection",
+      "Performance Insights",
+      "Automated Reporting",
+      "Document Intelligence",
+      "Enterprise Knowledge Assistant",
+      "Natural Language Analytics",
+      "Scenario Analysis",
+      "Recommendation Engine"
+    ],
+    "majorCapabilities": [
+      "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+    ]
+  },
+  "dataArchitecture": {
+    "model": "Unified Enterprise Data Model",
+    "principles": [
+      "Single Source of Truth",
+      "Data Integrity",
+      "Traceability",
+      "Auditability",
+      "Interoperability",
+      "Real-Time Visibility",
+      "Historical Analysis",
+      "Data Governance"
+    ]
+  },
+  "automation": {
+    "enabled": true,
+    "capabilities": [
+      "Workflow Automation",
+      "Approval Automation",
+      "Task Automation",
+      "Notification Automation",
+      "Escalation Rules",
+      "Scheduled Processes",
+      "Recurring Operations",
+      "Business Rules",
+      "Conditional Workflows",
+      "Event-Driven Automation",
+      "AI-Assisted Automation"
+    ]
+  },
+  "analytics": {
+    "enabled": true,
+    "capabilities": [
+      "Executive Dashboards",
+      "Strategic Dashboards",
+      "Operational Dashboards",
+      "Field Dashboards",
+      "Financial Analytics",
+      "Project Analytics",
+      "Program Analytics",
+      "Resource Analytics",
+      "Performance Analytics",
+      "Risk Analytics",
+      "Impact Analytics",
+      "Predictive Analytics",
+      "Cross-Entity Analytics",
+      "Real-Time Analytics"
+    ]
+  },
+  "security": {
+    "principles": [
+      "Security by Design",
+      "Least Privilege",
+      "Role-Based Access Control",
+      "Attribute-Based Access Control",
+      "Separation of Duties",
+      "Data Protection",
+      "Auditability",
+      "Traceability",
+      "Session Security",
+      "Administrative Controls"
+    ]
+  },
+  "architecture": {
+    "style": "Modular Enterprise Architecture",
+    "designPrinciples": [
+      "API First",
+      "Modular by Design",
+      "Configuration over Customization",
+      "Event Driven",
+      "Service Oriented",
+      "Mobile First",
+      "Offline Capable",
+      "Cloud Ready",
+      "AI Native",
+      "Integration Ready",
+      "Scalable",
+      "Observable",
+      "Secure by Default"
+    ]
+  },
+  "organizationalSuitability": [
+    "Corporations",
+    "Enterprises",
+    "Nonprofit Organizations",
+    "Humanitarian Organizations",
+    "Development Organizations",
+    "Charities",
+    "Associations",
+    "Foundations",
+    "Social Enterprises",
+    "Multi-Branch Organizations",
+    "Project-Based Organizations",
+    "Program-Based Organizations",
+    "Government and Public Sector Entities"
+  ],
+  "corePrinciples": [
+    "Strategy Before Execution",
+    "One Enterprise View",
+    "Plan Once, Execute Everywhere",
+    "Data-Driven Management",
+    "Evidence-Based Decisions",
+    "Accountability by Design",
+    "Continuous Performance Improvement",
+    "Impact-Oriented Management",
+    "Human-Centered Technology",
+    "AI-Assisted Decision Making",
+    "Security and Governance by Design",
+    "Scalability Without Complexity"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "requestFramePermissions": ["camera", "microphone"]
+}
