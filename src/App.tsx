@@ -1,3 +1,4 @@
+import './lib/apiConfig'; // Must be first — configures fetch wrapper for split deployment
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -69,6 +70,7 @@ const AppMatrixLauncherModal = React.lazy(() => import('./components/AppMatrixLa
 const UniversalCommandCenter = React.lazy(() => import('./components/UniversalCommandCenter'));
 const CustomizableShortcutsModal = React.lazy(() => import('./components/shortcuts/CustomizableShortcutsManagerModal'));
 const FastRecordRetrievalDrawer = React.lazy(() => import('./components/records/FastRecordRetrievalDrawer'));
+const EnvironmentModeBanner = React.lazy(() => import('./components/EnvironmentModeBanner').then(m => ({ default: m.EnvironmentModeBanner })));
 
 import { 
   EnterpriseLogo,
@@ -95,6 +97,7 @@ import { SecureStorage } from './core/security/SecureStorage';
 import { useTelemetry } from './core/hooks/useTelemetry';
 import type { User } from './core/types/users';
 import { useEnterprise } from './core/context/EnterpriseContext';
+import { useEnvironmentMode } from './core/context/EnvironmentModeContext';
 import { updateFavicon } from './core/utils/faviconUtils';
 import { TabContentRenderer } from './app/components';
 const ProjectStatusOverviewWidget = React.lazy(() => import('./components/ProjectStatusOverviewWidget'));
@@ -102,6 +105,7 @@ import { ActiveTab } from './core/types';
 import { resumeIntelligenceService } from './core/services/resumeIntelligence';
 
 export default function App() {
+  const { isTrainingMode, environmentMode } = useEnvironmentMode();
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
     try {
@@ -123,8 +127,10 @@ export default function App() {
       try {
         performance.measure('app-startup-to-shell', 'app-start', 'app-shell-render');
         const measure = performance.getEntriesByName('app-startup-to-shell')[0];
-        console.log(`[StartupPerf] App Shell rendered in ${Math.round(measure.duration)}ms from app-start`);
-      } catch (e) {}
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`[StartupPerf] App Shell rendered in ${Math.round(measure.duration)}ms from app-start`);
+        }
+      } catch (e) { console.error('[StartupPerf] Failed to measure app startup performance:', e); }
     }
   }, []);
 
@@ -387,7 +393,7 @@ export default function App() {
     try {
       const saved = localStorage.getItem('rbd_density');
       if (saved === 'compact' || saved === 'comfortable' || saved === 'spacious') return saved;
-    } catch (e) {}
+    } catch (e) { console.error('[LayoutDensity] Failed to read layout density from localStorage:', e); }
     return 'comfortable';
   });
 
@@ -395,7 +401,7 @@ export default function App() {
     try {
       localStorage.setItem('rbd_density', layoutDensity);
       document.documentElement.setAttribute('data-density', layoutDensity);
-    } catch (e) {}
+    } catch (e) { console.error('[LayoutDensity] Failed to save layout density to localStorage:', e); }
   }, [layoutDensity]);
 
   const [isSystemsDockPinned, setIsSystemsDockPinned] = useState<boolean>(true);
@@ -443,12 +449,13 @@ export default function App() {
   const enterprise = useEnterprise();
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     try {
+      const token = localStorage.getItem('rbd_token');
       const saved = localStorage.getItem('rbd_user') || localStorage.getItem('roh_user');
-      if (saved) {
+      if (saved && token) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.id) return parsed;
+        if (parsed && (parsed.id || parsed.email)) return parsed;
       }
-    } catch (e) {}
+    } catch (e) { console.error('[Auth] Failed to parse saved user from localStorage:', e); }
     return null;
   });
 
@@ -467,9 +474,62 @@ export default function App() {
     onTimeout: () => {
       setCurrentUser(null);
       setAuthenticatedModules([]);
+      localStorage.removeItem('rbd_token');
+      localStorage.removeItem('rbd_refresh_token');
       alert(lang === 'ar' ? 'تم تسجيل الخروج تلقائياً لعدم النشاط (حماية أمنية).' : 'Automatically logged out due to inactivity (Security protection).');
     }
   });
+
+  // Auto-refresh JWT access token before expiry using refresh token
+  useEffect(() => {
+    if (!currentUser) return;
+
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleRefresh = () => {
+      try {
+        const token = localStorage.getItem('rbd_token');
+        const refreshToken = localStorage.getItem('rbd_refresh_token');
+        if (!token || !refreshToken) return;
+
+        // Decode JWT payload (base64url)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (!payload.exp) return;
+
+        const expiresInMs = (payload.exp * 1000) - Date.now();
+        // Refresh when there are 30 minutes left (or immediately if already close)
+        const refreshInMs = Math.max(expiresInMs - 30 * 60 * 1000, 0);
+
+        refreshTimer = setTimeout(async () => {
+          try {
+            const res = await fetch('/api/auth/refresh', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken })
+            });
+            const data = await res.json();
+            if (res.ok && data.token) {
+              localStorage.setItem('rbd_token', data.token);
+              scheduleRefresh(); // schedule next refresh
+            } else {
+              // Refresh failed — force re-login
+              setCurrentUser(null);
+              setAuthenticatedModules([]);
+              localStorage.removeItem('rbd_token');
+              localStorage.removeItem('rbd_refresh_token');
+            }
+          } catch {
+            // Network error — will retry on next interaction
+          }
+        }, refreshInMs);
+      } catch {
+        // Invalid token format — ignore
+      }
+    };
+
+    scheduleRefresh();
+    return () => { if (refreshTimer) clearTimeout(refreshTimer); };
+  }, [currentUser]);
 
   // Connectivity state for PWA Service Worker offline caching strategy
   const [isOnline, setIsOnline] = useState<boolean>(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
@@ -509,7 +569,7 @@ export default function App() {
     }
     try {
       localStorage.setItem('rbd_theme', theme);
-    } catch (e) {}
+    } catch (e) { console.error('[Theme] Failed to save theme to localStorage:', e); }
   }, [theme]);
 
   // Dynamic stats calculator
@@ -594,7 +654,8 @@ export default function App() {
     strategic_planning: { icon: Target, title_ar: 'التخطيط الاستراتيجي', title_en: 'Strategic Planning', category_ar: 'التخطيط الاستراتيجي', category_en: 'Strategy' },
     investments: { icon: TrendingUp, title_ar: 'المشاريع الاستثمارية والأوقاف', title_en: 'Investment & Endowment OS', category_ar: 'الأوقاف والاستثمار', category_en: 'Investments' },
     hr_dashboard: { icon: Users, title_ar: 'لوحة إدارة الموارد البشرية', title_en: 'HR Management Dashboard', category_ar: 'الموارد البشرية', category_en: 'HR OS' },
-    'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', category_ar: 'التزويد والمطالبات', category_en: 'Third-Party OS' }
+    'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', category_ar: 'التزويد والمطالبات', category_en: 'Third-Party OS' },
+    sales: { icon: Coins, title_ar: 'المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', category_ar: 'تنمية الموارد', category_en: 'Fundraising' }
   };
 
   const dbConnected = !!serverStats;
@@ -609,7 +670,7 @@ export default function App() {
           setAuthenticatedModules(['finance', 'audit', 'settings', 'backup', 'control_panel']);
           try {
             localStorage.setItem('rbd_user', JSON.stringify(user));
-          } catch (e) {}
+          } catch (e) { console.error('[Auth] Failed to save user to localStorage:', e); }
           fetchAllData(true); // Refetch all data securely after login
         }}
         lang={lang}
@@ -744,6 +805,13 @@ export default function App() {
             </div>
           )}
 
+          {/* Training vs Production Environment Mode Banner */}
+          <React.Suspense fallback={null}>
+            <div className="px-4 pt-3">
+              <EnvironmentModeBanner lang={lang} variant="compact" showToggle={true} />
+            </div>
+          </React.Suspense>
+
           {/* Main Module Content View */}
           <div className={`flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar w-full ${
             layoutDensity === 'compact' ? 'p-2 md:p-3 pb-16 lg:pb-3' : layoutDensity === 'spacious' ? 'p-4 md:p-8 pb-24 lg:pb-8' : 'p-3 md:p-6 pb-20 lg:pb-6'
@@ -801,17 +869,19 @@ export default function App() {
       />
 
       {/* MODALS */}
-      <React.Suspense fallback={null}>
-        <ExportToolsModal
-          isOpen={showExportModal}
-          onClose={() => setShowExportModal(false)}
-          titleAr={`تصدير بيانات ${TAB_CONFIG[activeTab]?.title_ar || 'التسليم'}`}
-          titleEn={`Export ${TAB_CONFIG[activeTab]?.title_en || 'Records'} Data`}
-          data={projects.length > 0 ? projects : programs}
-          fileName={`NexoraOS_${activeTab}_Report`}
-          lang={lang}
-        />
-      </React.Suspense>
+      {showExportModal && (
+        <React.Suspense fallback={null}>
+          <ExportToolsModal
+            isOpen={showExportModal}
+            onClose={() => setShowExportModal(false)}
+            titleAr={`تصدير بيانات ${TAB_CONFIG[activeTab]?.title_ar || 'التسليم'}`}
+            titleEn={`Export ${TAB_CONFIG[activeTab]?.title_en || 'Records'} Data`}
+            data={projects.length > 0 ? projects : programs}
+            fileName={`NexoraOS_${activeTab}_Report`}
+            lang={lang}
+          />
+        </React.Suspense>
+      )}
 
       {showDocsModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200">

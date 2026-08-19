@@ -11,6 +11,7 @@ interface ProactiveBriefingViewProps {
 export default function ProactiveBriefingView({ anomalies, lang }: ProactiveBriefingViewProps) {
   const [briefing, setBriefing] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -18,7 +19,7 @@ export default function ProactiveBriefingView({ anomalies, lang }: ProactiveBrie
       const result = await generateBriefing(anomalies);
       setBriefing(result);
     } catch (error) {
-      console.error('Briefing generation failed', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Briefing generation failed');
     } finally {
       setLoading(false);
     }
@@ -39,6 +40,13 @@ export default function ProactiveBriefingView({ anomalies, lang }: ProactiveBrie
         {loading && <Loader2 className="w-3 h-3 animate-spin" />}
         {lang === 'ar' ? 'توليد الإحاطة' : 'Generate Briefing'}
       </button>
+
+      {errorMessage && (
+        <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-lg flex items-center justify-between">
+          <span className="text-xs text-red-700 dark:text-red-300">{errorMessage}</span>
+          <button onClick={() => setErrorMessage(null)} className="text-red-500 hover:text-red-700 text-xs font-bold">✕</button>
+        </div>
+      )}
 
       {briefing && (
         <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed italic">

@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import * as Lucide from 'lucide-react';
+import {
+  Target, Gauge, Layers, FolderKanban, Workflow, HandHeart, UsersRound,
+  HeartHandshake, Building2, Wallet, Library, Plug, Sparkles, LayoutDashboard,
+  ListChecks, Calendar, Stamp, FilePlus, Mail, FileInput, Search, Folder,
+  Share2, Bell, StickyNote, Signature, FileBarChart, ArrowLeftRight, Printer,
+  Star, Bookmark, History, HelpCircle, MapPin, ClipboardList, Clipboard,
+  Camera, UserCheck, WifiOff, RefreshCw, FileCheck, Navigation, AlertTriangle,
+  ScanSearch, Brain, FileScan, Wand2, TrendingUp, ShieldAlert, Lightbulb,
+  BellRing, Activity, Bot, Users, ShieldCheck, Network, GitBranch,
+  SlidersHorizontal, List, Shield, Settings, Compass, Grid, Wrench,
+  ArrowLeft, ArrowRight, Info, X, CheckCircle2
+} from 'lucide-react';
 import { useOrganizationBranding } from '../core/hooks/useOrganizationBranding';
 import { TabId } from '../types';
 import { ORGANIZATION_CONFIG } from '../core/config';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 // -------------------------------------------------------------
 // Type Definitions
@@ -18,79 +30,71 @@ interface DomainCenterViewProps {
 // -------------------------------------------------------------
 const resolveIcon = (iconName: string): React.ComponentType<{ className?: string }> => {
   const customMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
-    'target': Lucide.Target,
-    'gauge': Lucide.Gauge,
-    'layers': Lucide.Layers,
-    'folder-kanban': Lucide.FolderKanban,
-    'workflow': Lucide.Workflow,
-    'hand-heart': Lucide.HandHeart,
-    'users-round': Lucide.UsersRound,
-    'heart-handshake': Lucide.HeartHandshake,
-    'building-2': Lucide.Building2,
-    'wallet': Lucide.Wallet,
-    'library': Lucide.Library,
-    'plug': Lucide.Plug,
-    'sparkles': Lucide.Sparkles,
-    'layout-dashboard': Lucide.LayoutDashboard,
-    'list-checks': Lucide.ListChecks,
-    'calendar': Lucide.Calendar,
-    'stamp': Lucide.Stamp,
-    'file-plus': Lucide.FilePlus,
-    'mail': Lucide.Mail,
-    'file-input': Lucide.FileInput,
-    'search': Lucide.Search,
-    'folder': Lucide.Folder,
-    'share-2': Lucide.Share2,
-    'bell': Lucide.Bell,
-    'sticky-note': Lucide.StickyNote,
-    'signature': Lucide.Signature,
-    'file-bar-chart': Lucide.FileBarChart,
-    'arrow-left-right': Lucide.ArrowLeftRight,
-    'printer': Lucide.Printer,
-    'star': Lucide.Star,
-    'bookmark': Lucide.Bookmark,
-    'history': Lucide.History,
-    'circle-help': Lucide.HelpCircle,
-    'map-pin': Lucide.MapPin,
-    'clipboard-list': Lucide.ClipboardList,
-    'clipboard': Lucide.Clipboard,
-    'camera': Lucide.Camera,
-    'user-check': Lucide.UserCheck,
-    'wifi-off': Lucide.WifiOff,
-    'refresh-cw': Lucide.RefreshCw,
-    'file-check': Lucide.FileCheck,
-    'navigation': Lucide.Navigation,
-    'file-warning': Lucide.AlertTriangle,
-    'scan-search': Lucide.ScanSearch,
-    'brain': Lucide.Brain,
-    'file-scan': Lucide.FileScan,
-    'wand-sparkles': Lucide.Wand2,
-    'trending-up': Lucide.TrendingUp,
-    'shield-alert': Lucide.ShieldAlert,
-    'lightbulb': Lucide.Lightbulb,
-    'bell-ring': Lucide.BellRing,
-    'activity': Lucide.Activity,
-    'bot': Lucide.Bot,
-    'users': Lucide.Users,
-    'shield-check': Lucide.ShieldCheck,
-    'network': Lucide.Network,
-    'git-branch': Lucide.GitBranch,
-    'sliders-horizontal': Lucide.SlidersHorizontal,
-    'list': Lucide.List,
-    'shield': Lucide.Shield,
-    'bell-cog': Lucide.BellRing,
-    'settings': Lucide.Settings,
+    'target': Target,
+    'gauge': Gauge,
+    'layers': Layers,
+    'folder-kanban': FolderKanban,
+    'workflow': Workflow,
+    'hand-heart': HandHeart,
+    'users-round': UsersRound,
+    'heart-handshake': HeartHandshake,
+    'building-2': Building2,
+    'wallet': Wallet,
+    'library': Library,
+    'plug': Plug,
+    'sparkles': Sparkles,
+    'layout-dashboard': LayoutDashboard,
+    'list-checks': ListChecks,
+    'calendar': Calendar,
+    'stamp': Stamp,
+    'file-plus': FilePlus,
+    'mail': Mail,
+    'file-input': FileInput,
+    'search': Search,
+    'folder': Folder,
+    'share-2': Share2,
+    'bell': Bell,
+    'sticky-note': StickyNote,
+    'signature': Signature,
+    'file-bar-chart': FileBarChart,
+    'arrow-left-right': ArrowLeftRight,
+    'printer': Printer,
+    'star': Star,
+    'bookmark': Bookmark,
+    'history': History,
+    'circle-help': HelpCircle,
+    'map-pin': MapPin,
+    'clipboard-list': ClipboardList,
+    'clipboard': Clipboard,
+    'camera': Camera,
+    'user-check': UserCheck,
+    'wifi-off': WifiOff,
+    'refresh-cw': RefreshCw,
+    'file-check': FileCheck,
+    'navigation': Navigation,
+    'file-warning': AlertTriangle,
+    'scan-search': ScanSearch,
+    'brain': Brain,
+    'file-scan': FileScan,
+    'wand-sparkles': Wand2,
+    'trending-up': TrendingUp,
+    'shield-alert': ShieldAlert,
+    'lightbulb': Lightbulb,
+    'bell-ring': BellRing,
+    'activity': Activity,
+    'bot': Bot,
+    'users': Users,
+    'shield-check': ShieldCheck,
+    'network': Network,
+    'git-branch': GitBranch,
+    'sliders-horizontal': SlidersHorizontal,
+    'list': List,
+    'shield': Shield,
+    'bell-cog': BellRing,
+    'settings': Settings,
   };
 
-  if (customMap[iconName]) return customMap[iconName];
-
-  // Fallback to camelCase lookup
-  const pascalName = iconName
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('');
-  
-  return (Lucide as any)[pascalName] || Lucide.HelpCircle;
+  return (customMap as any)[iconName] || HelpCircle;
 };
 
 // -------------------------------------------------------------
@@ -327,12 +331,12 @@ const DOMAIN_ENRICHMENT: {
     suiteKey: 'finance',
     suiteAr: 'المالية والإيرادات',
     suiteEn: 'Finance & Revenue Suite',
-    targetTab: 'finance',
-    managedEntitiesAr: ['بوابات التبرع السريع', 'إدارة الفواتير والإيصالات', 'حملات التمويل الجماعي', 'تقارير الإيرادات المادية'],
-    managedEntitiesEn: ['Donation Gateways', 'Invoicing & Receipts', 'Crowdfunding Campaigns', 'Revenue Reports'],
+    targetTab: 'sales',
+    managedEntitiesAr: ['بوابات التبرع السريع', 'إدارة الفواتير والإيصالات', 'حملات التمويل الجماعي', 'نقاط الخدمة ومراكز التبرع'],
+    managedEntitiesEn: ['Donation Gateways', 'Digital Invoicing & Receipts', 'Crowdfunding Campaigns', 'Service Hubs & Points of Sale'],
     primaryKpiAr: 'إجمالي الإيرادات المحصلة',
     primaryKpiEn: 'Total Collected Revenue',
-    kpiValue: '$1.82M Collected',
+    kpiValue: '40.7M YER',
     status: 'SECURED',
     bgGradient: 'from-emerald-500/10 via-emerald-500/5 to-transparent',
     badgeBg: 'bg-emerald-500/10 border-emerald-500/30',
@@ -587,6 +591,13 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
   ];
 
   return (
+    <ModuleShell
+      titleAr="مركز النطاقات"
+      titleEn="Domain Center"
+      domainCode="NEB-12"
+      icon={Compass}
+      lang={lang}
+    >
     <div id="nexora-enterprise-domain-center" className="space-y-6 animate-fade-in text-slate-900 dark:text-zinc-100 pb-16 max-w-full">
       
       {/* Brand Header Banner */}
@@ -598,7 +609,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
           <div className="space-y-2.5 max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-3 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-500/30 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
-                <Lucide.ShieldCheck className="w-3.5 h-3.5" />
+                <ShieldCheck className="w-3.5 h-3.5" />
                 <span>NexoraOS™ Operating Core</span>
               </span>
               <span className="px-2.5 py-1 bg-amber-500/10 text-amber-800 dark:text-amber-400 rounded-lg border border-amber-500/30 text-xs font-mono font-black">
@@ -647,7 +658,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
             }`}
           >
-            <Lucide.Grid className="w-4 h-4" />
+            <Grid className="w-4 h-4" />
             <span>{isRtl ? '١٥ نظاماً مؤسسياً' : '15 Core Systems'}</span>
           </button>
 
@@ -659,7 +670,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
             }`}
           >
-            <Lucide.Wrench className="w-4 h-4" />
+            <Wrench className="w-4 h-4" />
             <span>{isRtl ? '٢٠ أداة عمل مشتركة' : '20 Work Tools'}</span>
           </button>
 
@@ -671,7 +682,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
             }`}
           >
-            <Lucide.MapPin className="w-4 h-4" />
+            <MapPin className="w-4 h-4" />
             <span>{isRtl ? '١٠ قدرات ميدانية GIS' : '10 Field GIS'}</span>
           </button>
 
@@ -683,7 +694,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
             }`}
           >
-            <Lucide.Sparkles className="w-4 h-4 animate-pulse" />
+            <Sparkles className="w-4 h-4 animate-pulse" />
             <span>{isRtl ? '١١ طبقة ذكاء اصطناعي' : '11 AI Layer'}</span>
           </button>
 
@@ -695,7 +706,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
             }`}
           >
-            <Lucide.Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4" />
             <span>{isRtl ? '١١ مجمعاً إدارياً' : '11 Admin Suite'}</span>
           </button>
         </div>
@@ -705,7 +716,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
       <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-zinc-300 dark:border-zinc-800 p-4 rounded-xl shadow-xs space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           <div className="relative flex-1">
-            <Lucide.Search className={`w-4 h-4 text-amber-600 dark:text-amber-400 absolute top-3.5 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+            <Search className={`w-4 h-4 text-amber-600 dark:text-amber-400 absolute top-3.5 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
             <input
               type="text"
               value={searchTerm}
@@ -788,7 +799,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                     {/* Header: Domain Status & Category */}
                     <div className="flex items-center justify-between gap-2 mb-3.5 pt-1 relative z-10">
                       <div className={`px-2.5 py-1 rounded-lg border ${domain.badgeBg} ${domain.badgeText} text-xs font-bold flex items-center gap-1.5 shadow-2xs`}>
-                        <Lucide.Grid className="w-3.5 h-3.5" />
+                        <Grid className="w-3.5 h-3.5" />
                         <span>{isRtl ? 'نظام تشغيلي نشط' : 'Active Domain'}</span>
                       </div>
                       <span className="text-[10px] font-extrabold px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-md border border-slate-200 dark:border-zinc-700">
@@ -822,7 +833,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                       </span>
                       {domain.managedEntitiesAr.slice(0, 3).map((item, idx) => (
                         <div key={idx} className="flex items-center gap-2 text-[11px] font-bold text-slate-800 dark:text-zinc-200">
-                          <Lucide.CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                           <span className="truncate">{isRtl ? item : domain.managedEntitiesEn[idx]}</span>
                         </div>
                       ))}
@@ -846,14 +857,14 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                         className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2 group/btn"
                       >
                         <span>{isRtl ? 'عرض تفاصيل المجال' : 'View Workspace'}</span>
-                        {isRtl ? <Lucide.ArrowLeft className="w-3.5 h-3.5" /> : <Lucide.ArrowRight className="w-3.5 h-3.5" />}
+                        {isRtl ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
                       </button>
 
                       <button
                         onClick={() => setSelectedDomainModal(domain)}
                         className="p-2.5 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl transition-colors cursor-pointer border border-slate-200 dark:border-zinc-700"
                       >
-                        <Lucide.Info className="w-4 h-4" />
+                        <Info className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -982,7 +993,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                           onClick={() => setStickyNotes(prev => prev.filter(n => n.id !== note.id))}
                           className="absolute top-1.5 right-1.5 opacity-0 group-hover/note:opacity-100 transition-opacity text-slate-500 hover:text-slate-800 dark:hover:text-white"
                         >
-                          <Lucide.X className="w-3 h-3" />
+                          <X className="w-3 h-3" />
                         </button>
                         <p className="leading-normal">{note.text}</p>
                       </div>
@@ -1062,7 +1073,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
           <div className="bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded-xl p-5 md:p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
               <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                <Lucide.MapPin className="w-4 h-4 text-amber-500 animate-bounce" />
+                <MapPin className="w-4 h-4 text-amber-500 animate-bounce" />
                 <span>{isRtl ? 'الرصد والتبع الجغرافي النشط GIS' : 'Live GIS Field Telemetry'}</span>
               </h3>
               <div className="flex items-center gap-1.5">
@@ -1280,7 +1291,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-fuchsia-500 text-white rounded-xl">
-                    <Lucide.Sparkles className="w-5 h-5 animate-pulse" />
+                    <Sparkles className="w-5 h-5 animate-pulse" />
                   </div>
                   <div>
                     <span className="text-[9px] font-mono font-black text-fuchsia-600 dark:text-fuchsia-400">{selectedAiTool?.code}</span>
@@ -1311,7 +1322,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                   disabled={isAiGenerating}
                   className="px-5 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
                 >
-                  <Lucide.Wand2 className="w-4 h-4" />
+                  <Wand2 className="w-4 h-4" />
                   <span>{isAiGenerating ? (isRtl ? 'جاري التحليل وتوليد الأثر...' : 'Generating Stream...') : (isRtl ? 'تحليل بالذكاء الاصطناعي مع Gemini' : 'Generate with Gemini AI')}</span>
                 </button>
 
@@ -1320,7 +1331,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                     onClick={() => setShowPrintPreview(true)}
                     className="px-5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-extrabold text-xs rounded-xl border border-slate-200 dark:border-zinc-700 transition-colors cursor-pointer flex items-center gap-1.5"
                   >
-                    <Lucide.Printer className="w-4 h-4" />
+                    <Printer className="w-4 h-4" />
                     <span>{isRtl ? 'معاينة للطباعة A4' : 'A4 Print Preview'}</span>
                   </button>
                 )}
@@ -1552,7 +1563,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 onClick={() => setSelectedDomainModal(null)}
                 className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full text-zinc-400 hover:text-zinc-100 transition-colors"
               >
-                <Lucide.X className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1574,7 +1585,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {selectedDomainModal.managedEntitiesAr.map((item: string, idx: number) => (
                     <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-zinc-200">
-                      <Lucide.ShieldCheck className="w-4 h-4 text-emerald-500" />
+                      <ShieldCheck className="w-4 h-4 text-emerald-500" />
                       <span>{isRtl ? item : selectedDomainModal.managedEntitiesEn[idx] || item}</span>
                     </div>
                   ))}
@@ -1608,7 +1619,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-2"
               >
                 <span>{isRtl ? 'الانتقال للوحة التحكم والعمليات' : 'Launch Workspace'}</span>
-                {isRtl ? <Lucide.ArrowLeft className="w-4 h-4" /> : <Lucide.ArrowRight className="w-4 h-4" />}
+                {isRtl ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
               </button>
             </div>
 
@@ -1689,7 +1700,7 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
                 onClick={() => window.print()}
                 className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <Lucide.Printer className="w-4 h-4" />
+                <Printer className="w-4 h-4" />
                 <span>طباعة التقرير (Print PDF)</span>
               </button>
               
@@ -1706,5 +1717,6 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
       )}
 
     </div>
+    </ModuleShell>
   );
 }

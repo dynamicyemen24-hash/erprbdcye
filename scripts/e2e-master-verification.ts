@@ -4,7 +4,12 @@ import { WORKSPACE_REGISTRY } from '../src/core/registry/workspaceRegistry';
 
 dotenv.config();
 
-const DATABASE_URL = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_Dq90uUgVxdre@ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech/erprbdcyedb?sslmode=require&channel_binding=require";
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL environment variable is required');
+  process.exit(1);
+}
+
+const DATABASE_URL = process.env.DATABASE_URL;
 
 async function runMasterE2EVerification() {
   console.log("=================================================");

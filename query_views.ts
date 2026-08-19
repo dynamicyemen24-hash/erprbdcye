@@ -1,7 +1,14 @@
 import pg from 'pg';
 import fs from 'fs';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const connectionString = "postgresql://neondb_owner:npg_Dq90uUgVxdre@ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech/erprbdcyedb?sslmode=require";
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL environment variable is required');
+  process.exit(1);
+}
+
+const connectionString = process.env.DATABASE_URL;
 
 async function queryAllViews() {
   const client = new pg.Client({ connectionString });

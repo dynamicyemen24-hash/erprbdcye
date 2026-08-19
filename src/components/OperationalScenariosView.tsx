@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { 
   PlayCircle, 
   CheckCircle2, 
@@ -28,6 +28,7 @@ import {
   Award,
   Zap
 } from 'lucide-react';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface OperationalScenariosViewProps {
   lang: 'ar' | 'en';
@@ -72,7 +73,7 @@ export interface OperationalScenario {
   steps: ScenarioStep[];
 }
 
-export default function OperationalScenariosView({ lang, onNavigate }: OperationalScenariosViewProps) {
+function OperationalScenariosView({ lang, onNavigate }: OperationalScenariosViewProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeScenarioId, setActiveScenarioId] = useState<string>('SCENARIO-01');
@@ -776,6 +777,14 @@ ${activeScenario.steps.map(st => `
   };
 
   return (
+    <ModuleShell
+      titleAr="السيناريوهات التشغيلية"
+      titleEn="Operational Scenarios"
+      domainCode="NEB-05"
+      icon={PlayCircle}
+      lang={lang}
+      accent="cyan"
+    >
     <div className="space-y-8 animate-fade-in text-slate-800 dark:text-zinc-100 pb-12">
       
       {/* Executive Header Banner */}
@@ -1334,5 +1343,8 @@ ${activeScenario.steps.map(st => `
       </div>
 
     </div>
+    </ModuleShell>
   );
 }
+
+export default memo(OperationalScenariosView);

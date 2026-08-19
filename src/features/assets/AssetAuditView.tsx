@@ -23,7 +23,6 @@ export default function AssetAuditView({ lang }: AssetAuditViewProps) {
 
   const handleAudit = async (assetId: string) => {
     // Simulated real API call to update Fixed Asset Register
-    console.log('Auditing asset:', assetId);
     setLastScanned(assetId);
     setScanning(false);
     // Real implementation would call /api/assets/audit

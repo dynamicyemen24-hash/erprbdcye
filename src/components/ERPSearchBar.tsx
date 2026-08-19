@@ -46,14 +46,6 @@ interface ERPSearchBarProps {
 
 type SearchCategory = 'ALL' | 'BENEFICIARIES' | 'PROJECTS' | 'STAFF' | 'DOMAINS' | 'DOCUMENTS';
 
-const MOCK_DOCUMENTS = [
-  { id: 'doc-1', title_ar: 'الخطة الاستراتيجية 2026', title_en: 'Strategic Plan 2026', type: 'PDF', size: '2.4 MB', date: '2026-01-15', domain: 'NEB-01', author: 'أحمد علي' },
-  { id: 'doc-2', title_ar: 'تقرير الأداء المالي للربع الثاني', title_en: 'Q2 Financial Performance Report', type: 'XLSX', size: '1.1 MB', date: '2026-04-10', domain: 'NEB-10', author: 'سارة محمد' },
-  { id: 'doc-3', title_ar: 'سياسة المشتريات المحدثة', title_en: 'Updated Procurement Policy', type: 'DOCX', size: '850 KB', date: '2025-11-20', domain: 'NEB-14', author: 'إبراهيم حسن' },
-  { id: 'doc-4', title_ar: 'عقد الشراكة مع منظمة الصحة العالمية', title_en: 'WHO Partnership Agreement', type: 'PDF', size: '4.2 MB', date: '2026-03-05', domain: 'NEB-08', author: 'فاطمة عبدالله' },
-  { id: 'doc-5', title_ar: 'مخطط سير العمل الميداني', title_en: 'Field Operations Workflow', type: 'PNG', size: '1.5 MB', date: '2026-05-12', domain: 'NEB-05', author: 'عمر زيد' },
-];
-
 export interface DomainShortcut {
   code: string; // NEB-01 to NEB-13
   titleAr: string;
@@ -78,6 +70,16 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Documents fetched from API
+  const [documents, setDocuments] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/tables/knowledge_articles')
+      .then(res => res.json())
+      .then(rows => setDocuments(Array.isArray(rows) ? rows : []))
+      .catch(() => setDocuments([]));
+  }, []);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -287,10 +289,10 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
   }).map(u => ({ ...u, searchType: 'user' as const }));
 
   // Search Documents
-  const searchDocuments = MOCK_DOCUMENTS.filter(d => {
+  const searchDocuments = documents.filter(d => {
     if (activeDomainCode !== 'ALL' && activeDomainCode !== d.domain) return false;
     if (!cleanQuery) return true;
-    const targetStr = `${d.title_ar || ''} ${d.title_en || ''} ${d.type || ''} ${d.author || ''}`;
+    const targetStr = `${d.title_ar || ''} ${d.title_en || ''} ${d.type || ''} ${d.author || ''} ${d.name || ''}`;
     return fuzzyMatchArabic(cleanQuery, targetStr) > 0;
   }).map(d => ({ ...d, searchType: 'document' as const }));
 

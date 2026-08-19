@@ -8,6 +8,7 @@ import {
   Clock, Edit, Zap, Wrench, Shield, CheckSquare, FolderCheck, Archive, Calculator,
   MapPin, Hammer, Home, Store, Sparkles, Landmark, Ruler, Compass, Tag
 } from 'lucide-react';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 export interface InvestmentProject {
   id: string;
@@ -828,6 +829,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
   };
 
   return (
+    <ModuleShell titleAr="المشاريع الاستثمارية والأوقاف" titleEn="Investment & Endowment OS" domainCode="NEB-15" icon={TrendingUp} accent="amber" lang={lang}>
     <div className="space-y-6 pb-12 font-sans" dir={isAr ? 'rtl' : 'ltr'}>
       {/* Toast Notification */}
       {notification && (
@@ -2713,5 +2715,6 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
         </div>
       )}
     </div>
+    </ModuleShell>
   );
 };

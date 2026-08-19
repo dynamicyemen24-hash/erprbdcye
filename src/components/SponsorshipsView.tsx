@@ -21,6 +21,7 @@ import {
 import { Program, Currency } from '../types';
 import { printHTML } from '../lib/printUtils';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface SponsorshipsViewProps {
   sponsorships: any[];
@@ -200,7 +201,7 @@ export default function SponsorshipsView({
     let printWindow: any = null;
     try {
       printWindow = window.open('', '_blank');
-    } catch (e) {}
+    } catch (e) { console.error('[Sponsorships] Failed to open print window:', e); }
 
     let writtenHTML = '';
     const mockDoc = {
@@ -586,7 +587,25 @@ export default function SponsorshipsView({
   const pendingDeliveries = sponsorships.filter(s => s.delivery_status === 'pending').length;
 
   return (
-    <div className="space-y-6 animate-fade-in text-slate-800">
+    <ModuleShell
+      titleAr="نظام الكفالات والرعاية الاجتماعية"
+      titleEn="Sponsorships & Welfare OS"
+      descAr="برامج كفالات الأيتام، الأسر المحتاجة، الرعاية التعليمية"
+      descEn="Sponsorship programs, orphan registries, monthly distribution auditing"
+      domainCode="NEB-07"
+      icon={Heart}
+      accent="rose"
+      lang={lang}
+      onRefresh={onRefresh}
+      onNavigate={onNavigate}
+      isLoading={loading}
+      recordCount={sponsorships.length}
+      breadcrumbs={[
+        { label: lang === 'ar' ? 'الرئيسية' : 'Home', onClick: () => onNavigate?.('dashboard') },
+        { label: lang === 'ar' ? 'الكفالات' : 'Sponsorships' }
+      ]}
+    >
+    <div className="space-y-6">
       
       {/* Title & Actions Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -1245,5 +1264,6 @@ export default function SponsorshipsView({
       )}
 
     </div>
+    </ModuleShell>
   );
 }

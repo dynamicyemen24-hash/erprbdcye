@@ -16,6 +16,8 @@ import {
   Info
 } from 'lucide-react';
 import { Program } from '../types';
+import { ModuleShell } from './enterprise/ModuleShell';
+import { Briefcase } from 'lucide-react';
 
 interface ProgramsViewProps {
   programs: Program[];
@@ -216,7 +218,24 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <ModuleShell
+      titleAr="البرامج التنموية والإنسانية"
+      titleEn="Development Programs OS"
+      descAr="建档立卡 Programs records, plans, budgets and beneficiary goals"
+      descEn="Strategic multi-sector programs planning, funding streams, and overarching metrics"
+      domainCode="NEB-03"
+      icon={Briefcase}
+      accent="amber"
+      lang={lang}
+      onRefresh={onRefresh}
+      isLoading={loading}
+      recordCount={programs.length}
+      breadcrumbs={[
+        { label: lang === 'ar' ? 'الرئيسية' : 'Home', onClick: () => {} },
+        { label: lang === 'ar' ? 'البرامج' : 'Programs' }
+      ]}
+    >
+    <div className="space-y-6">
       {/* Title block */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
@@ -659,5 +678,6 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
         </div>
       )}
     </div>
+    </ModuleShell>
   );
 }

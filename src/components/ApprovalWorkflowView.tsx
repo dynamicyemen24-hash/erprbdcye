@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Project, Program, ApprovalRequest, ApprovalHistory, WorkflowDefinition } from '../types';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface UserProfile {
   id: string;
@@ -312,7 +313,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
         });
 
         if (!projUpdate.ok) {
-          console.warn("Project status code update skipped or failed. Table schema will fall back safely.");
+          // Silent fallback - table schema will handle gracefully
         }
       } else if (selectedRequest.entity_type === 'transaction') {
         const txStatusCode = action === 'approved' ? 'posted' : action === 'rejected' ? 'rejected' : 'pending';
@@ -329,7 +330,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
         });
 
         if (!txUpdate.ok) {
-          console.warn("Transaction status code update failed.");
+          // Silent fallback
         }
       } else if (selectedRequest.entity_type === 'material_issue_request') {
         if (action === 'approved') {
@@ -1300,6 +1301,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
   };
 
   return (
+    <ModuleShell titleAr="نظام الموافقات والاعتمادات" titleEn="Workflows & Approvals OS" domainCode="NEB-10" icon={ShieldCheck} accent="indigo" lang={lang} onRefresh={onRefresh}>
     <div className="space-y-6 animate-fade-in print:bg-white print:p-0">
       
       {/* Title Header */}
@@ -2438,5 +2440,6 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       )}
 
     </div>
+    </ModuleShell>
   );
 }

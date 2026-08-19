@@ -8,3 +8,26 @@ coverage/
 !.env.example
 
 .vercel
+
+# Firebase config (contains API keys)
+firebase-applet-config.json
+
+# Database dumps and summaries
+db_summary.txt
+db_schema_output.json
+*.sql.bak
+
+# Backup files
+backups/
+
+# Debug and diagnostic scripts
+scripts/debug*.cjs
+scripts/archive/
+scripts/probe_*.cjs
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+tmp_*.txt
+summary.txt

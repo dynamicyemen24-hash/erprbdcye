@@ -55,7 +55,7 @@ export function useOfflineSyncVault() {
       const updated = [newSnapshot, ...prev].slice(0, 50); // Keep up to 50 snapshots
       try {
         localStorage.setItem('nexora_offline_vault', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { console.error('[NexoraOS] useOfflineSyncVault: Failed to persist offline vault snapshot', e); }
       return updated;
     });
 
@@ -73,7 +73,7 @@ export function useOfflineSyncVault() {
           const syncedList = prev.map(s => ({ ...s, synced: true }));
           try {
             localStorage.setItem('nexora_offline_vault', JSON.stringify(syncedList));
-          } catch (e) {}
+          } catch (e) { console.error('[NexoraOS] useOfflineSyncVault: Failed to persist synced vault state', e); }
           return syncedList;
         });
         setPendingSyncCount(0);

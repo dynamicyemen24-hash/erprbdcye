@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, X, RefreshCw, CheckCircle, AlertCircle, Coins, Building } from 'lucide-react';
 import { Account, Project, Program } from './FinanceTypes';
+import { handleApiResponse, PolicyViolationError, type PolicyViolation } from '../../core/utils/apiHelpers';
+import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
 
 interface AccountSearchSelectProps {
   accounts: Account[];
@@ -390,6 +392,7 @@ export default function VoucherEntryTab({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOcrProcessing, setIsOcrProcessing] = useState(false);
   const [entryMessage, setEntryMessage] = useState<{ type: 'success' | 'error'; text: string; hash?: string } | null>(null);
+  const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [liveRates, setLiveRates] = useState<any>(null);
   const ocrFileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -684,7 +687,13 @@ export default function VoucherEntryTab({
         })
       });
 
-      if (!txRes.ok) throw new Error('Failed to post transaction header');
+      if (!txRes.ok) {
+        const body = await txRes.json().catch(() => ({}));
+        if (txRes.status === 403 && body.violations) {
+          throw new PolicyViolationError(body);
+        }
+        throw new Error(body.error || 'Failed to post transaction header');
+      }
       const txResult = await txRes.json();
 
       // 2. Post transaction lines
@@ -762,7 +771,12 @@ export default function VoucherEntryTab({
       ]);
       onRefresh();
     } catch (err: any) {
-      setEntryMessage({ type: 'error', text: err.message || 'Error posting entry' });
+      if (err instanceof PolicyViolationError) {
+        setPolicyViolations(err.violations);
+        setEntryMessage({ type: 'error', text: err.primaryMessage });
+      } else {
+        setEntryMessage({ type: 'error', text: err.message || 'Error posting entry' });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -854,6 +868,14 @@ export default function VoucherEntryTab({
             </div>
           )}
         </div>
+      )}
+
+      {policyViolations && policyViolations.length > 0 && (
+        <PolicyViolationAlert
+          violations={policyViolations}
+          lang={lang}
+          onDismiss={() => setPolicyViolations(null)}
+        />
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 text-xs font-bold text-slate-700">

@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: nexoraos
+    runtime: node
+    region: oregon
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: node dist/server.cjs
+    healthCheckPath: /api/v2/health/liveness
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://erprbdcye.org,https://www.erprbdcye.org
+    autoDeploy: true
+    branch: main
+    cron: "0 2 * * *"

@@ -2,6 +2,7 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import { EnterpriseProvider } from './core/context/EnterpriseContext.tsx';
+import { EnvironmentModeProvider } from './core/context/EnvironmentModeContext.tsx';
 import ErrorBoundary from './app/components/ErrorBoundary.tsx';
 import './index.css';
 
@@ -19,7 +20,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary domainName="NexoraOS Global Shell">
       <EnterpriseProvider>
-        <App />
+        <EnvironmentModeProvider>
+          <App />
+        </EnvironmentModeProvider>
       </EnterpriseProvider>
     </ErrorBoundary>
   </StrictMode>,

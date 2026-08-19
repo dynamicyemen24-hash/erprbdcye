@@ -30,6 +30,7 @@ import {
   safeArray 
 } from '../../lib/pdfReportGenerator';
 import { useEnterprise } from '../../core/context/EnterpriseContext';
+import { sanitizeHtml } from '../../lib/htmlSanitizer';
 
 interface PrintPDFTemplateModalProps {
   isOpen: boolean;
@@ -390,7 +391,7 @@ export default function PrintPDFTemplateModal({
             <div className="w-full max-w-[760px] bg-white shadow-2xl rounded-sm border border-slate-300 p-2 min-h-[800px] overflow-x-auto">
               {/* Dynamic HTML Output Preview */}
               <div 
-                dangerouslySetInnerHTML={{ __html: generatedHTML }} 
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(generatedHTML) }} 
                 className="w-full text-slate-900"
               />
             </div>

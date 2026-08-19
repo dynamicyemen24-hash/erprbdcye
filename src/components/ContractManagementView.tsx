@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import {
   FileText,
   Briefcase,
@@ -58,6 +58,7 @@ import {
 import VendorPerformanceAnalyticsView from '../features/procurement/VendorPerformanceAnalyticsView';
 import ProcurementForecastingView from '../features/procurement/ProcurementForecastingView';
 import VendorRecommendationEngineView from '../features/procurement/VendorRecommendationEngineView';
+import { ModuleShell } from './enterprise/ModuleShell';
 import { 
   Project, 
   ContractAttachment, 
@@ -95,257 +96,11 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
   // Active Sub-Tab Navigation State
   const [activeSubTab, setActiveSubTab] = useState<'partnerships' | 'procurement' | 'sales_revenue' | 'contracts' | 'wbs_matrix' | 'ai_copilot'>('partnerships');
 
+  // ==================== DATA STATE (API-DRIVEN) ====================
+  const [loading, setLoading] = useState(true);
+
   // ==================== PARTNERSHIP & DONORS OS STATE (NEB-08) ====================
-  const [partnerships, setPartnerships] = useState<PartnershipRecord[]>([
-    {
-      id: 'prt-001',
-      partnershipCode: 'PRT-2026-UN-YHF-01',
-      titleAr: 'اتفاقية منحة الصندوق الإنساني لليمن (YHF) - الاستجابة الطارئة للأسر النازحة بمأرب',
-      titleEn: 'Yemen Humanitarian Fund (YHF) Grant Agreement - Emergency Relief Marib',
-      partnerNameAr: 'مكتب الأمم المتحدة لتنسيق الشؤون الإنسانية (UNOCHA - YHF)',
-      partnerNameEn: 'UN Office for the Coordination of Humanitarian Affairs (UNOCHA)',
-      partnerType: 'UN_AGENCY',
-      agreementType: 'PCA',
-      lifecycleStage: 'ACTIVE_EXECUTION',
-      projectId: 'proj-001',
-      projectNameAr: 'مشروع الإغاثة العاجلة وتوزيع السلال الغذائية - مأرب',
-      totalGrantYer: 450000000,
-      totalGrantUsd: 300000,
-      receivedAmountYer: 300000000,
-      matchFundingYer: 45000000,
-      matchFundingPercent: 10,
-      startDate: '2026-01-01',
-      endDate: '2026-12-31',
-      pcaScore: 94,
-      focalPersonName: 'د. سارة المنصوري',
-      focalPersonEmail: 'sarah.almansoori@un.org',
-      focalPersonPhone: '+967 771 234 567',
-      complianceStandards: ['Sphere Standards 2026', 'CHS Alliance 9 Commitments', 'IATI Standard 2.03', 'IPSAS Financial Ledger'],
-      iatiActivityId: 'XM-OCHA-YHF-2026-MAR01',
-      tranches: [
-        { id: 'tr-101', trancheNo: 1, titleAr: 'دفعة الانطلاق 33.3% عند الاعتماد', titleEn: 'Tranche 1 Advance', amountYer: 150000000, dueDate: '2026-01-15', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-YHF-001' },
-        { id: 'tr-102', trancheNo: 2, titleAr: 'الدفعة الثانية عند إنجاز 50% من التوزيع الميداني', titleEn: 'Tranche 2 Midterm', amountYer: 150000000, dueDate: '2026-05-10', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-YHF-002' },
-        { id: 'tr-103', trancheNo: 3, titleAr: 'الدفعة الختامية عند تقديم التقرير المالي النهائي', titleEn: 'Tranche 3 Final', amountYer: 150000000, dueDate: '2026-11-30', disbursementStatus: 'PENDING', conditionsCleared: false }
-      ],
-      notes: 'تم استيفاء شروط الحوكمة والنزاهة وفق معايير إسفير وIATI. التمويل معتمد ويصرف بحسب خطة المعالم الميدانية.',
-      documentsCount: 6
-    },
-    {
-      id: 'prt-002',
-      partnershipCode: 'PRT-2026-KSR-02',
-      titleAr: 'عقد اتفاقية منحة تشغيل المراكز الطبية والعيادات الميدانية وتغذية الأطفال',
-      titleEn: 'KSrelief Grant Agreement - Mobile Clinics & Child Nutrition Operations',
-      partnerNameAr: 'مركز الملك سلمان للإغاثة والأعمال الإنسانية (KSrelief)',
-      partnerNameEn: 'King Salman Humanitarian Aid and Relief Centre',
-      partnerType: 'INTERNATIONAL_DONOR',
-      agreementType: 'GRANT_AGREEMENT',
-      lifecycleStage: 'ACTIVE_EXECUTION',
-      projectId: 'proj-002',
-      projectNameAr: 'برنامج العيادات الطبية الميدانية والرعاية الصحية - تعز',
-      totalGrantYer: 600000000,
-      totalGrantUsd: 400000,
-      receivedAmountYer: 400000000,
-      matchFundingYer: 30000000,
-      matchFundingPercent: 5,
-      startDate: '2025-06-01',
-      endDate: '2026-09-30',
-      pcaScore: 96,
-      focalPersonName: 'م. خالد الدوسري',
-      focalPersonEmail: 'k.aldosari@ksrelief.org',
-      focalPersonPhone: '+966 50 123 4567',
-      complianceStandards: ['KSrelief Field Guidelines', 'WHO Medical Standards', 'Sphere 2026', 'IPSAS Audit'],
-      iatiActivityId: 'KSR-YEM-2026-HLTH-02',
-      tranches: [
-        { id: 'tr-201', trancheNo: 1, titleAr: 'الدفعة الأولى التشغيلية 50%', titleEn: 'Tranche 1 Initial', amountYer: 300000000, dueDate: '2025-06-10', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-KSR-101' },
-        { id: 'tr-202', trancheNo: 2, titleAr: 'الدفعة الثانية بعد اجتياز تقييم المرحلة الأولى', titleEn: 'Tranche 2 Phase 1 Clear', amountYer: 100000000, dueDate: '2026-01-15', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-KSR-102' },
-        { id: 'tr-203', trancheNo: 3, titleAr: 'الدفعة الختامية وتسليم التقرير الطبي الميداني', titleEn: 'Tranche 3 Final Medical Report', amountYer: 200000000, dueDate: '2026-08-30', disbursementStatus: 'PENDING', conditionsCleared: true }
-      ],
-      notes: 'تم ربط الدفعات بمؤشرات قياس الأثر الميداني وعدد حالات المعاينة الطبية المستفيدة.',
-      documentsCount: 8
-    },
-    {
-      id: 'prt-003',
-      partnershipCode: 'PRT-2026-CSR-TAD-03',
-      titleAr: 'شراكة المسؤولية المجتمعية والتمكين الاقتصادي للأسر المنتجة - بنك التضامن',
-      titleEn: 'CSR Partnership & Economic Empowerment - Tadhamon Bank',
-      partnerNameAr: 'بنك التضامن الإسلامي وشركة سبأفون للاتصالات',
-      partnerNameEn: 'Tadhamon International Islamic Bank & Sabafon',
-      partnerType: 'CSR_CORPORATE',
-      agreementType: 'MOU',
-      lifecycleStage: 'CO_DESIGN',
-      projectId: 'proj-003',
-      projectNameAr: 'برنامج الإمداد المائي وحفر الآبار التنموية',
-      totalGrantYer: 120000000,
-      totalGrantUsd: 80000,
-      receivedAmountYer: 60000000,
-      matchFundingYer: 0,
-      matchFundingPercent: 0,
-      startDate: '2026-03-01',
-      endDate: '2026-12-31',
-      pcaScore: 90,
-      focalPersonName: 'أ. طارق الشامي',
-      focalPersonEmail: 't.alshami@tadhamonbank.com',
-      focalPersonPhone: '+967 733 998 877',
-      complianceStandards: ['Islamic Banking CSR Governance', 'Local Capacity Standard'],
-      iatiActivityId: 'CSR-TAD-2026-ECO-01',
-      tranches: [
-        { id: 'tr-301', trancheNo: 1, titleAr: 'دفعة التجهيز وشراء المعدات والتمليك', titleEn: 'Tranche 1 Setup', amountYer: 60000000, dueDate: '2026-03-15', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-TAD-001' },
-        { id: 'tr-302', trancheNo: 2, titleAr: 'دفعة التدريب والتمويل الخردي للمشروعات', titleEn: 'Tranche 2 Micro-Grant', amountYer: 60000000, dueDate: '2026-08-01', disbursementStatus: 'PENDING', conditionsCleared: false }
-      ],
-      notes: 'شراكة استراتيجية غير ربحية موجهة لدعم المشاريع الصغرى وتوفير مصادر دخل مستدامة.',
-      documentsCount: 4
-    },
-    {
-      id: 'prt-004',
-      partnershipCode: 'PRT-2026-CNS-WASH-04',
-      titleAr: 'تحالف الإمداد المائي والإدماج البيئي والمأوى لمحافظات الوسط',
-      titleEn: 'Consortium Charter - Central Governors WASH & Shelter Consortium',
-      partnerNameAr: 'منظمة أوكسفام ومنظمة كير الدولية (Consortium Joint Executive Board)',
-      partnerNameEn: 'Oxfam GB & CARE International Consortium',
-      partnerType: 'CONSORTIUM',
-      agreementType: 'CONSORTIUM_CHARTER',
-      lifecycleStage: 'ACTIVE_EXECUTION',
-      projectId: 'proj-003',
-      projectNameAr: 'مشروع الإمداد المائي وحفر الآبار السطحية والارتوازية',
-      totalGrantYer: 350000000,
-      totalGrantUsd: 233000,
-      receivedAmountYer: 200000000,
-      matchFundingYer: 35000000,
-      matchFundingPercent: 10,
-      startDate: '2026-02-01',
-      endDate: '2027-01-31',
-      pcaScore: 92,
-      focalPersonName: 'م. إيناس العبسي',
-      focalPersonEmail: 'enas.alabsi@oxfam.org',
-      focalPersonPhone: '+967 770 112 233',
-      complianceStandards: ['Joint Consortium Charter', 'Sphere WASH 2026', 'CHS 9 Commitments', 'Anti-Fraud Policy'],
-      iatiActivityId: 'CNS-OXF-CARE-2026-WASH',
-      tranches: [
-        { id: 'tr-401', trancheNo: 1, titleAr: 'دفعة بدء الأعمال الهندسية وتوريد المضخات', titleEn: 'Tranche 1 Civil Works', amountYer: 200000000, dueDate: '2026-02-15', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-CNS-01' },
-        { id: 'tr-402', trancheNo: 2, titleAr: 'دفعة شبكات التوزيع بالطاقة الشمسية', titleEn: 'Tranche 2 Solar Networks', amountYer: 150000000, dueDate: '2026-09-15', disbursementStatus: 'PENDING', conditionsCleared: true }
-      ],
-      notes: 'إدارة تشغيلية مشتركة بقيادة جمعية رُحماء بينهم لتنفيذ المقاولات الميدانية والربط الشبكي.',
-      documentsCount: 7
-    },
-    {
-      id: 'prt-005',
-      partnershipCode: 'PRT-2026-SUB-TAZ-05',
-      titleAr: 'اتفاقية تمويل فرعي لبناء قدرات الجمعيات القاعدية والتوزيع الميداني',
-      titleEn: 'Sub-Grant Agreement - Local CSOs Capacity & Marib Field Distribution',
-      partnerNameAr: 'جمعية المستقبل للتنمية والطفولة - تعز',
-      partnerNameEn: 'Al-Mustaqbal Development & Childhood Association - Taiz',
-      partnerType: 'LOCAL_NGO',
-      agreementType: 'SUB_GRANT',
-      lifecycleStage: 'PCA_ASSESSMENT',
-      totalGrantYer: 75000000,
-      totalGrantUsd: 50000,
-      receivedAmountYer: 25000000,
-      matchFundingYer: 7500000,
-      matchFundingPercent: 10,
-      startDate: '2026-04-01',
-      endDate: '2026-11-30',
-      pcaScore: 82,
-      focalPersonName: 'أ. رضوان القدسي',
-      focalPersonEmail: 'r.alqudsi@almustaqbal-ye.org',
-      focalPersonPhone: '+967 777 445 566',
-      complianceStandards: ['Partner Capacity Assessment (PCA)', 'Local Safeguarding Policy', 'Sphere Guidelines'],
-      iatiActivityId: 'SUB-TAZ-2026-CSO-05',
-      tranches: [
-        { id: 'tr-501', trancheNo: 1, titleAr: 'دفعة التجهيز الميداني وتأهيل فريق الرصد', titleEn: 'Tranche 1 Setup', amountYer: 25000000, dueDate: '2026-04-10', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-SUB-01' },
-        { id: 'tr-502', trancheNo: 2, titleAr: 'دفعة التنفيذ الميداني بعد استكمال ورش بناء القدرات', titleEn: 'Tranche 2 Execution', amountYer: 50000000, dueDate: '2026-08-20', disbursementStatus: 'PENDING', conditionsCleared: false }
-      ],
-      notes: 'منحة فرعية موجهة لتمكين منظمات المجتمع المدني المحلية وتأهيل خطط الحوكمة والرقابة المالية.',
-      documentsCount: 5
-    },
-    {
-      id: 'prt-006',
-      partnershipCode: 'PRT-2026-GOV-MOH-06',
-      titleAr: 'مذكرة تفاهم إستراتيجية مع وزارة الصحة لتسهيل التراخيص والقوافل الإغاثية',
-      titleEn: 'Tripartite MoU - Ministry of Public Health & SCMCHA Strategic Alliance',
-      partnerNameAr: 'وزارة الصحة العامة والسكان / المجلس الأعلى لإدارة وتنسيق الشؤون الإنسانية',
-      partnerNameEn: 'Ministry of Public Health & Population / SCMCHA Council',
-      partnerType: 'GOVERNMENT_MOU',
-      agreementType: 'TRIPARTITE',
-      lifecycleStage: 'ACTIVE_EXECUTION',
-      totalGrantYer: 0,
-      totalGrantUsd: 0,
-      receivedAmountYer: 0,
-      matchFundingYer: 0,
-      matchFundingPercent: 0,
-      startDate: '2025-01-01',
-      endDate: '2027-12-31',
-      pcaScore: 98,
-      focalPersonName: 'د. عبدالملك الصنعاني',
-      focalPersonEmail: 'moph.ye@gov.ye',
-      focalPersonPhone: '+967 1 234 888',
-      complianceStandards: ['National Humanitarian Law', 'Ministry Health Protocols', 'Customs Clearance Waiver'],
-      iatiActivityId: 'GOV-MOU-2026-HEALTH',
-      tranches: [],
-      notes: 'اتفاقية إستراتيجية تضمن الإعفاء الجمركي وتسهيل التراخيص الأمنية والميدانية لكافة القوافل.',
-      documentsCount: 9
-    },
-    {
-      id: 'prt-007',
-      partnershipCode: 'PRT-2026-ACD-SPH-07',
-      titleAr: 'اتفاقية شراكة أكاديمية لتدريب وتأهيل الكوادر الإنسانية وفق معايير إسفير 2026',
-      titleEn: 'Academic & Technical SLA - Saba Region University & Sphere Network',
-      partnerNameAr: 'مركز البحوث والدراسات بجامعة إقليم سبأ وهيئة ميثاق إسفير الدولي',
-      partnerNameEn: 'Saba Region University Research Center & Sphere Association',
-      partnerType: 'ACADEMIC_TECHNICAL',
-      agreementType: 'SLA',
-      lifecycleStage: 'AGREEMENT_DRAFTING',
-      totalGrantYer: 30000000,
-      totalGrantUsd: 20000,
-      receivedAmountYer: 15000000,
-      matchFundingYer: 3000000,
-      matchFundingPercent: 10,
-      startDate: '2026-05-01',
-      endDate: '2026-11-30',
-      pcaScore: 95,
-      focalPersonName: 'أ.د. يحيى الحارثي',
-      focalPersonEmail: 'research@saba.edu.ye',
-      focalPersonPhone: '+967 711 556 677',
-      complianceStandards: ['Sphere Charter 2026 Edition', 'Academic Quality Index'],
-      iatiActivityId: 'ACD-SPH-2026-CAP',
-      tranches: [
-        { id: 'tr-701', trancheNo: 1, titleAr: 'دفعة تطوير المناهج وورش العمل', titleEn: 'Tranche 1 Curriculum', amountYer: 15000000, dueDate: '2026-05-15', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-ACD-01' },
-        { id: 'tr-702', trancheNo: 2, titleAr: 'دفعة منح الدبلوم المهني واعتلاء المنصة', titleEn: 'Tranche 2 Diploma', amountYer: 15000000, dueDate: '2026-10-30', disbursementStatus: 'PENDING', conditionsCleared: false }
-      ],
-      notes: 'برنامج دبلوم احترافي في إدارة الكوارث والحوكمة الإنسانية المتقدمة.',
-      documentsCount: 3
-    },
-    {
-      id: 'prt-008',
-      partnershipCode: 'PRT-2026-END-SAE-08',
-      titleAr: 'شراكة وقفية مستدامة لكفالة الأيتام والأسر الأشد فقراً',
-      titleEn: 'Endowment Grant Partnership - Al-Saeed Philanthropic Foundation',
-      partnerNameAr: 'مؤسسة السعيد الوقفية للعمل الخيري والتنمية',
-      partnerNameEn: 'Al-Saeed Endowments & Philanthropic Trust',
-      partnerType: 'PHILANTHROPIC_ENDOWMENT',
-      agreementType: 'GRANT_AGREEMENT',
-      lifecycleStage: 'ACTIVE_EXECUTION',
-      totalGrantYer: 200000000,
-      totalGrantUsd: 133000,
-      receivedAmountYer: 150000000,
-      matchFundingYer: 0,
-      matchFundingPercent: 0,
-      startDate: '2026-01-01',
-      endDate: '2026-12-31',
-      pcaScore: 96,
-      focalPersonName: 'الحاج عبدالجليل السعيد',
-      focalPersonEmail: 'contact@alsaeed-endowments.org',
-      focalPersonPhone: '+967 772 889 900',
-      complianceStandards: ['Shariah Compliance Ledger', 'Endowment Governance Standards', 'IPSAS Accounting'],
-      iatiActivityId: 'END-SAE-2026-WELFARE',
-      tranches: [
-        { id: 'tr-801', trancheNo: 1, titleAr: 'الدفعة الأولى لكفالات الربع الأول والثاني', titleEn: 'Tranche 1 Stipends', amountYer: 100000000, dueDate: '2026-01-10', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-END-01' },
-        { id: 'tr-802', trancheNo: 2, titleAr: 'الدفعة الثانية لكفالات الربع الثالث', titleEn: 'Tranche 2 Stipends', amountYer: 50000000, dueDate: '2026-06-15', disbursementStatus: 'DISBURSED', conditionsCleared: true, disbursementRef: 'TR-END-02' },
-        { id: 'tr-803', trancheNo: 3, titleAr: 'الدفعة الختامية لكفالات الربع الرابع', titleEn: 'Tranche 3 Final', amountYer: 50000000, dueDate: '2026-10-15', disbursementStatus: 'PENDING', conditionsCleared: true }
-      ],
-      notes: 'عائدات أصول وقفية مخصصة للتحويلات النقدية المباشرة للأسر ورعاية الأيتام.',
-      documentsCount: 5
-    }
-  ]);
+  const [partnerships, setPartnerships] = useState<PartnershipRecord[]>([]);
 
   // Partnership Filter States
   const [partnerTypeFilter, setPartnerTypeFilter] = useState<string>('ALL');
@@ -394,280 +149,19 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
   }, [pcaPillars]);
 
 
-  // ==================== MOCK DATA STORES ====================
+  // ==================== API-DRIVEN DATA STORES ====================
 
   // 1. Supplier & Contractor Contracts State
-  const [contracts, setContracts] = useState<SupplierContract[]>([
-    {
-      id: 'cnt-001',
-      contractCode: 'CNT-2026-MAR-01',
-      titleAr: 'عقد توريد وتشغيل 50,000 سلة غذائية وإيواء لمخيمات مأرب',
-      titleEn: 'Food Basket & Shelter Supply Contract for Marib Camps (50k Kits)',
-      vendorNameAr: 'شركة السعيد للمقاولات والتوريدات العامة',
-      vendorNameEn: 'Al-Saeed General Contracting & Supplies Ltd',
-      vendorTaxId: 'TAX-YEM-30049281',
-      contractType: 'SUPPLIER',
-      projectId: 'proj-001',
-      projectNameAr: 'مشروع الإغاثة العاجلة وتوزيع السلال الغذائية - مأرب',
-      projectNameEn: 'Marib Urgent Food Aid Distribution',
-      budgetlineCode: 'BGT-MAR-2026-1.1',
-      totalValueYer: 120000000,
-      paidValueYer: 85000000,
-      startDate: '2026-01-10',
-      endDate: '2026-09-15',
-      renewalAlertDays: 30,
-      autoRenew: false,
-      status: 'ACTIVE',
-      procurementPoRef: 'PO-YEM-2026-044',
-      attachments: [
-        {
-          id: 'att-101',
-          fileName: 'عقد_التوريد_الموقع_السعيد_2026.pdf',
-          fileSize: '4.2 MB',
-          fileType: 'PDF',
-          uploadDate: '2026-01-11',
-          category: 'SIGNED_CONTRACT',
-          url: '#'
-        },
-        {
-          id: 'att-102',
-          fileName: 'خطاب_الضمان_النهائي_بنك_التضامن.pdf',
-          fileSize: '1.8 MB',
-          fileType: 'PDF',
-          uploadDate: '2026-01-12',
-          category: 'BANK_GUARANTEE',
-          url: '#'
-        }
-      ],
-      milestones: [
-        {
-          id: 'ms-1',
-          titleAr: 'دفعة المقدمة 30% مع توقيع العقد',
-          titleEn: '30% Advance Payment upon Signing',
-          amountYer: 36000000,
-          dueDate: '2026-01-15',
-          status: 'PAID',
-          procurementRef: 'PV-YEM-2026-001'
-        },
-        {
-          id: 'ms-2',
-          titleAr: 'دفعة توريد المجمع الأول 25,000 سلة',
-          titleEn: 'Phase 1 Delivery - 25,000 Food Baskets',
-          amountYer: 49000000,
-          dueDate: '2026-04-10',
-          status: 'PAID',
-          procurementRef: 'PV-YEM-2026-088'
-        },
-        {
-          id: 'ms-3',
-          titleAr: 'دفعة التوريد الختامية والاعتماد الفني',
-          titleEn: 'Final Delivery & Acceptance Certificate',
-          amountYer: 35000000,
-          dueDate: '2026-09-01',
-          status: 'PENDING',
-          procurementRef: 'PO-YEM-2026-044'
-        }
-      ],
-      notes: 'تم اعتماد خطاب الضمان النهائي بنسبة 10% لدى بنك التضامن. تم الربط بالمحفظة المالية لمشروع مأرب.'
-    },
-    {
-      id: 'cnt-002',
-      contractCode: 'CNT-2026-TAIZ-04',
-      titleAr: 'عقد إنشاء وتأهيل مراكز الرعاية الصحية الأولية - تعز',
-      titleEn: 'Primary Health Centers Rehabilitation Construction Contract - Taiz',
-      vendorNameAr: 'مؤسسة أفق اليمن للمقاولات والهندسة',
-      vendorNameEn: 'Horizon Yemen Engineering & Construction Est.',
-      vendorTaxId: 'TAX-YEM-98410293',
-      contractType: 'CONTRACTOR',
-      projectId: 'proj-002',
-      projectNameAr: 'برنامج العيادات الطبية الميدانية والرعاية الصحية - تعز',
-      projectNameEn: 'Taiz Mobile Clinics & Healthcare',
-      budgetlineCode: 'BGT-TAIZ-2026-2.4',
-      totalValueYer: 85000000,
-      paidValueYer: 40000000,
-      startDate: '2025-06-01',
-      endDate: '2026-08-30',
-      renewalAlertDays: 45,
-      autoRenew: false,
-      status: 'EXPIRING_SOON',
-      procurementPoRef: 'PO-YEM-2025-992',
-      attachments: [
-        {
-          id: 'att-201',
-          fileName: 'عقد_المقاولات_الموقع_مؤسسة_أفق.pdf',
-          fileSize: '6.1 MB',
-          fileType: 'PDF',
-          uploadDate: '2025-06-02',
-          category: 'SIGNED_CONTRACT',
-          url: '#'
-        }
-      ],
-      milestones: [
-        {
-          id: 'ms-201',
-          titleAr: 'الدفعة الأولى عند إنجاز 50% من أعمال الترميم',
-          titleEn: 'Milestone 1 - 50% Civil Works Completed',
-          amountYer: 40000000,
-          dueDate: '2025-11-20',
-          status: 'PAID',
-          procurementRef: 'PV-YEM-2025-412'
-        },
-        {
-          id: 'ms-202',
-          titleAr: 'الدفعة الختامية وتسليم المفتاح الميداني',
-          titleEn: 'Final Milestone & Handover',
-          amountYer: 45000000,
-          dueDate: '2026-08-20',
-          status: 'PENDING'
-        }
-      ],
-      notes: 'العقد ينتهي خلال أيام قريبة. يتطلب ملحق تمديد زمني (Extension Amendment) نظراً لظروف الشحن الميداني.'
-    }
-  ]);
+  const [contracts, setContracts] = useState<SupplierContract[]>([]);
 
   // 2. Purchase Orders (PO) & Requisitions (PR)
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([
-    {
-      id: 'po-101',
-      poNumber: 'PO-YEM-2026-044',
-      requisitionRef: 'PR-MAR-2026-012',
-      vendorNameAr: 'شركة السعيد للمقاولات والتوريدات العامة',
-      projectId: 'proj-001',
-      projectNameAr: 'مشروع الإغاثة العاجلة وتوزيع السلال الغذائية - مأرب',
-      wbsActivityId: 'ACT-MAR-101',
-      wbsActivityNameAr: 'نشاط 1.1: شراء وتوزيع 50,000 سلة غذائية طارئة',
-      totalAmountYer: 120000000,
-      deliveryStatus: 'IN_TRANSIT',
-      paymentStatus: 'PARTIALLY_PAID',
-      autoActivityUpdate: true,
-      expectedDeliveryDate: '2026-08-25'
-    },
-    {
-      id: 'po-102',
-      poNumber: 'PO-YEM-2026-089',
-      requisitionRef: 'PR-TAIZ-2026-005',
-      vendorNameAr: 'مؤسسة الشفاء للتجهيزات الطبية والدوائية',
-      projectId: 'proj-002',
-      projectNameAr: 'برنامج العيادات الطبية الميدانية والرعاية الصحية - تعز',
-      wbsActivityId: 'ACT-TAIZ-202',
-      wbsActivityNameAr: 'نشاط 2.2: توريد أجهزة فحص ومختبر حيوية للعيادات الطبية',
-      totalAmountYer: 45000000,
-      deliveryStatus: 'DELIVERED_FULL',
-      paymentStatus: 'FULLY_PAID',
-      autoActivityUpdate: true,
-      expectedDeliveryDate: '2026-07-30'
-    },
-    {
-      id: 'po-103',
-      poNumber: 'PO-YEM-2026-112',
-      requisitionRef: 'PR-WAT-2026-033',
-      vendorNameAr: 'شركة الأعروش لآلات ومعدات حفر الآبار',
-      projectId: 'proj-003',
-      projectNameAr: 'مشروع الإمداد المائي وحفر الآبار السطحية والارتوازية',
-      wbsActivityId: 'ACT-WAT-301',
-      wbsActivityNameAr: 'نشاط 3.1: توريد مضخات شمسية وغاطسة لبئر الحديدة',
-      totalAmountYer: 38000000,
-      deliveryStatus: 'ISSUED',
-      paymentStatus: 'UNPAID',
-      autoActivityUpdate: true,
-      expectedDeliveryDate: '2026-09-10'
-    }
-  ]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
 
   // 3. Sales Order & Revenue Invoices
-  const [salesInvoices, setSalesInvoices] = useState<SalesOrderInvoice[]>([
-    {
-      id: 'inv-201',
-      invoiceCode: 'INV-SLS-2026-001',
-      clientOrDonorNameAr: 'مركز الملك سلمان للإغاثة والأعمال الإنسانية',
-      invoiceType: 'DONOR_PLEDGE',
-      projectId: 'proj-001',
-      projectNameAr: 'مشروع الإغاثة العاجلة وتوزيع السلال الغذائية - مأرب',
-      wbsActivityId: 'ACT-MAR-101',
-      wbsActivityNameAr: 'نشاط 1.1: تمويل شراء وتوزيع السلال الغذائية',
-      totalAmountYer: 150000000,
-      paidAmountYer: 150000000,
-      paymentStatus: 'PAID',
-      invoiceDate: '2026-01-05',
-      dueDate: '2026-02-05',
-      shariahCompliant: true
-    },
-    {
-      id: 'inv-202',
-      invoiceCode: 'INV-SLS-2026-018',
-      clientOrDonorNameAr: 'محفظة استثمارات أوقاف النماء الخيرية',
-      invoiceType: 'ENDOWMENT_RENT',
-      projectId: 'proj-inv-01',
-      projectNameAr: 'مشروع البرج الوقفي الاستثماري - صنعاء',
-      wbsActivityId: 'ACT-INV-401',
-      wbsActivityNameAr: 'نشاط 4.1: تحصيل عوائد وإيجارات المحلات التجارية الوقفية',
-      totalAmountYer: 28000000,
-      paidAmountYer: 18000000,
-      paymentStatus: 'PARTIALLY_PAID',
-      invoiceDate: '2026-06-01',
-      dueDate: '2026-08-15',
-      shariahCompliant: true
-    },
-    {
-      id: 'inv-203',
-      invoiceCode: 'INV-SLS-2026-025',
-      clientOrDonorNameAr: 'منظمة الصحة العالمية WHO / الشريك الميداني',
-      invoiceType: 'PROJECT_SERVICE_FEE',
-      projectId: 'proj-002',
-      projectNameAr: 'برنامج العيادات الطبية الميدانية والرعاية الصحية - تعز',
-      wbsActivityId: 'ACT-TAIZ-202',
-      wbsActivityNameAr: 'نشاط 2.2: رسوم إدارة وتشغيل القوافل الميدانية',
-      totalAmountYer: 12500000,
-      paidAmountYer: 0,
-      paymentStatus: 'UNPAID',
-      invoiceDate: '2026-07-20',
-      dueDate: '2026-09-01',
-      shariahCompliant: true
-    }
-  ]);
+  const [salesInvoices, setSalesInvoices] = useState<SalesOrderInvoice[]>([]);
 
   // 4. Project Activity WBS & Procurement Correlation Matrix Data
-  const [activityLinks, setActivityLinks] = useState<ActivityProcurementLink[]>([
-    {
-      activityId: 'ACT-MAR-101',
-      activityCode: 'WBS-1.1',
-      activityNameAr: 'شراء وتوزيع 50,000 سلة غذائية طارئة بمأرب',
-      projectNameAr: 'مشروع الإغاثة العاجلة وتوزيع السلال الغذائية - مأرب',
-      budgetAllocatedYer: 130000000,
-      committedProcurementYer: 120000000,
-      actualSpentYer: 85000000,
-      generatedRevenueYer: 150000000,
-      procurementPOs: ['PO-YEM-2026-044'],
-      salesInvoices: ['INV-SLS-2026-001'],
-      varianceStatus: 'UNDER_BUDGET'
-    },
-    {
-      activityId: 'ACT-TAIZ-202',
-      activityCode: 'WBS-2.2',
-      activityNameAr: 'توريد أجهزة فحص ومختبر للعيادات الميدانية',
-      projectNameAr: 'برنامج العيادات الطبية الميدانية والرعاية الصحية - تعز',
-      budgetAllocatedYer: 50000000,
-      committedProcurementYer: 45000000,
-      actualSpentYer: 45000000,
-      generatedRevenueYer: 12500000,
-      procurementPOs: ['PO-YEM-2026-089'],
-      salesInvoices: ['INV-SLS-2026-025'],
-      varianceStatus: 'ON_TRACK'
-    },
-    {
-      activityId: 'ACT-WAT-301',
-      activityCode: 'WBS-3.1',
-      activityNameAr: 'توريد وتركيب منظومات الطاقة الشمسية لمضخات الآبار',
-      projectNameAr: 'مشروع الإمداد المائي وحفر الآبار السطحية والارتوازية',
-      budgetAllocatedYer: 40000000,
-      committedProcurementYer: 38000000,
-      actualSpentYer: 0,
-      generatedRevenueYer: 0,
-      procurementPOs: ['PO-YEM-2026-112'],
-      salesInvoices: [],
-      varianceStatus: 'ON_TRACK'
-    }
-  ]);
+  const [activityLinks, setActivityLinks] = useState<ActivityProcurementLink[]>([]);
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('');
@@ -734,6 +228,43 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
     amendmentNotes: ''
   });
 
+  // ==================== FETCH DATA FROM API ====================
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [contractsRes, poRes, invoicesRes, partnershipsRes] = await Promise.all([
+          fetch('/api/tables/contracts'),
+          fetch('/api/tables/purchase_orders'),
+          fetch('/api/tables/sales_invoices'),
+          fetch('/api/tables/partner_agreements')
+        ]);
+
+        if (contractsRes.ok) {
+          const data = await contractsRes.json();
+          setContracts(Array.isArray(data) ? data : []);
+        }
+        if (poRes.ok) {
+          const data = await poRes.json();
+          setPurchaseOrders(Array.isArray(data) ? data : []);
+        }
+        if (invoicesRes.ok) {
+          const data = await invoicesRes.json();
+          setSalesInvoices(Array.isArray(data) ? data : []);
+        }
+        if (partnershipsRes.ok) {
+          const data = await partnershipsRes.json();
+          setPartnerships(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error('Error fetching contract management data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   // Partnership Filters & Handlers
   const filteredPartnerships = useMemo(() => {
     return partnerships.filter(p => {
@@ -758,7 +289,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
     return Math.round(partnerships.reduce((acc, p) => acc + p.pcaScore, 0) / partnerships.length);
   }, [partnerships]);
 
-  const handleCreatePartnership = (e: React.FormEvent) => {
+  const handleCreatePartnership = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPartnershipForm.titleAr || !newPartnershipForm.partnerNameAr || !newPartnershipForm.totalGrantYer) return;
 
@@ -800,11 +331,24 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
       documentsCount: 3
     };
 
-    setPartnerships(prev => [createdRecord, ...prev]);
+    try {
+      const res = await fetch('/api/tables/partner_agreements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createdRecord)
+      });
+      if (res.ok) {
+        setPartnerships(prev => [createdRecord, ...prev]);
+      }
+    } catch (err) {
+      console.error('Error creating partnership:', err);
+      setPartnerships(prev => [createdRecord, ...prev]);
+    }
     setIsNewPartnershipModalOpen(false);
   };
 
-  const handleDisburseTranche = (partnershipId: string, trancheId: string) => {
+  const handleDisburseTranche = async (partnershipId: string, trancheId: string) => {
+    let updatedPartnership: PartnershipRecord | null = null;
     setPartnerships(prev => prev.map(p => {
       if (p.id === partnershipId) {
         let addedAmount = 0;
@@ -820,28 +364,55 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           }
           return t;
         });
-        return {
+        const updated = {
           ...p,
           receivedAmountYer: p.receivedAmountYer + addedAmount,
           tranches: updatedTranches
         };
+        updatedPartnership = updated;
+        return updated;
       }
       return p;
     }));
+    if (updatedPartnership) {
+      try {
+        await fetch(`/api/tables/partner_agreements/${partnershipId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedPartnership)
+        });
+      } catch (err) {
+        console.error('Error updating partnership tranche:', err);
+      }
+    }
   };
 
-  const handleSavePcaEvaluation = () => {
+  const handleSavePcaEvaluation = async () => {
     if (!selectedPartnershipForPca) return;
+    let updatedPartnership: PartnershipRecord | null = null;
     setPartnerships(prev => prev.map(p => {
       if (p.id === selectedPartnershipForPca.id) {
-        return {
+        const updated = {
           ...p,
           pcaScore: calculatedPcaScore,
           notes: `${p.notes || ''} [تم تحديث تقييم القدرات المؤسسية PCA إلى ${calculatedPcaScore}% بتاريخ ${new Date().toISOString().split('T')[0]}]`
         };
+        updatedPartnership = updated;
+        return updated;
       }
       return p;
     }));
+    if (updatedPartnership) {
+      try {
+        await fetch(`/api/tables/partner_agreements/${selectedPartnershipForPca.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedPartnership)
+        });
+      } catch (err) {
+        console.error('Error updating PCA evaluation:', err);
+      }
+    }
     setIsPcaEvaluatorModalOpen(false);
   };
 
@@ -926,7 +497,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
   const totalContractVal = useMemo(() => contracts.reduce((acc, c) => acc + c.totalValueYer, 0), [contracts]);
 
   // Handlers
-  const handleCreatePO = (e: React.FormEvent) => {
+  const handleCreatePO = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPoForm.vendorNameAr || !newPoForm.totalAmountYer) return;
 
@@ -949,9 +520,20 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
       expectedDeliveryDate: newPoForm.expectedDeliveryDate
     };
 
-    setPurchaseOrders(prev => [createdPo, ...prev]);
+    try {
+      const res = await fetch('/api/tables/purchase_orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createdPo)
+      });
+      if (res.ok) {
+        setPurchaseOrders(prev => [createdPo, ...prev]);
+      }
+    } catch (err) {
+      console.error('Error creating PO:', err);
+      setPurchaseOrders(prev => [createdPo, ...prev]);
+    }
 
-    // Update Correlation Matrix
     if (matchedLink) {
       setActivityLinks(prev => prev.map(a => {
         if (a.activityId === matchedLink.activityId) {
@@ -968,7 +550,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
     setIsNewPoModalOpen(false);
   };
 
-  const handleCreateSalesInvoice = (e: React.FormEvent) => {
+  const handleCreateSalesInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newInvoiceForm.clientOrDonorNameAr || !newInvoiceForm.totalAmountYer) return;
 
@@ -992,7 +574,19 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
       shariahCompliant: newInvoiceForm.shariahCompliant
     };
 
-    setSalesInvoices(prev => [createdInv, ...prev]);
+    try {
+      const res = await fetch('/api/tables/sales_invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createdInv)
+      });
+      if (res.ok) {
+        setSalesInvoices(prev => [createdInv, ...prev]);
+      }
+    } catch (err) {
+      console.error('Error creating invoice:', err);
+      setSalesInvoices(prev => [createdInv, ...prev]);
+    }
 
     if (matchedLink) {
       setActivityLinks(prev => prev.map(a => {
@@ -1010,7 +604,16 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
     setIsNewInvoiceModalOpen(false);
   };
 
-  const handleDeliverPo = (poId: string) => {
+  const handleDeliverPo = async (poId: string) => {
+    try {
+      await fetch(`/api/tables/purchase_orders/${poId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deliveryStatus: 'DELIVERED_FULL', paymentStatus: 'FULLY_PAID' })
+      });
+    } catch (err) {
+      console.error('Error updating PO delivery:', err);
+    }
     setPurchaseOrders(prev => prev.map(po => {
       if (po.id === poId) {
         return {
@@ -1024,7 +627,19 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
   };
 
   return (
+    <ModuleShell titleAr="نظام العقود والمناقصات" titleEn="Contracts & Procurement OS" domainCode="NEB-14" icon={FileText} accent="amber" lang={lang} onRefresh={onRefresh}>
     <div className="space-y-6 animate-fade-in pb-12">
+
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="flex items-center gap-3 px-6 py-4 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-lg">
+            <RefreshCw className="w-5 h-5 text-emerald-600 animate-spin" />
+            <span className="text-sm font-bold text-slate-700 dark:text-zinc-200">
+              {isRtl ? 'جارٍ تحميل البيانات من الخادم...' : 'Loading data from server...'}
+            </span>
+          </div>
+        </div>
+      )}
       
       {/* SECTION 1: HEADER & ENTERPRISE BRANDING BANNER */}
       <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white rounded-2xl p-6 shadow-lg border border-emerald-800/40 relative overflow-hidden">
@@ -1397,6 +1012,13 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
           {/* Partnerships Cards Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filteredPartnerships.length === 0 && !loading && (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                <Handshake className="w-12 h-12 text-slate-300 dark:text-zinc-600 mb-3" />
+                <p className="text-sm font-bold text-slate-500 dark:text-zinc-400">{isRtl ? 'لا توجد شراكات مسجلة بعد' : 'No partnerships recorded yet'}</p>
+                <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">{isRtl ? 'ابدأ بإضافة اتفاقية شراكة جديدة' : 'Start by adding a new partnership agreement'}</p>
+              </div>
+            )}
             {filteredPartnerships.map(prt => {
               const recPercent = prt.totalGrantYer > 0 ? Math.round((prt.receivedAmountYer / prt.totalGrantYer) * 100) : 100;
               return (
@@ -1566,6 +1188,13 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {purchaseOrders.length === 0 && !loading && (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                <ShoppingCart className="w-12 h-12 text-slate-300 dark:text-zinc-600 mb-3" />
+                <p className="text-sm font-bold text-slate-500 dark:text-zinc-400">{isRtl ? 'لا توجد أوامر شراء مسجلة' : 'No purchase orders recorded'}</p>
+                <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">{isRtl ? 'ابدأ بإصدار أمر شراء جديد' : 'Start by issuing a new purchase order'}</p>
+              </div>
+            )}
             {purchaseOrders.map(po => (
               <div key={po.id} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-3.5 hover:shadow-md transition-all">
                 
@@ -1669,6 +1298,13 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {salesInvoices.length === 0 && !loading && (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                <Receipt className="w-12 h-12 text-slate-300 dark:text-zinc-600 mb-3" />
+                <p className="text-sm font-bold text-slate-500 dark:text-zinc-400">{isRtl ? 'لا توجد فواتير مبيعات مسجلة' : 'No sales invoices recorded'}</p>
+                <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">{isRtl ? 'ابدأ بإصدار فاتورة مبيعات جديدة' : 'Start by issuing a new sales invoice'}</p>
+              </div>
+            )}
             {salesInvoices.map(inv => (
               <div key={inv.id} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-3.5 hover:shadow-md transition-all">
                 
@@ -1730,6 +1366,13 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           
           {/* Contracts List / Matrix */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {contracts.length === 0 && !loading && (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                <FileCheck className="w-12 h-12 text-slate-300 dark:text-zinc-600 mb-3" />
+                <p className="text-sm font-bold text-slate-500 dark:text-zinc-400">{isRtl ? 'لا توجد عقود موردين مسجلة' : 'No vendor contracts recorded'}</p>
+                <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">{isRtl ? 'ابدأ بإضافة عقد توريد جديد' : 'Start by adding a new supply contract'}</p>
+              </div>
+            )}
             {contracts.map(contract => {
               const remainingVal = contract.totalValueYer - contract.paidValueYer;
               const paidPercent = Math.min(100, Math.round((contract.paidValueYer / contract.totalValueYer) * 100));
@@ -1887,6 +1530,14 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold text-slate-800 dark:text-zinc-200">
+                  {activityLinks.length === 0 && !loading && (
+                    <tr>
+                      <td colSpan={8} className="p-8 text-center">
+                        <Link2 className="w-8 h-8 text-slate-300 dark:text-zinc-600 mx-auto mb-2" />
+                        <p className="text-sm font-bold text-slate-500 dark:text-zinc-400">{isRtl ? 'لا توجد بيانات ربط أنشطة بعد' : 'No activity link data yet'}</p>
+                      </td>
+                    </tr>
+                  )}
                   {activityLinks.map(link => (
                     <tr key={link.activityId} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-all">
                       <td className="p-3.5 font-mono text-emerald-600 dark:text-emerald-400 font-black">
@@ -2334,5 +1985,6 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
       )}
 
     </div>
+    </ModuleShell>
   );
 };

@@ -25,6 +25,7 @@ import HeaderQuickMenu from './HeaderQuickMenu';
 import OfflineSyncStatusWidget from './OfflineSyncStatusWidget';
 import { ActiveTab, User } from '../core/types';
 import { useTenantContext } from '../core/TenantContext';
+import { useEnvironmentMode, ENVIRONMENT_MODES } from '../core/context/EnvironmentModeContext';
 
 export interface GlobalEnterpriseHeaderProps {
   lang: 'ar' | 'en';
@@ -72,6 +73,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
 }) => {
   const isRtl = lang === 'ar';
   const { tenantContext, availableOrganizations, switchOrganization } = useTenantContext();
+  const { isTrainingMode, currentConfig, toggleEnvironmentMode, trainingSessionDuration } = useEnvironmentMode();
   const [showUserProfilePopover, setShowUserProfilePopover] = useState(false);
   // Initialize branch from tenant context branchCode if available
   const defaultBranch = tenantContext?.branchCode || 'MAIN';
@@ -137,6 +139,22 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
               ))}
             </select>
           </div>
+
+          {/* ENVIRONMENT MODE INDICATOR */}
+          <button
+            onClick={toggleEnvironmentMode}
+            className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+              isTrainingMode
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
+                : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25'
+            }`}
+            title={isRtl ? currentConfig.descriptionAr : currentConfig.descriptionEn}
+          >
+            <span className={`w-2 h-2 rounded-full animate-pulse ${isTrainingMode ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+            <span>{isRtl ? currentConfig.labelAr : currentConfig.labelEn}</span>
+          </button>
+
+          <div className="h-4 w-px bg-zinc-800 mx-1"></div>
         </div>
 
         {/* MIDDLE: FREE FLEXIBLE SPACER */}
@@ -145,7 +163,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
         {/* END: WINDOW CONTROL BUTTONS (?????? ?????? ?????) */}
         <div className="flex items-center gap-1">
           <button
-            onClick={() => console.log('Minimize window')}
+            onClick={() => { /* Minimize handled by parent */ }}
             className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded transition-colors cursor-pointer"
             title={isRtl ? 'تصغير الشاشة' : 'Minimize Window'}
           >
@@ -163,6 +181,8 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
           <button
             onClick={() => {
               if (confirm(isRtl ? 'هل ترغب في قفل الجلسة والحروج؟' : 'Lock session and return to login?')) {
+                localStorage.removeItem('rbd_token');
+                localStorage.removeItem('rbd_refresh_token');
                 setCurrentUser(null);
               }
             }}
@@ -292,7 +312,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
               currentUser={currentUser as any}
               onSwitchUser={(u) => {
                 setCurrentUser(u);
-                try { localStorage.setItem('rbd_user', JSON.stringify(u)); } catch (e) {}
+                try { localStorage.setItem('rbd_user', JSON.stringify(u)); } catch (e) { console.error('[Header] Failed to save user to localStorage:', e); }
               }}
               onLogout={() => {
                 setCurrentUser(null);
@@ -300,7 +320,8 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
                   localStorage.removeItem('rbd_user'); 
                   localStorage.removeItem('roh_user'); 
                   localStorage.removeItem('rbd_token');
-                } catch (e) {}
+                  localStorage.removeItem('rbd_refresh_token');
+                } catch (e) { console.error('[Header] Failed to clear user from localStorage:', e); }
               }}
             />
           </div>

@@ -2,8 +2,13 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
 
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL environment variable is required');
+  process.exit(1);
+}
+
 const { Client } = pg;
-const connectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_Dq90uUgVxdre@ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech/erprbdcyedb?sslmode=verify-full';
+const connectionString = process.env.DATABASE_URL;
 
 const client = new Client({ connectionString });
 

@@ -33,6 +33,7 @@ import {
 
 import { Project, Program } from '../types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 // Import Google Maps SDK components
 import { APIProvider, Map as GoogleMap, AdvancedMarker, Pin, InfoWindow } from '@vis.gl/react-google-maps';
@@ -237,6 +238,14 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
   };
 
   return (
+    <ModuleShell
+      titleAr="لوحة الخرائط الجغرافية"
+      titleEn="Geospatial Dashboard"
+      domainCode="NEB-13"
+      icon={Globe}
+      lang={lang}
+      accent="blue"
+    >
     <div className="space-y-6">
       
       {/* 1. Header Banner */}
@@ -846,6 +855,7 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
       )}
 
     </div>
+    </ModuleShell>
   );
 };
 

@@ -133,7 +133,7 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
       const updated = [id, ...prev.filter(item => item !== id)].slice(0, 8);
       try {
         localStorage.setItem('nexora_recent_commands', JSON.stringify(updated));
-      } catch {}
+      } catch (e) { console.error('[CommandCenter] Failed to save recent commands to localStorage:', e); }
       return updated;
     });
   }, []);

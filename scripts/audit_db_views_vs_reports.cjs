@@ -1,12 +1,14 @@
+require('dotenv').config();
+
 const pg = require('pg');
 
-const DATABASE_URL = "postgresql://neondb_owner:npg_Dq90uUgVxdre@ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech/erprbdcyedb?sslmode=verify-full";
+if (!process.env.DATABASE_URL) { console.error('DATABASE_URL required'); process.exit(1); }
 
 async function runDatabaseDeepAudit() {
   console.log("🔍 Starting Deep Neon PostgreSQL Database Audit & View Reconciliation...\n");
 
   const pool = new pg.Pool({
-    connectionString: DATABASE_URL,
+    connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
   });
 

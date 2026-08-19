@@ -62,7 +62,7 @@ export default function ProjectStatusOverviewWidget({
     setArchivedProjectIds(updated);
     try {
       localStorage.setItem('nexora_archived_project_ids', JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) { console.error('[Archive] Failed to save archived project IDs to localStorage:', e); }
   };
 
   const unarchiveProject = (projectId: string) => {
@@ -70,7 +70,7 @@ export default function ProjectStatusOverviewWidget({
     setArchivedProjectIds(updated);
     try {
       localStorage.setItem('nexora_archived_project_ids', JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) { console.error('[Archive] Failed to save archived project IDs to localStorage:', e); }
   };
 
   const activeDashboardProjects = React.useMemo(() => {
@@ -92,7 +92,7 @@ export default function ProjectStatusOverviewWidget({
     setIsExpanded(nextState);
     try {
       localStorage.setItem('nexora_project_widget_expanded', String(nextState));
-    } catch (e) {}
+    } catch (e) { console.error('[Widget] Failed to save widget expanded state to localStorage:', e); }
   };
 
   const [insights, setInsights] = useState<string | null>(() => {
@@ -136,7 +136,7 @@ export default function ProjectStatusOverviewWidget({
         setInsights(data.insights);
         try {
           localStorage.setItem('nexora_portfolio_insights', data.insights);
-        } catch (e) {}
+        } catch (e) { console.error('[Insights] Failed to save portfolio insights to localStorage:', e); }
       } else {
         throw new Error(lang === 'ar' ? 'لم يتم استرجاع أي بيانات تحليلية' : 'No analytical insights were returned');
       }
@@ -213,7 +213,7 @@ export default function ProjectStatusOverviewWidget({
       setFinancialAudits(audited);
       try {
         localStorage.setItem('nexora_project_financial_audits', JSON.stringify(audited));
-      } catch (e) {}
+      } catch (e) { console.error('[Audit] Failed to save financial audits to localStorage:', e); }
 
       // Trigger custom toast events for newly discovered financial issues
       newlyDiscovered.forEach((issue: any) => {
@@ -243,7 +243,7 @@ export default function ProjectStatusOverviewWidget({
     setFinancialAuditEnabled(enabled);
     try {
       localStorage.setItem('nexora_financial_audit_enabled', String(enabled));
-    } catch (e) {}
+    } catch (e) { console.error('[Audit] Failed to save financial audit enabled state to localStorage:', e); }
 
     if (enabled) {
       await runFinancialAudit(true);
@@ -316,7 +316,7 @@ export default function ProjectStatusOverviewWidget({
       setPredictiveImpact(data);
       try {
         localStorage.setItem('nexora_project_predictive_impact', JSON.stringify(data));
-      } catch (e) {}
+      } catch (e) { console.error('[PredictiveImpact] Failed to save predictive impact data to localStorage:', e); }
 
       // Trigger custom toast alerting the user to completed predictive analysis
       const message = lang === 'ar'
@@ -342,7 +342,7 @@ export default function ProjectStatusOverviewWidget({
     setPredictiveImpactEnabled(enabled);
     try {
       localStorage.setItem('nexora_predictive_impact_enabled', String(enabled));
-    } catch (e) {}
+    } catch (e) { console.error('[PredictiveImpact] Failed to save predictive impact enabled state to localStorage:', e); }
 
     if (enabled) {
       await runPredictiveImpact(true);
@@ -413,7 +413,7 @@ export default function ProjectStatusOverviewWidget({
       setSmartRebalance(data);
       try {
         localStorage.setItem('nexora_project_smart_rebalance', JSON.stringify(data));
-      } catch (e) {}
+      } catch (e) { console.error('[SmartRebalance] Failed to save smart rebalance data to localStorage:', e); }
 
       // Trigger custom toast alerting the user
       const message = lang === 'ar'
@@ -439,7 +439,7 @@ export default function ProjectStatusOverviewWidget({
     setSmartRebalanceEnabled(enabled);
     try {
       localStorage.setItem('nexora_smart_rebalance_enabled', String(enabled));
-    } catch (e) {}
+    } catch (e) { console.error('[SmartRebalance] Failed to save smart rebalance enabled state to localStorage:', e); }
 
     if (enabled) {
       await runSmartRebalance(true);
@@ -507,7 +507,7 @@ export default function ProjectStatusOverviewWidget({
       setAnomalies(detected);
       try {
         localStorage.setItem('nexora_project_anomalies', JSON.stringify(detected));
-      } catch (e) {}
+      } catch (e) { console.error('[Anomaly] Failed to save anomaly data to localStorage:', e); }
 
       // Trigger custom toast events for newly discovered anomalies
       newlyDiscovered.forEach((anomaly: any) => {
@@ -537,7 +537,7 @@ export default function ProjectStatusOverviewWidget({
     setAnomalyEnabled(enabled);
     try {
       localStorage.setItem('nexora_anomaly_enabled', String(enabled));
-    } catch (e) {}
+    } catch (e) { console.error('[Anomaly] Failed to save anomaly enabled state to localStorage:', e); }
 
     if (enabled) {
       await runAnomalyDiagnostics(true);

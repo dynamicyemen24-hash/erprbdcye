@@ -23,6 +23,9 @@ import ExportToolsModal from './ExportToolsModal';
 import { printHTML } from '../lib/printUtils';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
+import { ModuleShell } from './enterprise/ModuleShell';
+import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
+import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
 
 interface BeneficiariesViewProps {
   beneficiaries: any[];
@@ -61,6 +64,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [activeFormTab, setActiveFormTab] = useState<'personal' | 'demographic' | 'support'>('personal');
 
   // Fields
@@ -122,7 +126,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
     let printWindow: any = null;
     try {
       printWindow = window.open('', '_blank');
-    } catch (e) {}
+    } catch (e) { console.error('[Beneficiaries] Failed to open print window:', e); }
 
     let writtenHTML = '';
     const mockDoc = {
@@ -431,13 +435,21 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
       if (!response.ok) {
         const errData = await response.json();
+        if (response.status === 403 && errData.violations) {
+          throw new PolicyViolationError(errData);
+        }
         throw new Error(errData.error || 'Failed to save beneficiary record.');
       }
 
       onRefresh();
       setIsModalOpen(false);
     } catch (err: any) {
-      setFormError(err.message);
+      if (err instanceof PolicyViolationError) {
+        setPolicyViolations(err.violations);
+        setFormError(err.primaryMessage);
+      } else {
+        setFormError(err.message);
+      }
     } finally {
       setFormSubmitting(false);
     }
@@ -468,7 +480,25 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   const statActive = beneficiaries.filter(b => b.status_code === 'active').length;
 
   return (
-    <div className="space-y-6 animate-fade-in text-slate-800">
+    <ModuleShell
+      titleAr="نظام المستفيدين والخدمات"
+      titleEn="Service Delivery & Beneficiaries OS"
+      descAr="قاعدة بيانات المستفيدين، التحقق من الهوية وتطبيق معايير الاستحقاق"
+      descEn="Beneficiary registries, eligibility criteria, and humanitarian assistance routing"
+      domainCode="NEB-06"
+      icon={Users}
+      accent="blue"
+      lang={lang}
+      onRefresh={onRefresh}
+      onNavigate={onNavigate}
+      isLoading={loading}
+      recordCount={filteredList.length}
+      breadcrumbs={[
+        { label: lang === 'ar' ? 'الرئيسية' : 'Home', onClick: () => onNavigate?.('dashboard') },
+        { label: lang === 'ar' ? 'المستفيدون' : 'Beneficiaries' }
+      ]}
+    >
+    <div className="space-y-6 text-slate-800">
       {/* Enterprise Operational ToolStrip */}
       <EnterpriseToolStrip
         lang={lang}
@@ -970,6 +1000,16 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               </div>
             )}
 
+            {policyViolations && policyViolations.length > 0 && (
+              <div className="mx-4">
+                <PolicyViolationAlert
+                  violations={policyViolations}
+                  lang={lang}
+                  onDismiss={() => setPolicyViolations(null)}
+                />
+              </div>
+            )}
+
             {/* Form */}
             <form onSubmit={handleSave}>
               <div className="p-6 max-h-[400px] overflow-y-auto space-y-4">
@@ -1264,5 +1304,6 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       />
 
     </div>
+    </ModuleShell>
   );
 }

@@ -29,7 +29,8 @@ export type ActiveTab =
   | 'strategic_planning'
   | 'investments'
   | 'hr_dashboard'
-  | 'third-party-network';
+  | 'third-party-network'
+  | 'sales';
 
 export type TabId = ActiveTab;
 

@@ -45,7 +45,13 @@ export interface EnterpriseContextType {
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
 
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
+  const [lang, setLang] = useState<'ar' | 'en'>(() => {
+    try {
+      const saved = localStorage.getItem('nexora_lang');
+      if (saved === 'ar' || saved === 'en') return saved;
+    } catch (e) { /* ignore */ }
+    return 'ar';
+  });
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       const saved = localStorage.getItem('rbd_theme');
@@ -67,7 +73,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       const saved = localStorage.getItem('rbd_density');
       if (saved === 'compact' || saved === 'comfortable' || saved === 'spacious') return saved;
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] EnterpriseContext: Failed to read layout density from localStorage', e); }
     return 'comfortable';
   });
 
@@ -120,7 +126,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       try {
         const saved = localStorage.getItem('rbd_org_name');
         if (saved && saved.trim() !== '') return saved;
-      } catch (e) {}
+      } catch (e) { console.error('[NexoraOS] EnterpriseContext: Failed to read org name from localStorage', e); }
       return lang === 'ar' ? 'المؤسسة المرخصة (Subscriber Organization)' : 'Licensed Tenant Organization';
     }
     return lang === 'ar' ? activeOrg.name_ar : activeOrg.name_en;
@@ -170,9 +176,15 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   useEffect(() => {
     try {
+      localStorage.setItem('nexora_lang', lang);
+    } catch (e) { /* ignore */ }
+  }, [lang]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem('rbd_density', layoutDensity);
       document.documentElement.setAttribute('data-density', layoutDensity);
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] EnterpriseContext: Failed to persist layout density', e); }
   }, [layoutDensity]);
 
   useEffect(() => {
@@ -183,7 +195,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       } else {
         document.documentElement.classList.remove('dark');
       }
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] EnterpriseContext: Failed to persist theme preference', e); }
   }, [theme]);
 
   useEffect(() => {
@@ -191,7 +203,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       localStorage.setItem('rbd_logo_url', logoUrl);
       localStorage.setItem('rbd_org_name', orgName);
       updateFavicon(logoUrl);
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] EnterpriseContext: Failed to persist logo/org branding', e); }
   }, [logoUrl, orgName]);
 
   useEffect(() => {

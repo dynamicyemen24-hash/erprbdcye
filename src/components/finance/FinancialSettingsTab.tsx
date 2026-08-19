@@ -24,6 +24,8 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { Currency } from '../../types';
+import { PolicyViolationError, type PolicyViolation } from '../../core/utils/apiHelpers';
+import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
 
 interface FinancialSettingsTabProps {
   currencies: Currency[];
@@ -55,6 +57,7 @@ export default function FinancialSettingsTab({
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [currLoading, setCurrLoading] = useState(false);
 
@@ -234,13 +237,21 @@ export default function FinancialSettingsTab({
 
       if (!response.ok) {
         const errData = await response.json();
+        if (response.status === 403 && errData.violations) {
+          throw new PolicyViolationError(errData);
+        }
         throw new Error(errData.error || 'Failed to save currency.');
       }
 
       onRefreshCurrencies();
       setIsCurrencyModalOpen(false);
     } catch (err: any) {
-      setFormError(err.message);
+      if (err instanceof PolicyViolationError) {
+        setPolicyViolations(err.violations);
+        setFormError(err.primaryMessage);
+      } else {
+        setFormError(err.message);
+      }
     } finally {
       setFormSubmitting(false);
     }
@@ -621,6 +632,14 @@ export default function FinancialSettingsTab({
                   <AlertTriangle className="w-4 h-4" />
                   <span>{formError}</span>
                 </div>
+              )}
+
+              {policyViolations && policyViolations.length > 0 && (
+                <PolicyViolationAlert
+                  violations={policyViolations}
+                  lang={lang}
+                  onDismiss={() => setPolicyViolations(null)}
+                />
               )}
 
               {/* Code */}

@@ -82,6 +82,7 @@ import {
 import { FixedAssetRecord } from '../types';
 import { printHTML } from '../lib/printUtils';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 // Helper: Calculate Straight-Line Depreciation per IPSAS-17
 export function calculateDepreciation(
@@ -332,210 +333,7 @@ export const PRESET_DISBURSEMENT_KITS = [
   }
 ];
 
-const DEFAULT_BRANCHES: BranchData[] = [
-  {
-    id: 'br-1',
-    code: 'BR-MRB',
-    name_ar: 'فرع مأرب الرئيسي',
-    name_en: 'Marib Main Branch',
-    region_ar: 'إقليم سبأ',
-    region_en: 'Saba Region',
-    manager_name: 'د. عبدالله المرادي',
-    status: 'ACTIVE'
-  },
-  {
-    id: 'br-2',
-    code: 'BR-HDH',
-    name_ar: 'فرع الحديدة والساحل الغربي',
-    name_en: 'Hodeidah & West Coast Branch',
-    region_ar: 'الساحل الغربي',
-    region_en: 'West Coast Region',
-    manager_name: 'أ. طارق عبدالكريم',
-    status: 'ACTIVE'
-  },
-  {
-    id: 'br-3',
-    code: 'BR-HDM',
-    name_ar: 'فرع إقليم حضرموت - المكلا',
-    name_en: 'Hadramout Branch - Mukalla',
-    region_ar: 'إقليم حضرموت',
-    region_en: 'Hadramout Region',
-    manager_name: 'مهندس سكران الكثيري',
-    status: 'ACTIVE'
-  },
-  {
-    id: 'br-4',
-    code: 'BR-ADN',
-    name_ar: 'فرع العاصمة عدن',
-    name_en: 'Aden Capital Branch',
-    region_ar: 'العاصمة عدن',
-    region_en: 'Aden Capital',
-    manager_name: 'د. مريم الشعيبي',
-    status: 'ACTIVE'
-  }
-];
-
-const DEFAULT_WAREHOUSES: WarehouseData[] = [
-  {
-    id: 'wh-1',
-    branch_id: 'br-1',
-    name_ar: 'المستودع المركزي - مأرب الرئيسي',
-    name_en: 'Central Warehouse - Marib HQ',
-    location_ar: 'مأرب - المركز الرئيسي',
-    location_en: 'Marib - HQ Center',
-    manager_name: 'أحمد علي السقاف',
-    capacity: '25,000 m³',
-    percentage_used: 78
-  },
-  {
-    id: 'wh-2',
-    branch_id: 'br-2',
-    name_ar: 'مستودع الساحل الغربي - الحديدة',
-    name_en: 'West Coast Warehouse - Al Hudaydah',
-    location_ar: 'الحديدة - الخوخة اللوجستية',
-    location_en: 'Hodeidah - Al Khawkhah Hub',
-    manager_name: 'سالم محمد باعباد',
-    capacity: '12,500 m³',
-    percentage_used: 64
-  },
-  {
-    id: 'wh-3',
-    branch_id: 'br-3',
-    name_ar: 'مستودع حضرموت المركزي',
-    name_en: 'Hadramout Regional Depot',
-    location_ar: 'المكلا - المنطقة الصناعية',
-    location_en: 'Mukalla - Industrial Area',
-    manager_name: 'خالد عمر العمودي',
-    capacity: '18,000 m³',
-    percentage_used: 42
-  },
-  {
-    id: 'wh-4',
-    branch_id: 'br-4',
-    name_ar: 'مستودع عدن اللوجستي الإغاثي',
-    name_en: 'Aden Relief Logistics Depot',
-    location_ar: 'عدن - ميناء الحاويات',
-    location_en: 'Aden - Container Port',
-    manager_name: 'ياسين محمود العفيف',
-    capacity: '30,000 m³',
-    percentage_used: 55
-  }
-];
-
-export const DEFAULT_FIXED_ASSETS: FixedAssetRecord[] = [
-  {
-    id: 'ast-101',
-    asset_code: 'AST-2026-0001',
-    name_ar: 'سيارة تويوتا هايلوكس دبل كابين 4WD',
-    name_en: 'Toyota Hilux 4WD Operations Vehicle',
-    category: 'VEHICLE',
-    serial_number: 'SN-TH-998241',
-    purchase_date: '2025-01-15',
-    purchase_cost: 45000000,
-    current_value: 38000000,
-    depreciation_rate: 10,
-    accumulated_depreciation: 7000000,
-    useful_life_months: 60,
-    residual_value: 5000000,
-    supplier_name: 'شركة وكالة التيسير للسيارات',
-    supplier_contact: '+967-771234567',
-    warranty_expiry_date: '2027-01-15',
-    location_name: 'المستودع المركزي - مأرب الرئيسي',
-    warehouse_id: 'wh-1',
-    project_id: 'prj-101',
-    project_name: 'مشروع السلال الغذائية والأمن الغذائي مأرب',
-    activity_id: 'ACT-LOGISTICS-01',
-    assigned_custodian_hr: 'م. أحمد سالم باثواب (مسؤول اللوجستيات)',
-    condition_code: 'USED_GOOD',
-    status_code: 'MAPPED_TO_PROJECT',
-    last_maintenance_date: '2026-06-10',
-    next_maintenance_date: '2026-12-10'
-  },
-  {
-    id: 'ast-102',
-    asset_code: 'AST-2026-0002',
-    name_ar: 'خوادم معالجة البيانات المركزية Nexora',
-    name_en: 'Nexora Enterprise Server Node',
-    category: 'IT_EQUIPMENT',
-    serial_number: 'SN-NX-774012',
-    purchase_date: '2025-06-10',
-    purchase_cost: 12000000,
-    current_value: 9500000,
-    depreciation_rate: 15,
-    accumulated_depreciation: 2500000,
-    useful_life_months: 36,
-    residual_value: 1000000,
-    supplier_name: 'الشركة اليمنية للحلول الرقمية',
-    supplier_contact: '+967-733445566',
-    warranty_expiry_date: '2028-06-10',
-    location_name: 'غرفة الخوادم الرئيسية - الإدارة العامة',
-    warehouse_id: 'wh-1',
-    project_id: 'prj-103',
-    project_name: 'مشروع التحول الرقمي والأثر الميداني',
-    activity_id: 'ACT-IT-CORE',
-    assigned_custodian_hr: 'د. عبدالكريم الحمداني (مدير النظم والمعلومات)',
-    condition_code: 'NEW',
-    status_code: 'ACTIVE',
-    last_maintenance_date: '2026-05-01',
-    next_maintenance_date: '2026-11-01'
-  },
-  {
-    id: 'ast-103',
-    asset_code: 'AST-2026-0003',
-    name_ar: 'حفار آبار المياه الجوفية التكتيكي الثقيل',
-    name_en: 'Coastal Borehole Drilling Rig',
-    category: 'HEAVY_MACHINERY',
-    serial_number: 'SN-DRILL-88391',
-    purchase_date: '2024-03-20',
-    purchase_cost: 180000000,
-    current_value: 140000000,
-    depreciation_rate: 8,
-    accumulated_depreciation: 40000000,
-    useful_life_months: 120,
-    residual_value: 20000000,
-    supplier_name: 'المؤسسة العربية للمعدات الثقيلة',
-    supplier_contact: '+967-711889900',
-    warranty_expiry_date: '2026-03-20',
-    location_name: 'موقع الحفر الميداني - الحديدة',
-    warehouse_id: 'wh-2',
-    project_id: 'prj-102',
-    project_name: 'مشروع الاستجابة الطارئة والمياه - الساحل الغربي',
-    activity_id: 'ACT-WATER-RIG',
-    assigned_custodian_hr: 'م. ناصر سعيد المعمري (مهندس حفر الآبار)',
-    condition_code: 'UNDER_MAINTENANCE',
-    status_code: 'UNDER_MAINTENANCE',
-    last_maintenance_date: '2026-07-15',
-    next_maintenance_date: '2026-08-15'
-  },
-  {
-    id: 'ast-104',
-    asset_code: 'AST-2026-0004',
-    name_ar: 'منظومة ضخ مياه بالطاقة الشمسية المتكاملة',
-    name_en: 'Solar Water Pump System',
-    category: 'EQUIPMENT',
-    serial_number: 'SN-SOLAR-3321',
-    purchase_date: '2025-09-01',
-    purchase_cost: 35000000,
-    current_value: 32000000,
-    depreciation_rate: 12,
-    accumulated_depreciation: 3000000,
-    useful_life_months: 84,
-    residual_value: 3000000,
-    supplier_name: 'شركة طاقة المستقبل اليمنية',
-    supplier_contact: '+967-775511223',
-    warranty_expiry_date: '2030-09-01',
-    location_name: 'مستودع الساحل الغربي - الحديدة',
-    warehouse_id: 'wh-2',
-    project_id: 'prj-102',
-    project_name: 'مشروع الاستجابة الطارئة والمياه - الساحل الغربي',
-    activity_id: 'ACT-SOLAR-02',
-    assigned_custodian_hr: 'م. خالد عبدالرحيم (أخصائي الطاقة البديلة)',
-    condition_code: 'USED_GOOD',
-    status_code: 'MAPPED_TO_PROJECT',
-    last_maintenance_date: '2026-04-10',
-    next_maintenance_date: '2026-10-10'
-  }
-];
+// Data fetched from Neon PostgreSQL API via /api/tables/* endpoints
 
 export const DEFAULT_PROJECTS_LIST = [
   { id: 'prj-101', code: 'PRJ-2026-001', name_ar: 'مشروع السلال الغذائية والأمن الغذائي مأرب', name_en: 'Marib Food Basket & Food Security Project', budget: '120000000', spent: '42000000' },
@@ -561,305 +359,6 @@ export const DEFAULT_WBS_ACTIVITIES: Record<string, Array<{ id: string; code: st
   ]
 };
 
-const DEFAULT_INVENTORY_ITEMS: ReliefInventoryItem[] = [
-  {
-    id: 'inv-101',
-    sku: 'SKU-FOOD-001',
-    name_ar: 'سلال غذائية متكاملة (دقيق، أرز، زيت، سكر، تمر)',
-    name_en: 'Complete Relief Food Baskets (Flour, Rice, Oil, Sugar)',
-    qty: 1250,
-    unit_ar: 'سلة',
-    unit_en: 'basket',
-    warehouse_id: 'wh-1',
-    category: 'FOOD_AID',
-    unit_value_yer: 32000,
-    reorder_level: 500,
-    batch_no: 'KSRELIEF-2026-B01',
-    expiry_date: '2027-06-30',
-    donor_ref: 'منحة مركز الملك سلمان للإغاثة',
-    asset_type: 'CONSUMABLE',
-    condition: 'NEW',
-    serial_no: 'N/A-BATCH-FOOD-001',
-    last_maintenance_date: '2026-08-01',
-    next_maintenance_date: '2027-02-01',
-    maintenance_status: 'UP_TO_DATE',
-    assigned_custodian_hr: 'أ. عادل ثابت - مسؤول العهد الميدانية',
-    accounting_ledger_code: 'IPSAS-12-FOOD-INVENTORY-101',
-    project_activity_id: 'PROJ-2026-FOOD-01 / السلال الغذائية مأرب',
-    procurement_po_ref: 'PO-2026-KSRELIEF-091'
-  },
-  {
-    id: 'inv-102',
-    sku: 'SKU-NUT-002',
-    name_ar: 'مكملات تغذية علاجية للأطفال (PlumpyNut)',
-    name_en: 'Therapeutic Food Supplements for Infants (PlumpyNut)',
-    qty: 180,
-    unit_ar: 'كرتون',
-    unit_en: 'carton',
-    warehouse_id: 'wh-2',
-    category: 'NUTRITION',
-    unit_value_yer: 45000,
-    reorder_level: 300,
-    batch_no: 'UNICEF-2026-M04',
-    expiry_date: '2026-11-15',
-    donor_ref: 'دعم اليونيسف (UNICEF)',
-    asset_type: 'CONSUMABLE',
-    condition: 'NEW',
-    serial_no: 'N/A-NUT-2026-M04',
-    last_maintenance_date: '2026-07-15',
-    next_maintenance_date: '2026-10-15',
-    maintenance_status: 'UP_TO_DATE',
-    assigned_custodian_hr: 'د. سامية عبدالحق - مسؤول برنامج التغذية',
-    accounting_ledger_code: 'IPSAS-12-NUT-MED-202',
-    project_activity_id: 'PROJ-2026-NUT-04 / حماية الطفولة والرضع',
-    procurement_po_ref: 'PO-2026-UNICEF-110'
-  },
-  {
-    id: 'inv-103',
-    sku: 'SKU-SHL-003',
-    name_ar: 'خيم إيواء طوارئ مقاومة للحرائق والرياح',
-    name_en: 'Emergency Fire-Resistant Relief Tents',
-    qty: 85,
-    unit_ar: 'خيمة',
-    unit_en: 'tent',
-    warehouse_id: 'wh-1',
-    category: 'SHELTER',
-    unit_value_yer: 185000,
-    reorder_level: 150,
-    batch_no: 'UNHCR-2026-T88',
-    expiry_date: '2030-12-31',
-    donor_ref: 'المفوضية السامية لشؤون اللاجئين',
-    asset_type: 'FIXED_ASSET',
-    condition: 'USED_GOOD',
-    serial_no: 'SN-TENT-UNHCR-8821',
-    last_maintenance_date: '2026-04-10',
-    next_maintenance_date: '2026-10-10',
-    maintenance_status: 'UP_TO_DATE',
-    assigned_custodian_hr: 'مهندس/ سليم العولقي - مشرف الإيواء',
-    accounting_ledger_code: 'IPSAS-17-SHELTER-EQUIP-552',
-    project_activity_id: 'PROJ-2026-SHELTER-03 / مخيمات النازحين',
-    procurement_po_ref: 'PO-2026-UNHCR-302'
-  },
-  {
-    id: 'inv-104',
-    sku: 'SKU-MED-004',
-    name_ar: 'حقائب إسبافات أولية وأدوية طوارئ ميدانية',
-    name_en: 'Emergency First Aid Kits & Field Medicines',
-    qty: 420,
-    unit_ar: 'حقيبة',
-    unit_en: 'kit',
-    warehouse_id: 'wh-4',
-    category: 'MEDICAL',
-    unit_value_yer: 28000,
-    reorder_level: 200,
-    batch_no: 'WHO-2026-MED9',
-    expiry_date: '2027-03-31',
-    donor_ref: 'منظمة الصحة العالمية WHO',
-    asset_type: 'EQUIPMENT',
-    condition: 'USED_GOOD',
-    serial_no: 'SN-MED-KIT-2026-991',
-    last_maintenance_date: '2026-05-01',
-    next_maintenance_date: '2026-08-01',
-    maintenance_status: 'DUE_SOON',
-    assigned_custodian_hr: 'د. وفاء المقطري - الكادر الطبي الميداني',
-    accounting_ledger_code: 'IPSAS-17-MED-1102',
-    project_activity_id: 'PROJ-2026-HEALTH-02 / العيادات المتنقلة',
-    procurement_po_ref: 'PO-2026-WHO-991'
-  },
-  {
-    id: 'inv-105',
-    sku: 'SKU-WASH-005',
-    name_ar: 'خزانات مياه بلاستيكية مرنة وحدات تنقية سعة 1000 لتر',
-    name_en: '1000L Water Purification Tanks (WASH)',
-    qty: 60,
-    unit_ar: 'خزان',
-    unit_en: 'tank',
-    warehouse_id: 'wh-3',
-    category: 'WASH',
-    unit_value_yer: 95000,
-    reorder_level: 80,
-    batch_no: 'WASH-2026-W12',
-    expiry_date: '2032-12-31',
-    donor_ref: 'صندوق التمويل الإنساني YHF',
-    asset_type: 'EQUIPMENT',
-    condition: 'UNDER_MAINTENANCE',
-    serial_no: 'SN-WASH-FILT-2025-044',
-    last_maintenance_date: '2026-01-10',
-    next_maintenance_date: '2026-07-10',
-    maintenance_status: 'OVERDUE',
-    assigned_custodian_hr: 'م. خالد باعباد - قسم الإزميل والصيانة',
-    accounting_ledger_code: 'IPSAS-17-WASH-3301',
-    project_activity_id: 'PROJ-2026-WASH-05 / مياه الشرب الصحية',
-    procurement_po_ref: 'PO-2026-YHF-702'
-  },
-  {
-    id: 'inv-106',
-    sku: 'SKU-EDU-006',
-    name_ar: 'حقائب مدرسية متكاملة مع الأدوات والقرطاسية',
-    name_en: 'Complete Student Backpack Kits & Stationery',
-    qty: 2100,
-    unit_ar: 'حقيبة',
-    unit_en: 'bag',
-    warehouse_id: 'wh-3',
-    category: 'EDUCATION',
-    unit_value_yer: 14000,
-    reorder_level: 500,
-    batch_no: 'EDU-2026-E02',
-    expiry_date: '2029-01-01',
-    donor_ref: 'تمويل الجمعية الذاتي',
-    asset_type: 'CONSUMABLE',
-    condition: 'NEW',
-    serial_no: 'N/A-EDU-KIT-2026',
-    last_maintenance_date: '2026-08-01',
-    next_maintenance_date: '2027-08-01',
-    maintenance_status: 'UP_TO_DATE',
-    assigned_custodian_hr: 'أ. طاهر الشبواني - مشرف التعليم',
-    accounting_ledger_code: 'IPSAS-12-EDU-KIT-882',
-    project_activity_id: 'PROJ-2026-EDU-01 / الحقيبة المدرسية',
-    procurement_po_ref: 'PO-2026-LOCAL-EDU-41'
-  },
-  {
-    id: 'inv-107',
-    sku: 'SKU-ASSET-GEN-007',
-    name_ar: 'مولد كهربائي صناعي كمنز 150 KVA للمستودع المركزي',
-    name_en: 'Industrial Cummins Generator 150 KVA (Central Depot)',
-    qty: 2,
-    unit_ar: 'مولد',
-    unit_en: 'generator',
-    warehouse_id: 'wh-1',
-    category: 'SHELTER',
-    unit_value_yer: 12500000,
-    reorder_level: 1,
-    batch_no: 'CUMMINS-2025-G150',
-    expiry_date: '2035-12-31',
-    donor_ref: 'أصول الجمعية الرأسمالية',
-    asset_type: 'FIXED_ASSET',
-    condition: 'UNDER_MAINTENANCE',
-    serial_no: 'SN-CUMMINS-150-2024-992',
-    last_maintenance_date: '2026-01-15',
-    next_maintenance_date: '2026-07-15',
-    maintenance_status: 'OVERDUE',
-    assigned_custodian_hr: 'مهندس/ علي العبسي - مسؤل تشغيل المولدات',
-    accounting_ledger_code: 'IPSAS-17-FIXED-GEN-102',
-    project_activity_id: 'PROJ-2026-LOG-OPS / تشغيل المستودعات المركزية',
-    procurement_po_ref: 'PO-2025-CUMMINS-001'
-  },
-  {
-    id: 'inv-108',
-    sku: 'SKU-ASSET-TRK-008',
-    name_ar: 'شاحنة نقل عيني إغاثية مان 10 طن',
-    name_en: 'MAN 10-Ton Relief Logistics Truck',
-    qty: 3,
-    unit_ar: 'شاحنة',
-    unit_en: 'truck',
-    warehouse_id: 'wh-4',
-    category: 'SHELTER',
-    unit_value_yer: 45000000,
-    reorder_level: 2,
-    batch_no: 'MAN-FLEET-2025',
-    expiry_date: '2040-12-31',
-    donor_ref: 'أسطول النقل واللوجستيات',
-    asset_type: 'VEHICLE',
-    condition: 'USED_GOOD',
-    serial_no: 'VIN-MAN-2025-482910',
-    last_maintenance_date: '2026-06-20',
-    next_maintenance_date: '2026-09-20',
-    maintenance_status: 'UP_TO_DATE',
-    assigned_custodian_hr: 'أ. عثمان الحضرمي - أسطول النقل الميداني',
-    accounting_ledger_code: 'IPSAS-17-FLEET-2004',
-    project_activity_id: 'PROJ-2026-DIST-OPS / خطوط الإمداد والتوزيع',
-    procurement_po_ref: 'PO-2025-MAN-TRUCKS-02'
-  },
-  {
-    id: 'inv-109',
-    sku: 'SKU-ASSET-SOLAR-009',
-    name_ar: 'وحدة ضخ مياه شمسية بقدرة 30 كيلوواط للآبار',
-    name_en: '30kW Solar Water Pumping System',
-    qty: 5,
-    unit_ar: 'وحدة',
-    unit_en: 'system',
-    warehouse_id: 'wh-3',
-    category: 'WASH',
-    unit_value_yer: 18500000,
-    reorder_level: 2,
-    batch_no: 'SOLAR-2025-PUMP30',
-    expiry_date: '2035-12-31',
-    donor_ref: 'منحة مركز الملك سلمان للإغاثة',
-    asset_type: 'EQUIPMENT',
-    condition: 'DAMAGED',
-    serial_no: 'SN-SOLAR-PUMP-9921',
-    last_maintenance_date: '2025-11-01',
-    next_maintenance_date: '2026-05-01',
-    maintenance_status: 'OVERDUE',
-    assigned_custodian_hr: 'م. رامي الشميري - فريق الإزميل الميداني',
-    accounting_ledger_code: 'IPSAS-17-SOLAR-4011',
-    project_activity_id: 'PROJ-2026-WASH-05 / آبار مياه حضرموت',
-    procurement_po_ref: 'PO-2025-SOLAR-119'
-  }
-];
-
-const DEFAULT_MOVEMENTS: StockMovementRecord[] = [
-  {
-    id: 'sm-201',
-    date: '2026-08-08',
-    time: '10:15',
-    itemId: 'inv-101',
-    itemNameAr: 'سلال غذائية متكاملة (دقيق، أرز، زيت، سكر، تمر)',
-    itemNameEn: 'Complete Relief Food Baskets',
-    type: 'RECEIVE',
-    qty: 500,
-    unitAr: 'سلة',
-    warehouseNameAr: 'المستودع المركزي - مأرب الرئيسي',
-    warehouseNameEn: 'Central Warehouse - Marib HQ',
-    refNo: 'GRN-2026-091',
-    recipientOrDonor: 'مركز الملك سلمان للإغاثة',
-    notes: 'وصول دفعة توريد إضافية ضمن مشروع الأمن الغذائي 2026',
-    authorizedBy: 'أمين المستودع الرئيسي'
-  },
-  {
-    id: 'sm-202',
-    date: '2026-08-08',
-    time: '08:40',
-    itemId: 'inv-102',
-    itemNameAr: 'مكملات تغذية علاجية للأطفال (PlumpyNut)',
-    itemNameEn: 'Therapeutic Food Supplements for Infants',
-    type: 'DISBURSE',
-    qty: 250,
-    unitAr: 'كرتون',
-    warehouseNameAr: 'مستودع الساحل الغربي - الحديدة',
-    warehouseNameEn: 'West Coast Warehouse - Al Hudaydah',
-    refNo: 'SARF-2026-114',
-    recipientOrDonor: 'عيادة التغذية الميدانية - مخيم الخوخة',
-    notes: 'صرف استجابة طارئة لسوء التغذية الحاد لدى الأطفال',
-    authorizedBy: 'مدير العمليات اللوجستية'
-  },
-  {
-    id: 'sm-203',
-    date: '2026-08-07',
-    time: '14:20',
-    itemId: 'inv-101',
-    itemNameAr: 'سلال غذائية متكاملة (دقيق، أرز، زيت، سكر، تمر)',
-    itemNameEn: 'Complete Relief Food Baskets',
-    type: 'TRANSFER',
-    qty: 300,
-    unitAr: 'سلة',
-    warehouseNameAr: 'المستودع المركزي - مأرب الرئيسي',
-    warehouseNameEn: 'Central Warehouse - Marib HQ',
-    targetWarehouseId: 'wh-2',
-    targetWarehouseNameAr: 'مستودع الساحل الغربي - الحديدة',
-    targetWarehouseNameEn: 'West Coast Warehouse - Al Hudaydah',
-    branchNameAr: 'فرع مأرب الرئيسي',
-    targetBranchNameAr: 'فرع الحديدة والساحل الغربي',
-    waybillNo: 'TR-WAY-2026-042',
-    driverName: 'منصور شاهر العولقي',
-    vehiclePlate: 'شاحنة مرسيدس 55214-ص',
-    refNo: 'TRF-2026-088',
-    recipientOrDonor: 'تحويل عيني بين الفروع والمخازن',
-    notes: 'تعزيز المخزون الإغاثي بالساحل الغربي لمواجهة موجة النزوح الجديدة',
-    authorizedBy: 'مدير عام اللوجستيات وسلاسل الإمداد'
-  }
-];
-
 export function InventoryManagementView({ lang, currentUser, beneficiaries, onNavigate }: InventoryManagementViewProps) {
   const isRtl = lang === 'ar';
   const userEmail = currentUser?.email || 'admin@rohamaab.org';
@@ -868,38 +367,55 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     enterpriseBus.notifyToast({ type: 'success', title, message });
   };
 
-  // Persistent States
-  const [branches, setBranches] = useState<BranchData[]>(() => {
-    try {
-      const saved = localStorage.getItem(`nexora_branches_${userEmail}`);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return DEFAULT_BRANCHES;
-  });
+  // Loading state for API fetch
+  const [loadingData, setLoadingData] = useState(true);
 
-  const [warehouses, setWarehouses] = useState<WarehouseData[]>(() => {
-    try {
-      const saved = localStorage.getItem(`nexora_wh_${userEmail}`);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return DEFAULT_WAREHOUSES;
-  });
+  // Data states — initialized empty, populated from Neon PostgreSQL API
+  const [branches, setBranches] = useState<BranchData[]>([]);
+  const [warehouses, setWarehouses] = useState<WarehouseData[]>([]);
+  const [items, setItems] = useState<ReliefInventoryItem[]>([]);
+  const [movements, setMovements] = useState<StockMovementRecord[]>([]);
 
-  const [items, setItems] = useState<ReliefInventoryItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(`nexora_inv_items_${userEmail}`);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return DEFAULT_INVENTORY_ITEMS;
-  });
+  // Fetch branches, warehouses, inventory items, and movements from the API on mount
+  useEffect(() => {
+    const fetchInventoryData = async () => {
+      setLoadingData(true);
+      try {
+        const [branchesRes, warehousesRes, itemsRes, movementsRes] = await Promise.allSettled([
+          fetch('/api/tables/branches'),
+          fetch('/api/tables/warehouses'),
+          fetch('/api/tables/inventory_items'),
+          fetch('/api/tables/movements')
+        ]);
 
-  const [movements, setMovements] = useState<StockMovementRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(`nexora_inv_movements_${userEmail}`);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return DEFAULT_MOVEMENTS;
-  });
+        if (branchesRes.status === 'fulfilled' && branchesRes.value.ok) {
+          const data = await branchesRes.value.json();
+          if (Array.isArray(data) && data.length > 0) setBranches(data);
+        }
+
+        if (warehousesRes.status === 'fulfilled' && warehousesRes.value.ok) {
+          const data = await warehousesRes.value.json();
+          if (Array.isArray(data) && data.length > 0) setWarehouses(data);
+        }
+
+        if (itemsRes.status === 'fulfilled' && itemsRes.value.ok) {
+          const data = await itemsRes.value.json();
+          if (Array.isArray(data) && data.length > 0) setItems(data);
+        }
+
+        if (movementsRes.status === 'fulfilled' && movementsRes.value.ok) {
+          const data = await movementsRes.value.json();
+          if (Array.isArray(data) && data.length > 0) setMovements(data);
+        }
+      } catch (err) {
+        console.error('[Inventory] Failed to fetch data from API:', err);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchInventoryData();
+  }, []);
 
   // ==================== PUSH NOTIFICATION & REAL-TIME CRITICAL ALERT ENGINE ====================
   const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
@@ -1087,7 +603,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     try {
       const saved = localStorage.getItem(`nexora_disbursement_plans_${userEmail}`);
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch (e) { console.error('[Disbursement] Failed to load disbursement plans from localStorage:', e); }
     return [
       {
         id: 'plan-1',
@@ -1130,7 +646,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     setSavedDisbursementPlans(updated);
     try {
       localStorage.setItem(`nexora_disbursement_plans_${userEmail}`, JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) { console.error('[Disbursement] Failed to save disbursement plans to localStorage:', e); }
     setPlanTemplateName('');
     triggerPushNotificationToast(
       isRtl ? 'تم حفظ خطة الصرف والتوزيع بنجاح 📋' : 'Disbursement Plan Saved!',
@@ -1973,13 +1489,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   });
 
   // Fixed Assets Database & Subsystem State
-  const [fixedAssets, setFixedAssets] = useState<FixedAssetRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(`nexora_fixed_assets_${userEmail}`);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return DEFAULT_FIXED_ASSETS;
-  });
+  const [fixedAssets, setFixedAssets] = useState<FixedAssetRecord[]>([]);
 
   const [projectsList, setProjectsList] = useState<any[]>(DEFAULT_PROJECTS_LIST);
   const [assetSubTab, setAssetSubTab] = useState<'ledger' | 'project_mapping' | 'depreciation' | 'warranty'>('ledger');
@@ -2058,13 +1568,6 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
     fetchAssetsAndProjects();
   }, []);
-
-  // Save fixedAssets to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(`nexora_fixed_assets_${userEmail}`, JSON.stringify(fixedAssets));
-    } catch (e) {}
-  }, [fixedAssets, userEmail]);
 
   // Register New Asset Handler
   const handleRegisterAssetSubmit = async (e: React.FormEvent) => {
@@ -2298,16 +1801,6 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     managerName: ''
   });
 
-  // Save changes to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(`nexora_branches_${userEmail}`, JSON.stringify(branches));
-      localStorage.setItem(`nexora_wh_${userEmail}`, JSON.stringify(warehouses));
-      localStorage.setItem(`nexora_inv_items_${userEmail}`, JSON.stringify(items));
-      localStorage.setItem(`nexora_inv_movements_${userEmail}`, JSON.stringify(movements));
-    } catch (e) {}
-  }, [branches, warehouses, items, movements, userEmail]);
-
   // Handle Movement Form Submit (Inbound / Outbound / Inter-Warehouse Transfer)
   const handleMovementSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2438,6 +1931,12 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       authorizedBy: currentUser?.name || (isRtl ? 'أمين المستودع المعتمد' : 'Authorized Warehouse Keeper')
     };
 
+    fetch('/api/tables/movements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRecord)
+    }).catch(err => console.warn('[Movements] API sync failed:', err));
+
     setMovements(prev => [newRecord, ...prev]);
     setIsMovementModalOpen(false);
     setMovementForm({
@@ -2456,7 +1955,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   };
 
   // Handle New Item Submit
-  const handleNewItemSubmit = (e: React.FormEvent) => {
+  const handleNewItemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItemForm.nameAr.trim()) return;
 
@@ -2481,6 +1980,16 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       expiry_date: newItemForm.expiryDate || '2027-12-31',
       donor_ref: newItemForm.donorRef.trim() || (isRtl ? 'تمويل إغاثي مباشر' : 'Direct Relief Funding')
     };
+
+    try {
+      await fetch('/api/tables/inventory_items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newItem)
+      });
+    } catch (err) {
+      console.warn('[Inventory] API sync failed for new item:', err);
+    }
 
     setItems(prev => [newItem, ...prev]);
 
@@ -2508,7 +2017,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   };
 
   // Handle New Warehouse Submit
-  const handleNewWarehouseSubmit = (e: React.FormEvent) => {
+  const handleNewWarehouseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWarehouseForm.nameAr.trim()) return;
 
@@ -2524,12 +2033,22 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       percentage_used: 15
     };
 
+    try {
+      await fetch('/api/tables/warehouses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newWh)
+      });
+    } catch (err) {
+      console.warn('[Warehouse] API sync failed:', err);
+    }
+
     setWarehouses(prev => [...prev, newWh]);
     setIsNewWarehouseModalOpen(false);
   };
 
   // Handle New Branch Submit
-  const handleNewBranchSubmit = (e: React.FormEvent) => {
+  const handleNewBranchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBranchForm.nameAr.trim()) return;
 
@@ -2543,6 +2062,16 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       manager_name: newBranchForm.managerName.trim() || (isRtl ? 'مدير الفرع' : 'Branch Director'),
       status: 'ACTIVE'
     };
+
+    try {
+      await fetch('/api/tables/branches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBr)
+      });
+    } catch (err) {
+      console.warn('[Branch] API sync failed:', err);
+    }
 
     setBranches(prev => [...prev, newBr]);
     setIsNewBranchModalOpen(false);
@@ -2984,7 +2513,21 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     };
   });
 
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-3">
+          <RefreshCw className="w-8 h-8 text-emerald-500 animate-spin mx-auto" />
+          <p className="text-sm text-slate-500 dark:text-zinc-400 font-medium">
+            {isRtl ? 'جاري تحميل بيانات المخزون من قاعدة البيانات...' : 'Loading inventory data from database...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
+    <ModuleShell titleAr="نظام الإمداد والمخزون الإغاثي" titleEn="Supply Chain & Inventory OS" domainCode="NEB-09" icon={Warehouse} accent="slate" lang={lang}>
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* ==================== 1. TOP TITLE BANNER & ACTION BAR ==================== */}
@@ -7462,5 +7005,6 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         </div>
       )}
     </div>
+    </ModuleShell>
   );
 }

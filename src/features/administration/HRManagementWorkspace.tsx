@@ -29,6 +29,7 @@ import {
   HRLearningTalentView
 } from '../hr';
 import HRDocumentGeneratorModal from '../hr/HRDocumentGeneratorModal';
+import { ModuleShell } from '../../components/enterprise/ModuleShell';
 
 interface HRManagementWorkspaceProps {
   lang: 'ar' | 'en';
@@ -80,6 +81,14 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
   });
 
   return (
+    <ModuleShell
+      titleAr="إدارة الموارد البشرية"
+      titleEn="HR Management"
+      domainCode="NEB-09"
+      icon={Users}
+      lang={lang}
+      accent="purple"
+    >
     <div className="p-4 sm:p-6 space-y-6 animate-in fade-in duration-300">
       
       {/* DOCUMENT & CONTRACT GENERATOR MODAL */}
@@ -338,5 +347,6 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
 
       </div>
     </div>
+    </ModuleShell>
   );
 }

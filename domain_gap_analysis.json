@@ -1,0 +1,461 @@
+{
+  "summary": {
+    "totalBaseTables": 175,
+    "totalViews": 91,
+    "populatedBaseTables": 52,
+    "emptyBaseTables": 123
+  },
+  "domainReport": {
+    "NEB-01 Strategy & Performance OS": {
+      "expectedTables": [
+        "strategic_plans",
+        "strategic_goals",
+        "strategic_kpis",
+        "strategic_initiatives",
+        "kpi_indicators",
+        "kpi_measurements",
+        "strategic_anomalies",
+        "organization_settings"
+      ],
+      "foundInDB": [
+        "kpi_indicators",
+        "organization_settings"
+      ],
+      "missingFromDB": [
+        "strategic_plans",
+        "strategic_goals",
+        "strategic_kpis",
+        "strategic_initiatives",
+        "kpi_measurements",
+        "strategic_anomalies"
+      ],
+      "populatedTables": [
+        {
+          "table": "kpi_indicators",
+          "rowCount": 4
+        },
+        {
+          "table": "organization_settings",
+          "rowCount": 9
+        }
+      ],
+      "emptyTables": []
+    },
+    "NEB-02 Portfolio Management OS": {
+      "expectedTables": [
+        "portfolios",
+        "portfolio_programs",
+        "portfolio_metrics",
+        "earned_value_metrics"
+      ],
+      "foundInDB": [
+        "earned_value_metrics"
+      ],
+      "missingFromDB": [
+        "portfolios",
+        "portfolio_programs",
+        "portfolio_metrics"
+      ],
+      "populatedTables": [
+        {
+          "table": "earned_value_metrics",
+          "rowCount": 3
+        }
+      ],
+      "emptyTables": []
+    },
+    "NEB-03 Program Management OS": {
+      "expectedTables": [
+        "programs",
+        "program_objectives",
+        "program_indicators",
+        "program_budgets"
+      ],
+      "foundInDB": [
+        "programs",
+        "program_objectives"
+      ],
+      "missingFromDB": [
+        "program_indicators",
+        "program_budgets"
+      ],
+      "populatedTables": [
+        {
+          "table": "programs",
+          "rowCount": 8
+        },
+        {
+          "table": "program_objectives",
+          "rowCount": 5
+        }
+      ],
+      "emptyTables": []
+    },
+    "NEB-04 Project Management OS": {
+      "expectedTables": [
+        "projects",
+        "milestones",
+        "project_schedules",
+        "project_risks",
+        "project_members"
+      ],
+      "foundInDB": [
+        "projects",
+        "milestones",
+        "project_schedules"
+      ],
+      "missingFromDB": [
+        "project_risks",
+        "project_members"
+      ],
+      "populatedTables": [
+        {
+          "table": "projects",
+          "rowCount": 16
+        },
+        {
+          "table": "milestones",
+          "rowCount": 45
+        },
+        {
+          "table": "project_schedules",
+          "rowCount": 45
+        }
+      ],
+      "emptyTables": []
+    },
+    "NEB-05 Operations OS (Field Execution & WBS)": {
+      "expectedTables": [
+        "activities",
+        "activity_logs",
+        "field_teams",
+        "geographic_areas",
+        "warehouses",
+        "inventory_items"
+      ],
+      "foundInDB": [
+        "activities",
+        "geographic_areas",
+        "warehouses",
+        "inventory_items"
+      ],
+      "missingFromDB": [
+        "activity_logs",
+        "field_teams"
+      ],
+      "populatedTables": [
+        {
+          "table": "activities",
+          "rowCount": 267
+        },
+        {
+          "table": "geographic_areas",
+          "rowCount": 19
+        },
+        {
+          "table": "warehouses",
+          "rowCount": 3
+        },
+        {
+          "table": "inventory_items",
+          "rowCount": 9
+        }
+      ],
+      "emptyTables": []
+    },
+    "NEB-06 Service Delivery OS (Beneficiaries & Services)": {
+      "expectedTables": [
+        "beneficiaries",
+        "beneficiary_assessments",
+        "service_deliveries",
+        "aid_distributions",
+        "parties"
+      ],
+      "foundInDB": [
+        "beneficiaries",
+        "beneficiary_assessments",
+        "parties"
+      ],
+      "missingFromDB": [
+        "service_deliveries",
+        "aid_distributions"
+      ],
+      "populatedTables": [
+        {
+          "table": "beneficiaries",
+          "rowCount": 418
+        },
+        {
+          "table": "parties",
+          "rowCount": 468
+        }
+      ],
+      "emptyTables": [
+        "beneficiary_assessments"
+      ]
+    },
+    "NEB-07 Community & Membership OS (Volunteers & Community)": {
+      "expectedTables": [
+        "sponsorships",
+        "volunteers",
+        "volunteer_tasks",
+        "community_committees",
+        "membership_applications"
+      ],
+      "foundInDB": [
+        "sponsorships",
+        "volunteers"
+      ],
+      "missingFromDB": [
+        "volunteer_tasks",
+        "community_committees",
+        "membership_applications"
+      ],
+      "populatedTables": [
+        {
+          "table": "sponsorships",
+          "rowCount": 595
+        }
+      ],
+      "emptyTables": [
+        "volunteers"
+      ]
+    },
+    "NEB-08 Partnership & Funding OS (Donors & Grants)": {
+      "expectedTables": [
+        "donors",
+        "grants",
+        "grant_installments",
+        "funding_proposals",
+        "donor_reports"
+      ],
+      "foundInDB": [],
+      "missingFromDB": [
+        "donors",
+        "grants",
+        "grant_installments",
+        "funding_proposals",
+        "donor_reports"
+      ],
+      "populatedTables": [],
+      "emptyTables": []
+    },
+    "NEB-09 Resource & Asset OS (Assets & HR)": {
+      "expectedTables": [
+        "fixed_assets",
+        "asset_lifecycle_events",
+        "hr_staff",
+        "hr_delegates",
+        "hr_attendance",
+        "payroll_records"
+      ],
+      "foundInDB": [
+        "fixed_assets",
+        "hr_staff",
+        "hr_delegates",
+        "payroll_records"
+      ],
+      "missingFromDB": [
+        "asset_lifecycle_events",
+        "hr_attendance"
+      ],
+      "populatedTables": [
+        {
+          "table": "hr_staff",
+          "rowCount": 2
+        },
+        {
+          "table": "hr_delegates",
+          "rowCount": 1
+        }
+      ],
+      "emptyTables": [
+        "fixed_assets",
+        "payroll_records"
+      ]
+    },
+    "NEB-10 Finance & Compliance OS (IPSAS Ledger & Governance)": {
+      "expectedTables": [
+        "chart_of_accounts",
+        "journal_entries",
+        "journal_entry_lines",
+        "fiscal_years",
+        "currencies",
+        "exchange_rates",
+        "budget_lines",
+        "cost_centers_advanced",
+        "account_entity_links",
+        "account_permissions"
+      ],
+      "foundInDB": [
+        "chart_of_accounts",
+        "fiscal_years",
+        "currencies",
+        "exchange_rates",
+        "budget_lines",
+        "cost_centers_advanced",
+        "account_entity_links",
+        "account_permissions"
+      ],
+      "missingFromDB": [
+        "journal_entries",
+        "journal_entry_lines"
+      ],
+      "populatedTables": [
+        {
+          "table": "chart_of_accounts",
+          "rowCount": 238
+        },
+        {
+          "table": "fiscal_years",
+          "rowCount": 1
+        },
+        {
+          "table": "currencies",
+          "rowCount": 3
+        },
+        {
+          "table": "budget_lines",
+          "rowCount": 45
+        },
+        {
+          "table": "cost_centers_advanced",
+          "rowCount": 5
+        },
+        {
+          "table": "account_entity_links",
+          "rowCount": 380
+        },
+        {
+          "table": "account_permissions",
+          "rowCount": 332
+        }
+      ],
+      "emptyTables": [
+        "exchange_rates"
+      ]
+    },
+    "NEB-11 Knowledge & Document OS (Archive & Policies)": {
+      "expectedTables": [
+        "documents",
+        "document_categories",
+        "policies",
+        "knowledge_articles",
+        "legacy_reports",
+        "legacy_report_details"
+      ],
+      "foundInDB": [
+        "knowledge_articles",
+        "legacy_reports",
+        "legacy_report_details"
+      ],
+      "missingFromDB": [
+        "documents",
+        "document_categories",
+        "policies"
+      ],
+      "populatedTables": [
+        {
+          "table": "legacy_reports",
+          "rowCount": 1
+        },
+        {
+          "table": "legacy_report_details",
+          "rowCount": 3
+        }
+      ],
+      "emptyTables": [
+        "knowledge_articles"
+      ]
+    },
+    "NEB-12 Integration & Digital Services OS (APIs & IATI)": {
+      "expectedTables": [
+        "api_keys",
+        "webhook_subscriptions",
+        "integration_logs",
+        "iati_activities",
+        "sync_queue"
+      ],
+      "foundInDB": [
+        "api_keys",
+        "integration_logs"
+      ],
+      "missingFromDB": [
+        "webhook_subscriptions",
+        "iati_activities",
+        "sync_queue"
+      ],
+      "populatedTables": [],
+      "emptyTables": [
+        "api_keys",
+        "integration_logs"
+      ]
+    },
+    "NEB-13 AI Intelligence & Impact OS (Gemini AI & Sphere/CHS)": {
+      "expectedTables": [
+        "ai_insights",
+        "chs_evaluations",
+        "sphere_benchmarks",
+        "anomaly_logs"
+      ],
+      "foundInDB": [],
+      "missingFromDB": [
+        "ai_insights",
+        "chs_evaluations",
+        "sphere_benchmarks",
+        "anomaly_logs"
+      ],
+      "populatedTables": [],
+      "emptyTables": []
+    },
+    "NEB-14 Procurement & Tenders OS (Purchasing & Vendors)": {
+      "expectedTables": [
+        "procurement_tenders",
+        "rfqs",
+        "vendor_bids",
+        "purchase_orders",
+        "vendors",
+        "contracts"
+      ],
+      "foundInDB": [
+        "contracts"
+      ],
+      "missingFromDB": [
+        "procurement_tenders",
+        "rfqs",
+        "vendor_bids",
+        "purchase_orders",
+        "vendors"
+      ],
+      "populatedTables": [],
+      "emptyTables": [
+        "contracts"
+      ]
+    },
+    "NEB-15 Sales, Revenue & Fundraising OS (Donations & Invoicing)": {
+      "expectedTables": [
+        "donations",
+        "donation_campaigns",
+        "invoices",
+        "receipt_vouchers",
+        "payment_gateways"
+      ],
+      "foundInDB": [
+        "donations"
+      ],
+      "missingFromDB": [
+        "donation_campaigns",
+        "invoices",
+        "receipt_vouchers",
+        "payment_gateways"
+      ],
+      "populatedTables": [
+        {
+          "table": "donations",
+          "rowCount": 1
+        }
+      ],
+      "emptyTables": []
+    }
+  }
+}

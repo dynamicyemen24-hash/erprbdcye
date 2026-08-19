@@ -103,7 +103,7 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
     let printWindow: any = null;
     try {
       printWindow = window.open('', '_blank');
-    } catch (e) {}
+    } catch (e) { console.error('[AccountStatement] Failed to open print window:', e); }
 
     let writtenHTML = '';
     const mockDoc = {

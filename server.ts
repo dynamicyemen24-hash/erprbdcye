@@ -14,254 +14,87 @@ import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI as RealGoogleGenAI, Type } from '@google/genai';
-
-// Mock client for Google GenAI when api key is not present or set to dev mock
-class MockGoogleGenAI {
-  apiKey: string;
-  constructor(config: { apiKey?: string }) {
-    this.apiKey = config.apiKey || '';
-  }
-
-  get models() {
-    return {
-      generateContent: async (params: any) => {
-        const contents = params.contents;
-        const sysInstruction = params.config?.systemInstruction || '';
-        const promptText = (typeof contents === 'string' ? contents : JSON.stringify(contents)) + ' ' + 
-                           (typeof sysInstruction === 'string' ? sysInstruction : JSON.stringify(sysInstruction));
-        
-        const isAr = promptText.includes('ar') || promptText.includes('Arabic') || promptText.includes('العربية');
-        let text = "";
-
-        if (promptText.includes('parse-receipt') || promptText.includes('Extract data from this receipt')) {
-          text = JSON.stringify({
-            transaction_type: "PAYMENT",
-            reference_no: "REC-998822",
-            description: "Office Supplies & Relief Kits Distribution Vouchers",
-            lines: [
-              {
-                suggested_account_name: "Relief Material Supplies",
-                debit: 150000,
-                credit: 0,
-                description: "Kit distribution procurement"
-              },
-              {
-                suggested_account_name: "Cash",
-                debit: 0,
-                credit: 150000,
-                description: "Cash voucher paid"
-              }
-            ]
-          });
-        } else if (promptText.includes('strategic-anomaly-monitor')) {
-          text = JSON.stringify([
-            {
-              id: "anom-s1",
-              title: isAr ? "انحراف خطة الصرف" : "Slight Spending Deviation",
-              description: isAr 
-                ? "تبين وجود انحراف بنسبة 12% في موازنة مشروع توزيع المياه بمحافظة تعز مقارنة بالخطة."
-                : "A slight 12% budget deviation was detected in the Taiz Water Distribution project budget.",
-              severity: "MEDIUM"
-            }
-          ]);
-        } else if (promptText.includes('predictive-budgeting')) {
-          text = JSON.stringify({
-            forecast: [
-              { month: isAr ? "سبتمبر" : "September", expectedSpend: 45000000, confidence: 0.92 },
-              { month: isAr ? "أكتوبر" : "October", expectedSpend: 52000000, confidence: 0.88 },
-              { month: isAr ? "نوفمبر" : "November", expectedSpend: 48000000, confidence: 0.90 }
-            ]
-          });
-        } else if (promptText.includes('proactive-briefing')) {
-          text = JSON.stringify({
-            briefing: isAr
-              ? "الوضع المالي والتشغيلي مستقر تماماً. يوصى بزيادة تغطية المساعدات الغذائية لفرع صنعاء بنسبة 5% في الشهر القادم مع تفعيل آلية تدقيق الموردين الرديفة."
-              : "Financial and operational status is completely stable. Recommend expanding food aid coverage for Sana'a branch by 5% next month and engaging secondary supplier paths."
-          });
-        } else if (promptText.includes('strategic-risk-simulator')) {
-          text = JSON.stringify({
-            simulations: [
-              {
-                scenario: isAr ? "سلسلة التوريد المحلية" : "Local Supply Chain Integration",
-                riskScore: 65,
-                mitigation: isAr ? "تفعيل عقود إطارية مع موردين محليين ردفاء" : "Establish frame agreements with secondary local vendors"
-              },
-              {
-                scenario: isAr ? "تقلبات أسعار الصرف" : "Exchange Rate Volatility",
-                riskScore: 78,
-                mitigation: isAr ? "التحوط باستخدام سلة العملات المتعددة (USD/YER)" : "Hedging using multi-currency basket allocation (USD/YER)"
-              }
-            ]
-          });
-        } else if (promptText.includes('resource-optimizer')) {
-          text = JSON.stringify({
-            allocations: [
-              { taskId: "task-opt-1", resourceName: isAr ? "مهندس تشغيل ميداني" : "Field Ops Engineer", optimizedAllocation: "100%" },
-              { taskId: "task-opt-2", resourceName: isAr ? "أخصائي حماية مجتمعية" : "Community Protection Officer", optimizedAllocation: "80%" }
-            ]
-          });
-        } else if (promptText.includes('vendor-recommendation')) {
-          text = JSON.stringify({
-            recommendations: [
-              {
-                vendorName: isAr ? "مؤسسة الوفاق للمقاولات العامة" : "Al-Wafaa General Contracting",
-                suitabilityScore: 94,
-                rationale: isAr 
-                  ? "سجل توريد ممتاز بنسبة إنجاز 98% وتكلفة مطابقة للموازنة المرصودة."
-                  : "Excellent track record with 98% completion rate and cost matching project budgets."
-              }
-            ]
-          });
-        } else if (promptText.includes('hr-performance-matrix')) {
-          text = JSON.stringify({
-            matrix: [
-              { employeeId: "emp-executive", performanceScore: 98, contributions: isAr ? ["تسهيل وتنسيق 15 باباً للتقارير الاستراتيجية بنجاح"] : ["Successfully coordinated 15 strategic report parts"] },
-              { employeeId: "emp-manager", performanceScore: 95, contributions: isAr ? ["متابعة التنفيذ الميداني لخطط معايير Sphere"] : ["Monitored field compliance of Sphere standard frameworks"] }
-            ]
-          });
-        } else if (promptText.includes('anomaly-detection')) {
-          text = JSON.stringify({
-            anomalies: [
-              {
-                id: "anom-1",
-                entryId: "tx-2",
-                reason: isAr ? "قيمة حركة مالية مرتفعة لخدمات النقل الميداني" : "Unusually high transport transaction value",
-                severity: "HIGH"
-              }
-            ]
-          });
-        } else if (promptText.includes('financial-audit')) {
-          text = JSON.stringify({
-            audits: [
-              {
-                id: "audit-1",
-                voucherId: "v-1",
-                status: "APPROVED",
-                notes: isAr ? "مستند الصرف مستوفٍ للشروط ومطابق لتعليمات IPSAS." : "Voucher matches double-entry constraints and IPSAS requirements."
-              }
-            ]
-          });
-        } else if (promptText.includes('predictive-impact')) {
-          text = JSON.stringify({
-            projections: [
-              { year: 2026, beneficiaryReach: 85000, sustainabilityIndex: 94 },
-              { year: 2027, beneficiaryReach: 110000, sustainabilityIndex: 92 },
-              { year: 2028, beneficiaryReach: 135000, sustainabilityIndex: 95 }
-            ]
-          });
-        } else if (promptText.includes('smart-rebalance')) {
-          text = JSON.stringify({
-            rebalances: [
-              {
-                programId: "prog-1",
-                suggestedAdjustment: -12000000,
-                reason: isAr ? "توجيه الفائض لمشاريع الطوارئ الأكثر احتياجاً بنسبة تغطية أعلى." : "Re-route surplus budget to higher-need emergency relief projects."
-              }
-            ]
-          });
-        } else if (promptText.includes('stakeholder-pulse')) {
-          text = JSON.stringify({
-            pulse: {
-              satisfactionRate: 94.5,
-              feedbackSummary: isAr 
-                ? "تقييمات إيجابية جداً للخدمات الصحية والمياه المقدمة، مع طلب تحسين جدولة التوزيع."
-                : "Highly positive feedback for healthcare and water delivery, request for better distribution schedules."
-            }
-          });
-        } else if (promptText.includes('portfolio') || promptText.includes('portfolio analyst') || promptText.includes('portfolio-insights')) {
-          text = isAr
-            ? `### 📊 تقرير تحليلات محفظة المشاريع (ذكاء اصطناعي محاكي)
-- **إجمالي الموازنة النشطة:** 1,280,000,000 ريال يمني.
-- **معدل استهلاك الموازنة:** 84.5% (ضمن النطاق الأمثل).
-- **أبرز المخاطر:** انحراف طفيف في مشروع توزيع المياه بمحافظة تعز بنسبة 12%.
-- **فرص استراتيجية:** زيادة كفاءة التكلفة بنسبة 8% من خلال تكامل المشتريات الإقليمية.
-- **توصيات تشغيلية:**
-  1. تطبيق مراقبة ميدانية مستمرة لضمان التوافق مع معايير Sphere الإنسانية.
-  2. تحديث سجل المشتريات بشكل فوري لتسوية الالتزامات المالية.`
-            : `### 📊 Project Portfolio Insights Report (Simulated AI)
-- **Total Active Budget:** 1,280,000,000 YER.
-- **Budget Burn Rate:** 84.5% (Within optimal range).
-- **Primary Risk:** Mild budget deviation in Taiz Water Distribution project (12%).
-- **Strategic Opportunity:** Improve cost-efficiency by 8% via integrated regional procurement.
-- **Operational Recommendations:**
-  1. Continue active GPS-linked field monitoring for Sphere/CHS compliance.
-  2. Reconcile supplier ledgers to prevent payment delays.`;
-        } else if (promptText.includes('executive') || promptText.includes('executive-summary') || promptText.includes('executive summary') || promptText.includes('Executive Intelligence Engine') || promptText.includes('C-Level stakeholders')) {
-          text = isAr
-            ? `### 📋 الخلاصة التنفيذية والتحليلات الشاملة (ذكاء اصطناعي محاكي)
-**جمعية رُحماء بينهم للعمل الإنساني والتنمية**
-تظهر مؤشرات الأداء الحالية استقراراً تشغيلياً ممتازاً عبر كافة القطاعات والمحافظات المشمولة بالتقارير:
-
-1. **الخلاصة التشغيلية (Executive Overview):** تم تلبية متطلبات معايير CHS بنسبة 94%، مع إطلاق 15 باباً معماريًا لتقييم الأثر الموحد.
-2. **أبرز المؤشرات (Metrics Highlights):** تم تغطية أكثر من 85,000 مستفيد بمتوسط تكلفة كفاءة ممتازة للوصول الميداني.
-3. **تحليل التنبؤات (AI Predictive BI):** من المتوقع استقرار معدل استهلاك التمويل حتى نهاية الربع المالي الرابع مع استدامة موازنة الأيتام.
-4. **توصيات عاجلة (Recommendations):** تفعيل الربط المزدوج لجميع فواتير الموردين مع دفتر الأستاذ العام لمنع أي تباين.`
-            : `### 📋 Executive Summary & Integrated Analytics (Simulated AI)
-**Rohamā'a Baynahum Charity Foundation**
-Current operational metrics show high performance stability across all monitored sectors and governorates:
-
-1. **Executive Overview:** 94% alignment with CHS humanitarian standards, supported by the launch of the 15 architectural report parts.
-2. **Metrics Highlights:** Over 85,000 beneficiaries reached with optimal cost-per-beneficiary efficiency.
-3. **AI Predictive BI:** Funding sustainability model projects stable operation through Q4.
-4. **Critical Actions:** Enforce double-entry voucher locking for all supplier payments to maintain zero ledger variance.`;
-        } else if (promptText.includes('copilot') || promptText.includes('conversation')) {
-          text = isAr
-            ? `مرحباً بك! أنا مساعد الذكاء الاصطناعي المؤسسي لـ NexoraOS™. يمكنني مساعدتك في استعراض الأبواب الـ 15، توليد تقارير الأثر الميدانية، فحص ميزانيات البرامج، أو تدقيق سجلات المستفيدين. كيف يمكنني مساعدتك اليوم؟`
-            : `Hello! I am your NexoraOS™ Enterprise AI Copilot. I can help you navigate the 15 enterprise domains, generate field impact reports, analyze program budgets, or verify beneficiary records. How can I assist you today?`;
-        } else {
-          text = isAr 
-            ? `### 🧠 تقرير ذكي متكامل لـ NexoraOS™ (ذكاء اصطناعي محاكي)
-تمت معالجة البيانات بنجاح من خلال محرك الذكاء الاصطناعي لجمعية رُحماء بينهم:
-1. **تحليل الحالة:** متوافق مع معايير الجودة والاستدامة.
-2. **مؤشرات الأداء:** ممتازة وتظهر كفاءة تشغيلية بنسبة 96.8%.
-3. **التوصية:** الاستمرار في التوزيع الميداني الموثق رقمياً.`
-            : `### 🧠 Integrated Intelligent Report (Simulated AI)
-Data processed successfully via Rohamā'a Baynahum's NexoraOS™ Intelligence Engine:
-1. **Status Analysis:** Compliant with CHS/Sphere quality and sustainability frameworks.
-2. **KPI Performance:** Optimal operational efficiency at 96.8%.
-3. **Action:** Continue with digital-signature-locked field distribution.`;
-        }
-
-        return {
-          text,
-          response: {
-            text: () => text
-          }
-        };
-      }
-    };
-  }
-}
+import { financeRouter } from './src/server/routes/finance.routes';
+import { healthRouter } from './src/server/routes/health.routes';
+import { masterOperationsRouter } from './src/server/routes/operations_master.routes';
+import { salesRouter } from './src/server/routes/sales.routes';
+import { fundingRouter } from './src/server/routes/funding.routes';
+import { operationalDomainRouter } from './src/server/routes/operational_domains.routes';
+import {
+  runEnterpriseSchemaCompletion,
+  applyEnterpriseIndexes,
+  applyEnterpriseViews,
+  seedEnterpriseUsersAndOrg
+} from './src/server/database/enterprise_schema_completion';
+import { enforceAllPolicies, type PolicyContext, type PolicyViolation } from './src/server/services/policyEngine';
 
 dotenv.config();
 
 // Ensure GEMINI_API_KEY is defined so route checks and instantiations don't throw
-if (!process.env.GEMINI_API_KEY) {
-  process.env.GEMINI_API_KEY = 'mock-api-key-for-development';
+if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'mock-api-key-for-development') {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('[STARTUP WARNING] GEMINI_API_KEY is not set. AI features will be unavailable.');
+  } else {
+    console.warn('[DEV] GEMINI_API_KEY not configured. AI features will return stub responses.');
+  }
+  process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'mock-api-key-for-development';
 }
 
-const GoogleGenAI = (process.env.GEMINI_API_KEY === 'mock-api-key-for-development')
-  ? (MockGoogleGenAI as any)
-  : RealGoogleGenAI;
+const GoogleGenAI = RealGoogleGenAI;
 
 const app = express();
 app.use((req, res, next) => {
-  console.log(`[EXPRESS REQUEST] ${req.method} ${req.url} - path: ${req.path}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[EXPRESS REQUEST] ${req.method} ${req.url} - path: ${req.path}`);
+  }
   next();
 });
-app.use(helmet({ 
-  contentSecurityPolicy: false, 
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://unpkg.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org", "https://maps.googleapis.com"],
+      connectSrc: ["'self'", "https://*.neon.tech", "https://maps.googleapis.com", "https://*.googleapis.com"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
   crossOriginEmbedderPolicy: false,
-  frameguard: false,
-  crossOriginOpenerPolicy: false,
-  crossOriginResourcePolicy: false
-})); // Disabled strict CSP and framing restrictions for AI Studio preview iframe compatibility
+  frameguard: { action: 'sameorigin' },
+  crossOriginOpenerPolicy: { policy: 'same-origin' },
+  crossOriginResourcePolicy: { policy: 'same-origin' },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+}));
 app.use(compression());
-app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: true })); // Enterprise API access policy
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
+if (process.env.NODE_ENV === 'production' && ALLOWED_ORIGINS.length === 0) {
+  console.error('[STARTUP WARNING] ALLOWED_ORIGINS is not set in production. CORS will reject all cross-origin requests.');
+}
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.length === 0 && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(morgan('[:date[iso]] :method :url :status :response-time ms - :res[content-length]')); // Enterprise structured HTTP logging
 const PORT = Number(process.env.PORT || 3000);
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(process.cwd(), 'public'), { maxAge: '1d' }));
 
 // Security Headers Middleware
@@ -338,7 +171,9 @@ async function ensureFixedAssetsSchema(poolInstance: pg.Pool) {
       ADD COLUMN IF NOT EXISTS disposal_reason TEXT,
       ADD COLUMN IF NOT EXISTS metadata JSONB;
     `);
-    console.log("fixed_assets table schema migration ensured successfully.");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("fixed_assets table schema migration ensured successfully.");
+    }
   } catch (err) {
     console.warn("Could not alter fixed_assets table schema:", err);
   }
@@ -350,7 +185,9 @@ async function seedFixedAssetsIfEmpty(poolInstance: pg.Pool) {
     const checkRes = await poolInstance.query("SELECT COUNT(*) FROM fixed_assets");
     const count = parseInt(checkRes.rows[0].count);
     if (count === 0) {
-      console.log("Seeding fixed_assets table with realistic live database records...");
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Seeding fixed_assets table with realistic live database records...");
+      }
       const query = `
         INSERT INTO fixed_assets (
           organization_id, asset_code, name_en, name_ar, category, serial_number,
@@ -365,9 +202,13 @@ async function seedFixedAssetsIfEmpty(poolInstance: pg.Pool) {
         ('00000000-0000-0000-0000-000000000001', 'AST-2026-0004', 'Solar Water Pump System', 'منظومة ضخ مياه بالطاقة الشمسية المتكاملة', 'EQUIPMENT', 'SN-SOLAR-3321', '2025-09-01', 35000000, 32000000, 12, 3000000, 84, 3000000, 'شركة طاقة المستقبل اليمنية', '+967-775511223', '2030-09-01', 'مستودع الساحل الغربي - الحديدة', 'wh-2', 'prj-102', 'مشروع الاستجابة الطارئة والمياه - الساحل الغربي', 'ACT-SOLAR-02', 'م. خالد عبدالرحيم (أخصائي الطاقة البديلة)', 'USED_GOOD', 'MAPPED_TO_PROJECT', '2026-04-10', '2026-10-10', 3)
       `;
       await poolInstance.query(query);
-      console.log("Seeding fixed_assets completed successfully.");
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Seeding fixed_assets completed successfully.");
+      }
     } else {
-      console.log(`fixed_assets table already has ${count} records. No seeding needed.`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`fixed_assets table already has ${count} records. No seeding needed.`);
+      }
     }
   } catch (err) {
     console.error("Failed to seed fixed_assets table:", err);
@@ -401,7 +242,9 @@ async function seedExchangeRatesIfEmpty(poolInstance: pg.Pool) {
     const checkRes = await poolInstance.query("SELECT COUNT(*) FROM exchange_rates");
     const count = parseInt(checkRes.rows[0].count);
     if (count === 0) {
-      console.log("Seeding exchange_rates table with default rates...");
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Seeding exchange_rates table with default rates...");
+      }
       const curRes = await poolInstance.query("SELECT id, code FROM currencies");
       const currenciesMap = curRes.rows.reduce((map: any, row: any) => {
         map[row.code] = row.id;
@@ -430,9 +273,13 @@ async function seedExchangeRatesIfEmpty(poolInstance: pg.Pool) {
           VALUES ('00000000-0000-0000-0000-000000000001', $1, $2, 3.75, '2026-01-01', 3)
         `, [usdId, sarId]);
       }
-      console.log("Seeding exchange_rates completed.");
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Seeding exchange_rates completed.");
+      }
     } else {
-      console.log(`exchange_rates table already has ${count} records. No seeding needed.`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`exchange_rates table already has ${count} records. No seeding needed.`);
+      }
     }
   } catch (err) {
     console.error("Failed to seed exchange_rates table:", err);
@@ -569,7 +416,9 @@ async function ensureStrategicPlanningSchema(poolInstance: pg.Pool) {
       AFTER INSERT OR UPDATE OR DELETE ON strategic_goals
       FOR EACH ROW EXECUTE FUNCTION fn_recalculate_strategic_plan_progress();
     `);
-    console.log("Strategic Planning Schema, Triggers, and Functions ensured successfully.");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Strategic Planning Schema, Triggers, and Functions ensured successfully.");
+    }
   } catch (err: any) {
     console.warn("Could not create strategic_planning schema:", err.message);
   }
@@ -581,7 +430,9 @@ async function seedStrategicPlanningIfEmpty(poolInstance: pg.Pool) {
     const checkRes = await poolInstance.query("SELECT COUNT(*) FROM strategic_plans");
     const count = parseInt(checkRes.rows[0].count);
     if (count === 0) {
-      console.log("Seeding strategic_plans table with real Rohama'a Baynahum 5-year plan data...");
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Seeding strategic_plans table with real Rohama'a Baynahum 5-year plan data...");
+      }
       
       const coreValues = JSON.stringify([
         { code: "VAL-01", name_ar: "الشفافية والحوكمة", name_en: "Transparency & Governance" },
@@ -633,16 +484,15 @@ async function seedStrategicPlanningIfEmpty(poolInstance: pg.Pool) {
         ['OBJ-2025-10', 'PIL-OPS', 'تأمين مخزون استراتيجي إغاثي يغطي احتياجات 10,000 أسرة في حالات الطوارئ', 'Secure strategic relief inventory buffer covering 10,000 emergency households', 'تجهيز مستودعات مأرب والحديدة بالسلال الغذائية والحقائب الإوائية لتلبية حالات الطوارئ.', 'Equipping Marib & Hodeidah warehouses with emergency food kits and shelter packages.', 5, 80, 10000, 8000, 'أسرة', 'Families', 150000000, 120000000, 'مدير المخازن', 'أ. خالد عبدالرحيم', 'NEB-09', 'ON_TRACK']
       ];
 
-      for (const g of goals) {
-        await poolInstance.query(`
-          INSERT INTO strategic_goals (
-            plan_id, goal_code, pillar_code, title_ar, title_en, description_ar, description_en,
-            weight_pct, progress_pct, kpi_target, kpi_current, kpi_unit_ar, kpi_unit_en,
-            allocated_budget_yer, spent_budget_yer, assigned_owner_role, assigned_owner_name,
-            linked_domain, status
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-        `, [planId, ...g]);
-      }
+      // Batch insert strategic goals (19 columns each)
+      const goalCols = ['plan_id', 'goal_code', 'pillar_code', 'title_ar', 'title_en', 'description_ar', 'description_en', 'weight_pct', 'progress_pct', 'kpi_target', 'kpi_current', 'kpi_unit_ar', 'kpi_unit_en', 'allocated_budget_yer', 'spent_budget_yer', 'assigned_owner_role', 'assigned_owner_name', 'linked_domain', 'status'];
+      const goalValues: any[] = [];
+      const goalPlaceholders = goals.map((g, i) => {
+        const offset = i * 19;
+        goalValues.push(planId, ...g);
+        return `(${Array.from({ length: 19 }, (_, j) => `$${offset + j + 1}`).join(', ')})`;
+      }).join(', ');
+      await poolInstance.query(`INSERT INTO strategic_goals (${goalCols.join(', ')}) VALUES ${goalPlaceholders}`, goalValues);
 
       // Seed SWOT Analysis items
       const swotItems = [
@@ -658,18 +508,23 @@ async function seedStrategicPlanningIfEmpty(poolInstance: pg.Pool) {
         ['THREAT', 'الظروف الجوية القاسية والكوارث الطبيعية والأمطار السيول', 'Severe weather, seasonal flash floods, and access route disruptions', 'HIGH', 'تكوين مخزون استراتيجي طارئ وخطة طوارئ استجابة لمخاطر السيول.', 'Maintain strategic emergency warehouse buffers and rapid flood response.', 'OBJ-2025-10', 'أ. خالد عبدالرحيم']
       ];
 
-      for (const sw of swotItems) {
-        await poolInstance.query(`
-          INSERT INTO swot_analysis (
-            plan_id, category, title_ar, title_en, impact_level,
-            strategic_action_ar, strategic_action_en, linked_goal_code, owner_name
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        `, [planId, ...sw]);
-      }
+      // Batch insert SWOT analysis items (9 columns each)
+      const swotCols = ['plan_id', 'category', 'title_ar', 'title_en', 'impact_level', 'strategic_action_ar', 'strategic_action_en', 'linked_goal_code', 'owner_name'];
+      const swotValues: any[] = [];
+      const swotPlaceholders = swotItems.map((sw, i) => {
+        const offset = i * 9;
+        swotValues.push(planId, ...sw);
+        return `(${Array.from({ length: 9 }, (_, j) => `$${offset + j + 1}`).join(', ')})`;
+      }).join(', ');
+      await poolInstance.query(`INSERT INTO swot_analysis (${swotCols.join(', ')}) VALUES ${swotPlaceholders}`, swotValues);
 
-      console.log("Seeding strategic_plans and sub-tables completed successfully.");
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Seeding strategic_plans and sub-tables completed successfully.");
+      }
     } else {
-      console.log(`strategic_plans table already has ${count} records. No seeding needed.`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`strategic_plans table already has ${count} records. No seeding needed.`);
+      }
     }
   } catch (err: any) {
     console.error("Failed to seed strategic_plans table:", err.message);
@@ -758,7 +613,9 @@ async function ensureInvestmentProjectsSchema(poolInstance: pg.Pool) {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `);
-    console.log("Investment Projects & Contracts & Activities Schema ensured successfully.");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Investment Projects & Contracts & Activities Schema ensured successfully.");
+    }
   } catch (err: any) {
     console.warn("Could not create investment_projects schema:", err.message);
   }
@@ -770,7 +627,9 @@ async function seedInvestmentProjectsIfEmpty(poolInstance: pg.Pool) {
     const checkRes = await poolInstance.query("SELECT COUNT(*) FROM investment_projects");
     const count = parseInt(checkRes.rows[0].count);
     if (count === 0) {
-      console.log("Seeding investment_projects table with real Rohama'a Baynahum endowment data...");
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Seeding investment_projects table with real Rohama'a Baynahum endowment data...");
+      }
 
       const projects = [
         ['INV-2025-001', 'وقف البر والعطاء العقاري الموحد - مأرب', 'Al-Birr Real Estate Endowment Complex - Marib', 'REAL_ESTATE_ENDOWMENT', 450000000, 112500000, 58500000, 14.0, 13.0, 14.8, 96.5, 'LOW', 'PRESERVED', 75, 'د. عبدالحكيم السقاف', 'APPROVED', 3, 'مأرب'],
@@ -780,32 +639,39 @@ async function seedInvestmentProjectsIfEmpty(poolInstance: pg.Pool) {
         ['INV-2025-005', 'وقف الوفاء السكني والتجاري للأيتام - عدن', 'Al-Wafa Residential & Commercial Orphan Endowment - Aden', 'REAL_ESTATE_ENDOWMENT', 520000000, 93600000, 62400000, 13.0, 12.0, 13.4, 94.0, 'LOW', 'PRESERVED', 85, 'أ. فاطمة باعباد', 'APPROVED', 3, 'عدن']
       ];
 
-      for (const p of projects) {
-        const res = await poolInstance.query(`
-          INSERT INTO investment_projects (
-            project_code, title_ar, title_en, category, capital_allocated_yer,
-            accumulated_returns_yer, net_annual_profit_yer, expected_roi_pct, actual_roi_pct,
-            irr_pct, occupancy_or_yield_pct, risk_level, endowment_preservation_status,
-            humanitarian_distribution_pct, assigned_investment_manager, approval_status,
-            security_clearance_level, location_governorate
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-          RETURNING id
-        `, p);
+      // Batch insert investment projects (18 columns each)
+      const invCols = ['project_code', 'title_ar', 'title_en', 'category', 'capital_allocated_yer', 'accumulated_returns_yer', 'net_annual_profit_yer', 'expected_roi_pct', 'actual_roi_pct', 'irr_pct', 'occupancy_or_yield_pct', 'risk_level', 'endowment_preservation_status', 'humanitarian_distribution_pct', 'assigned_investment_manager', 'approval_status', 'security_clearance_level', 'location_governorate'];
+      const invValues: any[] = [];
+      const invPlaceholders = projects.map((p, i) => {
+        const offset = i * 18;
+        invValues.push(...p);
+        return `(${Array.from({ length: 18 }, (_, j) => `$${offset + j + 1}`).join(', ')})`;
+      }).join(', ');
+      const invRes = await poolInstance.query(`INSERT INTO investment_projects (${invCols.join(', ')}) VALUES ${invPlaceholders} RETURNING id, net_annual_profit_yer, humanitarian_distribution_pct`, invValues);
 
-        const projId = res.rows[0].id;
-
-        await poolInstance.query(`
-          INSERT INTO investment_returns_history (
-            project_id, fiscal_period, gross_revenue_yer, operational_expenses_yer,
-            net_profit_yer, transferred_to_charity_yer, reinvested_amount_yer,
-            recorded_by_user, audited_by_cfo
-          ) VALUES 
-          ($1, '2024-Q4', $2 * 0.28, $2 * 0.05, $2 * 0.23, $2 * 0.23 * ($3 / 100.0), $2 * 0.23 * (1 - $3 / 100.0), 'د. عبدالحكيم السقاف', 'أ. سالم عبدالله العولقي'),
-          ($1, '2025-Q1', $2 * 0.30, $2 * 0.06, $2 * 0.24, $2 * 0.24 * ($3 / 100.0), $2 * 0.24 * (1 - $3 / 100.0), 'د. عبدالحكيم السقاف', 'أ. سالم عبدالله العولقي')
-        `, [projId, p[6], p[13]]);
+      // Batch insert returns history for all projects
+      const returnRows: any[] = [];
+      for (const row of invRes.rows) {
+        const netProfit = Number(row.net_annual_profit_yer);
+        const distPct = Number(row.humanitarian_distribution_pct);
+        const charityShare = netProfit * 0.23 * (distPct / 100.0);
+        const reinvestShare = netProfit * 0.23 * (1 - distPct / 100.0);
+        const charityShareQ1 = netProfit * 0.24 * (distPct / 100.0);
+        const reinvestShareQ1 = netProfit * 0.24 * (1 - distPct / 100.0);
+        returnRows.push(row.id, '2024-Q4', netProfit * 0.28, netProfit * 0.05, netProfit * 0.23, charityShare, reinvestShare);
+        returnRows.push(row.id, '2025-Q1', netProfit * 0.30, netProfit * 0.06, netProfit * 0.24, charityShareQ1, reinvestShareQ1);
+      }
+      if (returnRows.length > 0) {
+        const retPlaceholders = invRes.rows.map((_, i) => {
+          const bOffset = i * 14; // 2 rows × 7 params each
+          return `($${bOffset + 1}, $${bOffset + 2}, $${bOffset + 3}, $${bOffset + 4}, $${bOffset + 5}, $${bOffset + 6}, $${bOffset + 7}, 'د. عبدالحكيم السقاف', 'أ. سالم عبدالله العولقي'), ($${bOffset + 8}, $${bOffset + 9}, $${bOffset + 10}, $${bOffset + 11}, $${bOffset + 12}, $${bOffset + 13}, $${bOffset + 14}, 'د. عبدالحكيم السقاف', 'أ. سالم عبدالله العولقي')`;
+        }).join(', ');
+        await poolInstance.query(`INSERT INTO investment_returns_history (project_id, fiscal_period, gross_revenue_yer, operational_expenses_yer, net_profit_yer, transferred_to_charity_yer, reinvested_amount_yer, recorded_by_user, audited_by_cfo) VALUES ${retPlaceholders}`, returnRows);
       }
 
-      console.log("Seeding investment_projects and returns history completed.");
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("Seeding investment_projects and returns history completed.");
+      }
     }
   } catch (err: any) {
     console.error("Error seeding investment projects:", err.message);
@@ -814,7 +680,9 @@ async function seedInvestmentProjectsIfEmpty(poolInstance: pg.Pool) {
 
 async function ensureDatabasePerformanceIndexes(poolInstance: pg.Pool) {
   try {
-    console.log("Applying high-performance DB indexes...");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Applying high-performance DB indexes...");
+    }
     const queries = [
       `CREATE INDEX IF NOT EXISTS idx_programs_deleted_at ON programs(deleted_at)`,
       `CREATE INDEX IF NOT EXISTS idx_projects_deleted_at ON projects(deleted_at)`,
@@ -842,7 +710,9 @@ async function ensureDatabasePerformanceIndexes(poolInstance: pg.Pool) {
 
 async function ensureAdvancedDatabaseViewsAndProcedures(poolInstance: pg.Pool) {
   try {
-    console.log("Creating and updating advanced NexoraOS™ database views, procedures, and helper functions...");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Creating and updating advanced NexoraOS™ database views, procedures, and helper functions...");
+    }
     
     // 1. Create a View for real-time domain statistics aggregated from live tables
     await poolInstance.query(`
@@ -898,7 +768,9 @@ async function ensureAdvancedDatabaseViewsAndProcedures(poolInstance: pg.Pool) {
       $$ LANGUAGE plpgsql;
     `);
 
-    console.log("NexoraOS™ Database Views and Stored Procedures successfully deployed.");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("NexoraOS™ Database Views and Stored Procedures successfully deployed.");
+    }
   } catch (err: any) {
     console.warn("Could not create/migrate advanced database views and stored procedures:", err.message);
   }
@@ -909,9 +781,10 @@ function getPool(): pg.Pool {
     const connectionString = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;
     pool = new pg.Pool({
       connectionString,
-      max: 50, // Increased to 50 for true enterprise scale data loads
+      max: 20, // Neon Pro max is ~20; avoid exhausting connections
       idleTimeoutMillis: 60000,
       connectionTimeoutMillis: 30000,
+      statement_timeout: 30000,
       ssl: {
         rejectUnauthorized: false, // Required for secure Neon connections
       },
@@ -926,7 +799,9 @@ function getPool(): pg.Pool {
       }
     });
     
-    console.log("PostgreSQL connection pool initialized.");
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("PostgreSQL connection pool initialized.");
+    }
     seedFixedAssetsIfEmpty(pool).catch(err => console.warn("Error seeding fixed_assets:", err.message));
     seedExchangeRatesIfEmpty(pool).catch(err => console.warn("Error seeding exchange_rates:", err.message));
     seedStrategicPlanningIfEmpty(pool).catch(err => console.warn("Error seeding strategic_planning:", err.message));
@@ -1237,11 +1112,181 @@ const TABLE_WHITELIST = [
   'request_approvals',
   'movements',
   'fixed_assets',
-  'v_nexora_realtime_domain_stats'
+  'transaction_lines',
+  'contracts',
+  'knowledge_articles',
+  'strategic_plans',
+  'strategic_goals',
+  'strategic_kpis',
+  'exchange_rates',
+  'warehouses',
+  'inventory_items',
+  'grants',
+  'donors',
+  'procurement_tenders',
+  'geographic_areas',
+  'sales_invoices',
+  'service_points',
+  'v_nexora_realtime_domain_stats',
+  // NEB-08: Partnership & Funding OS
+  'grant_installments',
+  'funding_proposals',
+  'donor_reports',
+  'partner_agreements',
+  'donor_compliance_requirements',
+  // NEB-06: Service Delivery OS
+  'service_deliveries',
+  'aid_distributions',
+  'distribution_beneficiaries',
+  // NEB-07: Community & Membership OS
+  'volunteer_tasks',
+  'community_committees',
+  'membership_applications',
+  // NEB-12: Integration OS
+  'webhook_subscriptions',
+  'iati_activities',
+  'sync_queue',
+  'api_rate_limits',
+  // NEB-13: AI Intelligence OS
+  'ai_insights',
+  'chs_evaluations',
+  'sphere_benchmarks',
+  'anomaly_logs',
+  'ai_model_runs',
+  // NEB-14: Procurement OS
+  'rfqs',
+  'vendor_bids',
+  'purchase_orders',
+  'vendors',
+  'three_way_match_records',
+  // NEB-15: Fundraising
+  'donation_campaigns',
+  // New Views
+  'v_grant_utilization_report',
+  'v_donor_portfolio_analysis',
+  'v_procurement_3way_match',
+  'v_volunteer_hours_report',
+  'v_service_delivery_metrics',
+  'v_chs_compliance_dashboard',
+  'v_beneficiary_vulnerability_index',
+  'v_kpi_vs_target_dashboard',
+  'v_ai_anomaly_detection_feed',
+  'v_procurement_performance',
 ];
 
 function isWhitelisted(table: string): boolean {
   return TABLE_WHITELIST.includes(table) || table.startsWith('v_') || table.startsWith('vw_');
+}
+
+// ─────────────────────────────────────────────
+// Dynamic Table Policy Enforcement
+// Maps whitelisted tables to their enforcement domain for /api/tables/* routes
+// ─────────────────────────────────────────────
+const TABLE_POLICY_DOMAIN: Record<string, string> = {
+  transactions: 'finance',
+  transaction_lines: 'finance',
+  chart_of_accounts: 'finance',
+  journal_entries: 'finance',
+  bank_accounts: 'finance',
+  financial_closings: 'finance',
+  currencies: 'finance',
+  exchange_rates: 'finance',
+  activities: 'activities',
+  activity_tasks: 'activities',
+  service_deliveries: 'activities',
+  volunteers: 'activities',
+  volunteer_tasks: 'activities',
+  beneficiaries: 'beneficiaries',
+  beneficiary_registrations: 'beneficiaries',
+  projects: 'projects',
+  programs: 'projects',
+  project_schedules: 'projects',
+  milestones: 'projects',
+  sponsorships: 'sponsorships',
+  sponsorship_installments: 'sponsorships',
+  disbursements: 'disbursements',
+  donors: 'donors',
+  grants: 'donors',
+  grant_installments: 'donors',
+  proposals: 'donors',
+  donor_reports: 'donors',
+  partner_agreements: 'donors',
+  purchase_orders: 'procurement',
+  rfqs: 'procurement',
+  rfq_bids: 'procurement',
+  vendors: 'procurement',
+  hr_staff: 'hr',
+  attendance: 'hr',
+  leave_requests: 'hr',
+  performance_appraisals: 'hr',
+  inventory_items: 'procurement',
+  stock_movements: 'procurement',
+  audit_logs: 'audit',
+  approval_history: 'audit',
+  approval_requests: 'audit',
+  strategic_goals: 'projects',
+  swot_entries: 'projects',
+};
+
+async function enforceTablePolicy(
+  pool: pg.Pool,
+  req: any,
+  table: string,
+  action: 'CREATE' | 'UPDATE' | 'DELETE'
+): Promise<{ allowed: boolean; violations: PolicyViolation[] }> {
+  const domain = TABLE_POLICY_DOMAIN[table];
+  if (!domain) return { allowed: true, violations: [] };
+
+  const ctx: PolicyContext = {
+    organizationId: req.user?.org_id || '00000000-0000-0000-0000-000000000001',
+    userId: req.user?.id || '',
+    securityLevel: req.user?.security_level ?? 0,
+    role: req.user?.role ?? '',
+  };
+
+  return enforceAllPolicies(pool, ctx, domain, action, req.body);
+}
+
+async function logTablePolicyViolation(
+  pool: pg.Pool,
+  req: any,
+  table: string,
+  action: string,
+  violations: PolicyViolation[],
+  envMode: string
+): Promise<void> {
+  try {
+    const blockViolations = violations.filter(v => v.severity === 'BLOCK');
+    const warnViolations = violations.filter(v => v.severity === 'WARN' || v.severity === 'INFO');
+    await pool.query(`
+      INSERT INTO audit_logs (id, action, table_name, record_id, user_id, details, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
+    `, [
+      crypto.randomUUID(),
+      `POLICY_VIOLATION:generic:${table}:${action}`,
+      'policy_enforcement',
+      null,
+      req.user?.id || null,
+      JSON.stringify({
+        domain: TABLE_POLICY_DOMAIN[table],
+        table,
+        action,
+        environmentMode: envMode,
+        blockCount: blockViolations.length,
+        warnCount: warnViolations.length,
+        violations: violations.map(v => ({
+          code: v.code,
+          severity: v.severity,
+          messageEn: v.messageEn,
+          policyKey: v.policyKey,
+          limit: v.limit,
+          currentValue: v.currentValue,
+        })),
+      }),
+    ]);
+  } catch (err) {
+    console.error('[PolicyEnforcement] Failed to log violation:', err);
+  }
 }
 
 // In-Memory Database Schema Cache to bypass information_schema queries
@@ -1290,9 +1335,12 @@ const schemaCache = new LRUCache<string, any>({
 // -------------------------------------------------------------
 // AUTHENTICATION
 // -------------------------------------------------------------
-const JWT_SECRET = process.env.JWT_SECRET || 'nexora_super_secret_key_2026';
+import { serverConfig } from './src/server/config/index';
 
-// Global Authentication Middleware
+const JWT_SECRET = serverConfig.jwtSecret;
+const JWT_REFRESH_SECRET = serverConfig.jwtRefreshSecret;
+
+// Global Authentication Middleware — single source of truth
 const authenticateToken = (req: any, res: any, next: any) => {
   // Only apply to /api paths
   if (!req.path.startsWith('/api')) {
@@ -1300,7 +1348,7 @@ const authenticateToken = (req: any, res: any, next: any) => {
   }
 
   // Exclude public paths (req.path starts with '/api')
-  if (req.path.startsWith('/api/auth') || req.path.startsWith('/api/health') || req.path.startsWith('/api/gemini')) {
+  if (req.path.startsWith('/api/auth') || req.path.startsWith('/api/health') || req.path.startsWith('/api/exchange-rates')) {
     return next();
   }
 
@@ -1313,7 +1361,9 @@ const authenticateToken = (req: any, res: any, next: any) => {
 
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) {
-      console.error("JWT Verify Error:", err.message);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error("JWT Verify Error:", err.message);
+      }
       return res.status(403).json({ error: 'Access Denied: Invalid or Expired Token' });
     }
     req.user = user;
@@ -1323,6 +1373,100 @@ const authenticateToken = (req: any, res: any, next: any) => {
 
 // Apply globally to the express app before routes
 app.use(authenticateToken);
+
+// Rate Limiters for write operations and sensitive endpoints
+const apiWriteRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Write rate limit exceeded. Max 50 writes per 15 minutes.' },
+  skip: (req: any) => req.path.startsWith('/api/health') || req.path.startsWith('/api/auth'),
+});
+
+const sensitiveOpsRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Sensitive operation rate limit exceeded. Max 5 per 15 minutes.' },
+});
+
+// Apply write rate limiter to all write operations on dynamic tables
+app.use('/api/tables', (req, res, next) => {
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    return apiWriteRateLimiter(req, res, next);
+  }
+  next();
+});
+
+// Apply sensitive ops rate limiter to backup/restore/bulk operations
+app.use('/api/backup', sensitiveOpsRateLimiter);
+app.use('/api/restore', sensitiveOpsRateLimiter);
+app.use('/api/bulk', sensitiveOpsRateLimiter);
+
+// Centralized Audit Logging Middleware — fire-and-forget for write operations
+const auditLogMiddleware = (req: any, res: any, next: any) => {
+  if (!['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    return next();
+  }
+  if (req.path.startsWith('/api/health') || req.path.startsWith('/api/auth')) {
+    return next();
+  }
+
+  const originalEnd = res.end;
+  res.end = function (...args: any[]) {
+    res.end = originalEnd;
+    res.end(...args);
+
+    (async () => {
+      try {
+        const dbPool = getPool();
+        const auditId = crypto.randomUUID();
+        const action = `${req.method} ${req.path}`;
+        const pathParts = req.path.split('/').filter(Boolean);
+        const tablesIdx = pathParts.indexOf('tables');
+        const tableName = tablesIdx !== -1 && pathParts.length > tablesIdx + 1
+          ? pathParts[tablesIdx + 1]
+          : pathParts[pathParts.length - 1] || 'unknown';
+        const recordId = tablesIdx !== -1 && pathParts.length > tablesIdx + 2
+          ? pathParts[tablesIdx + 2]
+          : null;
+
+        await dbPool.query(`
+          INSERT INTO audit_logs (id, action, table_name, record_id, user_id, details, created_at)
+          VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        `, [
+          auditId,
+          action,
+          tableName,
+          recordId,
+          req.user?.id || null,
+          JSON.stringify({
+            method: req.method,
+            path: req.path,
+            statusCode: res.statusCode,
+            ip: req.ip || req.connection?.remoteAddress
+          })
+        ]);
+      } catch (error) {
+        console.error('Audit log write failed:', error);
+      }
+    })();
+  };
+
+  next();
+};
+app.use(auditLogMiddleware);
+
+// Modular Routes — single registration, no duplicates
+app.use('/api/finance', financeRouter);
+app.use('/api/health', healthRouter);
+app.use('/api/operations', masterOperationsRouter);
+app.use('/api/sales', salesRouter);
+// New Enterprise Domain Routes (NEB-08, NEB-06, NEB-07, NEB-13, NEB-14)
+app.use('/api/funding', fundingRouter);
+app.use('/api/operational', operationalDomainRouter);
 
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
@@ -1334,48 +1478,26 @@ app.post('/api/auth/login', async (req, res) => {
     const dbPool = getPool();
     // Query real users table safely
     const userRes = await dbPool.query(`
-      SELECT * FROM users
-      WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL
+      SELECT u.id, u.email, u.name, u.name_ar, u.department_code, u.position_code, u.security_level, u.can_approve, u.max_approval_amount, u.branch_code, u.organization_id, u.status, u.last_login_at, u.created_at, o.name_ar AS org_name_ar, o.id AS org_code
+      FROM users u
+      LEFT JOIN organizations o ON o.id = u.organization_id
+      WHERE LOWER(u.email) = LOWER($1) AND u.deleted_at IS NULL
     `, [email]);
     
     if (userRes.rows.length === 0) {
-      if ((email === 'executive@rohamaab.org' || email === 'manager@rohamaab.org' || email === 'admin@erprbdcye.org') && (password === 'admin123' || password === 'password123')) {
-         const mockUser = {
-           id: email === 'manager@rohamaab.org' ? 'u2' : 'u1',
-           email,
-           name: email === 'manager@rohamaab.org' ? 'م. طارق الوصابي' : 'د. عبدالكريم الحمداني',
-           name_ar: email === 'manager@rohamaab.org' ? 'م. طارق الوصابي' : 'د. عبدالكريم الحمداني',
-           role: email === 'manager@rohamaab.org' ? 'Staff' : 'Administrator',
-           department_code: 'MANAGEMENT',
-           security_level: 5,
-           can_approve: true,
-           organization_id: '00000000-0000-0000-0000-000000000001',
-           organization_name: 'جمعية رُحماء بينهم للعمل الإنساني والتنمية'
-         };
-         const token = jwt.sign(
-           { id: mockUser.id, email: mockUser.email, role: mockUser.role, org_id: mockUser.organization_id },
-           JWT_SECRET,
-           { expiresIn: '8h' }
-         );
-         return res.json({ status: 'success', token, user: mockUser });
-      }
       return res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' });
     }
 
     const user = userRes.rows[0];
     
-    // Compare password hash
+    // SECURE: Compare password strictly via bcrypt — no plaintext bypass allowed
     let isValid = false;
-    if (password === 'password123' || password === 'admin123') {
-       isValid = true;
-    } else if (user.password_hash && password === user.password_hash) {
-       isValid = true;
-    } else if (user.password_hash) {
-       try {
-         isValid = await bcrypt.compare(password, user.password_hash);
-       } catch {
-         isValid = false;
-       }
+    if (user.password_hash) {
+      try {
+        isValid = await bcrypt.compare(password, user.password_hash);
+      } catch {
+        isValid = false;
+      }
     }
 
     if (!isValid) {
@@ -1412,18 +1534,90 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '8h' }
     );
 
+    const refreshToken = jwt.sign(
+      { 
+        id: userSession.id, 
+        email: userSession.email,
+        role: userSession.role,
+        org_id: userSession.organization_id,
+        security_level: userSession.security_level,
+        type: 'refresh'
+      },
+      JWT_REFRESH_SECRET,
+      { expiresIn: '7d' }
+    );
+
     res.json({
       status: 'success',
       token,
+      refreshToken,
       user: userSession
     });
   } catch (err: any) {
-    res.status(500).json({ error: 'خطأ في خدمة المصادقة: ' + err.message });
+    res.status(500).json({ error: 'خطأ في خدمة المصادقة', ...(process.env.NODE_ENV !== 'production' && { message: err.message }) });
   }
 });
 
+// Refresh Token Endpoint — exchanges a valid refresh token for a new access token
+app.post('/api/auth/refresh', (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({ error: 'Refresh token is required' });
+  }
+
+  jwt.verify(refreshToken, JWT_REFRESH_SECRET, async (err: any, decoded: any) => {
+    if (err || decoded.type !== 'refresh') {
+      return res.status(403).json({ error: 'Invalid or expired refresh token' });
+    }
+
+    try {
+      const dbPool = getPool();
+      const userRes = await dbPool.query(
+        'SELECT id, email, name_ar, name, department_code, position_code, security_level, can_approve, max_approval_amount, branch_code, organization_id FROM users WHERE id = $1 AND deleted_at IS NULL',
+        [decoded.id]
+      );
+      if (userRes.rows.length === 0) {
+        return res.status(403).json({ error: 'User account not found or deactivated' });
+      }
+      const u = userRes.rows[0];
+
+      const newToken = jwt.sign(
+        { 
+          id: u.id, 
+          email: u.email, 
+          role: u.department_code || 'Administrator',
+          org_id: u.organization_id || decoded.org_id,
+          security_level: u.security_level || decoded.security_level
+        },
+        JWT_SECRET,
+        { expiresIn: '8h' }
+      );
+
+      res.json({ status: 'success', token: newToken });
+    } catch {
+      const newToken = jwt.sign(
+        { 
+          id: decoded.id, 
+          email: decoded.email, 
+          role: decoded.role,
+          org_id: decoded.org_id,
+          security_level: decoded.security_level
+        },
+        JWT_SECRET,
+        { expiresIn: '8h' }
+      );
+      res.json({ status: 'success', token: newToken });
+    }
+  });
+});
+
 // Subscriber / Organization Self-Registration Endpoint
-app.post('/api/auth/register', async (req, res) => {
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many registration attempts. Please wait.' }
+});
+app.post('/api/auth/register', authRateLimiter, async (req, res) => {
   const { 
     org_name_ar, 
     org_name_en, 
@@ -1439,6 +1633,15 @@ app.post('/api/auth/register', async (req, res) => {
 
   if (!org_name_ar || !admin_email || !admin_password) {
     return res.status(400).json({ error: 'اسم المنظمة/المستأجر والبريد الإلكتروني وكلمة المرور مطلوبة' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(admin_email)) {
+    return res.status(400).json({ error: 'البريد الإلكتروني غير صالح' });
+  }
+
+  if (typeof admin_password !== 'string' || admin_password.length < 8) {
+    return res.status(400).json({ error: 'يجب أن لا تقل كلمة المرور عن 8 أحرف' });
   }
 
   try {
@@ -1495,7 +1698,122 @@ app.post('/api/auth/register', async (req, res) => {
 
   } catch (err: any) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'فشل تسجيل المشترك: ' + err.message });
+    res.status(500).json({ error: 'فشل تسجيل المشترك', ...(process.env.NODE_ENV !== 'production' && { message: err.message }) });
+  }
+});
+
+// -------------------------------------------------------------
+// RBAC & USER ADMINISTRATION ENDPOINTS
+// -------------------------------------------------------------
+app.get('/api/rbac/matrix', authenticateToken, async (req: any, res: any) => {
+  try {
+    if ((req.user?.security_level ?? 0) < 3) {
+      return res.status(403).json({ error: 'Access Denied: RBAC matrix requires security level 3+' });
+    }
+    const orgId = req.user?.org_id;
+    const dbPool = getPool();
+    const [rolesRes, permsRes, rpRes] = await Promise.all([
+      dbPool.query('SELECT id, code, name_ar, name_en, level, security_level FROM roles WHERE organization_id = $1 ORDER BY level DESC', [orgId]),
+      dbPool.query('SELECT id, code, name_ar, name_en, module, description FROM permissions ORDER BY module, code'),
+      dbPool.query('SELECT rp.role_id, rp.permission_id FROM role_permissions rp INNER JOIN roles r ON rp.role_id = r.id WHERE r.organization_id = $1', [orgId])
+    ]);
+
+    const rolePermsMap: Record<string, string[]> = {};
+    rpRes.rows.forEach(r => {
+      if (!rolePermsMap[r.role_id]) rolePermsMap[r.role_id] = [];
+      rolePermsMap[r.role_id].push(r.permission_id);
+    });
+
+    res.json({
+      roles: rolesRes.rows,
+      permissions: permsRes.rows,
+      rolePermissionsMap: rolePermsMap
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to load RBAC matrix', ...(process.env.NODE_ENV !== 'production' && { message: err.message }) });
+  }
+});
+
+app.post('/api/rbac/matrix/update', authenticateToken, async (req: any, res) => {
+  const callerLevel = req.user?.security_level ?? 0;
+  if (callerLevel < 5) {
+    return res.status(403).json({ error: 'Access Denied: RBAC matrix modification requires maximum security level (5)' });
+  }
+
+  const { role_id, permission_ids } = req.body;
+  if (!role_id || !Array.isArray(permission_ids)) {
+    return res.status(400).json({ error: 'role_id and permission_ids array are required' });
+  }
+
+  const orgId = req.user?.org_id;
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    // Verify the role belongs to the caller's organization
+    const roleCheck = await client.query('SELECT id FROM roles WHERE id = $1 AND organization_id = $2', [role_id, orgId]);
+    if (roleCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Access Denied: Role does not belong to your organization' });
+    }
+    await client.query('DELETE FROM role_permissions WHERE role_id = $1', [role_id]);
+    
+    // Batch insert: flatten role_id + permission_ids into a single multi-row INSERT
+    if (permission_ids.length > 0) {
+      const values: any[] = [];
+      const placeholders = permission_ids.map((pId: string, i: number) => {
+        values.push(role_id, pId);
+        return `($${i * 2 + 1}, $${i * 2 + 2})`;
+      }).join(', ');
+      await client.query(`INSERT INTO role_permissions (role_id, permission_id) VALUES ${placeholders}`, values);
+    }
+    await client.query('COMMIT');
+    res.json({ status: 'ok', updatedCount: permission_ids.length });
+  } catch (err: any) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ error: 'Failed to update role permissions', ...(process.env.NODE_ENV !== 'production' && { message: err.message }) });
+  } finally {
+    client.release();
+  }
+});
+
+app.post('/api/users/reset-password', authenticateToken, async (req: any, res) => {
+  const { user_id, new_password } = req.body;
+  if (!user_id || !new_password) {
+    return res.status(400).json({ error: 'user_id and new_password are required' });
+  }
+
+  if (!user_id || typeof user_id !== 'string') {
+    return res.status(400).json({ error: 'Invalid user_id format' });
+  }
+
+  if (typeof new_password !== 'string' || new_password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  const callerLevel = req.user?.security_level ?? 0;
+  const callerId = req.user?.id;
+
+  try {
+    const dbPool = getPool();
+    const targetUser = await dbPool.query('SELECT id, security_level, organization_id FROM users WHERE id = $1 AND deleted_at IS NULL', [user_id]);
+    if (targetUser.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const target = targetUser.rows[0];
+    if (target.organization_id !== req.user?.org_id) {
+      return res.status(403).json({ error: 'Access Denied: Cannot reset password for users in another organization' });
+    }
+
+    if (callerId !== user_id && callerLevel < 4) {
+      return res.status(403).json({ error: 'Access Denied: Only administrators (Level 4+) can reset other users passwords' });
+    }
+
+    const hash = await bcrypt.hash(new_password, 10);
+    await dbPool.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [hash, user_id]);
+    res.json({ status: 'ok', message: 'Password reset successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to reset password' });
   }
 });
 
@@ -1509,8 +1827,7 @@ app.get('/api/health/liveness', (req, res) => {
   res.status(200).json({ 
     status: 'UP', 
     timestamp: new Date().toISOString(), 
-    version: '3.8.0-Enterprise',
-    pid: process.pid
+    version: '3.8.0-Enterprise'
   });
 });
 
@@ -1521,12 +1838,13 @@ app.get('/api/health/readiness', async (req, res) => {
     const startTime = Date.now();
     await dbPool.query('SELECT 1');
     const dbLatencyMs = Date.now() - startTime;
-    const memUsage = process.memoryUsage();
 
-    res.status(200).json({ 
+    const memUsage = process.memoryUsage();
+    const response: any = { 
       status: 'READY', 
       database: 'connected', 
       dbLatencyMs,
+      timestamp: new Date().toISOString(),
       poolMetrics: {
         totalCount: dbPool.totalCount,
         idleCount: dbPool.idleCount,
@@ -1536,11 +1854,12 @@ app.get('/api/health/readiness', async (req, res) => {
         rss: Math.round(memUsage.rss / 1024 / 1024),
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024)
-      },
-      timestamp: new Date().toISOString() 
-    });
+      }
+    };
+
+    res.status(200).json(response);
   } catch (error: any) {
-    res.status(503).json({ status: 'NOT_READY', database: 'disconnected', error: error.message || 'Database unavailable' });
+    res.status(503).json({ status: 'NOT_READY', database: 'disconnected' });
   }
 });
 
@@ -1567,7 +1886,7 @@ app.get('/api/health', async (req, res) => {
     res.status(500).json({
       status: 'error',
       database: 'disconnected',
-      message: err.message
+      ...(process.env.NODE_ENV !== 'production' && { message: err.message })
     });
   }
 });
@@ -1575,12 +1894,18 @@ app.get('/api/health', async (req, res) => {
 // Live exchange rates proxy
 app.get('/api/exchange-rates/live', async (req, res) => {
   try {
-    const response = await fetch('https://open.er-api.com/v6/latest/USD');
-    if (!response.ok) {
-      throw new Error('Failed to fetch from open.er-api.com');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch('https://open.er-api.com/v6/latest/USD', { signal: controller.signal });
+      if (!response.ok) {
+        throw new Error('Failed to fetch from open.er-api.com');
+      }
+      const data = await response.json();
+      res.json(data);
+    } finally {
+      clearTimeout(timeoutId);
     }
-    const data = await response.json();
-    res.json(data);
   } catch (err: any) {
     console.error('Error fetching live rates:', err);
     // Return standard fallback rates for YER, SAR, etc.
@@ -1605,6 +1930,15 @@ app.post('/api/gemini/parse-receipt', async (req, res) => {
     const { imageBase64, mimeType } = req.body;
     if (!imageBase64 || !mimeType) {
       return res.status(400).json({ status: 'error', message: 'Missing image or mimeType' });
+    }
+    // Validate image size: base64 string length limit (~4MB decoded)
+    if (typeof imageBase64 !== 'string' || imageBase64.length > 6_000_000) {
+      return res.status(400).json({ status: 'error', message: 'Image exceeds maximum size of 4MB' });
+    }
+    // Validate MIME type
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+    if (!allowedMimeTypes.includes(mimeType)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid MIME type. Allowed: jpeg, png, webp, gif, pdf' });
     }
 
     if (!process.env.GEMINI_API_KEY) {
@@ -1720,14 +2054,23 @@ Respond entirely in ${language === 'en' ? 'English' : 'Arabic'}. Use Markdown fo
 // Nexora AI Copilot Enterprise Intelligence Endpoint
 app.post('/api/gemini/copilot', async (req, res) => {
   try {
-    const { prompt, contextData, language = 'ar', model = 'gemini-2.5-flash', apiKey, files = [] } = req.body;
+    const { prompt, contextData, language = 'ar', model = 'gemini-2.5-flash', files = [] } = req.body;
     
-    const activeKey = apiKey || process.env.GEMINI_API_KEY;
+    // SECURITY: Never accept user-provided API keys — always use server-managed key
+    const activeKey = process.env.GEMINI_API_KEY;
+
+    // SECURITY: Sanitize and limit prompt length to prevent abuse
+    const sanitizedPrompt = typeof prompt === 'string' ? prompt.substring(0, 10000).replace(/<[^>]*>/g, '') : '';
+    if (!sanitizedPrompt) {
+      return res.status(400).json({ status: 'error', message: 'A valid prompt is required.' });
+    }
+    // SECURITY: Limit files array to prevent memory exhaustion
+    const safeFiles = Array.isArray(files) ? files.slice(0, 5) : [];
 
     if (!activeKey) {
       return res.status(400).json({ 
         status: 'error', 
-        message: 'No Gemini API key provided. Please configure your API key in Settings or Copilot panel.' 
+        message: 'No Gemini API key configured. Please set GEMINI_API_KEY in your server environment.' 
       });
     }
 
@@ -1759,11 +2102,11 @@ Respond in ${language === 'en' ? 'English' : 'Arabic'}. Keep it concise, executi
     // Construct contents array with text and inline file data (multimodal support)
     const contentParts: any[] = [
       { text: systemPrompt },
-      { text: `User Prompt: ${prompt}` }
+      { text: `User Prompt: ${sanitizedPrompt}` }
     ];
 
-    if (Array.isArray(files) && files.length > 0) {
-      files.forEach((f: any) => {
+    if (Array.isArray(safeFiles) && safeFiles.length > 0) {
+      safeFiles.forEach((f: any) => {
         if (f.data && f.mimeType) {
           contentParts.push({
             inlineData: {
@@ -1826,11 +2169,15 @@ Respond in ${language === 'en' ? 'English' : 'Arabic'}. Keep it concise, executi
 // Test SMS Endpoint
 app.post('/api/integrations/sms/test', (req, res) => {
   const { provider, phone, message } = req.body;
-  console.log(`[SMS INTEGRATION TEST] Provider: ${provider}, Phone: ${phone}, Message: ${message}`);
+  if (!phone || typeof phone !== 'string' || phone.length < 5 || phone.length > 20) {
+    return res.status(400).json({ status: 'error', message: 'Invalid phone number' });
+  }
+  if (message && typeof message === 'string' && message.length > 1600) {
+    return res.status(400).json({ status: 'error', message: 'Message exceeds 1600 character limit' });
+  }
   res.json({
     status: 'ok',
     provider: provider || 'WhatsApp Cloud / Twilio',
-    recipient: phone,
     deliveredAt: new Date().toISOString(),
     message: 'Test SMS message dispatched successfully.'
   });
@@ -1839,11 +2186,15 @@ app.post('/api/integrations/sms/test', (req, res) => {
 // Test Email Dispatch Endpoint
 app.post('/api/integrations/email/test', (req, res) => {
   const { smtpHost, recipientEmail, subject } = req.body;
-  console.log(`[EMAIL INTEGRATION TEST] Host: ${smtpHost}, Recipient: ${recipientEmail}, Subject: ${subject}`);
+  if (!recipientEmail || typeof recipientEmail !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+    return res.status(400).json({ status: 'error', message: 'Invalid email address' });
+  }
+  if (subject && typeof subject === 'string' && subject.length > 200) {
+    return res.status(400).json({ status: 'error', message: 'Subject exceeds 200 character limit' });
+  }
   res.json({
     status: 'ok',
     smtpHost: smtpHost || 'smtp.sendgrid.net',
-    recipient: recipientEmail,
     sentAt: new Date().toISOString(),
     message: 'Test email successfully routed through SMTP gateway.'
   });
@@ -1853,10 +2204,20 @@ app.post('/api/integrations/email/test', (req, res) => {
 app.post('/api/integrations/zakat-tax/calculate', (req, res) => {
   const { netAssetsYER, vatEligibleAmountYER, zakatRateType = 'lunar', customVatPct = 15 } = req.body;
   
-  const zakatRate = zakatRateType === 'solar' ? 0.025775 : 0.025; // 2.5% Lunar vs 2.5775% Solar
-  const assets = parseFloat(netAssetsYER) || 0;
-  const vatBase = parseFloat(vatEligibleAmountYER) || 0;
+  const assets = parseFloat(netAssetsYER);
+  const vatBase = parseFloat(vatEligibleAmountYER);
   
+  if (isNaN(assets) || assets < 0) {
+    return res.status(400).json({ status: 'error', message: 'netAssetsYER must be a non-negative number' });
+  }
+  if (isNaN(vatBase) || vatBase < 0) {
+    return res.status(400).json({ status: 'error', message: 'vatEligibleAmountYER must be a non-negative number' });
+  }
+  if (customVatPct < 0 || customVatPct > 100) {
+    return res.status(400).json({ status: 'error', message: 'customVatPct must be between 0 and 100' });
+  }
+  
+  const zakatRate = zakatRateType === 'solar' ? 0.025775 : 0.025; // 2.5% Lunar vs 2.5775% Solar
   const zakatDue = Math.round(assets * zakatRate);
   const vatDue = Math.round(vatBase * (customVatPct / 100));
 
@@ -1882,7 +2243,7 @@ app.post('/api/integrations/zakat-tax/calculate', (req, res) => {
 });
 
 // Get overall high-level stats for the ERP dashboard, leveraging PostgreSQL database views
-app.get('/api/dashboard-stats', authenticateToken, async (req, res) => {
+app.get('/api/dashboard-stats', authenticateToken, async (req: any, res) => {
   res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=45');
   const cachedData = apiCache.get('dashboard-stats');
   if (cachedData) {
@@ -1891,14 +2252,14 @@ app.get('/api/dashboard-stats', authenticateToken, async (req, res) => {
 
   try {
     const dbPool = getPool();
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
     
     // Helper function to safely query a view or table with fallback
-    const safeQueryView = async (queryText: string) => {
+    const safeQueryView = async (queryText: string, params?: any[]) => {
       try {
-        const result = await dbPool.query(queryText);
+        const result = await dbPool.query(queryText, params);
         return result.rows;
       } catch (e: any) {
-        console.warn(`View query warning [${queryText}]:`, e.message);
         return [];
       }
     };
@@ -1912,14 +2273,14 @@ app.get('/api/dashboard-stats', authenticateToken, async (req, res) => {
     try {
       const countsResult = await dbPool.query(`
         SELECT 
-          (SELECT COUNT(*) FROM "organizations") as organizations,
-          (SELECT COUNT(*) FROM "programs") as programs,
-          (SELECT COUNT(*) FROM "projects") as projects,
-          (SELECT COUNT(*) FROM "users") as users,
+          (SELECT COUNT(*) FROM "organizations" WHERE "id" = $1) as organizations,
+          (SELECT COUNT(*) FROM "programs" WHERE "organization_id" = $1) as programs,
+          (SELECT COUNT(*) FROM "projects" WHERE "organization_id" = $1) as projects,
+          (SELECT COUNT(*) FROM "users" WHERE "organization_id" = $1) as users,
           (SELECT COUNT(*) FROM "currencies") as currencies,
-          (SELECT COUNT(*) FROM "beneficiaries") as beneficiaries,
-          (SELECT COUNT(*) FROM "sponsorships") as sponsorships
-      `);
+          (SELECT COUNT(*) FROM "beneficiaries" WHERE "organization_id" = $1) as beneficiaries,
+          (SELECT COUNT(*) FROM "sponsorships" WHERE "organization_id" = $1) as sponsorships
+      `, [tenantId]);
       if (countsResult.rows.length > 0) {
         const row = countsResult.rows[0];
         counts = {
@@ -1949,9 +2310,9 @@ app.get('/api/dashboard-stats', authenticateToken, async (req, res) => {
       taskDashRows,
       cashFlowRows
     ] = await Promise.all([
-      safeQueryView('SELECT id, code, name_ar, name_en, category_code, budget, progress_percent, created_at FROM "programs" ORDER BY created_at DESC LIMIT 5'),
-      safeQueryView('SELECT id, project_code AS code, name_ar, name_en, status_code, budget, progress_percent FROM "projects" LIMIT 5'),
-      safeQueryView('SELECT SUM(budget) as total_budget FROM "programs" WHERE deleted_at IS NULL'),
+      safeQueryView(`SELECT id, code, name_ar, name_en, category_code, budget, progress_percent, created_at FROM "programs" WHERE "organization_id" = $1 ORDER BY created_at DESC LIMIT 5`, [tenantId]),
+      safeQueryView(`SELECT id, project_code AS code, name_ar, name_en, status_code, budget, progress_percent FROM "projects" WHERE "organization_id" = $1 LIMIT 5`, [tenantId]),
+      safeQueryView(`SELECT SUM(budget) as total_budget FROM "programs" WHERE deleted_at IS NULL AND "organization_id" = $1`, [tenantId]),
       safeQueryView('SELECT * FROM "v_executive_dashboard" LIMIT 10'),
       safeQueryView('SELECT * FROM "v_statistical_summary_new" LIMIT 10'),
       safeQueryView('SELECT * FROM "v_budget_utilization_new" LIMIT 10'),
@@ -2064,7 +2425,7 @@ app.get('/api/reports/db-views', authenticateToken, async (req, res) => {
       views: viewsRes.rows.map(r => r.table_name)
     });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to load database views', ...(process.env.NODE_ENV !== 'production' && { message: err.message }) });
   }
 });
 
@@ -2103,7 +2464,132 @@ app.get('/api/reports/domain-kpis', authenticateToken, async (req, res) => {
       }
     });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to load domain KPIs', ...(process.env.NODE_ENV !== 'production' && { message: err.message }) });
+  }
+});
+
+// Policy Dashboard Endpoint — Aggregates policy violation stats from audit_logs
+app.get('/api/policies/dashboard', authenticateToken, async (req: any, res: any) => {
+  try {
+    const pool = getPool();
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const days = Math.min(parseInt(req.query.days as string) || 30, 365);
+    const sinceDate = new Date(Date.now() - days * 86400000).toISOString();
+
+    // Aggregate violations by domain, severity, and day
+    const [domainStats, recentViolations, topViolators] = await Promise.all([
+      // Violations by domain
+      pool.query(`
+        SELECT
+          (details->>'domain') as domain,
+          COUNT(*) as total_violations,
+          SUM(CASE WHEN (details->>'blockCount')::int > 0 THEN 1 ELSE 0 END) as block_count,
+          SUM(CASE WHEN (details->>'warnCount')::int > 0 THEN 1 ELSE 0 END) as warn_count,
+          MAX(created_at) as last_violation_at
+        FROM audit_logs
+        WHERE action LIKE 'POLICY_VIOLATION:%'
+          AND created_at >= $1
+          AND entity_type = 'policy_enforcement'
+        GROUP BY (details->>'domain')
+        ORDER BY total_violations DESC
+      `, [sinceDate]),
+
+      // Recent 50 violations
+      pool.query(`
+        SELECT
+          id,
+          action,
+          user_id,
+          details,
+          created_at
+        FROM audit_logs
+        WHERE action LIKE 'POLICY_VIOLATION:%'
+          AND created_at >= $1
+          AND entity_type = 'policy_enforcement'
+        ORDER BY created_at DESC
+        LIMIT 50
+      `, [sinceDate]),
+
+      // Top violating users
+      pool.query(`
+        SELECT
+          user_id,
+          COUNT(*) as violation_count,
+          SUM(CASE WHEN (details->>'blockCount')::int > 0 THEN 1 ELSE 0 END) as blocks,
+          MAX(created_at) as last_violation_at
+        FROM audit_logs
+        WHERE action LIKE 'POLICY_VIOLATION:%'
+          AND created_at >= $1
+          AND entity_type = 'policy_enforcement'
+          AND user_id IS NOT NULL
+        GROUP BY user_id
+        ORDER BY violation_count DESC
+        LIMIT 10
+      `, [sinceDate]),
+    ]);
+
+    // Daily violation trend (last 14 days)
+    const trendRes = await pool.query(`
+      SELECT
+        DATE(created_at) as date,
+        COUNT(*) as violations
+      FROM audit_logs
+      WHERE action LIKE 'POLICY_VIOLATION:%'
+        AND created_at >= $1
+        AND entity_type = 'policy_enforcement'
+      GROUP BY DATE(created_at)
+      ORDER BY date DESC
+      LIMIT 14
+    `, [new Date(Date.now() - 14 * 86400000).toISOString()]).catch(() => ({ rows: [] }));
+
+    // Total counts
+    const totalViolations = domainStats.rows.reduce((sum, r) => sum + parseInt(r.total_violations), 0);
+    const totalBlocks = domainStats.rows.reduce((sum, r) => sum + parseInt(r.block_count), 0);
+    const totalWarns = domainStats.rows.reduce((sum, r) => sum + parseInt(r.warn_count), 0);
+
+    res.json({
+      status: 'ok',
+      period: { days, since: sinceDate },
+      summary: {
+        totalViolations,
+        totalBlocks,
+        totalWarns,
+        uniqueDomains: domainStats.rows.length,
+        activeViolators: topViolators.rows.length,
+      },
+      byDomain: domainStats.rows.map(r => ({
+        domain: r.domain,
+        totalViolations: parseInt(r.total_violations),
+        blockCount: parseInt(r.block_count),
+        warnCount: parseInt(r.warn_count),
+        lastViolationAt: r.last_violation_at,
+      })),
+      recentViolations: recentViolations.rows.map(r => ({
+        id: r.id,
+        action: r.action,
+        userId: r.user_id,
+        domain: r.details?.domain,
+        actionType: r.details?.action,
+        blockCount: r.details?.blockCount,
+        warnCount: r.details?.warnCount,
+        violations: r.details?.violations,
+        environmentMode: r.details?.environmentMode,
+        createdAt: r.created_at,
+      })),
+      topViolators: topViolators.rows.map(r => ({
+        userId: r.user_id,
+        violationCount: parseInt(r.violation_count),
+        blocks: parseInt(r.blocks),
+        lastViolationAt: r.last_violation_at,
+      })),
+      trend: trendRes.rows.map(r => ({
+        date: r.date,
+        violations: parseInt(r.violations),
+      })),
+    });
+  } catch (err: any) {
+    console.error('[PolicyDashboard] Error:', err);
+    res.status(500).json({ error: 'Failed to load policy dashboard', ...(process.env.NODE_ENV !== 'production' && { message: err.message }) });
   }
 });
 
@@ -2125,7 +2611,7 @@ app.post('/api/reports/execute', authenticateToken, async (req: any, res: any) =
       return res.status(403).json({ error: `View or table '${view_name}' is not in the security whitelist.` });
     }
 
-    const tenantId = req.user?.org_id || req.headers['x-organization-id'] || req.headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
     const cacheKey = `rpt:${view_name}:${tenantId}:${branch_code}:${governorate}:${cursor_id || 'none'}:${limit}:${offset}`;
     
     const cachedRes = apiCache.get(cacheKey);
@@ -2194,15 +2680,16 @@ app.post('/api/reports/execute', authenticateToken, async (req: any, res: any) =
 
   } catch (err: any) {
     console.error("Report execution error:", err.message);
-    res.status(500).json({ error: "Report Execution Failure: " + err.message });
+    res.status(500).json({ error: "Report Execution Failure", ...(process.env.NODE_ENV !== 'production' && { message: err.message }) });
   }
 });
 
 // AI Predictive BI & Sustainability Analytics Endpoint
-app.get('/api/predictive-analytics', authenticateToken, async (req, res) => {
+app.get('/api/predictive-analytics', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
-    const budgetRes = await dbPool.query('SELECT COALESCE(SUM(budget), 450000000) as total_budget FROM programs WHERE deleted_at IS NULL');
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const budgetRes = await dbPool.query('SELECT COALESCE(SUM(budget), 450000000) as total_budget FROM programs WHERE deleted_at IS NULL AND "organization_id" = $1', [tenantId]);
     const totalBudget = parseFloat(budgetRes.rows[0]?.total_budget || '450000000');
 
     const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
@@ -2237,14 +2724,15 @@ app.get('/api/predictive-analytics', authenticateToken, async (req, res) => {
 });
 
 // Strategic Planning & Performance OS Endpoints
-app.get('/api/strategic-plan', authenticateToken, async (req, res) => {
+app.get('/api/strategic-plan', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
     const planRes = await dbPool.query(`
       SELECT * FROM strategic_plans 
-      WHERE deleted_at IS NULL AND status = 'ACTIVE' 
+      WHERE deleted_at IS NULL AND status = 'ACTIVE' AND organization_id = $1
       ORDER BY created_at DESC LIMIT 1
-    `);
+    `, [tenantId]);
 
     if (planRes.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'No active strategic plan found.' });
@@ -2252,29 +2740,28 @@ app.get('/api/strategic-plan', authenticateToken, async (req, res) => {
 
     const plan = planRes.rows[0];
 
-    const goalsRes = await dbPool.query(`
-      SELECT * FROM strategic_goals 
-      WHERE plan_id = $1 AND deleted_at IS NULL 
-      ORDER BY goal_code ASC
-    `, [plan.id]);
-
-    const swotRes = await dbPool.query(`
-      SELECT * FROM swot_analysis 
-      WHERE plan_id = $1 
-      ORDER BY category ASC, impact_level DESC
-    `, [plan.id]);
-
-    const kpisRes = await dbPool.query(`
-      SELECT k.* FROM strategic_kpis k
-      JOIN strategic_goals g ON k.goal_id = g.id
-      WHERE g.plan_id = $1
-    `, [plan.id]);
-
-    const initiativesRes = await dbPool.query(`
-      SELECT i.* FROM strategic_initiatives i
-      JOIN strategic_goals g ON i.goal_id = g.id
-      WHERE g.plan_id = $1
-    `, [plan.id]);
+    const [goalsRes, swotRes, kpisRes, initiativesRes] = await Promise.all([
+      dbPool.query(`
+        SELECT * FROM strategic_goals 
+        WHERE plan_id = $1 AND deleted_at IS NULL 
+        ORDER BY goal_code ASC
+      `, [plan.id]),
+      dbPool.query(`
+        SELECT * FROM swot_analysis 
+        WHERE plan_id = $1 
+        ORDER BY category ASC, impact_level DESC
+      `, [plan.id]),
+      dbPool.query(`
+        SELECT k.* FROM strategic_kpis k
+        JOIN strategic_goals g ON k.goal_id = g.id
+        WHERE g.plan_id = $1
+      `, [plan.id]),
+      dbPool.query(`
+        SELECT i.* FROM strategic_initiatives i
+        JOIN strategic_goals g ON i.goal_id = g.id
+        WHERE g.plan_id = $1
+      `, [plan.id])
+    ]);
 
     const goals = goalsRes.rows;
     const totalGoals = goals.length;
@@ -2310,35 +2797,33 @@ app.get('/api/strategic-plan', authenticateToken, async (req, res) => {
 });
 
 // Investment & Endowment OS Specialized Summary Endpoint
-app.get('/api/investment-summary', authenticateToken, async (req, res) => {
+app.get('/api/investment-summary', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
-    const projectsRes = await dbPool.query(`
-      SELECT * FROM investment_projects 
-      WHERE deleted_at IS NULL 
-      ORDER BY capital_allocated_yer DESC
-    `);
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const [projectsRes, historyRes, contractsResult, activitiesResult] = await Promise.all([
+      dbPool.query(`
+        SELECT * FROM investment_projects 
+        WHERE deleted_at IS NULL AND organization_id = $1
+        ORDER BY capital_allocated_yer DESC
+      `, [tenantId]),
+      dbPool.query(`
+        SELECT * FROM investment_returns_history 
+        WHERE organization_id = $1
+        ORDER BY approval_date DESC
+      `, [tenantId]),
+      dbPool.query(`SELECT * FROM investment_contracts WHERE organization_id = $1 ORDER BY created_at DESC`, [tenantId]).catch((cErr: any) => {
+        console.warn("Could not query investment_contracts table:", cErr.message);
+        return { rows: [] } as any;
+      }),
+      dbPool.query(`SELECT * FROM investment_activities WHERE organization_id = $1 ORDER BY planned_date DESC`, [tenantId]).catch((aErr: any) => {
+        console.warn("Could not query investment_activities table:", aErr.message);
+        return { rows: [] } as any;
+      })
+    ]);
 
-    const historyRes = await dbPool.query(`
-      SELECT * FROM investment_returns_history 
-      ORDER BY approval_date DESC
-    `);
-
-    let contracts: any[] = [];
-    try {
-      const contractsRes = await dbPool.query(`SELECT * FROM investment_contracts ORDER BY created_at DESC`);
-      contracts = contractsRes.rows;
-    } catch (cErr: any) {
-      console.warn("Could not query investment_contracts table:", cErr.message);
-    }
-
-    let activities: any[] = [];
-    try {
-      const activitiesRes = await dbPool.query(`SELECT * FROM investment_activities ORDER BY planned_date DESC`);
-      activities = activitiesRes.rows;
-    } catch (aErr: any) {
-      console.warn("Could not query investment_activities table:", aErr.message);
-    }
+    let contracts: any[] = contractsResult.rows;
+    let activities: any[] = activitiesResult.rows;
 
     const projects = projectsRes.rows;
     const history = historyRes.rows;
@@ -2396,9 +2881,10 @@ app.get('/api/investment-summary', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/strategic-goals', async (req, res) => {
+app.post('/api/strategic-goals', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
     const {
       plan_id, goal_code, pillar_code, title_ar, title_en, description_ar, description_en,
       weight_pct, progress_pct, kpi_target, kpi_current, kpi_unit_ar, kpi_unit_en,
@@ -2406,13 +2892,32 @@ app.post('/api/strategic-goals', async (req, res) => {
       linked_domain, status
     } = req.body;
 
+    if (!plan_id || typeof plan_id !== 'string') {
+      return res.status(400).json({ error: 'plan_id is required and must be a string' });
+    }
+    if (!goal_code || typeof goal_code !== 'string') {
+      return res.status(400).json({ error: 'goal_code is required and must be a string' });
+    }
+    if (!pillar_code || typeof pillar_code !== 'string') {
+      return res.status(400).json({ error: 'pillar_code is required and must be a string' });
+    }
+    if (!title_ar || typeof title_ar !== 'string') {
+      return res.status(400).json({ error: 'title_ar is required and must be a string' });
+    }
+    if (!title_en || typeof title_en !== 'string') {
+      return res.status(400).json({ error: 'title_en is required and must be a string' });
+    }
+    if (kpi_target === undefined || kpi_target === null) {
+      return res.status(400).json({ error: 'kpi_target is required' });
+    }
+
     const query = `
       INSERT INTO strategic_goals (
         plan_id, goal_code, pillar_code, title_ar, title_en, description_ar, description_en,
         weight_pct, progress_pct, kpi_target, kpi_current, kpi_unit_ar, kpi_unit_en,
         allocated_budget_yer, spent_budget_yer, assigned_owner_role, assigned_owner_name,
-        linked_domain, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+        linked_domain, status, organization_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
       RETURNING *
     `;
 
@@ -2420,7 +2925,7 @@ app.post('/api/strategic-goals', async (req, res) => {
       plan_id, goal_code, pillar_code, title_ar, title_en, description_ar || null, description_en || null,
       weight_pct || 10, progress_pct || 0, kpi_target, kpi_current || 0, kpi_unit_ar || '%', kpi_unit_en || '%',
       allocated_budget_yer || 0, spent_budget_yer || 0, assigned_owner_role || null, assigned_owner_name || null,
-      linked_domain || 'NEB-01', status || 'ON_TRACK'
+      linked_domain || 'NEB-01', status || 'ON_TRACK', tenantId
     ]);
 
     res.json({ status: 'ok', data: result.rows[0] });
@@ -2430,11 +2935,20 @@ app.post('/api/strategic-goals', async (req, res) => {
   }
 });
 
-app.put('/api/strategic-goals/:id', async (req, res) => {
+app.put('/api/strategic-goals/:id', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
     const { id } = req.params;
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
     const { progress_pct, kpi_current, spent_budget_yer, status, title_ar, title_en } = req.body;
+
+    const ownerCheck = await dbPool.query('SELECT organization_id FROM strategic_goals WHERE id = $1 AND deleted_at IS NULL', [id]);
+    if (ownerCheck.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Goal not found' });
+    }
+    if (ownerCheck.rows[0].organization_id !== tenantId) {
+      return res.status(403).json({ status: 'error', message: 'Access Denied: Tenant Isolation Violation (IDOR Protection)' });
+    }
 
     const query = `
       UPDATE strategic_goals
@@ -2445,11 +2959,11 @@ app.put('/api/strategic-goals/:id', async (req, res) => {
           title_ar = COALESCE($5, title_ar),
           title_en = COALESCE($6, title_en),
           updated_at = NOW()
-      WHERE id = $7
+      WHERE id = $7 AND organization_id = $8
       RETURNING *
     `;
 
-    const result = await dbPool.query(query, [progress_pct, kpi_current, spent_budget_yer, status, title_ar, title_en, id]);
+    const result = await dbPool.query(query, [progress_pct, kpi_current, spent_budget_yer, status, title_ar, title_en, id, tenantId]);
     if (result.rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'Goal not found' });
     }
@@ -2461,19 +2975,33 @@ app.put('/api/strategic-goals/:id', async (req, res) => {
   }
 });
 
-app.post('/api/swot', async (req, res) => {
+app.post('/api/swot', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
     const { plan_id, category, title_ar, title_en, impact_level, strategic_action_ar, strategic_action_en, linked_goal_code, owner_name } = req.body;
+
+    if (!plan_id || typeof plan_id !== 'string') {
+      return res.status(400).json({ error: 'plan_id is required and must be a string' });
+    }
+    if (!category || typeof category !== 'string') {
+      return res.status(400).json({ error: 'category is required and must be a string' });
+    }
+    if (!title_ar || typeof title_ar !== 'string') {
+      return res.status(400).json({ error: 'title_ar is required and must be a string' });
+    }
+    if (!title_en || typeof title_en !== 'string') {
+      return res.status(400).json({ error: 'title_en is required and must be a string' });
+    }
 
     const query = `
       INSERT INTO swot_analysis (
-        plan_id, category, title_ar, title_en, impact_level, strategic_action_ar, strategic_action_en, linked_goal_code, owner_name
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        plan_id, category, title_ar, title_en, impact_level, strategic_action_ar, strategic_action_en, linked_goal_code, owner_name, organization_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `;
 
-    const result = await dbPool.query(query, [plan_id, category, title_ar, title_en, impact_level || 'HIGH', strategic_action_ar || null, strategic_action_en || null, linked_goal_code || null, owner_name || null]);
+    const result = await dbPool.query(query, [plan_id, category, title_ar, title_en, impact_level || 'HIGH', strategic_action_ar || null, strategic_action_en || null, linked_goal_code || null, owner_name || null, tenantId]);
     res.json({ status: 'ok', data: result.rows[0] });
   } catch (err: any) {
     console.error("Error adding SWOT item:", err.message);
@@ -2481,9 +3009,10 @@ app.post('/api/swot', async (req, res) => {
   }
 });
 
-app.get('/api/strategic-alignment', async (req, res) => {
+app.get('/api/strategic-alignment', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
     const alignmentQuery = `
       SELECT 
         g.goal_code,
@@ -2493,14 +3022,14 @@ app.get('/api/strategic-alignment', async (req, res) => {
         g.progress_pct as goal_progress,
         g.allocated_budget_yer as goal_budget,
         g.spent_budget_yer as goal_spent,
-        (SELECT COUNT(*) FROM programs p WHERE p.deleted_at IS NULL) as active_programs_count,
-        (SELECT COUNT(*) FROM projects pr WHERE pr.deleted_at IS NULL) as active_projects_count
+        (SELECT COUNT(*) FROM programs p WHERE p.deleted_at IS NULL AND p.organization_id = $1) as active_programs_count,
+        (SELECT COUNT(*) FROM projects pr WHERE pr.deleted_at IS NULL AND pr.organization_id = $1) as active_projects_count
       FROM strategic_goals g
-      WHERE g.deleted_at IS NULL
+      WHERE g.deleted_at IS NULL AND g.organization_id = $1
       ORDER BY g.goal_code ASC
     `;
 
-    const result = await dbPool.query(alignmentQuery);
+    const result = await dbPool.query(alignmentQuery, [tenantId]);
     res.json({ status: 'ok', source: 'Neon PostgreSQL Strategic Alignment Matrix', data: result.rows });
   } catch (err: any) {
     console.error("Error fetching strategic alignment:", err.message);
@@ -2509,7 +3038,7 @@ app.get('/api/strategic-alignment', async (req, res) => {
 });
 
 // Get table schema (columns metadata) to build dynamic UI forms
-app.get('/api/schema/:table', async (req, res) => {
+app.get('/api/schema/:table', authenticateToken, async (req, res) => {
   const { table } = req.params;
   if (!isWhitelisted(table)) {
     return res.status(403).json({ error: `Table '${table}' is not in the whitelist.` });
@@ -2533,9 +3062,8 @@ app.get('/api/schema/:table', async (req, res) => {
   }
 });
 
-// GET all records for a table (Tenant Scoped)
+// GET all records for a table (Tenant Scoped, Paginated)
 app.get('/api/tables/:table', authenticateToken, async (req: any, res: any) => {
-  res.setHeader('Cache-Control', 'private, max-age=15, stale-while-revalidate=45');
   const { table } = req.params;
   if (!isWhitelisted(table)) {
     return res.status(403).json({ error: `Table '${table}' is not in the whitelist.` });
@@ -2543,9 +3071,8 @@ app.get('/api/tables/:table', authenticateToken, async (req: any, res: any) => {
 
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || req.headers['x-organization-id'] || req.headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
 
-    // Fast cached schema check (0ms overhead)
     const { hasOrgCol, hasDeletedAt, hasCreatedAt } = await getTableSchemaInfo(dbPool, table);
 
     const whereClauses: string[] = [];
@@ -2560,29 +3087,62 @@ app.get('/api/tables/:table', authenticateToken, async (req: any, res: any) => {
       whereClauses.push(`"deleted_at" IS NULL`);
     }
 
-    let query = `SELECT * FROM "${table}"`;
+    // Pagination parameters
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(500, Math.max(1, parseInt(req.query.limit as string) || 100));
+    const offset = (page - 1) * limit;
+
+    let baseQuery = `SELECT * FROM "${table}"`;
     if (whereClauses.length > 0) {
-      query += ` WHERE ${whereClauses.join(' AND ')}`;
+      baseQuery += ` WHERE ${whereClauses.join(' AND ')}`;
     }
 
+    // Count total records for pagination metadata
+    const countQuery = `SELECT COUNT(*) as total FROM "${table}"${whereClauses.length > 0 ? ` WHERE ${whereClauses.join(' AND ')}` : ''}`;
+    const countResult = await queryWithRetry(countQuery, [...params]);
+    const totalCount = parseInt(countResult.rows[0]?.total || '0', 10);
+
+    let dataQuery = baseQuery;
     if (hasCreatedAt) {
-      query += ` ORDER BY created_at DESC`;
+      dataQuery += ` ORDER BY created_at DESC`;
     }
+    params.push(limit);
+    dataQuery += ` LIMIT $${params.length}`;
+    params.push(offset);
+    dataQuery += ` OFFSET $${params.length}`;
 
-    res.setHeader('Cache-Control', 'public, max-age=10, stale-while-revalidate=30');
+    res.setHeader('Cache-Control', 'private, max-age=10, stale-while-revalidate=30');
 
-    const result = await queryWithRetry(query, params);
+    const result = await queryWithRetry(dataQuery, params);
     let rows = result.rows;
+    // SECURITY: Strip sensitive fields from response
+    const SENSITIVE_RESPONSE_FIELDS = ['password_hash', 'totp_secret', 'refresh_token'];
+    rows = rows.map(row => {
+      const clean = { ...row };
+      SENSITIVE_RESPONSE_FIELDS.forEach(f => delete clean[f]);
+      return clean;
+    });
     if (table === 'projects') {
       rows = rows.map(row => ({
         ...row,
         code: row.project_code || row.code
       }));
     }
-    res.json(rows);
+
+    res.json({
+      data: rows,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNext: page * limit < totalCount,
+        hasPrev: page > 1,
+      }
+    });
   } catch (err: any) {
     console.warn(`Warning fetching table ${table}:`, err.message);
-    res.json([]);
+    res.json({ data: [], pagination: { page: 1, limit: 100, total: 0, totalPages: 0, hasNext: false, hasPrev: false } });
   }
 });
 
@@ -2593,10 +3153,47 @@ app.post('/api/tables/:table', authenticateToken, async (req: any, res: any) => 
     return res.status(403).json({ error: `Table '${table}' is not in the whitelist.` });
   }
 
+  const SENSITIVE_TABLES = ['users', 'roles', 'role_permissions', 'user_roles', 'user_org_memberships', 'organizations', 'system_settings'];
+  if (SENSITIVE_TABLES.includes(table)) {
+    const callerLevel = req.user?.security_level ?? 0;
+    if (callerLevel < 4) {
+      return res.status(403).json({ error: `Access Denied: Creating records in '${table}' requires administrator privileges (Level 4+)` });
+    }
+  }
+
+  // Policy enforcement for domain-specific tables
+  try {
+    const policyPool = getPool();
+    const { allowed, violations } = await enforceTablePolicy(policyPool, req, table, 'CREATE');
+    if (!allowed) {
+      const envMode = req.headers['x-environment-mode'] || 'production';
+      logTablePolicyViolation(policyPool, req, table, 'CREATE', violations, envMode);
+      const blockViolations = violations.filter(v => v.severity === 'BLOCK');
+      const warnViolations = violations.filter(v => v.severity === 'WARN');
+      return res.status(403).json({
+        error: 'Policy Violation',
+        message: blockViolations[0]?.messageEn || 'Operation not allowed by policy',
+        messageAr: blockViolations[0]?.messageAr || 'العملية غير مسموح بها وفقاً للسياسة',
+        violations: [...blockViolations, ...warnViolations].map(v => ({
+          code: v.code,
+          severity: v.severity,
+          messageAr: v.messageAr,
+          messageEn: v.messageEn,
+          policyKey: v.policyKey,
+          limit: v.limit,
+          currentValue: v.currentValue,
+        })),
+        environmentMode: envMode,
+      });
+    }
+  } catch (policyErr) {
+    console.error('[PolicyEnforcement] Error:', policyErr);
+  }
+
   try {
     const dbPool = getPool();
     const record = req.body;
-    const tenantId = req.user?.org_id || req.headers['x-organization-id'] || req.headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
 
     if (table === 'projects' && record.code !== undefined && !record.project_code) {
       record.project_code = record.code;
@@ -2611,8 +3208,21 @@ app.post('/api/tables/:table', authenticateToken, async (req: any, res: any) => 
     const columns = colsRes.rows.map(c => c.column_name);
 
     const insertData: any = {};
+    const BLOCKED_INSERT_FIELDS = [
+      'id', 'organization_id', 'created_at', 'updated_at', 'deleted_at',
+      'created_by', 'updated_by', 'is_system', 'is_default'
+    ];
+    const SENSITIVE_COLUMN_BLOCKLIST: Record<string, string[]> = {
+      users: ['password_hash', 'role', 'security_level', 'is_active', 'is_superuser'],
+      roles: ['is_system', 'is_default'],
+      organizations: ['subscription_plan', 'is_active', 'security_level'],
+      system_settings: ['is_system', 'created_by'],
+      user_roles: ['granted_at'],
+      role_permissions: ['granted_at'],
+    };
+    const blockedFields = [...BLOCKED_INSERT_FIELDS, ...(SENSITIVE_COLUMN_BLOCKLIST[table] || [])];
     for (const key of Object.keys(record)) {
-      if (columns.includes(key) && record[key] !== undefined) {
+      if (columns.includes(key) && record[key] !== undefined && !blockedFields.includes(key)) {
         insertData[key] = record[key];
       }
     }
@@ -2638,7 +3248,9 @@ app.post('/api/tables/:table', authenticateToken, async (req: any, res: any) => 
       if (record.password) {
         insertData['password_hash'] = await bcrypt.hash(record.password, 10);
       } else if (!insertData['password_hash']) {
-        insertData['password_hash'] = await bcrypt.hash('password123', 10);
+        const tempPassword = crypto.randomBytes(12).toString('base64url').slice(0, 16);
+        insertData['password_hash'] = await bcrypt.hash(tempPassword, 10);
+        insertData['_temp_password'] = tempPassword;
       }
       if (record.name && !insertData['name_ar']) {
         insertData['name_ar'] = record.name;
@@ -2648,6 +3260,9 @@ app.post('/api/tables/:table', authenticateToken, async (req: any, res: any) => 
     if (columns.includes('security_level') && insertData['security_level'] === undefined) {
       insertData['security_level'] = 1;
     }
+
+    const tempPassword = insertData['_temp_password'];
+    delete insertData['_temp_password'];
 
     const keys = Object.keys(insertData);
     const values = Object.values(insertData);
@@ -2672,11 +3287,20 @@ app.post('/api/tables/:table', authenticateToken, async (req: any, res: any) => 
 
     const result = await dbPool.query(query, values);
     let createdRecord = result.rows[0];
+    // SECURITY: Strip sensitive fields from response
+    if (createdRecord && (table === 'users' || SENSITIVE_TABLES.includes(table))) {
+      delete createdRecord.password_hash;
+      delete createdRecord.totp_secret;
+      delete createdRecord.refresh_token;
+    }
     if (table === 'projects' && createdRecord) {
       createdRecord = {
         ...createdRecord,
         code: createdRecord.project_code
       };
+    }
+    if (table === 'users' && tempPassword) {
+      createdRecord._temp_password = tempPassword;
     }
     apiCache.delete('dashboard-stats');
     apiCache.delete('consolidated-kpis');
@@ -2694,10 +3318,47 @@ app.put('/api/tables/:table/:id', authenticateToken, async (req: any, res: any) 
     return res.status(403).json({ error: `Table '${table}' is not in the whitelist.` });
   }
 
+  const SENSITIVE_TABLES = ['users', 'roles', 'role_permissions', 'user_roles', 'user_org_memberships', 'organizations', 'system_settings'];
+  if (SENSITIVE_TABLES.includes(table)) {
+    const callerLevel = req.user?.security_level ?? 0;
+    if (callerLevel < 4) {
+      return res.status(403).json({ error: `Access Denied: Updating records in '${table}' requires administrator privileges (Level 4+)` });
+    }
+  }
+
+  // Policy enforcement for domain-specific tables
+  try {
+    const policyPool = getPool();
+    const { allowed, violations } = await enforceTablePolicy(policyPool, req, table, 'UPDATE');
+    if (!allowed) {
+      const envMode = req.headers['x-environment-mode'] || 'production';
+      logTablePolicyViolation(policyPool, req, table, 'UPDATE', violations, envMode);
+      const blockViolations = violations.filter(v => v.severity === 'BLOCK');
+      const warnViolations = violations.filter(v => v.severity === 'WARN');
+      return res.status(403).json({
+        error: 'Policy Violation',
+        message: blockViolations[0]?.messageEn || 'Operation not allowed by policy',
+        messageAr: blockViolations[0]?.messageAr || 'العملية غير مسموح بها وفقاً للسياسة',
+        violations: [...blockViolations, ...warnViolations].map(v => ({
+          code: v.code,
+          severity: v.severity,
+          messageAr: v.messageAr,
+          messageEn: v.messageEn,
+          policyKey: v.policyKey,
+          limit: v.limit,
+          currentValue: v.currentValue,
+        })),
+        environmentMode: envMode,
+      });
+    }
+  } catch (policyErr) {
+    console.error('[PolicyEnforcement] Error:', policyErr);
+  }
+
   try {
     const dbPool = getPool();
     const record = req.body;
-    const tenantId = req.user?.org_id || req.headers['x-organization-id'] || req.headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
 
     // Verify record ownership / IDOR check
     const hasOrgColRes = await dbPool.query(`
@@ -2729,8 +3390,21 @@ app.put('/api/tables/:table/:id', authenticateToken, async (req: any, res: any) 
     const columns = colsRes.rows.map(c => c.column_name);
 
     const updateData: any = {};
+    const BLOCKED_UPDATE_FIELDS = [
+      'id', 'organization_id', 'created_at', 'updated_at', 'deleted_at',
+      'created_by', 'updated_by', 'is_system', 'is_default'
+    ];
+    const SENSITIVE_COLUMN_BLOCKLIST: Record<string, string[]> = {
+      users: ['password_hash', 'role', 'security_level', 'is_active', 'is_superuser'],
+      roles: ['is_system', 'is_default'],
+      organizations: ['subscription_plan', 'is_active', 'security_level'],
+      system_settings: ['is_system', 'created_by'],
+      user_roles: ['granted_at'],
+      role_permissions: ['granted_at'],
+    };
+    const blockedUpdateFields = [...BLOCKED_UPDATE_FIELDS, ...(SENSITIVE_COLUMN_BLOCKLIST[table] || [])];
     for (const key of Object.keys(record)) {
-      if (key !== 'id' && key !== 'organization_id' && columns.includes(key) && record[key] !== undefined) {
+      if (key !== 'id' && key !== 'organization_id' && columns.includes(key) && record[key] !== undefined && !blockedUpdateFields.includes(key)) {
         updateData[key] = record[key];
       }
     }
@@ -2765,6 +3439,12 @@ app.put('/api/tables/:table/:id', authenticateToken, async (req: any, res: any) 
     }
 
     let updatedRecord = result.rows[0];
+    // SECURITY: Strip sensitive fields from response
+    if (updatedRecord && (table === 'users' || SENSITIVE_TABLES.includes(table))) {
+      delete updatedRecord.password_hash;
+      delete updatedRecord.totp_secret;
+      delete updatedRecord.refresh_token;
+    }
     if (table === 'projects' && updatedRecord) {
       updatedRecord = {
         ...updatedRecord,
@@ -2788,9 +3468,46 @@ app.delete('/api/tables/:table/:id', authenticateToken, async (req: any, res: an
     return res.status(403).json({ error: `Table '${table}' is not in the whitelist.` });
   }
 
+  const SENSITIVE_TABLES = ['users', 'roles', 'role_permissions', 'user_roles', 'user_org_memberships', 'organizations', 'system_settings'];
+  if (SENSITIVE_TABLES.includes(table)) {
+    const callerLevel = req.user?.security_level ?? 0;
+    if (callerLevel < 5) {
+      return res.status(403).json({ error: `Access Denied: Deleting records in '${table}' requires maximum security level (5)` });
+    }
+  }
+
+  // Policy enforcement for domain-specific tables
+  try {
+    const policyPool = getPool();
+    const { allowed, violations } = await enforceTablePolicy(policyPool, req, table, 'DELETE');
+    if (!allowed) {
+      const envMode = req.headers['x-environment-mode'] || 'production';
+      logTablePolicyViolation(policyPool, req, table, 'DELETE', violations, envMode);
+      const blockViolations = violations.filter(v => v.severity === 'BLOCK');
+      const warnViolations = violations.filter(v => v.severity === 'WARN');
+      return res.status(403).json({
+        error: 'Policy Violation',
+        message: blockViolations[0]?.messageEn || 'Operation not allowed by policy',
+        messageAr: blockViolations[0]?.messageAr || 'العملية غير مسموح بها وفقاً للسياسة',
+        violations: [...blockViolations, ...warnViolations].map(v => ({
+          code: v.code,
+          severity: v.severity,
+          messageAr: v.messageAr,
+          messageEn: v.messageEn,
+          policyKey: v.policyKey,
+          limit: v.limit,
+          currentValue: v.currentValue,
+        })),
+        environmentMode: envMode,
+      });
+    }
+  } catch (policyErr) {
+    console.error('[PolicyEnforcement] Error:', policyErr);
+  }
+
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || req.headers['x-organization-id'] || req.headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
 
     // IDOR Check
     const hasOrgColRes = await dbPool.query(`
@@ -2834,7 +3551,14 @@ app.delete('/api/tables/:table/:id', authenticateToken, async (req: any, res: an
 
     apiCache.delete('dashboard-stats');
     apiCache.delete('consolidated-kpis');
-    res.json({ message: "Record deleted successfully", deletedRecord: result.rows[0] });
+    const deletedRecord = result.rows[0];
+    // SECURITY: Strip sensitive fields from deleted record response
+    if (deletedRecord) {
+      delete deletedRecord.password_hash;
+      delete deletedRecord.totp_secret;
+      delete deletedRecord.refresh_token;
+    }
+    res.json({ message: "Record deleted successfully", deletedRecord });
   } catch (err: any) {
     console.error(`Error deleting from table ${table}:`, err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -2845,8 +3569,8 @@ app.delete('/api/tables/:table/:id', authenticateToken, async (req: any, res: an
 // BACKUP & DISASTER RECOVERY ENDPOINTS
 // -------------------------------------------------------------
 
-// List all backups
-app.get('/api/backups/list', async (req, res) => {
+// List all backups — SECURED: requires authentication
+app.get('/api/backups/list', authenticateToken, async (req, res) => {
   try {
     const BACKUP_DIR = path.join(process.cwd(), 'backups');
     if (!fs.existsSync(BACKUP_DIR)) {
@@ -2896,8 +3620,27 @@ app.get('/api/backups/list', async (req, res) => {
   }
 });
 
-// Trigger a database backup export
-app.post('/api/backups/trigger', async (req, res) => {
+// Trigger a database backup export — SECURED: requires authentication + security level 4
+app.post('/api/backups/trigger', authenticateToken, async (req: any, res) => {
+  if ((req.user?.security_level ?? 0) < 4) {
+    return res.status(403).json({ error: 'Access Denied: Backup requires security level 4+' });
+  }
+  // Policy enforcement for backup
+  try {
+    const policyPool = getPool();
+    const { allowed, violations } = await enforceTablePolicy(policyPool, req, 'audit_logs', 'CREATE');
+    if (!allowed) {
+      const envMode = req.headers['x-environment-mode'] || 'production';
+      logTablePolicyViolation(policyPool, req, 'audit_logs', 'BACKUP', violations, envMode);
+      return res.status(403).json({
+        error: 'Policy Violation',
+        message: violations[0]?.messageEn || 'Backup not allowed by policy',
+        violations: violations.filter(v => v.severity === 'BLOCK').map(v => ({
+          code: v.code, severity: v.severity, messageAr: v.messageAr, messageEn: v.messageEn,
+        })),
+      });
+    }
+  } catch (err) { /* don't block on policy errors */ }
   try {
     const dbPool = getPool();
     const backupData: any = {
@@ -2907,11 +3650,31 @@ app.post('/api/backups/trigger', async (req, res) => {
       tables: {}
     };
 
-    // Query and export whitelisted tables
+    // Query and export whitelisted tables — TENANT ISOLATED
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
     await Promise.all(TABLE_WHITELIST.map(async (table) => {
       try {
-        const result = await dbPool.query(`SELECT * FROM "${table}"`);
-        backupData.tables[table] = result.rows;
+        // Check if table has organization_id column for tenant isolation
+        const colCheck = await dbPool.query(`
+          SELECT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_schema='public' AND table_name=$1 AND column_name='organization_id'
+          )
+        `, [table]);
+        const hasOrgCol = colCheck.rows[0]?.exists;
+        
+        const result = hasOrgCol
+          ? await dbPool.query(`SELECT * FROM "${table}" WHERE "organization_id" = $1`, [tenantId])
+          : await dbPool.query(`SELECT * FROM "${table}"`);
+        
+        // SECURITY: Strip password_hash from backup exports
+        backupData.tables[table] = result.rows.map((row: any) => {
+          const clean = { ...row };
+          delete clean.password_hash;
+          delete clean.totp_secret;
+          delete clean.refresh_token;
+          return clean;
+        });
       } catch (err: any) {
         console.warn(`Could not export table ${table}:`, err.message);
         backupData.tables[table] = []; // fallback
@@ -2967,8 +3730,13 @@ app.post('/api/backups/trigger', async (req, res) => {
   }
 });
 
-// Download a backup file
-app.get('/api/backups/download/:filename', (req, res) => {
+// Download a backup file — SECURED: requires authentication + minimum security level 4
+app.get('/api/backups/download/:filename', authenticateToken, async (req: any, res) => {
+  const callerLevel = req.user?.security_level ?? 0;
+  if (callerLevel < 4) {
+    return res.status(403).json({ error: 'Access Denied: Backup download requires security level 4+' });
+  }
+
   const { filename } = req.params;
   
   if (filename.includes('/') || filename.includes('\\') || !filename.endsWith('.json')) {
@@ -2987,8 +3755,27 @@ app.get('/api/backups/download/:filename', (req, res) => {
   res.sendFile(filePath);
 });
 
-// Restore database from a backup
-app.post('/api/backups/restore', async (req, res) => {
+// Restore database from a backup — SECURED: requires authentication + highest security level
+app.post('/api/backups/restore', authenticateToken, async (req: any, res) => {
+  if ((req.user?.security_level ?? 0) < 5) {
+    return res.status(403).json({ error: 'Access Denied: Restore requires maximum security level (5)' });
+  }
+  // Policy enforcement for restore
+  try {
+    const policyPool = getPool();
+    const { allowed, violations } = await enforceTablePolicy(policyPool, req, 'audit_logs', 'UPDATE');
+    if (!allowed) {
+      const envMode = req.headers['x-environment-mode'] || 'production';
+      logTablePolicyViolation(policyPool, req, 'audit_logs', 'RESTORE', violations, envMode);
+      return res.status(403).json({
+        error: 'Policy Violation',
+        message: violations[0]?.messageEn || 'Restore not allowed by policy',
+        violations: violations.filter(v => v.severity === 'BLOCK').map(v => ({
+          code: v.code, severity: v.severity, messageAr: v.messageAr, messageEn: v.messageEn,
+        })),
+      });
+    }
+  } catch (err) { /* don't block on policy errors */ }
   try {
     const dbPool = getPool();
     const { backupContent } = req.body;
@@ -3051,20 +3838,31 @@ app.post('/api/backups/restore', async (req, res) => {
         const rows = tables[table];
         if (!Array.isArray(rows) || rows.length === 0) continue;
 
-        const cols = Object.keys(rows[0]);
-        for (const row of rows) {
-          const keys = Object.keys(row);
-          const values = Object.values(row);
-          
-          // Generate parameterized query
+        const colsRes = await client.query(`
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_schema = 'public' AND table_name = $1
+        `, [table]);
+        const validColumns = new Set(colsRes.rows.map((c: any) => c.column_name));
+
+        // Batch inserts: process rows in chunks of 100 to avoid parameter limits
+        const BATCH_SIZE = 100;
+        for (let batchIdx = 0; batchIdx < rows.length; batchIdx += BATCH_SIZE) {
+          const batch = rows.slice(batchIdx, batchIdx + BATCH_SIZE);
+          if (batch.length === 0) continue;
+
+          // Use first row to determine column set
+          const keys = Object.keys(batch[0]).filter(k => validColumns.has(k));
+          if (keys.length === 0) continue;
+
           const colNames = keys.map(k => `"${k}"`).join(', ');
-          const placeholders = keys.map((_, idx) => `$${idx + 1}`).join(', ');
-          
-          const query = `
-            INSERT INTO "${table}" (${colNames})
-            VALUES (${placeholders})
-          `;
-          await client.query(query, values);
+          const allValues: any[] = [];
+          const rowPlaceholders = batch.map((row: any, rowIdx: number) => {
+            const cellPlaceholders = keys.map((_, colIdx) => `$${rowIdx * keys.length + colIdx + 1}`);
+            keys.forEach((k) => allValues.push(row[k]));
+            return `(${cellPlaceholders.join(', ')})`;
+          }).join(', ');
+
+          await client.query(`INSERT INTO "${table}" (${colNames}) VALUES ${rowPlaceholders}`, allValues);
         }
       }
 
@@ -3101,8 +3899,13 @@ app.post('/api/backups/restore', async (req, res) => {
   }
 });
 
-// Delete a backup file
-app.delete('/api/backups/:filename', (req, res) => {
+// Delete a backup file — SECURED: requires authentication + security level 5
+app.delete('/api/backups/:filename', authenticateToken, async (req: any, res) => {
+  const callerLevel = req.user?.security_level ?? 0;
+  if (callerLevel < 5) {
+    return res.status(403).json({ error: 'Access Denied: Backup deletion requires maximum security level (5)' });
+  }
+
   const { filename } = req.params;
   
   if (filename.includes('/') || filename.includes('\\') || !filename.endsWith('.json')) {
@@ -3769,7 +4572,300 @@ app.post('/api/gemini/stakeholder-pulse', async (req, res) => {
   }
 });
 
+app.post('/api/gemini/impact-projection', async (req: any, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
+    const ai = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
+
+    const { portfolioData, beneficiaryData } = req.body;
+    if (!portfolioData || !Array.isArray(portfolioData)) {
+      return res.status(400).json({ error: 'Missing or invalid portfolioData array' });
+    }
+    if (!beneficiaryData || !Array.isArray(beneficiaryData)) {
+      return res.status(400).json({ error: 'Missing or invalid beneficiaryData array' });
+    }
+
+    const systemInstruction = `You are a visionary AI Strategic Impact Projection Analyst for 'جمعية رُحماء بينهم للعمل الإنساني والتنمية' (Rohamā'a Baynahum Charity Foundation), expert in humanitarian impact modeling, social development forecasting, and beneficiary outcome simulation.
+    Given the current portfolio data and beneficiary metrics, produce a comprehensive strategic impact projection covering:
+    1. Expected reach and beneficiary outcomes for the current cycle.
+    2. Resource utilization efficiency forecast.
+    3. Key risks to projected impact and mitigations.
+    4. A clear, actionable narrative in both English and Arabic suitable for board-level review.
+    Be specific to the humanitarian operating contexts (Syria, Yemen, or similar fields).`;
+
+    const contents = `Generate a strategic impact projection based on the following portfolio and beneficiary data:
+    Portfolio Data:
+    ${JSON.stringify(portfolioData.map((p: any) => ({
+      id: p.id,
+      code: p.code,
+      name_en: p.name_en,
+      name_ar: p.name_ar,
+      budget: parseFloat(p.budget || '0'),
+      actual_spent: parseFloat(p.actual_spent || p.total_spent || '0'),
+      progress_percent: p.progress_percent || 0,
+      currency: p.currency_code || 'USD',
+      status_code: p.status_code,
+      target_beneficiaries: p.target_beneficiaries || 0,
+      actual_beneficiaries: p.actual_beneficiaries || 0
+    })), null, 2)}
+
+    Beneficiary Data:
+    ${JSON.stringify(beneficiaryData.map((b: any) => ({
+      id: b.id,
+      name_en: b.name_en || b.full_name,
+      name_ar: b.name_ar,
+      type: b.type || b.beneficiary_type,
+      household_size: b.household_size || 1,
+      status: b.status
+    })), null, 2)}`;
+
+    let projectionText: string;
+
+    if (apiKey === 'MOCK_KEY') {
+      projectionText = `**Strategic Impact Projection (AI-Generated)**
+
+**Projected Beneficiary Reach:**
+Based on current portfolio execution rates, an estimated ${beneficiaryData.length} direct beneficiaries are expected to be served within the current operational cycle. The portfolio shows an aggregate progress of approximately ${portfolioData.length > 0 ? Math.round(portfolioData.reduce((sum: number, p: any) => sum + (p.progress_percent || 0), 0) / portfolioData.length) : 0}% across active projects.
+
+**Resource Utilization Forecast:**
+Total managed budget across active projects is projected to reach optimal utilization by end of the cycle. Current spending patterns indicate disciplined execution with no critical burn-rate anomalies detected in the portfolio.
+
+**Key Risks & Mitigations:**
+- **Access Constraints:** Field access disruptions in certain areas may delay beneficiary registration. *Mitigation:* Pre-position supplies and activate remote beneficiary tracking.
+- **Beneficiary Verification:** Scale-up may introduce data quality risks. *Mitigation:* Enforce biometric or ID-based verification at point of service delivery.
+
+**Narrative Summary:**
+The organization is on track to deliver measurable humanitarian impact. With disciplined financial management and adaptive field strategies, the projected outcomes align with the Foundation's strategic mandate of delivering dignified, needs-based assistance to vulnerable communities.
+
+(تمديد أثر استراتيجي - مُولَّد بالذكاء الاصطناعي)
+
+**الوصول المتوقع للمستفيدين:**
+بناءً على معدلات التنفيذ الحالية للمحفظة، يُتوقع خدمة ما يقارب ${beneficiaryData.length} مستفيد مباشر خلال دورة التشغيل الحالية.
+
+**توقعات استخدام الموارد:**
+تشير أنماط الإنفاق الحالية إلى تنفيذ منضبط دون أي شذوذات حرجة في معدل الاستهلاك.
+
+**المخاطر الرئيسية والحلول:**
+- قيود الوصول الميداني قد تؤخر تسجيل المستفيدين. الحل: تخزين مسبق للموارد وتتبع المستفيدين عن بُعد.
+- التحقق من هوية المستفيدين عند التوسع. الحل: فرض التحقق بالحيوية أو الهوية.`;
+    } else {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents,
+        config: {
+          systemInstruction,
+          responseMimeType: "text/plain"
+        }
+      });
+      projectionText = response.text || 'No projection could be generated.';
+    }
+
+    // Audit log
+    try {
+      const logId = crypto.randomUUID();
+      const dbPool = getPool();
+      await dbPool.query(`
+        INSERT INTO "audit_logs" (id, action, table_name, record_id, user_id, details, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      `, [
+        logId,
+        'GEMINI_IMPACT_PROJECTION',
+        'portfolio',
+        'batch',
+        req.user?.id || '00000000-0000-0000-0000-000000000001',
+        JSON.stringify({
+          portfolioCount: portfolioData.length,
+          beneficiaryCount: beneficiaryData.length,
+          timestamp: new Date().toISOString()
+        })
+      ]);
+    } catch (auditErr: any) {
+      console.warn("Could not insert audit log for impact-projection:", auditErr.message);
+    }
+
+    res.json({ projection: projectionText });
+  } catch (error: any) {
+    console.error('AI Impact Projection API failed', error);
+    res.status(500).json({ error: 'Failed to generate Impact Projection' });
+  }
+});
+
+app.post('/api/gemini/hr-analytics', async (req: any, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
+    const ai = new GoogleGenAI({ apiKey });
+
+    const { scenario } = req.body;
+
+    const systemInstruction = `You are an expert HR Intelligence & Workforce Analytics Analyst for 'جمعية رُحماء بينهم للعمل الإنساني والتنمية' (Rohamā'a Baynahum Charity Foundation) operating NexoraOS™.
+Analyze the correlation between L&D training hours, WBS task completion rate, and employee performance appraisals.
+Return a JSON object with a "data" array where each entry has: { name: string, training: number, performance: number, completion: number, role: string }.
+Base the analysis on realistic humanitarian field staff metrics.`;
+
+    const contents = `Run HR correlation analysis for scenario: ${scenario || 'correlation-analysis'}. Analyze training hours vs performance scores for all active staff.`;
+
+    let resultData: any;
+
+    if (apiKey === 'MOCK_KEY') {
+      resultData = {
+        data: [
+          { name: 'م. أحمد المعمري', training: 42, performance: 96, completion: 98, role: 'مدير مشاريع' },
+          { name: 'أ. ياسر باوزير', training: 36, performance: 92, completion: 95, role: 'مسؤول مالية' },
+          { name: 'د. خالد العماري', training: 28, performance: 89, completion: 90, role: 'منسق ميداني' },
+          { name: 'سارة العريقي', training: 50, performance: 98, completion: 100, role: 'أخصائية موارد' },
+          { name: 'م. علي الجائفي', training: 20, performance: 84, completion: 86, role: 'مهندس إغَاثي' },
+          { name: 'أ. نورة الحميري', training: 38, performance: 91, completion: 93, role: 'منسقة التوعية' },
+          { name: 'م. عبدالله المقطوري', training: 24, performance: 87, completion: 88, role: 'مسؤول لوجستيات' }
+        ]
+      };
+    } else {
+      const aiResult = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents,
+        config: {
+          systemInstruction,
+          responseMimeType: 'application/json'
+        }
+      });
+      const text = aiResult.text || '{}';
+      resultData = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
+    }
+
+    // Audit log
+    try {
+      const logId = crypto.randomUUID();
+      const dbPool = getPool();
+      await dbPool.query(`
+        INSERT INTO "audit_logs" (id, action, table_name, record_id, user_id, details, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      `, [
+        logId,
+        'GEMINI_HR_ANALYTICS',
+        'hr_intelligence',
+        'batch',
+        req.user?.id || '00000000-0000-0000-0000-000000000001',
+        JSON.stringify({
+          scenario: scenario || 'correlation-analysis',
+          staffCount: resultData?.data?.length || 0,
+          timestamp: new Date().toISOString()
+        })
+      ]);
+    } catch (auditErr: any) {
+      console.warn("Could not insert audit log for hr-analytics:", auditErr.message);
+    }
+
+    res.json(resultData);
+  } catch (error: any) {
+    console.error('AI HR Analytics API failed', error);
+    res.status(500).json({ error: 'Failed to perform HR Intelligence correlation analysis' });
+  }
+});
+
+app.post('/api/sync/offline-batch', async (req: any, res) => {
+  try {
+    const { id, domain, action, payload, createdAt, status, retryCount } = req.body;
+
+    if (!id || !domain || !action) {
+      return res.status(400).json({ error: 'Missing required sync item fields: id, domain, action' });
+    }
+
+    console.log(`[OFFLINE-SYNC] Received batch item: id=${id}, domain=${domain}, action=${action}, status=${status || 'PENDING'}, retryCount=${retryCount || 0}`);
+
+    // Policy enforcement for offline-synced data
+    const SYNC_DOMAIN_TABLE_MAP: Record<string, string> = {
+      beneficiary: 'beneficiaries',
+      activity: 'activities',
+      service_delivery: 'service_deliveries',
+      aid_distribution: 'disbursements',
+      project: 'projects',
+      transaction: 'transactions',
+    };
+
+    const tableForDomain = SYNC_DOMAIN_TABLE_MAP[domain];
+    if (tableForDomain && payload) {
+      try {
+        const policyPool = getPool();
+        const { allowed, violations } = await enforceTablePolicy(policyPool, req, tableForDomain, action === 'DELETE' ? 'DELETE' : 'CREATE');
+        if (!allowed) {
+          const envMode = req.headers['x-environment-mode'] || 'training';
+          logTablePolicyViolation(policyPool, req, tableForDomain, action, violations, envMode);
+          const blockViolations = violations.filter(v => v.severity === 'BLOCK');
+          return res.status(403).json({
+            error: 'Policy Violation',
+            message: blockViolations[0]?.messageEn || 'Sync rejected by policy',
+            messageAr: blockViolations[0]?.messageAr || 'تم رفض المزامنة وفقاً للسياسة',
+            violations: blockViolations.map(v => ({
+              code: v.code,
+              severity: v.severity,
+              messageAr: v.messageAr,
+              messageEn: v.messageEn,
+            })),
+            syncedId: id,
+          });
+        }
+      } catch (policyErr) {
+        console.error('[OFFLINE-SYNC] Policy enforcement error:', policyErr);
+      }
+    }
+
+    // Audit log
+    try {
+      const logId = crypto.randomUUID();
+      const dbPool = getPool();
+      await dbPool.query(`
+        INSERT INTO "audit_logs" (id, action, table_name, record_id, user_id, details, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      `, [
+        logId,
+        'OFFLINE_SYNC_BATCH',
+        domain,
+        id,
+        req.user?.id || '00000000-0000-0000-0000-000000000001',
+        JSON.stringify({
+          action,
+          status: status || 'PENDING',
+          retryCount: retryCount || 0,
+          payloadPreview: payload ? JSON.stringify(payload).substring(0, 256) : null,
+          syncedAt: new Date().toISOString()
+        })
+      ]);
+    } catch (auditErr: any) {
+      console.warn("Could not insert audit log for offline-batch:", auditErr.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Offline batch item acknowledged and queued for processing',
+      syncedId: id,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('Offline batch sync failed:', error);
+    res.status(500).json({ error: 'Failed to process offline batch sync' });
+  }
+});
+
 async function startServer() {
+  // ─────────────────────────────────────────────────────────────────────
+  // ENTERPRISE SCHEMA COMPLETION: Run on every startup (CREATE IF NOT EXISTS)
+  // ─────────────────────────────────────────────────────────────────────
+  try {
+    const dbPool = getPool();
+    await runEnterpriseSchemaCompletion(dbPool);
+    await applyEnterpriseIndexes(dbPool);
+    await applyEnterpriseViews(dbPool);
+    await seedEnterpriseUsersAndOrg(dbPool);
+  } catch (schemaErr: any) {
+    console.error('[STARTUP] Schema completion warning (non-fatal):', schemaErr.message);
+  }
+
   // Enterprise Global Error Handler (Prevents server crash on unhandled route errors)
   app.use((err: any, req: any, res: any, next: any) => {
     const errorId = crypto.randomBytes(4).toString('hex');
@@ -3829,6 +4925,14 @@ async function startServer() {
         }
       } catch (e) {
         console.error('Error closing database connections:', e);
+      }
+      // Also close the db.service.ts pool used by route files
+      try {
+        const { closeDatabasePool } = await import('./src/server/services/db.service');
+        await closeDatabasePool();
+        console.log('db.service pool connections closed gracefully.');
+      } catch (e) {
+        // Pool may not have been initialized
       }
       console.log('NexoraOS™ shutdown complete. Exiting process.');
       process.exit(0);

@@ -33,13 +33,13 @@ export function useDashboardState(currentUser: any) {
       const savedPresets = localStorage.getItem(`nexora_dashboard_presets${userSuffix}`);
       let parsedCustom: DashboardPreset[] = [];
       if (savedPresets) {
-        try { parsedCustom = JSON.parse(savedPresets); } catch (e) {}
+        try { parsedCustom = JSON.parse(savedPresets); } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to parse saved dashboard presets', e); }
       }
       if (savedActiveId) {
         const found = SYSTEM_PRESETS.find(p => p.id === savedActiveId) || parsedCustom.find(p => p.id === savedActiveId);
         if (found) return found;
       }
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to load active dashboard preset', e); }
     return SYSTEM_PRESETS[0];
   });
 
@@ -48,7 +48,7 @@ export function useDashboardState(currentUser: any) {
     try {
       const userSuffix = currentUser?.id ? `_${currentUser.id}` : '_guest';
       localStorage.setItem(`nexora_active_preset_id${userSuffix}`, preset.id);
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to persist active preset selection', e); }
   };
 
   const handleSaveCustomPreset = (preset: DashboardPreset) => {
@@ -59,7 +59,7 @@ export function useDashboardState(currentUser: any) {
       const userSuffix = currentUser?.id ? `_${currentUser.id}` : '_guest';
       localStorage.setItem(`nexora_dashboard_presets${userSuffix}`, JSON.stringify(updated));
       localStorage.setItem(`nexora_active_preset_id${userSuffix}`, preset.id);
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to persist custom preset', e); }
   };
 
   const handleDeletePreset = (id: string) => {
@@ -72,7 +72,7 @@ export function useDashboardState(currentUser: any) {
         setCurrentPreset(SYSTEM_PRESETS[0]);
         localStorage.setItem(`nexora_active_preset_id${userSuffix}`, SYSTEM_PRESETS[0].id);
       }
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to persist preset deletion', e); }
   };
 
   const getSpacingClass = () => {

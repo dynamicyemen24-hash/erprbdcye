@@ -45,6 +45,9 @@ import {
 import { Project, Program } from '../types';
 import { printHTML } from '../lib/printUtils';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
+import { ModuleShell } from './enterprise/ModuleShell';
+import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
+import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
 
 // ==================== SECTOR & ACTIVITY TYPES TAXONOMY ====================
 export interface ActivitySector {
@@ -134,6 +137,16 @@ export const ACTIVITY_SECTORS: ActivitySector[] = [
     ]
   }
 ];
+
+// Helper: Check fetch response for policy violations
+async function checkPolicyViolation(response: Response): Promise<void> {
+  if (!response.ok && response.status === 403) {
+    const body = await response.json().catch(() => ({}));
+    if (body.violations) {
+      throw new PolicyViolationError(body);
+    }
+  }
+}
 
 // Default Tasks Generator per Activity Subtype
 const getDefaultTasksForSubtype = (code: string) => {
@@ -254,6 +267,7 @@ export default function ActivitiesView({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   
   // Financial Disbursement Modal State
@@ -703,14 +717,20 @@ export default function ActivitiesView({
     setIsSubmitting(false);
 
     try {
-      await fetch('/api/tables/activities', {
+      const res = await fetch('/api/tables/activities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newActivity)
       });
+      await checkPolicyViolation(res);
       onRefresh();
-    } catch (err) {
-      console.error('Error creating activity:', err);
+    } catch (err: any) {
+      if (err instanceof PolicyViolationError) {
+        setPolicyViolations(err.violations);
+        setErrorMessage(err.primaryMessage);
+      } else {
+        console.error('Error creating activity:', err);
+      }
     }
   };
 
@@ -954,6 +974,22 @@ export default function ActivitiesView({
   const totalBeneficiariesCount = activities.reduce((sum, a) => sum + (a.target_beneficiaries || a.metadata?.student_count || 0), 0);
 
   return (
+    <ModuleShell
+      titleAr="الأنشطة والمهام الميدانية"
+      titleEn="Field Activities & Tasks"
+      descAr="تنظيم ومتابعة المهام الميدانية، بطاقات العمل اليومية"
+      descEn="Detailed task planning, field checklists, and progress tracking"
+      domainCode="NEB-05"
+      icon={Compass}
+      accent="cyan"
+      lang={lang}
+      onRefresh={onRefresh}
+      isLoading={loading}
+      breadcrumbs={[
+        { label: lang === 'ar' ? 'الرئيسية' : 'Home', onClick: () => {} },
+        { label: lang === 'ar' ? 'الأنشطة' : 'Activities' }
+      ]}
+    >
     <div className="space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
       
       {/* Top Header Banner */}
@@ -1195,13 +1231,19 @@ export default function ActivitiesView({
                         const updated = { ...act, status_code: newStatus };
                         setActivities(prev => prev.map(a => a.id === act.id ? updated : a));
                         try {
-                          await fetch(`/api/tables/activities/${act.id}`, {
+                          const res = await fetch(`/api/tables/activities/${act.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ status_code: newStatus })
                           });
-                        } catch (e) {
-                          console.error(e);
+                          await checkPolicyViolation(res);
+                        } catch (e: any) {
+                          if (e instanceof PolicyViolationError) {
+                            setPolicyViolations(e.violations);
+                            setErrorMessage(e.primaryMessage);
+                          } else {
+                            console.error(e);
+                          }
                         }
                       }}
                       className={`px-2.5 py-1 rounded-full text-[9px] font-black border transition-all cursor-pointer ${
@@ -1643,6 +1685,14 @@ export default function ActivitiesView({
               <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold">
                 {errorMessage}
               </div>
+            )}
+
+            {policyViolations && policyViolations.length > 0 && (
+              <PolicyViolationAlert
+                violations={policyViolations}
+                lang={lang}
+                onDismiss={() => setPolicyViolations(null)}
+              />
             )}
 
             <form onSubmit={handleCreateActivity} className="space-y-4 text-xs font-bold text-slate-700 dark:text-zinc-300">
@@ -2091,5 +2141,6 @@ export default function ActivitiesView({
       )}
 
     </div>
+    </ModuleShell>
   );
 }

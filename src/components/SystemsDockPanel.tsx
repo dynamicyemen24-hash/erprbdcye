@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Grid, Pin, PinOff, Search, ChevronRight, ChevronLeft, 
   Layers, Briefcase, Compass, Users, Heart, Brain, Coins, 
@@ -9,10 +9,8 @@ import {
 } from 'lucide-react';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 
-export type ActiveTab = 
-  | 'dashboard' | 'control_panel' | 'domains' | 'programs' | 'projects' | 'activities' 
-  | 'beneficiaries' | 'sponsorships' | 'reports' | 'finance' | 'currencies' | 'inventory' | 'contracts' 
-  | 'users' | 'approvals' | 'audit' | 'settings' | 'backup' | 'scenarios' | 'docs' | 'allocations' | 'geospatial' | 'strategic_planning' | 'investments' | 'hr_dashboard' | 'third-party-network';
+// ActiveTab: single source of truth
+import { ActiveTab } from '../core/types/dashboard';
 
 interface SystemsDockPanelProps {
   lang: 'ar' | 'en';

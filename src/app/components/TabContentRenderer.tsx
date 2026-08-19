@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useCallback } from 'react';
 import { ActiveTab } from '../../core/types';
 import ViewSkeleton from '../../components/common/ViewSkeleton';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -19,7 +19,6 @@ const ResourceAllocationView = lazy(() => import('../../components/ResourceAlloc
 const BeneficiariesView = lazy(() => import('../../components/BeneficiariesView'));
 const SponsorshipsView = lazy(() => import('../../components/SponsorshipsView'));
 const ThirdPartyNetworkCenterView = lazy(() => import('../../components/ThirdPartyNetworkCenterView'));
-import { TenantProvider } from '../../core/TenantContext';
 
 const ContractManagementView = lazy(() => import('../../components/ContractManagementView').then(m => ({ default: m.ContractManagementView })));
 const InventoryManagementView = lazy(() => import('../../components/InventoryManagementView').then(m => ({ default: m.InventoryManagementView })));
@@ -40,6 +39,7 @@ const HRManagementWorkspace = lazy(() => import('../../features/administration/H
 
 const StrategicPlanningView = lazy(() => import('../../components/StrategicPlanningView').then(m => ({ default: m.StrategicPlanningView })));
 const InvestmentProjectsView = lazy(() => import('../../components/InvestmentProjectsView').then(m => ({ default: m.InvestmentProjectsView })));
+const SalesRevenueView = lazy(() => import('../../components/SalesRevenueView'));
 
 // Lucide Icons for Premium Window Chrome
 import { 
@@ -105,6 +105,10 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   const activeOrg = (organizations && organizations.length > 0) ? (organizations.find(o => o.id === 'hq') || organizations[0]) : null;
   const orgName = activeOrg ? (lang === 'ar' ? activeOrg.name_ar : activeOrg.name_en) : (lang === 'ar' ? 'جمعية رُحماء بينهم' : "Rohamā'a Baynahum");
 
+  // Stable callback wrappers to prevent unnecessary child re-renders
+  const safeNavigate = useCallback((tab: string) => onNavigate(tab as ActiveTab), [onNavigate]);
+  const safeDrillDown = useCallback((tab: string, filters: any) => onDrillDown(tab as ActiveTab, filters), [onDrillDown]);
+
   // Enterprise Windows & Workspace state
   const [isMaximized, setIsMaximized] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -130,7 +134,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
       if (stored) {
         setDraftsList(JSON.parse(stored));
       }
-    } catch (e) {}
+    } catch (e) { console.error('[Drafts] Failed to load drafts from localStorage:', e); }
   }, []);
 
   const handleSaveDraft = (targetTab: ActiveTab) => {
@@ -148,7 +152,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     setDraftsList(updated);
     try {
       localStorage.setItem('nexora_drafts', JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) { console.error('[Drafts] Failed to save drafts to localStorage:', e); }
 
     setDraftToast(isRtl ? `تم حفظ مسودة مؤقتة لـ [${tabLabel}] بنجاح في تمام الساعة ${timestamp}` : `Temporary draft for [${tabLabel}] saved successfully at ${timestamp}`);
     setTimeout(() => {
@@ -205,22 +209,23 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     strategic_planning: { icon: Activity, title_ar: 'التخطيط الاستراتيجي والأداء', title_en: 'Strategic Planning & Performance', domainCode: 'NEB-01', desc_ar: 'الخطة الاستراتيجية لمؤسسة رُحماء بينهم، الأهداف ومؤشرات الأداء.', desc_en: 'Strategic objectives, performance indicators, and organizational alignment.' },
     investments: { icon: TrendingUp, title_ar: 'المشاريع الاستثمارية والأوقاف التنموية', title_en: 'Investment & Endowment OS', domainCode: 'NEB-15', desc_ar: 'إدارة أصول الأوقاف التنموية، عوائد الاستثمار، وحماية أصل الوقف.', desc_en: 'Endowment assets, performance tracking, yield distribution, and Shariah governance.' },
     hr_dashboard: { icon: Users, title_ar: 'لوحة إدارة الموارد البشرية', title_en: 'HR Management Dashboard', domainCode: 'NEB-09', desc_ar: 'إدارة الكادر الوظيفي، تقييم الأداء، وتوازن المهام.', desc_en: 'HR workforce management, performance appraisal, and workload balancing.' },
-    'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', domainCode: 'NEB-14', desc_ar: 'إدارة أطراف العملية، مطابقة القسائم الرقمية، ومطالبات وتسويات التجار والشركاء.', desc_en: 'Third-party merchants, digital voucher fulfillment, claims processing, and settlements.' }
+    'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', domainCode: 'NEB-14', desc_ar: 'إدارة أطراف العملية، مطابقة القسائم الرقمية، ومطالبات وتسويات التجار والشركاء.', desc_en: 'Third-party merchants, digital voucher fulfillment, claims processing, and settlements.' },
+    sales: { icon: Coins, title_ar: 'نظام المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', domainCode: 'NEB-15', desc_ar: 'إدارة حملات التبرع، الاشتراكات والمنتجات الوقفية، الفواتير، ونمو الإيرادات المستدامة.', desc_en: 'Fundraising campaigns, endowment products, invoices, and sustainable revenue generation.' }
   };
 
   const renderSingleTabContent = (tabKey: ActiveTab) => {
     switch (tabKey) {
       case 'investments':
-        return <InvestmentProjectsView lang={lang} onNavigate={(tab) => onNavigate(tab as ActiveTab)} />;
+        return <InvestmentProjectsView lang={lang} onNavigate={safeNavigate} />;
       case 'strategic_planning':
-        return <StrategicPlanningView lang={lang} onNavigate={(tab) => onNavigate(tab as ActiveTab)} />;
+        return <StrategicPlanningView lang={lang} onNavigate={safeNavigate} />;
       case 'dashboard':
         return (
           <DashboardView
             stats={dashboardStats}
             loading={loading}
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)}
-            onDrillDown={(tab, filters) => onDrillDown(tab as ActiveTab, filters)}
+            onNavigate={safeNavigate}
+            onDrillDown={safeDrillDown}
             lang={lang}
             onRefresh={onRefreshData}
             programs={programs}
@@ -242,7 +247,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           <ControlPanelView
             lang={lang}
             currentUser={currentUser}
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)}
+            onNavigate={safeNavigate}
             onRefreshData={onRefreshData}
             serverStats={serverStats}
             activeOrg={activeOrg}
@@ -262,7 +267,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             beneficiaries={beneficiaries}
             loading={loading} 
             onRefresh={onRefreshData} 
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)} 
+            onNavigate={safeNavigate} 
           />
         );
       case 'beneficiaries':
@@ -274,23 +279,23 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             lang={lang} 
             initialStatusFilter={drillDownFilters.beneficiariesStatus}
             initialCategoryFilter={drillDownFilters.beneficiariesCategory}
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)}
+            onNavigate={safeNavigate}
           />
         );
       case 'sponsorships':
-        return <SponsorshipsView sponsorships={sponsorships} beneficiaries={beneficiaries} programs={programs} currencies={currencies} loading={loading} onRefresh={onRefreshData} lang={lang} onNavigate={(tab) => onNavigate(tab as ActiveTab)} />;
+        return <SponsorshipsView sponsorships={sponsorships} beneficiaries={beneficiaries} programs={programs} currencies={currencies} loading={loading} onRefresh={onRefreshData} lang={lang} onNavigate={safeNavigate} />;
       case 'third-party-network':
-        return <ThirdPartyNetworkCenterView lang={lang} onNavigate={(tab) => onNavigate(tab as ActiveTab)} />;
+        return <ThirdPartyNetworkCenterView lang={lang} onNavigate={safeNavigate} />;
       case 'finance':
-        return <FinanceView currencies={currencies} lang={lang} onRefresh={onRefreshData} onNavigate={(tab) => onNavigate(tab as ActiveTab)} />;
+        return <FinanceView currencies={currencies} lang={lang} onRefresh={onRefreshData} onNavigate={safeNavigate} />;
       case 'approvals':
-        return <ApprovalWorkflowView currentUser={currentUser as any} lang={lang} onRefresh={onRefreshData} initialStatusFilter={drillDownFilters.approvalsStatus} onNavigate={(tab) => onNavigate(tab as ActiveTab)} />;
+        return <ApprovalWorkflowView currentUser={currentUser as any} lang={lang} onRefresh={onRefreshData} initialStatusFilter={drillDownFilters.approvalsStatus} onNavigate={safeNavigate} />;
       case 'reports':
-        return <ReportsView programs={programs} projects={projects} beneficiaries={beneficiaries} sponsorships={sponsorships} currencies={currencies} lang={lang} organizations={organizations} onNavigate={(tab) => onNavigate(tab as ActiveTab)} />;
+        return <ReportsView programs={programs} projects={projects} beneficiaries={beneficiaries} sponsorships={sponsorships} currencies={currencies} lang={lang} organizations={organizations} onNavigate={safeNavigate} />;
       case 'users':
         return <UsersView users={users} roles={roles} loading={loading} onRefresh={onRefreshData} lang={lang} />;
       case 'inventory':
-        return <InventoryManagementView lang={lang} currentUser={currentUser} beneficiaries={beneficiaries} onNavigate={(tab) => onNavigate(tab as ActiveTab)} />;
+        return <InventoryManagementView lang={lang} currentUser={currentUser} beneficiaries={beneficiaries} onNavigate={safeNavigate} />;
       case 'contracts':
         return (
           <ContractManagementView 
@@ -298,7 +303,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             projects={projects} 
             currentUser={currentUser} 
             onRefresh={onRefreshData} 
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)} 
+            onNavigate={safeNavigate} 
           />
         );
       case 'currencies':
@@ -313,7 +318,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return (
           <DomainCenterView 
             lang={lang}
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)}
+            onNavigate={safeNavigate}
             orgName={orgName}
           />
         );
@@ -321,7 +326,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return (
           <DocumentationView 
             lang={lang}
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)}
+            onNavigate={safeNavigate}
             orgName={orgName}
           />
         );
@@ -329,7 +334,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return (
           <OperationalScenariosView 
             lang={lang}
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)}
+            onNavigate={safeNavigate}
           />
         );
       case 'allocations':
@@ -352,13 +357,15 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         );
       case 'hr_dashboard':
         return <HRManagementWorkspace lang={lang} />;
+      case 'sales':
+        return <SalesRevenueView lang={lang} onNavigate={safeNavigate} />;
       default:
         return (
           <DashboardView
             stats={dashboardStats}
             loading={loading}
-            onNavigate={(tab) => onNavigate(tab as ActiveTab)}
-            onDrillDown={(tab, filters) => onDrillDown(tab as ActiveTab, filters)}
+            onNavigate={safeNavigate}
+            onDrillDown={safeDrillDown}
             lang={lang}
             onRefresh={onRefreshData}
             programs={programs}

@@ -9,11 +9,8 @@ import {
 import { useEnterprise } from '../core/context/EnterpriseContext';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 
-export type ActiveTab = 
-  | 'dashboard' | 'control_panel' | 'domains' | 'programs' | 'projects' | 'activities' 
-  | 'beneficiaries' | 'sponsorships' | 'reports' | 'finance' | 'currencies' | 'inventory' | 'contracts' 
-  | 'users' | 'approvals' | 'audit' | 'settings' | 'backup' | 'scenarios' | 'docs' | 'allocations' | 'geospatial' | 'strategic_planning' | 'investments' | 'hr_dashboard' | 'third-party-network';
-
+// ActiveTab is the single source of truth — imported from core/types/dashboard.ts
+import { ActiveTab } from '../core/types/dashboard';
 interface UnifiedLeftSidebarProps {
   lang: 'ar' | 'en';
   activeTab: ActiveTab;

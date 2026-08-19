@@ -72,7 +72,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
       const updated = [...prev, ...newGenerated];
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { console.error('[Timeline] Failed to save milestones to localStorage:', e); }
       return updated;
     });
   }, [projects]);
@@ -82,7 +82,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
     setMilestones(updated);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) { console.error('[Timeline] Failed to save milestones to localStorage:', e); }
   };
 
   // Helper to generate default 4 milestones per project based on start_date / end_date
@@ -282,7 +282,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
     setResourceAllocations(updatedMap);
     try {
       localStorage.setItem(HEATMAP_STORAGE_KEY, JSON.stringify(updatedMap));
-    } catch (e) {}
+    } catch (e) { console.error('[Timeline] Failed to save heatmap allocations to localStorage:', e); }
   };
 
   // Toggle allocation level for a specific project cell

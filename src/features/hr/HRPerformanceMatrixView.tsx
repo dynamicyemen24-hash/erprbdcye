@@ -26,7 +26,7 @@ export default function HRPerformanceMatrixView({ lang }: { lang: 'ar' | 'en' })
         setData(result.data);
       }
     } catch (err) {
-      console.warn('Matrix API fallback data loaded');
+      // Fallback to cached data
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,15 @@ export default function HRPerformanceMatrixView({ lang }: { lang: 'ar' | 'en' })
         </div>
       </div>
 
-      <div className="h-60 pt-2">
+      <div className="relative h-60 pt-2">
+        {loading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm rounded-xl z-10 gap-3">
+            <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
+              {isRtl ? 'جارٍ إنشاء المصفوفة...' : 'Generating 9-Box grid...'}
+            </p>
+          </div>
+        )}
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 15, right: 15, bottom: 15, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />

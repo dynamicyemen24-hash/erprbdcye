@@ -949,7 +949,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
       position_code: positionCode || null,
       can_approve: canApprove,
       max_approval_amount: parseFloat(maxApprovalAmount) || 0,
-      password_hash: selectedUser ? undefined : 'password123'
+      password: selectedUser ? undefined : Array.from(crypto.getRandomValues(new Uint8Array(12))).map(b => b.toString(16).padStart(2, '0')).join('')
     };
 
     try {
@@ -2617,7 +2617,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                 </div>
                 {!selectedUser && (
                   <span className="text-[10px] text-zinc-400 font-medium">
-                    {isRtl ? '* كلمة المرور التلقائية: password123' : '* Default password: password123'}
+                    {isRtl ? '* سيتم إنشاء كلمة مرور عشوائية آمنة للمستخدم الجديد' : '* A secure random password will be generated for the new user'}
                   </span>
                 )}
               </div>

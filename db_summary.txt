@@ -1,23 +1,29 @@
-Total Tables and Views processed: 239
-Base Tables: 165
-Views: 74
+Total Tables and Views processed: 266
+Base Tables: 175
+Views: 91
 
 --- BASE TABLES WITH ROWS ---
 - account_entity_links: 380 rows
 - account_permissions: 332 rows
 - activities: 267 rows
 - alert_rules: 3 rows
+- approval_delegations: 1 rows
+- approval_history: 1 rows
+- approval_matrix: 2 rows
+- approval_requests: 2 rows
 - approval_thresholds: 8 rows
 - beneficiaries: 418 rows
 - budget_lines: 45 rows
 - chart_of_accounts: 238 rows
 - code_categories: 128 rows
 - code_items: 565 rows
+- contacts: 1 rows
 - control_reviews: 9 rows
 - cost_centers_advanced: 5 rows
 - currencies: 3 rows
 - custom_field_definitions: 5 rows
 - database_records_summary: 128 rows
+- donations: 1 rows
 - earned_value_metrics: 3 rows
 - fiscal_years: 1 rows
 - geographic_areas: 19 rows
@@ -51,7 +57,7 @@ Views: 74
 - workflow_definitions: 3 rows
 
 --- EMPTY BASE TABLES ---
-There are 119 empty base tables.
+There are 123 empty base tables.
 
 --- KEY SETTINGS & BASIC TABLES SCHEMAS ---
 
@@ -99,49 +105,6 @@ Columns:
 Sample Rows (Up to 2):
 [
   {
-    "id": "00000000-0000-0000-0000-000000000001",
-    "parent_id": null,
-    "name_en": "Rohamaa Charity Foundation",
-    "name_ar": "مؤسسة رحماء الخيرية",
-    "description": "منصة رحماء لإدارة المنظمات الخيرية والإنسانية",
-    "logo_url": null,
-    "website": null,
-    "email": "info@rohamaa.org",
-    "phone": "+967000000000",
-    "address": "الشارع الرئيسي",
-    "city": "صنعاء",
-    "country": "اليمن",
-    "registration_number": "REG-2026-0001",
-    "tax_number": "TAX-2026-0001",
-    "license_number": "LIC-2026-0001",
-    "license_expiry": null,
-    "type_code": "charity",
-    "subscription_plan": "enterprise",
-    "subscription_expiry": null,
-    "max_users": 100,
-    "max_storage_gb": 100,
-    "status": "active",
-    "settings": {},
-    "security_policy": {
-      "maxSecurityLevel": 5,
-      "requireDonorConsent": true,
-      "allowAnonymousDonations": true
-    },
-    "security_level": 5,
-    "created_at": "2026-08-04T16:37:30.849Z",
-    "updated_at": "2026-08-04T16:37:30.849Z",
-    "deleted_at": null,
-    "version": 1,
-    "sync_status": "SYNCED",
-    "branch_code": null,
-    "branch_type": null,
-    "region": null,
-    "timezone": "Asia/Riyadh",
-    "fiscal_year_start_month": 1,
-    "fiscal_year_end_month": 12,
-    "default_currency_code": "YER"
-  },
-  {
     "id": "b1d4d60b-0099-4a28-ad4c-4b32d9f9bfb3",
     "parent_id": null,
     "name_en": "Charitable Development Organization",
@@ -169,6 +132,49 @@ Sample Rows (Up to 2):
     "security_level": 5,
     "created_at": "2026-08-04T20:43:03.308Z",
     "updated_at": "2026-08-04T20:43:03.308Z",
+    "deleted_at": null,
+    "version": 1,
+    "sync_status": "SYNCED",
+    "branch_code": null,
+    "branch_type": null,
+    "region": null,
+    "timezone": "Asia/Riyadh",
+    "fiscal_year_start_month": 1,
+    "fiscal_year_end_month": 12,
+    "default_currency_code": "YER"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "parent_id": null,
+    "name_en": "Rohamaa Charity Foundation",
+    "name_ar": "مؤسسة رحماء الخيرية",
+    "description": "منصة رحماء لإدارة المنظمات الخيرية والإنسانية",
+    "logo_url": null,
+    "website": "https://erprbdcye.org",
+    "email": "info@erprbdcye.org",
+    "phone": "+967000000000",
+    "address": "الشارع الرئيسي",
+    "city": "صنعاء",
+    "country": "اليمن",
+    "registration_number": "REG-2026-0001",
+    "tax_number": "TAX-2026-0001",
+    "license_number": "LIC-2026-0001",
+    "license_expiry": null,
+    "type_code": "charity",
+    "subscription_plan": "enterprise",
+    "subscription_expiry": null,
+    "max_users": 100,
+    "max_storage_gb": 100,
+    "status": "active",
+    "settings": {},
+    "security_policy": {
+      "maxSecurityLevel": 5,
+      "requireDonorConsent": true,
+      "allowAnonymousDonations": true
+    },
+    "security_level": 5,
+    "created_at": "2026-08-04T16:37:30.849Z",
+    "updated_at": "2026-08-04T16:37:30.849Z",
     "deleted_at": null,
     "version": 1,
     "sync_status": "SYNCED",
@@ -351,7 +357,7 @@ Sample Rows (Up to 2):
 [
   {
     "id": "00000000-0000-0000-0000-000000000001",
-    "email": "admin@rohamaa.org",
+    "email": "admin@erprbdcye.org",
     "email_verified": true,
     "password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
     "name": "System Administrator",
@@ -381,7 +387,7 @@ Sample Rows (Up to 2):
   },
   {
     "id": "cf82cbd4-ad35-49ba-9131-ef490d1d2e54",
-    "email": "pmo@rohamaa.org",
+    "email": "pmo@erprbdcye.org",
     "email_verified": false,
     "password_hash": "password123",
     "name": "مدير البرامج",

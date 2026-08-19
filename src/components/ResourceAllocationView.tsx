@@ -32,6 +32,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Project, User as UserType } from '../types';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface Allocation {
   id: string;
@@ -663,6 +664,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
   };
 
   return (
+    <ModuleShell titleAr="نظام تخطيط الموارد البشرية" titleEn="Personnel Resource Allocation" domainCode="NEB-09" icon={Calendar} accent="blue" lang={lang} onRefresh={onRefresh}>
     <div className="space-y-6 font-sans text-slate-800 dark:text-zinc-100 animate-fadeIn">
       
       {/* 1. Header with custom brand standard */}
@@ -1898,6 +1900,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
       )}
 
     </div>
+    </ModuleShell>
   );
 }
 

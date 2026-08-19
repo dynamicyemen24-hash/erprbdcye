@@ -33,26 +33,31 @@ export default defineConfig(() => {
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes('node_modules')) {
-              if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/') || id.includes('/node_modules/scheduler/')) {
+            const normalizedId = id.replace(/\\/g, '/');
+            if (normalizedId.includes('/node_modules/')) {
+              if (
+                normalizedId.includes('/node_modules/react/') ||
+                normalizedId.includes('/node_modules/react-dom/') ||
+                normalizedId.includes('/node_modules/scheduler/')
+              ) {
                 return 'vendor-react';
               }
-              if (id.includes('recharts') || id.includes('d3')) {
+              if (normalizedId.includes('recharts') || normalizedId.includes('/d3')) {
                 return 'vendor-charts';
               }
-              if (id.includes('leaflet') || id.includes('react-google-maps')) {
+              if (normalizedId.includes('leaflet') || normalizedId.includes('react-google-maps')) {
                 return 'vendor-maps';
               }
-              if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('xlsx')) {
+              if (normalizedId.includes('jspdf') || normalizedId.includes('html2canvas') || normalizedId.includes('xlsx')) {
                 return 'vendor-pdf-excel';
               }
-              if (id.includes('motion') || id.includes('framer-motion')) {
+              if (normalizedId.includes('motion') || normalizedId.includes('framer-motion')) {
                 return 'vendor-animation';
               }
-              if (id.includes('lucide-react')) {
+              if (normalizedId.includes('lucide-react')) {
                 return 'vendor-icons';
               }
-              if (id.includes('firebase')) {
+              if (normalizedId.includes('firebase')) {
                 return 'vendor-firebase';
               }
               return 'vendor-core';
@@ -62,7 +67,7 @@ export default defineConfig(() => {
       }
     },
     server: {
-      port: 3000,
+      port: 3001,
       host: '0.0.0.0',
       strictPort: true,
       hmr: false,

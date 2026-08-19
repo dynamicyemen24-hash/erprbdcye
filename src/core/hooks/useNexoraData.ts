@@ -190,13 +190,20 @@ export function useNexoraData(lang: 'ar' | 'en') {
     const fetchEndpoint = async (ep: EndpointConfig) => {
       try {
         const token = localStorage.getItem('rbd_token');
+        const envMode = localStorage.getItem('nexora_environment_mode') || 'production';
         const headers: Record<string, string> = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
+        headers['x-environment-mode'] = envMode;
         
         const res = await fetch(ep.url, { headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-        fetchedResults[ep.key] = json;
+        // Normalize paginated responses from /api/tables/* endpoints
+        if (json && typeof json === 'object' && Array.isArray(json.data) && json.pagination) {
+          fetchedResults[ep.key] = json.data;
+        } else {
+          fetchedResults[ep.key] = json;
+        }
         modulesWarmed[ep.module] = true;
       } catch (err) {
         console.warn(`[GlobalPrefetch] Pre-fetch missed for ${ep.key} (${ep.url}):`, err);
@@ -224,7 +231,7 @@ export function useNexoraData(lang: 'ar' | 'en') {
           performance.measure('critical-data-load', 'critical-data-start', 'critical-data-end');
           const measure = performance.getEntriesByName('critical-data-load')[0];
           console.log(`[StartupPerf] Critical Data loaded in ${Math.round(measure.duration)}ms`);
-        } catch (e) {}
+        } catch (e) { console.error('[NexoraOS] useNexoraData: Failed to measure critical data load performance', e); }
       }
 
       // Intermediate state update so Dashboard widgets render instantly
@@ -324,12 +331,19 @@ export function useNexoraData(lang: 'ar' | 'en') {
       targetEndpoints.map(async (ep) => {
         try {
           const token = localStorage.getItem('rbd_token');
+          const envMode = localStorage.getItem('nexora_environment_mode') || 'production';
           const headers: Record<string, string> = {};
           if (token) headers['Authorization'] = `Bearer ${token}`;
+          headers['x-environment-mode'] = envMode;
           
           const res = await fetch(ep.url, { headers });
           if (res.ok) {
-            updates[ep.key] = await res.json();
+            const json = await res.json();
+            if (json && typeof json === 'object' && Array.isArray(json.data) && json.pagination) {
+              updates[ep.key] = json.data;
+            } else {
+              updates[ep.key] = json;
+            }
           }
         } catch (e) {
           console.warn(`[GlobalPrefetch] Module fetch failed for ${ep.key}:`, e);

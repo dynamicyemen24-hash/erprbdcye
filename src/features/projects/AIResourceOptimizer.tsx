@@ -4,6 +4,7 @@ import { Calendar, Users, Loader2, Zap } from 'lucide-react';
 export default function AIResourceOptimizer({ lang }: { lang: 'ar' | 'en' }) {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const getSuggestions = async () => {
     setLoading(true);
@@ -16,7 +17,7 @@ export default function AIResourceOptimizer({ lang }: { lang: 'ar' | 'en' }) {
       const data = await response.json();
       setSuggestions(data.suggestions);
     } catch (err) {
-      console.error('Optimization failed', err);
+      setErrorMessage(err instanceof Error ? err.message : 'Resource optimization failed');
     } finally {
       setLoading(false);
     }
@@ -41,6 +42,22 @@ export default function AIResourceOptimizer({ lang }: { lang: 'ar' | 'en' }) {
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
         {lang === 'ar' ? 'توليد اقتراحات الجدولة' : 'Generate Scheduling Suggestions'}
       </button>
+
+      {loading && suggestions.length === 0 && (
+        <div className="mt-6 flex flex-col items-center justify-center py-8 gap-3">
+          <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+          <p className="text-xs text-slate-500 dark:text-zinc-400">
+            {lang === 'ar' ? 'جارٍ توليد اقتراحات الجدولة...' : 'Generating scheduling suggestions...'}
+          </p>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-lg flex items-center justify-between">
+          <span className="text-xs text-red-700 dark:text-red-300">{errorMessage}</span>
+          <button onClick={() => setErrorMessage(null)} className="text-red-500 hover:text-red-700 text-xs font-bold">✕</button>
+        </div>
+      )}
 
       <div className="mt-6 space-y-3">
         {suggestions.map((s, i) => (

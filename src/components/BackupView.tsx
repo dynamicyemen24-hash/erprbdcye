@@ -26,6 +26,7 @@ import {
   Info
 } from 'lucide-react';
 import { User as UserType } from '../types';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface BackupViewProps {
   lang: 'ar' | 'en';
@@ -346,6 +347,7 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
   const isExporting = exportProgress.phase !== 'idle' && exportProgress.phase !== 'done' && exportProgress.phase !== 'error';
 
   return (
+    <ModuleShell titleAr="نظام النسخ الاحتياطي" titleEn="Cloud Backup OS" domainCode="NEB-12" icon={Database} accent="blue" lang={lang} onRefresh={onRefresh}>
     <div className="space-y-6 animate-fade-in" id="backup-suite-view" dir={isRtl ? 'rtl' : 'ltr'}>
 
       {/* ── Header ─────────────────────────────────────────── */}
@@ -802,5 +804,6 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
         </div>
       </div>
     </div>
+    </ModuleShell>
   );
 }

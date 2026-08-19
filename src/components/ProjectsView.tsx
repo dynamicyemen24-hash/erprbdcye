@@ -28,8 +28,11 @@ import { FieldSwipeNavigationBanner } from './helpers/FieldSwipeNavigationBanner
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import VisualProjectTimeline from './VisualProjectTimeline';
 import ProjectGanttView from './ProjectGanttView';
+import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
+import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface ProjectsViewProps {
   projects: Project[];
@@ -96,6 +99,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
     }
   }, [selectedProject]);
   const [formError, setFormError] = useState<string | null>(null);
+  const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
 
   // Form fields
@@ -207,13 +211,21 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
 
       if (!response.ok) {
         const errData = await response.json();
+        if (response.status === 403 && errData.violations) {
+          throw new PolicyViolationError(errData);
+        }
         throw new Error(errData.error || 'Failed to save project.');
       }
 
       onRefresh();
       setIsModalOpen(false);
     } catch (err: any) {
-      setFormError(err.message);
+      if (err instanceof PolicyViolationError) {
+        setPolicyViolations(err.violations);
+        setFormError(err.primaryMessage);
+      } else {
+        setFormError(err.message);
+      }
     } finally {
       setFormSubmitting(false);
     }
@@ -319,7 +331,24 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <ModuleShell
+      titleAr="المشاريع الميدانية"
+      titleEn="Field Projects OS"
+      descAr="إدارة دورة حياة المشاريع، نسب التنفيذ الفعلي والمالي"
+      descEn="Field projects lifecycle, progress charts, tasks allocation, and active status"
+      domainCode="NEB-04"
+      icon={Layers}
+      accent="indigo"
+      lang={lang}
+      onRefresh={onRefresh}
+      isLoading={loading}
+      recordCount={projects.length}
+      breadcrumbs={[
+        { label: lang === 'ar' ? 'الرئيسية' : 'Home', onClick: () => {} },
+        { label: lang === 'ar' ? 'المشاريع' : 'Projects' }
+      ]}
+    >
+    <div className="space-y-6">
       {/* Enterprise Operational ToolStrip */}
       <EnterpriseToolStrip
         lang={lang}
@@ -829,6 +858,14 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                 </div>
               )}
 
+              {policyViolations && policyViolations.length > 0 && (
+                <PolicyViolationAlert
+                  violations={policyViolations}
+                  lang={lang}
+                  onDismiss={() => setPolicyViolations(null)}
+                />
+              )}
+
               {/* Linking to Program */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'البرنامج التنموي التابع له' : 'Parent Developmental Program'}</label>
@@ -1040,5 +1077,6 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
         }}
       />
     </div>
+    </ModuleShell>
   );
 }

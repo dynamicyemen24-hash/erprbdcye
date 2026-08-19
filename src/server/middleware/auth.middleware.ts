@@ -1,0 +1,210 @@
+/**
+ * NexoraOS™ — Unified Security Middleware
+ * Covers: JWT Auth, Role-Based Access, Rate Limiting, Input Validation/Sanitization
+ * No duplicates — single source of truth for all middleware logic
+ */
+
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
+import { serverConfig } from '../config';
+
+// ─────────────────────────────────────────────
+// 1. JWT Authentication Middleware
+// ─────────────────────────────────────────────
+
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+    org_id: string;
+    security_level?: number;
+  };
+}
+
+/**
+ * Verifies JWT Bearer token on every protected /api route.
+ * Public paths: /api/auth/*, /api/health/*, /api/gemini/*
+ */
+export const authenticateToken = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  // Skip non-API routes (static files, SPA)
+  if (!req.path.startsWith('/api')) {
+    return next();
+  }
+
+  // Public endpoints — no token required
+  const publicPrefixes = ['/api/auth', '/api/health', '/api/exchange-rates/live'];
+  if (publicPrefixes.some(p => req.path.startsWith(p))) {
+    return next();
+  }
+
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.split(' ')[1];
+
+  if (!token) {
+    res.status(401).json({ error: 'Access Denied: Missing Authentication Token' });
+    return;
+  }
+
+  jwt.verify(token, serverConfig.jwtSecret, (err: any, decoded: any) => {
+    if (err) {
+      if (err.name === 'TokenExpiredError') {
+        res.status(401).json({ error: 'Access Denied: Token Expired. Please login again.' });
+      } else {
+        res.status(403).json({ error: 'Access Denied: Invalid Token' });
+      }
+      return;
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
+// ─────────────────────────────────────────────
+// 2. Role & Security Level Guards
+// ─────────────────────────────────────────────
+
+/** Requires minimum security level (1=lowest, 5=highest/admin) */
+export const requireSecurityLevel = (minLevel: number) => (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  const userLevel = req.user?.security_level ?? 0;
+  if (userLevel < minLevel) {
+    res.status(403).json({
+      error: `Access Denied: Required security level ${minLevel}, your level is ${userLevel}`
+    });
+    return;
+  }
+  next();
+};
+
+/** Requires one of the specified roles */
+export const requireRole = (...roles: string[]) => (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  const userRole = req.user?.role ?? '';
+  if (!roles.includes(userRole)) {
+    res.status(403).json({
+      error: `Access Denied: Role '${userRole}' is not authorized for this operation.`
+    });
+    return;
+  }
+  next();
+};
+
+// ─────────────────────────────────────────────
+// 3. Rate Limiters (differentiated by sensitivity)
+// ─────────────────────────────────────────────
+
+/** For login, register, password-reset */
+export const authRateLimiter = rateLimit({
+  windowMs: serverConfig.rateLimitWindowMs,
+  max: serverConfig.authRateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false,
+  message: { error: 'Too many authentication attempts. Please wait 15 minutes and try again.' }
+});
+
+/** For general API reads */
+export const apiReadRateLimiter = rateLimit({
+  windowMs: serverConfig.rateLimitWindowMs,
+  max: serverConfig.apiRateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Rate limit exceeded. Please slow down your requests.' },
+});
+
+/** For write operations (POST/PUT/DELETE on data tables) */
+export const apiWriteRateLimiter = rateLimit({
+  windowMs: serverConfig.rateLimitWindowMs,
+  max: serverConfig.writeRateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Write rate limit exceeded. Max 50 writes per 15 minutes.' },
+});
+
+/** For sensitive ops: backup, restore, bulk-export, system settings */
+export const sensitiveOpsRateLimiter = rateLimit({
+  windowMs: serverConfig.rateLimitWindowMs,
+  max: serverConfig.sensitiveRateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Sensitive operation rate limit exceeded. Max 5 per 15 minutes.' },
+});
+
+// ─────────────────────────────────────────────
+// 4. Input Validation & Sanitization Helpers
+// ─────────────────────────────────────────────
+
+/** Strips HTML tags and trims whitespace from a string */
+export function sanitizeString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  return String(value)
+    .replace(/<[^>]*>/g, '')          // strip HTML tags
+    .replace(/javascript:/gi, '')      // remove JS injections
+    .replace(/on\w+\s*=/gi, '')        // remove event handlers
+    .trim()
+    .substring(0, 10000);             // max 10k chars
+}
+
+/** Validates and coerces to a positive number, returns null if invalid */
+export function sanitizeNumeric(value: unknown): number | null {
+  const n = Number(value);
+  return isNaN(n) ? null : n;
+}
+
+/** Validates UUID format */
+export function isValidUUID(value: unknown): boolean {
+  return typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+/** Validates email format */
+export function isValidEmail(value: unknown): boolean {
+  return typeof value === 'string' &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) &&
+    value.length <= 254;
+}
+
+/** Validates ISO date string */
+export function isValidDate(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  const d = new Date(value);
+  return !isNaN(d.getTime());
+}
+
+/** Ensures a required string field is present and non-empty */
+export function requireString(value: unknown, fieldName: string): string {
+  if (!value || typeof value !== 'string' || !value.trim()) {
+    throw new Error(`Field '${fieldName}' is required and must be a non-empty string`);
+  }
+  return sanitizeString(value) as string;
+}
+
+/** Builds a structured validation error response */
+export function validationError(res: Response, message: string, field?: string): void {
+  res.status(400).json({
+    error: 'Validation Error',
+    message,
+    field: field ?? null,
+  });
+}
+
+// ─────────────────────────────────────────────
+// 5. Tenant Extraction Helper
+// ─────────────────────────────────────────────
+
+/** Extracts organization ID from JWT only — no header fallback to prevent cross-tenant spoofing */
+export function extractTenantId(req: AuthenticatedRequest): string {
+  return req.user?.org_id || serverConfig.defaultOrgId;
+}

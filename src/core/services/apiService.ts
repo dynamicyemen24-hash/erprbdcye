@@ -21,12 +21,19 @@ export class EnterpriseApiService {
         }
       }
       token = localStorage.getItem('rbd_token') || '';
-    } catch (e) {}
+    } catch (e) { console.error('[NexoraOS] EnterpriseApiService: Failed to read auth headers from localStorage', e); }
+
+    let envMode = 'production';
+    try {
+      const savedMode = localStorage.getItem('nexora_environment_mode');
+      if (savedMode === 'training' || savedMode === 'production') envMode = savedMode;
+    } catch (e) { /* ignore */ }
 
     const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'x-organization-id': orgId,
+      'x-environment-mode': envMode,
     };
 
     if (token) {

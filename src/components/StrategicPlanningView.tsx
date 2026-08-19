@@ -5,6 +5,7 @@ import {
   Search, ArrowUpRight, ChevronRight, BarChart3, Layers, Filter, FileText, 
   Check, X, Edit3, PieChart, Lock, Eye, Award, User
 } from 'lucide-react';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface StrategicPlanningViewProps {
   lang: 'ar' | 'en';
@@ -226,6 +227,14 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
   };
 
   return (
+    <ModuleShell
+      titleAr="التخطيط الاستراتيجي"
+      titleEn="Strategic Planning"
+      domainCode="NEB-01"
+      icon={Target}
+      lang={lang}
+      accent="emerald"
+    >
     <div className="space-y-6 pb-12 print:p-0">
       {/* Top Header Banner */}
       <div className="p-6 bg-gradient-to-r from-emerald-900 via-zinc-900 to-slate-900 rounded-3xl text-white shadow-2xl relative overflow-hidden border border-emerald-500/20">
@@ -1198,5 +1207,6 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         </div>
       )}
     </div>
+    </ModuleShell>
   );
 };

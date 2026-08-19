@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Coins, 
   Search, 
@@ -65,6 +65,7 @@ import FinanceOperationsControlBar from '../features/finance/FinanceOperationsCo
 import ReverseEntryModal from '../features/finance/ReverseEntryModal';
 import DataExchangeHub from './DataExchangeHub';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface FinanceViewProps {
   currencies: Currency[];
@@ -99,7 +100,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
   const [aiError, setAiError] = useState('');
   const [aiImagePreview, setAiImagePreview] = useState<string | null>(null);
 
-  const fetchFinanceData = async () => {
+  const fetchFinanceData = useCallback(async () => {
     setLoading(true);
     try {
       const [accRes, txRes, linesRes, projRes, orgRes, actRes] = await Promise.all([
@@ -140,7 +141,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchFinanceData();
@@ -150,7 +151,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
     if (drilldownStatus) {
       setActiveSubTab('budget_variance');
     }
-  }, []);
+  }, [fetchFinanceData]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -210,7 +211,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       let printWindow: any = null;
       try {
         printWindow = window.open('', '_blank');
-      } catch (e) {}
+      } catch (e) { console.error('[Finance] Failed to open print window:', e); }
 
       let writtenHTML = '';
       const mockDoc = {
@@ -359,16 +360,31 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
     }
   };
 
-  const filteredAccounts = accounts.filter((acc) => {
+  const filteredAccounts = useMemo(() => accounts.filter((acc) => {
     const term = coaSearch.toLowerCase();
     const codeMatch = acc.account_code.includes(term);
     const nameMatch = (acc.name_ar && acc.name_ar.includes(term)) || 
                       (acc.name_en && acc.name_en.toLowerCase().includes(term));
     const typeMatch = selectedType === 'all' || acc.account_type === selectedType;
     return (codeMatch || nameMatch) && typeMatch;
-  });
+  }), [accounts, coaSearch, selectedType]);
 
   return (
+    <ModuleShell
+      titleAr="نظام المالية والحوكمة"
+      titleEn="Finance & Compliance OS"
+      descAr="إدارة القيود اليومية والحسابات والموازنات العمومية والتقارير المالية"
+      descEn="Double-entry general ledger, budget lines audit, and financial statements"
+      domainCode="NEB-10"
+      icon={Coins}
+      accent="emerald"
+      lang={lang}
+      onRefresh={onRefresh}
+      breadcrumbs={[
+        { label: lang === 'ar' ? 'الرئيسية' : 'Home', onClick: () => {} },
+        { label: lang === 'ar' ? 'المالية' : 'Finance' }
+      ]}
+    >
     <div className="space-y-6">
       
       {/* REVERSE JOURNAL ENTRY MODAL */}
@@ -376,8 +392,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         isOpen={showReverseModal}
         onClose={() => setShowReverseModal(false)}
         lang={lang}
-        onExecuteReverse={(refNum, reason) => {
-          console.log(`Executed reverse entry for ${refNum}: ${reason}`);
+        onExecuteReverse={(_refNum, _reason) => {
           fetchFinanceData();
         }}
       />
@@ -912,5 +927,6 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         <ConsolidatedStatementsTab lang={lang} />
       )}
     </div>
+    </ModuleShell>
   );
 }

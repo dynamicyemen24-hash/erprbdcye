@@ -8,7 +8,7 @@ export async function fireCelebrationConfetti() {
       origin: { y: 0.6 },
       colors: ['#059669', '#d97706', '#10b981', '#f59e0b']
     });
-  } catch (e) {}
+  } catch (e) { console.error('[Export] Failed to trigger celebration confetti:', e); }
 }
 
 export async function exportToExcel(data: any[], fileName: string, sheetName: string = 'Sheet1') {

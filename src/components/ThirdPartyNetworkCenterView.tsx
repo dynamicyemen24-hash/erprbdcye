@@ -29,6 +29,7 @@ import { useTenantContext } from '../core/TenantContext';
 import { ThirdPartyClaim, ThirdPartySettlement, DigitalEntitlement } from '../types/multiTenantCore';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { printHTML } from '../lib/printUtils';
+import { ModuleShell } from './enterprise/ModuleShell';
 
 interface ThirdPartyNetworkCenterViewProps {
   lang: 'ar' | 'en';
@@ -198,7 +199,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
     setClaims(updated);
     try {
       localStorage.setItem('nexora_merchant_claims', JSON.stringify(updated));
-    } catch (err) {}
+    } catch (err) { console.error('[ThirdParty] Failed to save merchant claims to localStorage:', err); }
 
     enterpriseBus.notifyStateSync('NEB-14_PROCUREMENT', 'THIRD_PARTY_CLAIM_SUBMITTED', newClaim);
     enterpriseBus.notifyToast({
@@ -235,7 +236,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
     try {
       localStorage.setItem('nexora_merchant_claims', JSON.stringify(updatedClaims));
       localStorage.setItem('nexora_merchant_settlements', JSON.stringify(updatedSettlements));
-    } catch (err) {}
+    } catch (err) { console.error('[ThirdParty] Failed to save settlements to localStorage:', err); }
 
     enterpriseBus.notifyStateSync('NEB-10_FINANCE', 'THIRD_PARTY_CLAIM_SETTLED', newSettlement);
     enterpriseBus.notifyToast({
@@ -316,6 +317,14 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
   };
 
   return (
+    <ModuleShell
+      titleAr="مركز أطراف الثالث"
+      titleEn="Third-Party Network"
+      domainCode="NEB-14"
+      icon={ShieldCheck}
+      lang={lang}
+      accent="amber"
+    >
     <div className="p-4 md:p-6 bg-slate-950 text-white min-h-screen">
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-slate-900/90 border border-emerald-500/30 p-4 rounded-xl shadow-lg">
@@ -725,5 +734,6 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
         </div>
       )}
     </div>
+    </ModuleShell>
   );
 }

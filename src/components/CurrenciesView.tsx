@@ -11,6 +11,9 @@ import {
   Trash2
 } from 'lucide-react';
 import { Currency } from '../types';
+import { ModuleShell } from './enterprise/ModuleShell';
+import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
+import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
 
 interface CurrenciesViewProps {
   currencies: Currency[];
@@ -24,6 +27,7 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
 
   // Form states
@@ -86,13 +90,21 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
 
       if (!response.ok) {
         const errData = await response.json();
+        if (response.status === 403 && errData.violations) {
+          throw new PolicyViolationError(errData);
+        }
         throw new Error(errData.error || 'Failed to save currency.');
       }
 
       onRefresh();
       setIsModalOpen(false);
     } catch (err: any) {
-      setFormError(err.message);
+      if (err instanceof PolicyViolationError) {
+        setPolicyViolations(err.violations);
+        setFormError(err.primaryMessage);
+      } else {
+        setFormError(err.message);
+      }
     } finally {
       setFormSubmitting(false);
     }
@@ -119,6 +131,7 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
   };
 
   return (
+    <ModuleShell titleAr="نظام العملات والصرف" titleEn="Foreign Exchange OS" domainCode="NEB-10" icon={Coins} accent="emerald" lang={lang} onRefresh={onRefresh}>
     <div className="space-y-6 animate-fade-in">
       {/* Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
@@ -293,6 +306,14 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
                 </div>
               )}
 
+              {policyViolations && policyViolations.length > 0 && (
+                <PolicyViolationAlert
+                  violations={policyViolations}
+                  lang={lang}
+                  onDismiss={() => setPolicyViolations(null)}
+                />
+              )}
+
               {/* Code */}
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'كود العملة الدولي (ISO Code)' : 'Currency Code (e.g. USD)'}</label>
@@ -415,5 +436,6 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
         </div>
       )}
     </div>
+    </ModuleShell>
   );
 }

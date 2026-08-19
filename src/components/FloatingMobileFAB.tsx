@@ -227,8 +227,8 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
      try {
        if (voiceNoteRecognitionRef.current) {
          try {
-           voiceNoteRecognitionRef.current.abort();
-         } catch (e) {}
+            voiceNoteRecognitionRef.current.abort();
+          } catch (e) { console.error('[FAB] Failed to abort previous speech recognition:', e); }
        }
  
        const rec = new SpeechRecognition();
@@ -275,8 +275,8 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
    const stopVoiceNoteRecording = () => {
      if (voiceNoteRecognitionRef.current) {
        try {
-         voiceNoteRecognitionRef.current.stop();
-       } catch (e) {}
+          voiceNoteRecognitionRef.current.stop();
+        } catch (e) { console.error('[FAB] Failed to stop voice note recording:', e); }
      }
      setIsRecordingVoiceNote(false);
      if (voiceNoteStatus === 'recording') {
@@ -359,9 +359,9 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
          confetti({
            particleCount: 80,
            spread: 60,
-           origin: { y: 0.8 }
-         });
-       } catch (e) {}
+            origin: { y: 0.8 }
+          });
+        } catch (e) { console.error('[FAB] Failed to trigger confetti:', e); }
  
        window.dispatchEvent(new CustomEvent('nexora-refresh-data'));
  
@@ -578,13 +578,12 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
       rec.lang = isRtl ? 'ar-YE' : 'en-US';
 
       rec.onstart = () => {
-        console.log('Speech recognition active');
+        // Speech recognition started
       };
 
       rec.onresult = (event: any) => {
         const text = event.results[0][0].transcript;
         setTranscript(text);
-        console.log('Speech transcript received:', text);
         
         parseVoiceCommand(text);
       };

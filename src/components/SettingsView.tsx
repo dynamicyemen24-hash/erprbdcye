@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   Building, 
-  Key, 
+  Key,
+  GraduationCap,
+  Shield,
   Save, 
   Info, 
   Check, 
@@ -16,6 +18,7 @@ import {
   ShieldAlert,
   ListFilter,
   Sliders,
+  BarChart3,
   Database,
   CreditCard,
   Wallet,
@@ -42,6 +45,12 @@ import {
 } from 'lucide-react';
 import { Organization, OrganizationSetting, SystemSetting } from '../types';
 import { BiometricSecuritySettingsView, TOTPSecuritySettingsView, TrustedDevicesView } from '../features/administration';
+import EnterpriseDomainPoliciesTab from './settings/EnterpriseDomainPoliciesTab';
+import { ModuleShell } from './enterprise/ModuleShell';
+import { useEnvironmentMode, ENVIRONMENT_MODES } from '../core/context/EnvironmentModeContext';
+import { EnvironmentModeSettingsSection } from './settings/EnvironmentModeSettingsSection';
+import { OperationalPoliciesSettings } from './settings/OperationalPoliciesSettings';
+import { PolicyDashboardView } from './settings/PolicyDashboardView';
 
 interface SettingsViewProps {
   organizations: Organization[];
@@ -60,7 +69,7 @@ export default function SettingsView({
   onRefresh, 
   lang 
 }: SettingsViewProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'profile' | 'subscription' | 'system' | 'orgKeys' | 'masterData' | 'biometric' | 'totp' | 'devices' | 'integrations'>('profile');
+  const [activeSubTab, setActiveSubTab] = useState<'profile' | 'subscription' | 'domainPolicies' | 'system' | 'orgKeys' | 'masterData' | 'biometric' | 'totp' | 'devices' | 'integrations' | 'environment' | 'policies'>('profile');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -141,6 +150,7 @@ export default function SettingsView({
 
   // Master Data & Branches/Categories States
   const [masterDataTab, setMasterDataTab] = useState<'branches' | 'categories' | 'coding_system' | 'governance'>('branches');
+  const [policyTab, setPolicyTab] = useState<'config' | 'dashboard'>('config');
   const [branches, setBranches] = useState<Array<{
     code: string;
     nameAr: string;
@@ -858,6 +868,7 @@ export default function SettingsView({
   };
 
   return (
+    <ModuleShell titleAr="إعدادات النظام والمنظمة" titleEn="System Configurations OS" domainCode="NEB-12" icon={Settings} accent="slate" lang={lang} onRefresh={onRefresh}>
     <div className="space-y-6 animate-fade-in">
       {/* Title Header */}
       <div className="flex justify-between items-center pb-4 border-b border-slate-200">
@@ -910,6 +921,23 @@ export default function SettingsView({
           <div className="min-w-0">
             <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'نوع الحركة المباشرة' : 'Identity & Licensing'}</h4>
             <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'تعريف المؤسسة، التراخيص والسجل' : 'Official records, certificates & logos'}</p>
+          </div>
+        </button>
+
+        <button 
+          onClick={() => { setActiveSubTab('domainPolicies'); setSuccessMsg(null); setErrorMsg(null); }}
+          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+            activeSubTab === 'domainPolicies' 
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-xs text-slate-800 dark:text-white' 
+              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+          }`}
+        >
+          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'domainPolicies' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+            <ShieldCheck className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'السياسات والمعايير التشغيلية' : 'Operating Policies & Standards'}</h4>
+            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'ضوابط الوحدات الـ 15 ومعايير IPSAS/Sphere' : '15 NEB domains & compliance rules'}</p>
           </div>
         </button>
 
@@ -1045,7 +1073,46 @@ export default function SettingsView({
             <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'الذكاء الاصطناعي، الزكاة، الرسائل والربط المباشر' : 'Copilot model keys, SMS, Zakat & webhooks'}</p>
           </div>
         </button>
+
+        <button
+          onClick={() => { setActiveSubTab('environment'); setSuccessMsg(null); setErrorMsg(null); }}
+          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+            activeSubTab === 'environment'
+              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white'
+              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+          }`}
+        >
+          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'environment' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+            <GraduationCap className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'بيئة العمل' : 'Work Environment'}</h4>
+            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'التبديل بين بيئة التدريب والإنتاج' : 'Switch between Training & Production modes'}</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => { setActiveSubTab('policies'); setSuccessMsg(null); setErrorMsg(null); }}
+          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+            activeSubTab === 'policies'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-xs text-slate-800 dark:text-white'
+              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+          }`}
+        >
+          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'policies' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+            <Shield className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'السياسات التشغيلية' : 'Operational Policies'}</h4>
+            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'قواعد العمل والإشراف والحوكم' : 'Governance, approval tiers & enforcement rules'}</p>
+          </div>
+        </button>
       </div>
+
+      {/* Enterprise Domain Policies & Standards (NEB-01 to NEB-15) */}
+      {activeSubTab === 'domainPolicies' && (
+        <EnterpriseDomainPoliciesTab lang={lang} />
+      )}
 
       {/* Profile Form */}
       {activeSubTab === 'profile' && (
@@ -1707,7 +1774,7 @@ export default function SettingsView({
                     });
                     setSuccessMsg(lang === 'ar' ? 'تم تحويل اشتراك المؤسسة إلى الباقة الأساسية بنجاح' : 'Switched to Starter plan.');
                     onRefresh();
-                  } catch (e) {}
+                  } catch (e) { console.error('[Settings] Failed to switch to Starter plan:', e); }
                 }}
                 className={`w-full py-2 rounded-xl text-xs font-extrabold cursor-pointer transition-all ${selectedPlan === 'starter' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
@@ -1747,7 +1814,7 @@ export default function SettingsView({
                     });
                     setSuccessMsg(lang === 'ar' ? 'تم ترقية الاشتراك للباقة المؤسسية المتقدمة بنجاح' : 'Upgraded to Enterprise Pro.');
                     onRefresh();
-                  } catch (e) {}
+                  } catch (e) { console.error('[Settings] Failed to upgrade to Enterprise Pro plan:', e); }
                 }}
                 className={`w-full py-2 rounded-xl text-xs font-extrabold cursor-pointer transition-all ${selectedPlan === 'enterprise_pro' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
@@ -1783,7 +1850,7 @@ export default function SettingsView({
                     });
                     setSuccessMsg(lang === 'ar' ? 'تم اختيار باقة المنظمات الإنسانية بنجاح' : 'Switched to Humanitarian tier.');
                     onRefresh();
-                  } catch (e) {}
+                  } catch (e) { console.error('[Settings] Failed to switch to Humanitarian plan:', e); }
                 }}
                 className={`w-full py-2 rounded-xl text-xs font-extrabold cursor-pointer transition-all ${selectedPlan === 'humanitarian' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
@@ -1819,7 +1886,7 @@ export default function SettingsView({
                     });
                     setSuccessMsg(lang === 'ar' ? 'تم اختيار الباقة السيادية الشاملة بنجاح' : 'Switched to Sovereign Core tier.');
                     onRefresh();
-                  } catch (e) {}
+                  } catch (e) { console.error('[Settings] Failed to switch to Sovereign plan:', e); }
                 }}
                 className={`w-full py-2 rounded-xl text-xs font-extrabold cursor-pointer transition-all ${selectedPlan === 'sovereign' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
@@ -2713,6 +2780,74 @@ export default function SettingsView({
         </div>
       )}
 
+      {/* Environment Mode Configuration Tab */}
+      {activeSubTab === 'environment' && (
+        <EnvironmentModeSettingsSection lang={lang} />
+      )}
+
+      {/* Operational Policies & Governance Tab */}
+      {activeSubTab === 'policies' && (
+        <div className="space-y-5">
+          {/* Internal Tab Navigation */}
+          <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg gap-2 max-w-sm overflow-x-auto scrollbar-none">
+            <button
+              onClick={() => setPolicyTab('config')}
+              className={`py-1.5 px-3 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                policyTab === 'config'
+                  ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-400 shadow-sm'
+                  : 'text-zinc-500 hover:text-slate-800 dark:hover:text-zinc-300'
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>{lang === 'ar' ? 'الإعدادات' : 'Configuration'}</span>
+            </button>
+            <button
+              onClick={() => setPolicyTab('dashboard')}
+              className={`py-1.5 px-3 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                policyTab === 'dashboard'
+                  ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-400 shadow-sm'
+                  : 'text-zinc-500 hover:text-slate-800 dark:hover:text-zinc-300'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>{lang === 'ar' ? 'لوحة المراقبة' : 'Dashboard'}</span>
+            </button>
+          </div>
+
+          {policyTab === 'config' && (
+            <OperationalPoliciesSettings
+              lang={lang}
+              sysSettings={sysSettings.reduce((acc: Record<string, any>, s: any) => { acc[s.setting_key || s.key] = s.setting_value || s.value; return acc; }, {})}
+              orgSettings={orgSettings.reduce((acc: Record<string, any>, s: any) => { acc[s.setting_key || s.key] = s.setting_value || s.value; return acc; }, {})}
+              onSaveSettings={async (edited) => {
+                for (const [key, value] of Object.entries(edited)) {
+                  const isOrgSetting = key.startsWith('org:');
+                  const actualKey = isOrgSetting ? key.replace('org:', '') : key;
+                  try {
+                    await fetch(`/api/tables/${isOrgSetting ? 'organization_settings' : 'system_settings'}`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        setting_key: actualKey,
+                        setting_value: String(value),
+                        description: `Updated via Operational Policies UI`,
+                      }),
+                    });
+                  } catch (err) {
+                    console.error(`Failed to save policy ${key}:`, err);
+                  }
+                }
+                setSuccessMsg(lang === 'ar' ? 'تم حفظ السياسات التشغيلية بنجاح' : 'Operational policies saved successfully');
+              }}
+            />
+          )}
+
+          {policyTab === 'dashboard' && (
+            <PolicyDashboardView lang={lang} />
+          )}
+        </div>
+      )}
+
       {/* Master Data & Corporate Governance Tab */}
       {activeSubTab === 'masterData' && (
         <div className="space-y-6">
@@ -3521,6 +3656,7 @@ export default function SettingsView({
         </div>
       )}
     </div>
+    </ModuleShell>
   );
 }
 

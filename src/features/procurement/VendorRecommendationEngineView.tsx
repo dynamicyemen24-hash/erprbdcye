@@ -38,6 +38,15 @@ export default function VendorRecommendationEngineView({ lang }: { lang: 'ar' | 
         {lang === 'ar' ? 'الحصول على توصيات' : 'Get Recommendations'}
       </button>
 
+      {loading && recommendations.length === 0 && (
+        <div className="mt-6 flex flex-col items-center justify-center py-8 gap-3">
+          <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
+          <p className="text-xs text-slate-500 dark:text-zinc-400">
+            {lang === 'ar' ? 'جارٍ تحليل الموردين...' : 'Analyzing vendors...'}
+          </p>
+        </div>
+      )}
+
       <div className="mt-6 space-y-3">
         {recommendations.map((r, i) => (
           <div key={i} className="p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl">

@@ -78,143 +78,6 @@ interface GoodsReceipt {
   status: 'ACCEPTED' | 'REJECTED';
 }
 
-const DEFAULT_REQUISITIONS: Requisition[] = [
-  {
-    id: 'req-1',
-    pr_number: 'PR-2026-001',
-    title: 'تأمين سلال غذائية طارئة لـ 500 أسرة نازحة في مأرب',
-    project_id: '', // Will map to first project dynamically
-    activity_id: null,
-    category: 'مواد غذائية وإغاثية',
-    requested_by: 'أ. محمد اليماني',
-    department: 'قسم المساعدات الميدانية',
-    estimated_cost: 12500000,
-    currency_code: 'YER',
-    priority: 'high',
-    notes: 'بصورة عاجلة للنازحين الجدد في مخيم الجفينة بموجب المسح الميداني الأخير.',
-    status: 'APPROVED',
-    created_at: '2026-08-01',
-    items: [
-      { name: 'سلة غذائية متكاملة (دقيق 25كجم، أرز 10كجم، زيت 5لتر، سكر 5كجم)', qty: 500, unit_price: 25000, total: 12500000 }
-    ]
-  },
-  {
-    id: 'req-2',
-    pr_number: 'PR-2026-002',
-    title: 'شراء مستلزمات طبية وأدوية طوارئ لمركز رعاية الأمومة بشبوة',
-    project_id: '',
-    activity_id: null,
-    category: 'أدوية ومستلزمات طبية',
-    requested_by: 'د. هند الصنعاني',
-    department: 'القطاع الطبي والصحي',
-    estimated_cost: 8400000,
-    currency_code: 'YER',
-    priority: 'high',
-    notes: 'أدوية طوارئ ومحاليل وريدية لوحدة الرعاية العاجلة.',
-    status: 'APPROVED',
-    created_at: '2026-08-03',
-    items: [
-      { name: 'محاليل وريدية ومستلزمات قسطرة', qty: 200, unit_price: 12000, total: 2400000 },
-      { name: 'أدوية مضادات حيوية وحالات حرجة للولادة', qty: 120, unit_price: 50000, total: 6000000 }
-    ]
-  },
-  {
-    id: 'req-3',
-    pr_number: 'PR-2026-003',
-    title: 'تجهيز معمل حاسوب لمركز نكسورا للتدريب والتمكين المهني بالحديدة',
-    project_id: '',
-    activity_id: null,
-    category: 'أجهزة مكتبية وتقنية',
-    requested_by: 'م. خالد القدسي',
-    department: 'إدارة التعليم والتنمية المستدامة',
-    estimated_cost: 6400000,
-    currency_code: 'YER',
-    priority: 'medium',
-    notes: 'لتفعيل دبلوم السكرتارية ومهارات الحاسوب لـ 80 متدرباً من فئة الأيتام.',
-    status: 'PENDING',
-    created_at: '2026-08-05',
-    items: [
-      { name: 'أجهزة حاسوب مكتبية Core i5 مواصفات ممتازة', qty: 16, unit_price: 400000, total: 6400000 }
-    ]
-  }
-];
-
-const DEFAULT_QUOTATIONS: Quotation[] = [
-  {
-    id: 'q-1',
-    pr_id: 'req-1',
-    supplier_name: 'مؤسسة سبأ للتجارة والتوكيلات العامة',
-    quote_ref: 'SAB-QTY-2026-14',
-    delivery_days: 4,
-    technical_score: 95,
-    unit_prices: { '0': 24800 },
-    total_price: 12400000,
-    notes: 'مطابقة لكامل الشروط وبأعلى درجات الجودة وبأكياس معبأة ومختومة بشعار الجمعية.',
-    status: 'WINNING',
-    created_at: '2026-08-02'
-  },
-  {
-    id: 'q-2',
-    pr_id: 'req-1',
-    supplier_name: 'مجموعة تهامة للتجارة والخدمات اللوجستية',
-    quote_ref: 'THM-451',
-    delivery_days: 2,
-    technical_score: 90,
-    unit_prices: { '0': 25200 },
-    total_price: 12600000,
-    notes: 'أسرع تسليم ممكن خلال 48 ساعة فقط إلى مستودعات الجمعية بمأرب.',
-    status: 'SUBMITTED',
-    created_at: '2026-08-02'
-  },
-  {
-    id: 'q-3',
-    pr_id: 'req-2',
-    supplier_name: 'مؤسسة طيبة للأدوية والمستلزمات الطبية',
-    quote_ref: 'TAY-MED-99',
-    delivery_days: 7,
-    technical_score: 98,
-    unit_prices: { '0': 11500, '1': 49000 },
-    total_price: 8180000,
-    notes: 'أدوية أصلية مستوردة بضمان بلد المنشأ وتاريخ صلاحية لا يقل عن سنتين.',
-    status: 'SUBMITTED',
-    created_at: '2026-08-04'
-  }
-];
-
-const DEFAULT_POS: PurchaseOrder[] = [
-  {
-    id: 'po-1',
-    po_number: 'PO-2026-001',
-    pr_id: 'req-1',
-    quote_id: 'q-1',
-    supplier_name: 'مؤسسة سبأ للتجارة والتوكيلات العامة',
-    total_amount: 12400000,
-    currency_code: 'YER',
-    delivery_date: '2026-08-10',
-    terms: 'يتم توريد الكمية بالكامل إلى مستودع مأرب المركزي بمطابقة المواصفات وسداد القيمة بموجب قيد ذمم وشيك مصرفي.',
-    status: 'APPROVED',
-    created_at: '2026-08-03',
-    warehouse_id: 'wh-1'
-  }
-];
-
-const DEFAULT_GRNS: GoodsReceipt[] = [
-  {
-    id: 'grn-1',
-    grn_number: 'GRN-2026-001',
-    po_id: 'po-1',
-    received_by: 'أ. عادل الجوفي (أمين المستودع)',
-    received_date: '2026-08-05',
-    items_status: {
-      '0': { ordered: 500, received: 500, accepted: 500, rejected: 0 }
-    },
-    warehouse_name: 'مستودع مأرب الإقليمي المركزي',
-    quality_ok: true,
-    notes: 'تم فحص جودة السلال الغذائية وتاريخ الصلاحية والتغليف وثبت تطابقها للمواصفات الفنية كاملة وتم إدخالها للرصيد.',
-    status: 'ACCEPTED'
-  }
-];
-
 export default function ProcurementTab({ 
   accounts, 
   projects, 
@@ -226,8 +89,9 @@ export default function ProcurementTab({
 }: ProcurementTabProps) {
   const isRtl = lang === 'ar';
   const [activeTab, setActiveTab] = useState<'overview' | 'requisitions' | 'quotes' | 'orders' | 'receiving' | 'settlement'>('overview');
+  const [loading, setLoading] = useState(true);
 
-  // Core P2P States (Synchronized with localStorage)
+  // Core P2P States (Fetched from Neon PostgreSQL via API)
   const [requisitions, setRequisitions] = useState<Requisition[]>([]);
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
@@ -288,44 +152,37 @@ export default function ProcurementTab({
   const [selectedPoForReceipt, setSelectedPoForReceipt] = useState<string | null>(null);
   const [previewPo, setPreviewPo] = useState<PurchaseOrder | null>(null);
 
-  // Load / Seed Data
+  // Fetch data from real API (Neon PostgreSQL)
   useEffect(() => {
-    try {
-      const cachedPRs = localStorage.getItem('neb_procurement_prs');
-      const cachedQuotes = localStorage.getItem('neb_procurement_quotes');
-      const cachedPOs = localStorage.getItem('neb_procurement_pos');
-      const cachedGRNs = localStorage.getItem('neb_procurement_grns');
+    let cancelled = false;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [poRes, rfqRes] = await Promise.all([
+          fetch('/api/tables/purchase_orders'),
+          fetch('/api/tables/rfqs')
+        ]);
 
-      let initialPRs = cachedPRs ? JSON.parse(cachedPRs) : [...DEFAULT_REQUISITIONS];
-      let initialQuotes = cachedQuotes ? JSON.parse(cachedQuotes) : [...DEFAULT_QUOTATIONS];
-      let initialPOs = cachedPOs ? JSON.parse(cachedPOs) : [...DEFAULT_POS];
-      let initialGRNs = cachedGRNs ? JSON.parse(cachedGRNs) : [...DEFAULT_GRNS];
-
-      // Map dynamically to first project in DB if project_id is empty
-      if (projects && projects.length > 0) {
-        initialPRs = initialPRs.map((pr: Requisition) => ({
-          ...pr,
-          project_id: pr.project_id || projects[0].id
-        }));
+        if (!cancelled) {
+          if (poRes.ok) {
+            const poData = await poRes.json();
+            setPurchaseOrders(Array.isArray(poData) ? poData : []);
+          }
+          if (rfqRes.ok) {
+            const rfqData = await rfqRes.json();
+            setQuotations(Array.isArray(rfqData) ? rfqData : []);
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching procurement data:', e);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-
-      setRequisitions(initialPRs);
-      setQuotations(initialQuotes);
-      setPurchaseOrders(initialPOs);
-      setGoodsReceipts(initialGRNs);
-
-      localStorage.setItem('neb_procurement_prs', JSON.stringify(initialPRs));
-      localStorage.setItem('neb_procurement_quotes', JSON.stringify(initialQuotes));
-      localStorage.setItem('neb_procurement_pos', JSON.stringify(initialPOs));
-      localStorage.setItem('neb_procurement_grns', JSON.stringify(initialGRNs));
-    } catch (e) {
-      console.error('Error seeding procurement data:', e);
-    }
+    };
+    fetchData();
+    return () => { cancelled = true; };
   }, [projects]);
 
-  const saveToLocal = (key: string, data: any) => {
-    localStorage.setItem(key, JSON.stringify(data));
-  };
 
   // Requisitions handlers
   const handleAddPrItem = () => {
@@ -390,7 +247,7 @@ export default function ProcurementTab({
 
     const updated = [newPr, ...requisitions];
     setRequisitions(updated);
-    saveToLocal('neb_procurement_prs', updated);
+
 
     // Reset Form
     setPrForm({
@@ -419,7 +276,7 @@ export default function ProcurementTab({
       return pr;
     });
     setRequisitions(updated);
-    saveToLocal('neb_procurement_prs', updated);
+
     setMessage({
       type: 'success',
       text: isRtl ? `تم تحديث حالة طلب الشراء بنجاح إلى ${status === 'APPROVED' ? 'معتمد ومؤهل لجمع العروض' : 'مرفوض'}.` : `Requisition status updated to ${status}.`
@@ -466,7 +323,7 @@ export default function ProcurementTab({
 
     const updated = [...quotations, newQuote];
     setQuotations(updated);
-    saveToLocal('neb_procurement_quotes', updated);
+
 
     // Reset Form
     setQuoteForm({
@@ -499,7 +356,7 @@ export default function ProcurementTab({
     });
 
     setQuotations(updated);
-    saveToLocal('neb_procurement_quotes', updated);
+
 
     setMessage({
       type: 'success',
@@ -535,11 +392,10 @@ export default function ProcurementTab({
     // Update Requisition status to ORDERED
     const updatedPRs = requisitions.map(pr => pr.id === poForm.pr_id ? { ...pr, status: 'ORDERED' as any } : pr);
     setRequisitions(updatedPRs);
-    saveToLocal('neb_procurement_prs', updatedPRs);
 
     const updatedPOs = [newPO, ...purchaseOrders];
     setPurchaseOrders(updatedPOs);
-    saveToLocal('neb_procurement_pos', updatedPOs);
+
 
     // Reset Form
     setPoForm({ pr_id: '', quote_id: '', delivery_date: '', terms: '', warehouse_id: 'wh-1' });
@@ -574,11 +430,10 @@ export default function ProcurementTab({
     // Update PO Status to RECEIVED
     const updatedPOs = purchaseOrders.map(po => po.id === grnForm.po_id ? { ...po, status: 'RECEIVED' as any } : po);
     setPurchaseOrders(updatedPOs);
-    saveToLocal('neb_procurement_pos', updatedPOs);
+
 
     const updatedGRNs = [newGRN, ...goodsReceipts];
     setGoodsReceipts(updatedGRNs);
-    saveToLocal('neb_procurement_grns', updatedGRNs);
 
     // Reset Form
     setGrnForm({
@@ -713,7 +568,7 @@ export default function ProcurementTab({
       // Update PO Status to SETTLED
       const updatedPOs = purchaseOrders.map(po => po.id === settlementForm.po_id ? { ...po, status: 'SETTLED' as any } : po);
       setPurchaseOrders(updatedPOs);
-      saveToLocal('neb_procurement_pos', updatedPOs);
+  
 
       // Refresh finance ledger view
       onRefresh();
@@ -748,7 +603,7 @@ export default function ProcurementTab({
     let printWindow: any = null;
     try {
       printWindow = window.open('', '_blank');
-    } catch (e) {}
+    } catch (e) { console.error('[Procurement] Failed to open print window:', e); }
 
     let writtenHTML = '';
     const mockDoc = {
@@ -964,6 +819,15 @@ export default function ProcurementTab({
         </div>
       )}
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center gap-3 p-12 bg-white border border-slate-200 rounded-2xl">
+          <RefreshCw className="w-5 h-5 text-emerald-600 animate-spin" />
+          <p className="text-xs font-bold text-slate-500">{isRtl ? 'جارٍ تحميل بيانات المشتريات من قاعدة البيانات...' : 'Loading procurement data from database...'}</p>
+        </div>
+      )}
+
+      {!loading && (<>
       {/* TAB 1: OVERVIEW & BI DASHBOARD */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
@@ -2087,6 +1951,8 @@ export default function ProcurementTab({
           </div>
         </div>
       )}
+      </>)}
+
     </div>
   );
 }

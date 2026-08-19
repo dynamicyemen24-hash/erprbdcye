@@ -141,7 +141,7 @@ export default function ProjectGanttView({
       const updated = [...prev, ...newGenerated];
       try {
         localStorage.setItem(STORAGE_KEY_GANTT_PHASES, JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { console.error('[Gantt] Failed to save default phases to localStorage:', e); }
       return updated;
     });
 
@@ -154,7 +154,7 @@ export default function ProjectGanttView({
       const updated = [...prev, ...newGenerated];
       try {
         localStorage.setItem(STORAGE_KEY_GANTT_ALLOCATIONS, JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { console.error('[Gantt] Failed to save default allocations to localStorage:', e); }
       return updated;
     });
 
@@ -584,7 +584,7 @@ export default function ProjectGanttView({
         const newEnd = new Date(newStart.getTime() + 30 * 86400000);
         defaultStart = newStart.toISOString().substring(0, 10);
         defaultEnd = newEnd.toISOString().substring(0, 10);
-      } catch (e) {}
+      } catch (e) { console.error('[Gantt] Failed to compute next phase dates:', e); }
     }
 
     const newPhase: GanttPhase = {

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import pg from 'pg';
+import { serverConfig } from './config';
 
 export interface AuthenticatedUser {
   id: string;
@@ -17,7 +18,7 @@ export interface AuthenticatedRequest extends Request {
   userContext?: AuthenticatedUser;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'nexora_super_secret_key_2026';
+const JWT_SECRET = serverConfig.jwtSecret;
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
 /**
