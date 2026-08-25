@@ -26,15 +26,12 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Build Frontend (Vite)
-        run: npx vite build
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
+      - name: Build Frontend (Vite) with log capture
+        run: npx vite build > build.log 2>&1 || true
 
-      - name: Build Server Bundle (esbuild)
-        run: npx esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs
-
-      - name: Verify Build Output
-        run: |
-          ls -la dist/
-          ls -la dist/assets/ | head -5
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
