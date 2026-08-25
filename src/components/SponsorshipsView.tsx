@@ -19,9 +19,11 @@ import {
   Printer
 } from 'lucide-react';
 import { Program, Currency } from '../types';
-import { printHTML } from '../lib/printUtils';
+import { printHTML, createPrintDocument } from '../lib/printUtils';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { generateNumericCode } from '../lib/idGenerator';
+
 
 interface SponsorshipsViewProps {
   sponsorships: any[];
@@ -174,7 +176,7 @@ export default function SponsorshipsView({
     const amountNum = parseFloat(sponsorship.monthly_amount || '50000') || 50000;
 
     const voucherRecord = {
-      id: `SPONS-PAY-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `SPONS-PAY-2026-${generateNumericCode(1000, 9999)}`,
       sponsorshipId: sponsorship.id,
       beneficiaryId: sponsorship.beneficiary_id,
       beneficiaryName: benName,
@@ -198,28 +200,8 @@ export default function SponsorshipsView({
   };
 
   const handlePrintSponsorship = (sp: any) => {
-    let printWindow: any = null;
-    try {
-      printWindow = window.open('', '_blank');
-    } catch (e) { console.error('[Sponsorships] Failed to open print window:', e); }
-
-    let writtenHTML = '';
-    const mockDoc = {
-      write: (html: string) => {
-        if (printWindow) {
-          printWindow.document.write(html);
-        } else {
-          writtenHTML += html;
-        }
-      },
-      close: () => {
-        if (printWindow) {
-          printWindow.document.close();
-        } else {
-          printHTML(writtenHTML);
-        }
-      }
-    };
+    // Resilient print writer — popup window when allowed, sandbox-safe iframe fallback
+    const printDoc = createPrintDocument();
 
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     const titleText = lang === 'ar' ? 'سند إثبات وتسليم كفالة يتيم' : 'Sponsorship & Delivery Voucher';
@@ -227,7 +209,7 @@ export default function SponsorshipsView({
     const beneficiaryCode = getBeneficiaryCode(sp.beneficiary_id);
     const programName = getProgramName(sp.program_id);
 
-    mockDoc.write(`
+    printDoc.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">
       <head>
@@ -420,7 +402,7 @@ export default function SponsorshipsView({
       </body>
       </html>
     `);
-    mockDoc.close();
+    printDoc.close();
   };
 
   // Filter list

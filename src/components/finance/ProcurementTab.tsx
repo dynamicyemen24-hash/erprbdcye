@@ -6,7 +6,8 @@ import {
   ChevronRight, BadgePercent, TrendingUp, DollarSign, RefreshCw, Warehouse
 } from 'lucide-react';
 import { Account, Project } from './FinanceTypes';
-import { printHTML } from '../../lib/printUtils';
+import { printHTML, createPrintDocument } from '../../lib/printUtils';
+import { generateShortId, generateNumericCode } from '../../lib/idGenerator';
 
 interface ProcurementTabProps {
   accounts: Account[];
@@ -228,7 +229,7 @@ export default function ProcurementTab({
     const totalEstimate = prForm.items.reduce((sum, item) => sum + (item.qty * item.unit_price), 0);
 
     const newPr: Requisition = {
-      id: `req-${Date.now()}`,
+      id: generateShortId('req'),
       pr_number: `PR-2026-${String(requisitions.length + 1).padStart(3, '0')}`,
       title: prForm.title,
       project_id: prForm.project_id,
@@ -308,7 +309,7 @@ export default function ProcurementTab({
     }, 0);
 
     const newQuote: Quotation = {
-      id: `q-${Date.now()}`,
+      id: generateShortId('q'),
       pr_id: quoteForm.pr_id,
       supplier_name: quoteForm.supplier_name,
       quote_ref: quoteForm.quote_ref,
@@ -375,7 +376,7 @@ export default function ProcurementTab({
     if (!selectedPr || !selectedQuote) return;
 
     const newPO: PurchaseOrder = {
-      id: `po-${Date.now()}`,
+      id: generateShortId('po'),
       po_number: `PO-2026-${String(purchaseOrders.length + 1).padStart(3, '0')}`,
       pr_id: poForm.pr_id,
       quote_id: poForm.quote_id,
@@ -415,7 +416,7 @@ export default function ProcurementTab({
     if (!selectedPO) return;
 
     const newGRN: GoodsReceipt = {
-      id: `grn-${Date.now()}`,
+      id: generateShortId('grn'),
       grn_number: `GRN-2026-${String(goodsReceipts.length + 1).padStart(3, '0')}`,
       po_id: grnForm.po_id,
       received_by: grnForm.received_by || 'أمين المستودع المناوب',
@@ -474,7 +475,7 @@ export default function ProcurementTab({
       const poCode = selectedPO.po_number;
       const amount = selectedPO.total_amount;
 
-      const txNumber = `JV-PROC-${Date.now().toString().slice(-4)}`;
+      const txNumber = `JV-PROC-${generateNumericCode(0, 9999)}`;
       const narration = isRtl 
         ? `تسوية فاتورة شراء وسداد المورد "${selectedPO.supplier_name}" مقابل ${selectedPr.title} بموجب أمر شراء ${poCode} وطلب ${prCode}`
         : `Settlement of procurement invoice for supplier "${selectedPO.supplier_name}" against ${selectedPr.title} per PO ${poCode} & PR ${prCode}`;
@@ -600,28 +601,8 @@ export default function ProcurementTab({
     const pr = requisitions.find(p => p.id === po.pr_id);
     if (!pr) return;
 
-    let printWindow: any = null;
-    try {
-      printWindow = window.open('', '_blank');
-    } catch (e) { console.error('[Procurement] Failed to open print window:', e); }
-
-    let writtenHTML = '';
-    const mockDoc = {
-      write: (html: string) => {
-        if (printWindow) {
-          printWindow.document.write(html);
-        } else {
-          writtenHTML += html;
-        }
-      },
-      close: () => {
-        if (printWindow) {
-          printWindow.document.close();
-        } else {
-          printHTML(writtenHTML);
-        }
-      }
-    };
+    // Resilient print writer — popup window when allowed, sandbox-safe iframe fallback
+    const printDoc = createPrintDocument();
 
     const dir = isRtl ? 'rtl' : 'ltr';
     const itemsHTML = pr.items.map((item, idx) => {
@@ -637,7 +618,7 @@ export default function ProcurementTab({
       `;
     }).join('');
 
-    mockDoc.write(`
+    printDoc.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">
       <head>
@@ -738,7 +719,7 @@ export default function ProcurementTab({
       </body>
       </html>
     `);
-    mockDoc.close();
+    printDoc.close();
   };
 
   // Helper Stats Calculation

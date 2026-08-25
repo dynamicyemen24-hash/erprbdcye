@@ -389,11 +389,7 @@ export default function DomainCenterView({ lang, onNavigate }: DomainCenterViewP
   // Tab 3: Field Capabilities GIS & Offline States
   // -------------------------------------------------------------
   const [isOfflineMode, setIsOfflineMode] = useState(false);
-  const [simulatedFieldWorkers, setSimulatedFieldWorkers] = useState([
-    { id: 'W-01', name: isRtl ? 'طه القدسي' : 'Taha Al-Qudsi', location: isRtl ? 'عدن - المنصورة' : 'Aden - Al-Mansoura', lat: 12.7855, lng: 45.0186, battery: '92%', signal: 'Excellent', status: 'Active Dispatch' },
-    { id: 'W-02', name: isRtl ? 'فاطمة الكبسي' : 'Fatima Al-Kibsi', location: isRtl ? 'صنعاء - السبعين' : 'Sana\'a - Sabeen', lat: 15.3694, lng: 44.1910, battery: '78%', signal: 'Good', status: 'Socioeconomic Survey' },
-    { id: 'W-03', name: isRtl ? 'علي المحيا' : 'Ali Al-Mahya', location: isRtl ? 'تعز - القاهرة' : 'Taiz - Al-Qahira', lat: 13.5781, lng: 44.0142, battery: '54%', signal: 'Moderate', status: 'Distribution Verification' },
-  ]);
+  const [fieldWorkers, setFieldWorkers] = useState<any[]>([]);
   const [selectedSurveyChecklist, setSelectedSurveyChecklist] = useState({
     headOfHousehold: '',
     familySize: 1,
@@ -415,46 +411,56 @@ export default function DomainCenterView({ lang, onNavigate }: DomainCenterViewP
   const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   // Simulate Gemini AI stream text generation
-  const handleQueryGemini = () => {
+  const handleQueryGemini = async () => {
     if (!aiPrompt.trim()) return;
     setIsAiGenerating(true);
     setAiOutput('');
 
-    const targetOutput = isRtl 
-      ? `[محرك الاستشراف والذكاء المؤسسي Gemini OS-13™]
---------------------------------------------------
-مسودة تقرير الأثر الاجتماعي والامتثال لمعايير العمل الإنساني الدولي (Sphere / CHS)
+    // Try the real Gemini backend proxy first; fall back to a draft template
+    try {
+      const token = localStorage.getItem('rbd_token');
+      const res = await fetch('/api/gemini/domain-center', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ prompt: aiPrompt })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.text) {
+          setAiOutput(data.text);
+          setIsAiGenerating(false);
+          return;
+        }
+      }
+    } catch { /* backend not configured — show draft */ }
 
-١. مواءمة المعيار الإنساني الأساسي (CHS) - الالتزام الأول والالتزام الرابع:
-أثبتت المسوح الميدانية الحية الجارية استحقاق الأسر المستفيدة بنسبة ٩٧.٨٪. تم تفعيل نظام الشكاوى الميداني بالبصمة الحيوية و GPS، مما أتاح استجابة فورية وحل للنزاعات الميدانية في أقل من ٢٤ ساعة عمل. تم توزيع التدخلات على أساس الاحتياج المطلق والضعف الاجتماعي بعيداً عن أي تحيز.
+    // Honest draft template when backend AI is not configured
+    const draftOutput = isRtl
+      ? `[مسودة — خدمة الذكاء الاصطناعي غير مُعدّة بعد]
+───────────────────────────────────────────
+الطلب المُدخل:
+${aiPrompt}
 
-٢. التوافق مع معايير ومقاييس مياه الشرب (Sphere Handbook):
-- تم توفير حد أدنى ١٥ لتراً من الماء النظيف لكل فرد يومياً للأسر المستفيدة.
-- المسافة القصوى للوصول لخدمة المياه تم تقليصها من ٣.٢ كم إلى أقل من ١٥٠ متراً فقط.
-- جودة المياه المعالجة تم قياسها حيوياً عبر معامل الشراكة الصحية وجاءت متوافقة تماماً مع معايير منظمة الصحة العالمية (WHO).
+⚠️  خدمة Gemini AI غير مُفعّلة في الخادم. لتفعيل التحليل الذكي، أعد تكوين مفتاح Gemini API في ملف config/index.ts.
 
-٣. مخرجات الاستشراف والتحليل التنبؤي للذكاء الاصطناعي:
-يتوقع نظام الذكاء الاستشرافي تقليص معدلات الأمراض المنقولة بالمياه في هذا النطاق بنسبة ٨٤٪ خلال الـ ٦ أشهر القادمة. يوصي النظام بتوسيع محفظة التدخل التنموي (NEB-02) لإدراج المرحلة الثانية لتغطية ٣ قرى مجاورة تعاني من عجز مائي حاد.`
-      : `[Gemini OS-13™ Operational Impact & Analytics Engine]
---------------------------------------------------
-Social Impact Draft Report & Compliance Assessment with International Standards (Sphere / CHS)
+هذه المسودة تُظهر طلبك فقط. سيتم استبدالها بتحليل حقيقي فور تفعيل الخدم.`
+      : `[DRAFT — AI service not configured yet]
+───────────────────────────────────────────
+Your prompt:
+${aiPrompt}
 
-1. Core Humanitarian Standard (CHS) Alignment - Commitment 1 & 4:
-Current live field surveys validated that target household eligibility matches 97.8%. The biometric and GPS-enabled local complaint tracker enabled prompt resolution of delivery disputes in under 24 hours. Aid was delivered strictly based on vulnerability scores.
+⚠️  Gemini AI service is not enabled on the server. To activate intelligent analysis, configure the Gemini API key in config/index.ts.
 
-2. Sphere Handbook Standard Metrics (Water Supply & Health):
-- Secured a baseline minimum of 15 liters of safe drinking water per person per day.
-- Maximum access distance to water storage was reduced from 3.2km to less than 150m.
-- Water chemical and biological quality tested via partnership mobile health units shows 100% compliance with WHO standards.
-
-3. AI Predictive Insights & Growth Projections:
-Predictive analysis computes that water-borne disease incidence will drop by 84% over the next 6 months in this sector. Recommends initiating Phase II under the Development Portfolio suite (NEB-02) to cover three neighboring water-stressed villages immediately.`;
+This draft shows your prompt only. It will be replaced with real analysis once the service is enabled.`;
 
     let currentIndex = 0;
     const interval = setInterval(() => {
-      if (currentIndex < targetOutput.length) {
-        setAiOutput((prev) => prev + targetOutput[currentIndex]);
-        currentIndex += 3; // fast streaming
+      if (currentIndex < draftOutput.length) {
+        setAiOutput((prev) => prev + draftOutput[currentIndex]);
+        currentIndex += 3;
       } else {
         clearInterval(interval);
         setIsAiGenerating(false);
@@ -466,24 +472,34 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
   // Tab 5: Platform Administration States
   // -------------------------------------------------------------
   const [selectedAdminTool, setSelectedAdminTool] = useState<any>(ORGANIZATION_CONFIG.administration[1]); // Roles-permissions default
-  const [adminRoles, setAdminRoles] = useState([
-    { id: 'admin', titleAr: 'مدير النظام التنفيذي', titleEn: 'Executive Administrator', permissions: { read: true, write: true, approve: true, audit: true } },
-    { id: 'finance', titleAr: 'مراقب مالي دولي IPSAS', titleEn: 'International Finance Auditor', permissions: { read: true, write: true, approve: false, audit: true } },
-    { id: 'field', titleAr: 'منسق العمل الميداني والـ WBS', titleEn: 'Field & WBS Coordinator', permissions: { read: true, write: true, approve: false, audit: false } },
-    { id: 'donor', titleAr: 'شريك مانح / جهة تمويلية', titleEn: 'Sponsoring Donor Representative', permissions: { read: true, write: false, approve: false, audit: false } },
-  ]);
-  const [workflowNodes, setWorkflowNodes] = useState([
-    { id: 1, nameAr: 'إنشاء طلب المساعدة الإنسانية', nameEn: 'Initiate Assistance Case', status: 'completed' },
-    { id: 2, nameAr: 'البحث الاجتماعي والمسح الميداني', nameEn: 'Socioeconomic Field Survey', status: 'completed' },
-    { id: 3, nameAr: 'التوصية الذكية ومحرك الاستحقاق بالذكاء الاصطناعي', nameEn: 'AI Eligibility & Smart Recommendation', status: 'active' },
-    { id: 4, nameAr: 'مراجعة طلب التمويل والاعتماد المالي المزدوج', nameEn: 'Multi-Signoff Financial Authorization', status: 'pending' },
-    { id: 5, nameAr: 'تصدير سند التوزيع ببصمة الأصبع وتدوين القيد المالي', nameEn: 'Biometric Voucher Dispatch & IPSAS Posting', status: 'pending' },
-  ]);
-  const [auditLogs, setAuditLogs] = useState([
-    { timestamp: '09:44:21', user: 'dynamicyemen24@gmail.com', module: 'NEB-10 Ledger', action: 'AUTHORIZED', desc: 'Posted double-entry ledger voucher for Orphan Sponsorship stipend #44512' },
-    { timestamp: '09:41:05', user: 'system.daemon', module: 'NEB-12 DB-Pool', action: 'WHITELIST_PASS', desc: 'Cloud connection successfully resolved for Neon PostgreSQL pooled instance' },
-    { timestamp: '09:35:12', user: 'dynamicyemen24@gmail.com', module: 'NEB-06 Beneficiaries', action: 'WRITE', desc: 'Registered household biometric fingerprint ID and verified geolocation coordinates' },
-  ]);
+  const [adminRoles, setAdminRoles] = useState<any[]>([]);
+  const [workflowNodes, setWorkflowNodes] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+
+  // Load real audit logs from the database
+  useEffect(() => {
+    let cancelled = false;
+    const loadLogs = async () => {
+      try {
+        const token = localStorage.getItem('rbd_token');
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('/api/tables/audit_logs?limit=10', { headers });
+        if (!res.ok) return;
+        const data = await res.json();
+        const rows = Array.isArray(data?.data) ? data.data : [];
+        if (cancelled) return;
+        setAuditLogs(rows.map((r: any) => ({
+          timestamp: new Date(r.timestamp || r.created_at).toLocaleTimeString(),
+          user: r.user_email || '-',
+          module: r.module || '-',
+          action: r.action_type || '-',
+          desc: r.action_en || r.action_ar || '-'
+        })));
+      } catch { /* non-critical */ }
+    };
+    loadLogs();
+    return () => { cancelled = true; };
+  }, []);
 
   const togglePermission = (roleId: string, permKey: 'read' | 'write' | 'approve' | 'audit') => {
     setAdminRoles(prev => prev.map(r => {
@@ -1106,16 +1122,22 @@ Predictive analysis computes that water-borne disease incidence will drop by 84%
             {/* Field Workers List */}
             <div className="space-y-2.5">
               <span className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-zinc-400">{isRtl ? 'منسقو العمل الميداني الفعالون' : 'Active Field Officers'}</span>
-              {simulatedFieldWorkers.map(worker => (
+              {fieldWorkers.length === 0 ? (
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-dashed border-slate-200 dark:border-zinc-800 text-center">
+                  <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-semibold">
+                    {isRtl
+                      ? 'لا يوجد تتبع مباشر لmovement الميداني. اربط بيانات الميدان عبر NEB-05 لعرض الحالة.'
+                      : 'No real-time field movement data. Link field data via NEB-05 to show live status.'}
+                  </p>
+                </div>
+              ) : fieldWorkers.map((worker: any) => (
                 <div key={worker.id} className="p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs space-y-1.5">
                   <div className="flex items-center justify-between font-bold">
-                    <span className="text-slate-800 dark:text-zinc-200">{worker.name}</span>
-                    <span className="text-[10px] font-mono text-emerald-500">{worker.status}</span>
+                    <span className="text-slate-800 dark:text-zinc-200">{worker.name || worker.full_name_en || '-'}</span>
+                    <span className="text-[10px] font-mono text-emerald-500">{worker.status || 'Active'}</span>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500 dark:text-zinc-400 font-semibold pt-1 border-t border-slate-100 dark:border-zinc-900">
-                    <span>{worker.location}</span>
-                    <span>📍 {worker.lat}, {worker.lng}</span>
-                    <span>🔋 {worker.battery}</span>
+                    <span>{worker.location || worker.department || '-'}</span>
                   </div>
                 </div>
               ))}

@@ -139,7 +139,7 @@ export function forbidden(res: Response, message?: string): Response {
   });
 }
 
-export function notFound(res: Resource, resource?: string): Response {
+export function notFound(res: Response, resource?: string): Response {
   return errorResponse(res, {
     statusCode: 404, code: 'NOT_FOUND',
     message: `${resource || 'Resource'} not found`,

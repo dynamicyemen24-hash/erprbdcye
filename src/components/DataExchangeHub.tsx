@@ -30,6 +30,7 @@ import {
   Copy
 } from 'lucide-react';
 import { exportToExcel, exportToCSV, fireCelebrationConfetti } from '../utils/exportHelpers';
+import { generateNumericCode } from '../lib/idGenerator';
 
 interface DataExchangeHubProps {
   lang: 'ar' | 'en';
@@ -215,7 +216,7 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
   const handleAddNewRow = () => {
     const newRow: Record<string, any> = { _rowId: Date.now(), _isValid: true, _warnings: [] };
     selectedTemplate.headers.forEach(h => {
-      newRow[h] = h.includes('code') ? `NEW-${Math.floor(Math.random() * 1000)}` : '';
+      newRow[h] = h.includes('code') ? `NEW-${generateNumericCode(0, 999)}` : '';
     });
     setImportedRows(prev => [newRow, ...prev]);
   };

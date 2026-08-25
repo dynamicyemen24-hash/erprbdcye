@@ -11,7 +11,7 @@ interface EnterpriseLogoProps {
   lang?: 'ar' | 'en';
 }
 
-export const EnterpriseLogo: React.FC<EnterpriseLogoProps> = ({
+const EnterpriseLogoInner: React.FC<EnterpriseLogoProps> = ({
   src,
   alt,
   className = 'h-7 w-auto object-contain',
@@ -65,4 +65,5 @@ export const EnterpriseLogo: React.FC<EnterpriseLogoProps> = ({
   );
 };
 
+export const EnterpriseLogo = React.memo(EnterpriseLogoInner);
 export default EnterpriseLogo;

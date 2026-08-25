@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { designTokens } from '../lib/designTokens';
 import { 
   Calendar, 
@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Project, User as UserType } from '../types';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { generateShortId } from '../lib/idGenerator';
 
 interface Allocation {
   id: string;
@@ -86,111 +87,81 @@ interface ResourceAllocationViewProps {
 export default function ResourceAllocationView({ projects = [], users = [], lang, onRefresh }: ResourceAllocationViewProps) {
   const isRtl = lang === 'ar';
 
-  // 1. Initial Mock Allocations
-  const [allocations, setAllocations] = useState<Allocation[]>(() => {
-    return [
-      {
-        id: 'alloc-1',
-        projectId: 'pj1',
-        projectNameAr: 'مشروع السلال الغذائية الطارئة بمحافظة تعز',
-        projectNameEn: 'Emergency Food Basket Distribution - Taiz',
-        resourceId: 'u3',
-        resourceNameAr: 'أ. باسم المخلافي',
-        resourceNameEn: 'Basem Al-Mikhlafi',
-        resourceType: 'STAFF',
-        resourceRoleAr: 'مشرف التوزيع الميداني',
-        resourceRoleEn: 'Field Distribution Supervisor',
-        startDate: '2026-02-01',
-        endDate: '2026-08-31',
-        allocationPercent: 100,
-        status: 'active'
-      },
-      {
-        id: 'alloc-2',
-        projectId: 'pj1',
-        projectNameAr: 'مشروع السلال الغذائية الطارئة بمحافظة تعز',
-        projectNameEn: 'Emergency Food Basket Distribution - Taiz',
-        resourceId: 'asset-2',
-        resourceNameAr: 'تويوتا هايلوكس دبل كابين 4WD (أصل-2)',
-        resourceNameEn: 'Toyota Hilux Double Cabin 4WD (Asset-2)',
-        resourceType: 'ASSET',
-        resourceRoleAr: 'مركبة نقل وتحميل ميداني',
-        resourceRoleEn: 'Field Transport Patrol',
-        startDate: '2026-02-01',
-        endDate: '2026-10-31',
-        allocationPercent: 100,
-        status: 'active'
-      },
-      {
-        id: 'alloc-3',
-        projectId: 'pj2',
-        projectNameAr: 'مشروع كفالة معلمي حلقات التحفيظ بالمساجد التاريخية',
-        projectNameEn: 'Quran Teacher Sponsorship in Historic Mosques',
-        resourceId: 'u2',
-        resourceNameAr: 'م. طارق الوصابي',
-        resourceNameEn: 'Eng. Tareq Al-Wasabi',
-        resourceType: 'STAFF',
-        resourceRoleAr: 'مدير البرامج التعليمية',
-        resourceRoleEn: 'Educational Programs Manager',
-        startDate: '2026-03-01',
-        endDate: '2026-12-31',
-        allocationPercent: 50,
-        status: 'active'
-      },
-      {
-        id: 'alloc-4',
-        projectId: 'pj3',
-        projectNameAr: 'مشروع بئر الارتواز الشمسي - مديرية موزع',
-        projectNameEn: 'Solar-Powered Artesian Well Project - Mawza',
-        resourceId: 'u2',
-        resourceNameAr: 'م. طارق الوصابي',
-        resourceNameEn: 'Eng. Tareq Al-Wasabi',
-        resourceType: 'STAFF',
-        resourceRoleAr: 'مدير العمليات الهندسية والإنشائية',
-        resourceRoleEn: 'Engineering Operations Lead',
-        startDate: '2026-04-01',
-        endDate: '2026-11-30',
-        allocationPercent: 60, // OVERALLOCATION! 50% + 60% = 110%
-        status: 'active'
-      },
-      {
-        id: 'alloc-5',
-        projectId: 'pj3',
-        projectNameAr: 'مشروع بئر الارتواز الشمسي - مديرية موزع',
-        projectNameEn: 'Solar-Powered Artesian Well Project - Mawza',
-        resourceId: 'asset-5',
-        resourceNameAr: 'منظومة ضخ مياه الطاقة الشمسية الموحدة',
-        resourceNameEn: 'Integrated Solar Water Pump System',
-        resourceType: 'ASSET',
-        resourceRoleAr: 'وحدة ضخ المياه الأساسية',
-        resourceRoleEn: 'Primary Water Pump Unit',
-        startDate: '2026-04-01',
-        endDate: '2026-11-30',
-        allocationPercent: 100,
-        status: 'active'
-      },
-      {
-        id: 'alloc-6',
-        projectId: 'pj3',
-        projectNameAr: 'مشروع بئر الارتواز الشمسي - مديرية موزع',
-        projectNameEn: 'Solar-Powered Artesian Well Project - Mawza',
-        resourceId: 'u5',
-        resourceNameAr: 'م. صادق الكحلاني',
-        resourceNameEn: 'Eng. Sadeq Al-Kuhlani',
-        resourceType: 'STAFF',
-        resourceRoleAr: 'مهندس حفر وهيدروليك مائي',
-        resourceRoleEn: 'Hydrogeologist & Drilling Eng.',
-        startDate: '2026-05-01',
-        endDate: '2026-10-31',
-        allocationPercent: 100,
-        status: 'active'
-      }
-    ];
-  });
+  // 1. LIVE allocations from the resource_allocations table (E2E — no seeded demo rows)
+  const [allocations, setAllocations] = useState<Allocation[]>([]);
+  const [allocLoading, setAllocLoading] = useState(true);
+  const [allocFetchError, setAllocFetchError] = useState(false);
 
-  // 2. Additional Mock Resources list (Merged with system users)
+  const fetchAllocations = async () => {
+    setAllocLoading(true);
+    setAllocFetchError(false);
+    try {
+      const token = localStorage.getItem('rbd_token');
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch('/api/tables/resource_allocations', { headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const rows = (data.data || data || []) as any[];
+      const mapped: Allocation[] = rows
+        .filter(r => !r.deleted_at)
+        .map((r, idx) => {
+          const proj = projects.find(p => p.id === r.project_id);
+          return {
+            id: r.id,
+            projectId: r.project_id || '',
+            projectNameAr: proj?.name_ar || r.resource_name_ar || '',
+            projectNameEn: proj?.name_en || r.resource_name_en || '',
+            resourceId: r.resource_id,
+            resourceNameAr: r.resource_name_ar || '',
+            resourceNameEn: r.resource_name_en || '',
+            resourceType: (r.resource_type === 'ASSET' ? 'ASSET' : 'STAFF') as 'STAFF' | 'ASSET',
+            resourceRoleAr: r.role_ar || '',
+            resourceRoleEn: r.role_en || '',
+            startDate: r.start_date || '',
+            endDate: r.end_date || '',
+            allocationPercent: r.allocation_percent || 100,
+            status: (r.status || 'active').toLowerCase()
+          };
+        });
+      setAllocations(mapped);
+    } catch (err) {
+      console.error('[ResourceAllocation] Failed to load live allocations:', err);
+      setAllocations([]);
+      setAllocFetchError(true);
+    } finally {
+      setAllocLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllocations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 2. REAL resources pool: system users + hr_staff + fixed_assets from database
+  const [dbStaff, setDbStaff] = useState<any[]>([]);
+  const [dbAssets, setDbAssets] = useState<any[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const token = localStorage.getItem('rbd_token');
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+    fetch('/api/tables/hr_staff?limit=200', { headers })
+      .then(res => res.ok ? res.json() : { data: [] })
+      .then(d => { if (!cancelled) setDbStaff(d.data || []); })
+      .catch(() => { if (!cancelled) setDbStaff([]); });
+
+    fetch('/api/tables/fixed_assets?limit=200', { headers })
+      .then(res => res.ok ? res.json() : { data: [] })
+      .then(d => { if (!cancelled) setDbAssets(d.data || []); })
+      .catch(() => { if (!cancelled) setDbAssets([]); });
+
+    return () => { cancelled = true; };
+  }, []);
+
   const availableResources = useMemo(() => {
-    const staff = users.map(u => ({
+    const staffFromUsers = users.map(u => ({
       id: u.id,
       nameAr: u.name_ar || u.name,
       nameEn: u.name,
@@ -200,28 +171,33 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
       avatar: u.name?.charAt(0) || 'U'
     }));
 
-    const extraStaff = [
-      { id: 'u4', nameAr: 'أ. ماجد الحكيمي', nameEn: 'Majid Al-Hakimi', type: 'STAFF' as const, roleAr: 'منسق كفالات وحالات إنسانية', roleEn: 'Sponsorship Coordinator', avatar: 'M' },
-      { id: 'u5', nameAr: 'م. صادق الكحلاني', nameEn: 'Eng. Sadeq Al-Kuhlani', type: 'STAFF' as const, roleAr: 'مهندس مياه وإنشاءات', roleEn: 'Water & Civil Engineer', avatar: 'S' }
-    ];
+    const staffFromDb = dbStaff.map((s: any, idx: number) => ({
+      id: `hr-${s.id || idx}`,
+      nameAr: s.full_name_ar || s.first_name_ar || `موظف ${idx + 1}`,
+      nameEn: s.full_name_en || s.full_name_ar || `Staff ${idx + 1}`,
+      type: 'STAFF' as const,
+      roleAr: s.job_title_ar || s.department_ar || 'كادر ميداني',
+      roleEn: s.job_title_en || s.job_title_ar || 'Field Staff',
+      avatar: ''
+    }));
 
-    const assets = [
-      { id: 'asset-2', nameAr: 'سيارة تويوتا هايلوكس دبل كابين 4WD', nameEn: 'Toyota Hilux 4WD Fleet', type: 'ASSET' as const, roleAr: 'أسطول العمليات والميدان تعز', roleEn: 'Taiz Field Fleet Support' },
-      { id: 'asset-4', nameAr: 'سيرفرات نكسورا وخوادم السحابة', nameEn: 'Nexora Enterprise Server Node', type: 'ASSET' as const, roleAr: 'سيرفر معالجة البيانات المركزية', roleEn: 'Data Server Instance' },
-      { id: 'asset-5', nameAr: 'منظومة ضخ مياه الطاقة الشمسية الموحدة', nameEn: 'Integrated Solar Water Pump System', type: 'ASSET' as const, roleAr: 'أصول المشاريع التنموية المستدامة', roleEn: 'Sustainable Water Assets' },
-      { id: 'asset-6', nameAr: 'حفار آبار المياه الجوفية التكتيكي', nameEn: 'Heavy Borehole Well Drilling Rig', type: 'ASSET' as const, roleAr: 'آليات ثقيلة لحفر الآبار الساحلية', roleEn: 'Heavy Coastal Driller Rig' }
-    ];
+    const realAssets = dbAssets.map((a: any, idx: number) => ({
+      id: `fa-${a.id || idx}`,
+      nameAr: a.name_ar || a.asset_tag || `أصل ${idx + 1}`,
+      nameEn: a.name_en || a.asset_tag || a.name_ar || `Asset ${idx + 1}`,
+      type: 'ASSET' as const,
+      roleAr: a.asset_type_ar || a.category || 'أصل تشغيلي',
+      roleEn: a.asset_type_en || a.category || 'Operational Asset'
+    }));
 
-    // Deduplicate and combine
-    const combinedStaff = [...staff];
-    extraStaff.forEach(ex => {
-      if (!combinedStaff.some(s => s.id === ex.id)) {
-        combinedStaff.push(ex);
-      }
+    // Deduplicate by id — system users take precedence over hr_staff duplicates
+    const combinedStaff = [...staffFromUsers];
+    staffFromDb.forEach(s => {
+      if (!combinedStaff.some(x => x.id === s.id)) combinedStaff.push(s);
     });
 
-    return [...combinedStaff, ...assets];
-  }, [users]);
+    return [...combinedStaff, ...realAssets];
+  }, [users, dbStaff, dbAssets]);
 
   // 3. States for Filters and Allocation Form
   const [activeTab, setActiveTab] = useState<'timeline' | 'grid' | 'forecasting'>('timeline');
@@ -407,7 +383,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
         const projObj = projects.find(p => p.id === sug.projectId) || projects[0];
 
         const newTargetItem: Allocation = {
-          id: `alloc-rebal-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+          id: generateShortId('alloc-rebal'),
           projectId: sug.projectId,
           projectNameAr: projObj.name_ar,
           projectNameEn: projObj.name_en,
@@ -549,7 +525,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
   }, [projects]);
 
   // Handler: Save new allocation
-  const handleCreateAllocation = (e: React.FormEvent) => {
+  const handleCreateAllocation = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
     setFormSubmitting(true);
@@ -562,17 +538,17 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
       return;
     }
 
-    const proj = projects.find(p => p.id === projectId) || projects[0] || { name_ar: 'مشروع مخصص جديد', name_en: 'New Assigned Project' };
+    const proj = projects.find(p => p.id === projectId) || projects[0];
     const res = availableResources.find(r => r.id === resourceId);
 
-    if (!res) {
-      setFormError(isRtl ? 'المورد المختار غير صالح.' : 'Selected resource is invalid.');
+    if (!res || !proj) {
+      setFormError(isRtl ? 'المورد أو المشروع المختار غير صالح.' : 'Selected resource or project is invalid.');
       setFormSubmitting(false);
       return;
     }
 
-    // Assemble new allocation item
-    const createdItem: Allocation = {
+    // Assemble the local allocation view model
+    const createdBase: Allocation = {
       id: `alloc-${Date.now()}`,
       projectId,
       projectNameAr: proj.name_ar,
@@ -589,36 +565,77 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
       status: 'active'
     };
 
-    setTimeout(() => {
-      setAllocations(prev => [createdItem, ...prev]);
-      setFormSubmitting(false);
-      setIsAllocModalOpen(false);
-      
-      // Trigger success notification
-      setSuccessToast(isRtl ? 'تم حجز وتخصيص المورد بنجاح في المخطط الزمني!' : 'Resource successfully booked and allocated on Gantt chart!');
-      setTimeout(() => setSuccessToast(null), 5000);
+    // Persist to the live resource_allocations table
+    const token = localStorage.getItem('rbd_token');
+    const payload = {
+      project_id: projectId,
+      resource_id: resourceId,
+      resource_type: res.type,
+      resource_name_ar: res.nameAr,
+      resource_name_en: res.nameEn,
+      role_ar: roleAr,
+      role_en: roleEn || roleAr,
+      start_date: startDate,
+      end_date: endDate,
+      allocation_percent: parseInt(allocationPercent) || 100,
+      status: 'ACTIVE'
+    };
 
-      // Reset Form fields
-      setNewAlloc({
-        projectId: '',
-        resourceId: '',
-        roleAr: '',
-        roleEn: '',
-        startDate: '2026-08-01',
-        endDate: '2026-12-31',
-        allocationPercent: '100',
-        status: 'active'
+    try {
+      const res2 = await fetch('/api/tables/resource_allocations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify(payload)
       });
+      if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+      const saved = await res2.json();
+      const createdItem: Allocation = { ...createdBase, id: saved?.id || `alloc-${Date.now()}` };
+      setAllocations(prev => [createdItem, ...prev]);
+    } catch (err) {
+      console.error('[ResourceAllocation] Create failed:', err);
+      setFormError(isRtl ? 'تعذر الحفظ في قاعدة البيانات. تحقق من الاتصال وأعد المحاولة.' : 'Failed to persist allocation to the database. Check connectivity and retry.');
+      setFormSubmitting(false);
+      return;
+    }
+    setIsAllocModalOpen(false);
 
-      if (onRefresh) onRefresh();
-    }, 800);
+    // Trigger success notification
+    setSuccessToast(isRtl ? 'تم حجز وتخصيص المورد بنجاح في قاعدة البيانات!' : 'Resource successfully allocated and persisted!');
+    setTimeout(() => setSuccessToast(null), 5000);
+
+    // Reset Form fields
+    setNewAlloc({
+      projectId: '',
+      resourceId: '',
+      roleAr: '',
+      roleEn: '',
+      startDate: '2026-08-01',
+      endDate: '2026-12-31',
+      allocationPercent: '100',
+      status: 'active'
+    });
+
+    if (onRefresh) onRefresh();
   };
 
   // Handler: Delete allocation
-  const handleDeleteAllocation = (id: string) => {
+  const handleDeleteAllocation = async (id: string) => {
     if (confirm(isRtl ? 'هل أنت متأكد من إلغاء وحذف هذا التخصيص للمورد؟' : 'Are you sure you want to release and delete this resource allocation?')) {
+      try {
+        const token = localStorage.getItem('rbd_token');
+        const res = await fetch(`/api/tables/resource_allocations/${id}`, {
+          method: 'DELETE',
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      } catch (err) {
+        console.error('[ResourceAllocation] Delete failed:', err);
+        setSuccessToast(isRtl ? 'تعذر حذف التخصيص من قاعدة البيانات.' : 'Failed to delete allocation from the database.');
+        setTimeout(() => setSuccessToast(null), 4000);
+        return;
+      }
       setAllocations(prev => prev.filter(a => a.id !== id));
-      setSuccessToast(isRtl ? 'تم إلغاء التخصيص وإرجاع المورد لوضع الاستعداد.' : 'Allocation revoked. Resource is now back to standby standby.');
+      setSuccessToast(isRtl ? 'تم إلغاء التخصيص وإرجاع المورد للاستعداد.' : 'Allocation revoked. Resource is back to standby.');
       setTimeout(() => setSuccessToast(null), 4000);
     }
   };
@@ -936,7 +953,27 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
               </div>
 
               {/* Rows Listing */}
-              {filteredAllocations.length === 0 ? (
+              {allocLoading ? (
+                <div className="py-12 text-center bg-slate-50 dark:bg-zinc-950/40 rounded-b-xl border border-dashed border-slate-200 dark:border-zinc-800">
+                  <RefreshCw className="w-8 h-8 text-emerald-500 animate-spin mx-auto mb-2" />
+                  <p className="text-xs font-bold text-slate-500">
+                    {isRtl ? 'جاري جلب التخصيصات الحقيقية من قاعدة البيانات...' : 'Loading live allocations from the database...'}
+                  </p>
+                </div>
+              ) : allocFetchError ? (
+                <div className="py-10 text-center bg-amber-500/5 rounded-b-xl border border-dashed border-amber-500/40">
+                  <AlertTriangle className="w-9 h-9 text-amber-500 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                    {isRtl ? 'تعذر الاتصال بقاعدة بيانات التخصيصات.' : 'Failed to connect to the allocations database.'}
+                  </p>
+                  <button
+                    onClick={fetchAllocations}
+                    className="mt-3 px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[11px] font-black transition-colors cursor-pointer"
+                  >
+                    {isRtl ? 'إعادة المحاولة' : 'Retry'}
+                  </button>
+                </div>
+              ) : filteredAllocations.length === 0 ? (
                 <div className="py-12 text-center bg-slate-50 dark:bg-zinc-950/40 rounded-b-xl border border-dashed border-slate-200 dark:border-zinc-800">
                   <Clock className="w-10 h-10 text-slate-300 mx-auto mb-2" />
                   <p className="text-xs font-bold text-slate-500">

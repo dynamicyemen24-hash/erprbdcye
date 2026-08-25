@@ -5,6 +5,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
@@ -141,7 +142,7 @@ import { Request, Response, NextFunction } from 'express';
 export function requestLogger(logger: Logger) {
   return (req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
-    const requestId = (req as any).requestId || `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = (req as any).requestId || `req-${crypto.randomUUID()}`;
     (req as any).requestId = requestId;
     (req as any).log = logger.child('http');
     const child = (req as any).log as ChildLogger;

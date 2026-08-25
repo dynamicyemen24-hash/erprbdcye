@@ -18,6 +18,21 @@ export interface User {
   role?: string;
 }
 
+export interface HrStaff {
+  id: string;
+  organization_id: string;
+  user_id: string | null;
+  employee_code: string | null;
+  full_name_ar: string;
+  full_name_en: string;
+  department: string | null;
+  position: string | null;
+  hire_date: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Role {
   id: string;
   code: string;

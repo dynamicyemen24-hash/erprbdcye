@@ -24,7 +24,7 @@ interface DomainOverviewProps {
   orgName?: string;
 }
 
-export function DomainOverview({ lang, onNavigate, orgName }: DomainOverviewProps) {
+function DomainOverviewInner({ lang, onNavigate, orgName }: DomainOverviewProps) {
   const isRtl = lang === 'ar';
 
   const domains = [
@@ -107,3 +107,6 @@ export function DomainOverview({ lang, onNavigate, orgName }: DomainOverviewProp
     </div>
   );
 }
+
+export default React.memo(DomainOverviewInner);
+export { DomainOverviewInner as DomainOverview };

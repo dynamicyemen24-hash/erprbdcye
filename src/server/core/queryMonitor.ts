@@ -185,4 +185,43 @@ export async function monitoredQuery(pool: Pool, text: string, params?: any[]): 
   }
 }
 
+// ─── Standalone Query Stats ──────────────────────────────
+
+let queryCount = 0;
+let slowQueryCount = 0;
+let totalDuration = 0;
+const recentSlowQueries: SlowQueryLog[] = [];
+const SLOW_QUERY_THRESHOLD = parseInt(process.env.SLOW_QUERY_MS || '1000');
+
+export function trackQuery(duration: number, query: string, error?: string) {
+  queryCount++;
+  totalDuration += duration;
+  if (duration >= SLOW_QUERY_THRESHOLD || error) {
+    slowQueryCount++;
+    recentSlowQueries.push({
+      query: query.substring(0, 500),
+      duration,
+      timestamp: new Date().toISOString(),
+    });
+    if (recentSlowQueries.length > 10) recentSlowQueries.shift();
+  }
+}
+
+export function getQueryStats() {
+  return {
+    totalQueries: queryCount,
+    slowQueries: slowQueryCount,
+    averageDuration: totalDuration / Math.max(queryCount, 1),
+    slowQueryThreshold: SLOW_QUERY_THRESHOLD,
+    recentSlowQueries: recentSlowQueries.slice(-10),
+  };
+}
+
+export function resetQueryStats() {
+  queryCount = 0;
+  slowQueryCount = 0;
+  totalDuration = 0;
+  recentSlowQueries.length = 0;
+}
+
 export default { queryMonitor, poolOptimizer, initPoolOptimizer, monitoredQuery };

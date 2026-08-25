@@ -6,6 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext } from '../core/helpers';
+import logger from '../core/logger';
 
 export class HREngine {
   static async listStaff(orgId: string, pagination: PaginationParams = {}, filters?: {
@@ -102,7 +103,7 @@ export class AttendanceEngine {
       `INSERT INTO attendance_records (staff_id, clock_in, location)
        VALUES ($1, $2, $3) RETURNING *`,
       [staffId, data.timestamp || new Date().toISOString(), optionalString(data.location)]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 
   static async clockOut(attendanceId: string, data: { timestamp?: string }) {
@@ -111,7 +112,7 @@ export class AttendanceEngine {
         hours_worked = EXTRACT(EPOCH FROM ($1::timestamp - clock_in::timestamp)) / 3600
        WHERE id = $2 AND clock_out IS NULL RETURNING *`,
       [data.timestamp || new Date().toISOString(), attendanceId]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 
   static async getStaffAttendance(staffId: string, startDate?: string, endDate?: string) {
@@ -119,7 +120,7 @@ export class AttendanceEngine {
     const params: any[] = [staffId];
     if (startDate) { where += ` AND clock_in >= $${params.length + 1}`; params.push(startDate); }
     if (endDate) { where += ` AND clock_in <= $${params.length + 1}`; params.push(endDate); }
-    return queryMany(`SELECT * FROM attendance_records WHERE ${where} ORDER BY clock_in DESC`, params).catch(() => []);
+    return queryMany(`SELECT * FROM attendance_records WHERE ${where} ORDER BY clock_in DESC`, params).catch((err) => { logger.error('Query failed', { context: 'hr', error: err.message }); return []; });
   }
 }
 
@@ -135,7 +136,7 @@ export class LeaveEngine {
       `INSERT INTO leave_requests (staff_id, leave_type, start_date, end_date, reason, status)
        VALUES ($1,$2,$3,$4,$5,'PENDING') RETURNING *`,
       [data.staffId, data.leaveType, data.startDate, data.endDate, optionalString(data.reason)]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 
   static async approveLeave(leaveId: string, approvedBy: string, notes?: string) {
@@ -143,7 +144,7 @@ export class LeaveEngine {
       `UPDATE leave_requests SET status = 'APPROVED', approved_by = $1, review_notes = $2
        WHERE id = $3 AND status = 'PENDING' RETURNING *`,
       [approvedBy, optionalString(notes), leaveId]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 
   static async rejectLeave(leaveId: string, rejectedBy: string, reason?: string) {
@@ -151,12 +152,12 @@ export class LeaveEngine {
       `UPDATE leave_requests SET status = 'REJECTED', approved_by = $1, review_notes = $2
        WHERE id = $3 AND status = 'PENDING' RETURNING *`,
       [rejectedBy, optionalString(reason), leaveId]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 
   static async getStaffLeaves(staffId: string) {
     return queryMany(
       'SELECT * FROM leave_requests WHERE staff_id = $1 ORDER BY created_at DESC', [staffId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'hr', error: err.message }); return []; });
   }
 }

@@ -119,390 +119,74 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'analytics' | 'profiler'>('grid');
 
   // Initial Seed Data
-  const initialAuditLogs: AuditLogItem[] = useMemo(() => [
-    {
-      id: 'AUD-2026-0091',
-      user_email: 'admin@rohamaab.org',
-      user_name: 'د. خالد العمري',
-      user_role: 'مدير النظام التنفيذي',
-      action_type: 'budget_update',
-      action_ar: 'تعديل وزيادة الموازنة المعتمدة لمشروع الآبار الارتوازية - تعز',
-      action_en: 'Updated and increased approved operational budget for Artesian Wells Project - Taiz',
-      module: 'finance',
-      severity: 'critical',
-      ip_address: '10.0.0.12',
-      location: 'صنعاء، اليمن (Sanaa, YE)',
-      timestamp: new Date().toISOString(),
-      status: 'success',
-      target_resource: 'PRJ-2026-0881',
-      user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0.0',
-      changes_before: {
-        project_code: 'PRJ-2026-0881',
-        approved_budget: '$100,000 USD',
-        currency: 'USD',
-        status: 'Approved',
-        approved_by: 'Financial Officer'
-      },
-      changes_after: {
-        project_code: 'PRJ-2026-0881',
-        approved_budget: '$145,000 USD',
-        currency: 'USD',
-        status: 'Revised & Approved',
-        approved_by: 'Executive Director'
-      }
-    },
-    {
-      id: 'AUD-2026-0090',
-      user_email: 'hr@rohamaab.org',
-      user_name: 'أ. مريم البعداني',
-      user_role: 'مديرة الموارد البشرية والحوكمة',
-      action_type: 'role_change',
-      action_ar: 'ترقية صلاحيات المستخدم أحمد الحكيمي إلى مدير المشتريات والعقود',
-      action_en: 'Escalated user permissions for Ahmed Al-Hakimi to Procurement Director',
-      module: 'admin',
-      severity: 'high',
-      ip_address: '192.168.1.15',
-      location: 'عدن، اليمن (Aden, YE)',
-      timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-      status: 'success',
-      target_resource: 'USER-9921',
-      user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15',
-      changes_before: {
-        user_email: 'a.hakimi@rohamaab.org',
-        role_title: 'Procurement Officer',
-        can_approve_vouchers: false,
-        max_financial_limit: '5,000,000 YER'
-      },
-      changes_after: {
-        user_email: 'a.hakimi@rohamaab.org',
-        role_title: 'Procurement Director',
-        can_approve_vouchers: true,
-        max_financial_limit: '50,000,000 YER'
-      }
-    },
-    {
-      id: 'AUD-2026-0089',
-      user_email: 'accountant@rohamaab.org',
-      user_name: 'أ. ياسر الصعدي',
-      user_role: 'رئيس قسم المحاسبة العامة',
-      action_type: 'voucher_approval',
-      action_ar: 'اعتماد وترحيل سند صرف إغاثي رقم PV-2026-092 بمبلغ 8,500,000 ريال يمني',
-      action_en: 'Approved and posted payment voucher #PV-2026-092 for YER 8,500,000',
-      module: 'finance',
-      severity: 'medium',
-      ip_address: '10.0.0.45',
-      location: 'صنعاء، اليمن (Sanaa, YE)',
-      timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
-      status: 'success',
-      target_resource: 'VOUCHER-PV-2026-092',
-      user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/125.0.0.0',
-      changes_before: {
-        voucher_no: 'PV-2026-092',
-        status: 'Draft Pending Review',
-        is_posted: false,
-        amount_yer: '8,500,000'
-      },
-      changes_after: {
-        voucher_no: 'PV-2026-092',
-        status: 'Approved & Posted to Ledger',
-        is_posted: true,
-        journal_entry_hash: '0x8A92F1C4'
-      }
-    },
-    {
-      id: 'AUD-2026-0088',
-      user_email: 'supervisor@rohamaab.org',
-      user_name: 'م. فؤاد العريقي',
-      user_role: 'مشرف قطاع الكفالات والأيتام',
-      action_type: 'beneficiary_edit',
-      action_ar: 'تحديث بيانات الحساب البنكي والهوية الوطنية للمستفيد الأيتام #BEN-3392',
-      action_en: 'Updated National ID & IBAN Bank account for Orphan Beneficiary #BEN-3392',
-      module: 'beneficiaries',
-      severity: 'high',
-      ip_address: '10.0.0.88',
-      location: 'الحديدة، اليمن (Hodeidah, YE)',
-      timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
-      status: 'success',
-      target_resource: 'BEN-3392',
-      user_agent: 'Mozilla/5.0 (Linux; Android 14) Chrome/124.0.0.0',
-      changes_before: {
-        beneficiary_id: 'BEN-3392',
-        national_id: '102****88',
-        bank_name: 'CAC Bank',
-        iban: 'YE33****1002'
-      },
-      changes_after: {
-        beneficiary_id: 'BEN-3392',
-        national_id: '1029831988',
-        bank_name: 'Tadhamon Islamic Bank',
-        iban: 'YE33TIBY001002883'
-      }
-    },
-    {
-      id: 'AUD-2026-0087',
-      user_email: 'unknown@external.net',
-      user_name: 'مجهول (حساب غير مسجل)',
-      user_role: 'ضيف خاريجي',
-      action_type: 'security_event',
-      action_ar: 'تنبيه أمني: محاولات دخول فاشلة متكررة مع توقيع هجوم Brute-Force',
-      action_en: 'Security alert: Multiple failed login attempts with brute-force signature',
-      module: 'security',
-      severity: 'critical',
-      ip_address: '45.12.34.8',
-      location: 'فرانكفورت، ألمانيا (Frankfurt, DE)',
-      timestamp: new Date(Date.now() - 4 * 3600000).toISOString(),
-      status: 'failed',
-      target_resource: 'AUTH-GATEWAY',
-      user_agent: 'Python-requests/2.31.0 SecurityScanner',
-      changes_before: {
-        failed_attempts: 1,
-        ip_status: 'Allowed'
-      },
-      changes_after: {
-        failed_attempts: 6,
-        ip_status: 'Blocked for 15 minutes',
-        action_taken: 'Rate limiter activated & SSL challenge enforced'
-      }
-    },
-    {
-      id: 'AUD-2026-0086',
-      user_email: 'system.engine@rohamaab.org',
-      user_name: 'المحرك الآلي Neon DB',
-      user_role: 'خادم قاعدة البيانات المؤسسية',
-      action_type: 'system_config',
-      action_ar: 'تحديث قواعد أمان قاعدة البيانات Neon PostgreSQL وتطبيق شهادة SSL العالية',
-      action_en: 'Updated Neon PostgreSQL database security rules and enforced SSL policy',
-      module: 'admin',
-      severity: 'medium',
-      ip_address: '10.0.0.2',
-      location: 'سيرفرات السحابة - المانيا (Cloud Run)',
-      timestamp: new Date(Date.now() - 12 * 3600000).toISOString(),
-      status: 'success',
-      target_resource: 'SYS-NEON-CFG',
-      user_agent: 'NexoraOS-Internal-Daemon/2.4',
-      changes_before: {
-        ssl_mode: 'prefer',
-        connection_limit: 50,
-        allowed_ips: ['10.0.0.0/24']
-      },
-      changes_after: {
-        ssl_mode: 'require',
-        connection_limit: 100,
-        allowed_ips: ['10.0.0.0/24', '192.168.1.0/24']
-      }
-    },
-    {
-      id: 'AUD-2026-0085',
-      user_email: 'sponsorships@rohamaab.org',
-      user_name: 'أ. فاطمة الذاري',
-      user_role: 'مديرة العلاقات والكفلاء',
-      action_type: 'sponsorship_update',
-      action_ar: 'تعديل منحة كفالة الأيتام الشهرية المقدمة من جمعية الإغاثة الكويتية',
-      action_en: 'Updated monthly orphan sponsorship grant provided by Kuwait Relief Foundation',
-      module: 'sponsorships',
-      severity: 'low',
-      ip_address: '10.0.0.19',
-      location: 'صنعاء، اليمن (Sanaa, YE)',
-      timestamp: new Date(Date.now() - 24 * 3600000).toISOString(),
-      status: 'success',
-      target_resource: 'SPON-8812',
-      user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0.0',
-      changes_before: {
-        donor_name: 'Kuwait Relief Foundation',
-        monthly_amount_usd: '$150',
-        beneficiaries_covered: 10
-      },
-      changes_after: {
-        donor_name: 'Kuwait Relief Foundation',
-        monthly_amount_usd: '$200',
-        beneficiaries_covered: 12
-      }
-    }
-  ], []);
 
-  // Fetch / Init
-  useEffect(() => {
+  // LIVE audit trail from the database (audit_logs table)
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const mapRowToLog = (l: any): AuditLogItem => {
+    let details: any = {};
+    try { details = typeof l.details === 'string' ? JSON.parse(l.details || '{}') : (l.details || {}); } catch { details = {}; }
+    const action: string = l.action || 'SYSTEM_EVENT';
+    const isFailed = action === 'LOGIN_FAILED' || l.status === 'failed';
+    const moduleMap: Record<string, AuditLogItem['module']> = {
+      users: 'admin', user_org_memberships: 'admin', audit_logs: 'security',
+      transactions: 'finance', chart_of_accounts: 'finance', fiscal_years: 'finance',
+      projects: 'projects', programs: 'projects', activities: 'projects',
+      beneficiaries: 'beneficiaries', sponsorships: 'sponsorships', policy_enforcement: 'security'
+    };
+    return {
+      id: l.id,
+      user_email: details?.email || '-',
+      user_name: details?.email ? String(details.email).split('@')[0] : (action === 'LOGIN_FAILED' ? (lang === 'ar' ? 'محاولة دخول فاشلة' : 'Failed login attempt') : (lang === 'ar' ? 'مستخدم النظام' : 'System user')),
+      user_role: '-',
+      action_type: action,
+      action_ar: `${action} — ${l.table_name || ''}`.trim(),
+      action_en: `${action} on ${l.table_name || 'system'}`.trim(),
+      module: moduleMap[l.table_name] || 'admin',
+      severity: isFailed ? 'critical' : (action.startsWith('POLICY_VIOLATION') ? 'high' : 'low'),
+      ip_address: l.ip_address || details?.ip || '-',
+      location: '-',
+      timestamp: l.created_at || new Date().toISOString(),
+      status: isFailed ? 'failed' : 'success',
+      target_resource: l.record_id || l.table_name || '-',
+      user_agent: l.user_agent || undefined,
+      changes_before: details?.before || undefined,
+      changes_after: details || undefined
+    };
+  };
+
+  const fetchLogs = async () => {
     setLoading(true);
-    const timer = setTimeout(() => {
-      setLogs(initialAuditLogs);
+    setFetchError(null);
+    try {
+      const token = localStorage.getItem('rbd_token');
+      const res = await fetch('/api/tables/audit_logs?limit=200', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const rows = data.data || data || [];
+      setLogs((Array.isArray(rows) ? rows : []).map(mapRowToLog));
+    } catch (err) {
+      console.error('[AuditLogs] Failed to load live audit trail:', err);
+      setFetchError(lang === 'ar' ? 'تعذر الاتصال بسجل التدقيق المركزي.' : 'Failed to connect to the central audit trail.');
+    } finally {
       setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [initialAuditLogs]);
+    }
+  };
 
-  // Real-time Stream simulation effect
+  // Initial load + real polling while live streaming is enabled
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
   useEffect(() => {
     if (!isLiveStreaming) return;
-
-    const interval = setInterval(() => {
-      // Pick random simulated event
-      const sampleEvents: Partial<AuditLogItem>[] = [
-        {
-          action_type: 'budget_update',
-          action_ar: 'تحديث موازنة مشروع السلال الغذائية الطارئة - مارب',
-          action_en: 'Updated budget allocation for Emergency Food Baskets - Marib',
-          module: 'finance',
-          severity: 'high',
-          target_resource: 'PRJ-MARIB-2026',
-          user_email: 'finance.lead@rohamaab.org',
-          user_name: 'أ. طارق الشامي',
-          user_role: 'مدير الميزانيات',
-          changes_before: { budget: '$50,000 USD' },
-          changes_after: { budget: '$65,000 USD' }
-        },
-        {
-          action_type: 'role_change',
-          action_ar: 'تعديل صلاحيات الوصول المباشر لجداول المالية',
-          action_en: 'Modified direct access permissions for financial ledgers',
-          module: 'admin',
-          severity: 'critical',
-          target_resource: 'ACL-FINANCE-ROLE',
-          user_email: 'admin@rohamaab.org',
-          user_name: 'د. خالد العمري',
-          user_role: 'مدير النظام التنفيذي',
-          changes_before: { permission_level: 'Read-Only' },
-          changes_after: { permission_level: 'Full Edit & Post' }
-        },
-        {
-          action_type: 'voucher_approval',
-          action_ar: 'اعتماد قيد تسوية للمصروفات النثرية الإدارية',
-          action_en: 'Approved reconciliation voucher for administrative petty cash',
-          module: 'finance',
-          severity: 'low',
-          target_resource: 'VOUCHER-JV-8821',
-          user_email: 'accountant@rohamaab.org',
-          user_name: 'أ. ياسر الصعدي',
-          user_role: 'رئيس قسم المحاسبة',
-          changes_before: { amount: '450,000 YER' },
-          changes_after: { amount: '450,000 YER', posted: true }
-        }
-      ];
-
-      const picked = sampleEvents[Math.floor(Math.random() * sampleEvents.length)];
-      const newId = `AUD-2026-${Math.floor(100 + Math.random() * 900)}`;
-
-      const newItem: AuditLogItem = {
-        id: newId,
-        user_email: picked.user_email || 'system@rohamaab.org',
-        user_name: picked.user_name || 'صباحاً ومساءً',
-        user_role: picked.user_role || 'مسؤول النشاط',
-        action_type: picked.action_type || 'system_config',
-        action_ar: picked.action_ar || 'إجراء آلي في النظام',
-        action_en: picked.action_en || 'Automated system event',
-        module: picked.module || 'finance',
-        severity: picked.severity || 'medium',
-        ip_address: `10.0.0.${Math.floor(2 + Math.random() * 200)}`,
-        location: 'صنعاء، اليمن (Sanaa, YE)',
-        timestamp: new Date().toISOString(),
-        status: 'success',
-        target_resource: picked.target_resource || 'RES-AUTO',
-        user_agent: 'Mozilla/5.0 (NexoraOS-RealtimeAgent)',
-        changes_before: picked.changes_before,
-        changes_after: picked.changes_after
-      };
-
-      setLogs(prev => [newItem, ...prev]);
-      setLiveCounter(c => c + 1);
-    }, 12000); // Add a live record every 12 seconds when streaming is active
-
+    const interval = setInterval(fetchLogs, 15000); // poll the REAL audit trail every 15s
     return () => clearInterval(interval);
   }, [isLiveStreaming]);
 
   // Manual Event Injection trigger for user testing
-  const triggerSimulatedAction = (type: ActionType) => {
-    let newItem: AuditLogItem;
-    const nowIso = new Date().toISOString();
-    const newId = `AUD-LIVE-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    switch (type) {
-      case 'budget_update':
-        newItem = {
-          id: newId,
-          user_email: 'admin@rohamaab.org',
-          user_name: 'د. خالد العمري (محاكاة فورية)',
-          user_role: 'مدير النظام التنفيذي',
-          action_type: 'budget_update',
-          action_ar: 'تحديث فوري للموازنة التقديرية لمشروع مركز الأورام الطبية',
-          action_en: 'Instant budget revision for Medical Oncology Center Project',
-          module: 'finance',
-          severity: 'critical',
-          ip_address: '10.0.0.12',
-          location: 'صنعاء، اليمن (Realtime Test)',
-          timestamp: nowIso,
-          status: 'success',
-          target_resource: 'PRJ-ONCO-2026',
-          user_agent: 'Mozilla/5.0 Chrome Realtime Simulator',
-          changes_before: { budget_allocated: '$250,000 USD', approved: false },
-          changes_after: { budget_allocated: '$310,000 USD', approved: true, auditor_note: 'Instant budget boost approved' }
-        };
-        break;
-      case 'role_change':
-        newItem = {
-          id: newId,
-          user_email: 'hr@rohamaab.org',
-          user_name: 'أ. مريم البعداني (محاكاة صلاحيات)',
-          user_role: 'مديرة الموارد البشرية',
-          action_type: 'role_change',
-          action_ar: 'تعديل مصفوفة الصلاحيات والحوكمة المالية للمستخدم الحالي',
-          action_en: 'Modified governance role matrix & financial authorization limits',
-          module: 'admin',
-          severity: 'high',
-          ip_address: '192.168.1.15',
-          location: 'عدن، اليمن (Realtime Test)',
-          timestamp: nowIso,
-          status: 'success',
-          target_resource: 'ACL-MATRIX-01',
-          user_agent: 'Mozilla/5.0 Safari Realtime Simulator',
-          changes_before: { role: 'Viewer Officer', max_limit: '1,000,000 YER' },
-          changes_after: { role: 'Senior Audit Supervisor', max_limit: '100,000,000 YER' }
-        };
-        break;
-      case 'security_event':
-        newItem = {
-          id: newId,
-          user_email: 'security.bot@rohamaab.org',
-          user_name: 'نظام الجدار الناري الذكي',
-          user_role: 'أمان وتشفير البيانات',
-          action_type: 'security_event',
-          action_ar: 'تنبيه أمني عالي الخطورة: محاولة تعديل بيانات غير مصرح بها تم حظرها',
-          action_en: 'High severity security alert: Unauthorized data mutation attempt blocked',
-          module: 'security',
-          severity: 'critical',
-          ip_address: '185.220.101.5',
-          location: 'امستردام، هولندا (Proxy Node)',
-          timestamp: nowIso,
-          status: 'flagged',
-          target_resource: 'SYS-POSTGRES-MUTATION',
-          user_agent: 'curl/7.68.0 Automated-Payload',
-          changes_before: { access_granted: false },
-          changes_after: { access_granted: false, firewall_action: 'IP permanently blacklisted' }
-        };
-        break;
-      default:
-        newItem = {
-          id: newId,
-          user_email: 'accountant@rohamaab.org',
-          user_name: 'أ. ياسر الصعدي (اختبار مباشر)',
-          user_role: 'المحاسب المسؤول',
-          action_type: 'voucher_approval',
-          action_ar: 'ترحيل سند صرف فوري لمصروفات الكفالات الميدانية',
-          action_en: 'Instant posting of field sponsorship payment voucher',
-          module: 'finance',
-          severity: 'medium',
-          ip_address: '10.0.0.45',
-          location: 'صنعاء، اليمن',
-          timestamp: nowIso,
-          status: 'success',
-          target_resource: 'VOUCHER-PV-TEST',
-          user_agent: 'Mozilla/5.0 Chrome',
-          changes_before: { status: 'Draft' },
-          changes_after: { status: 'Posted' }
-        };
-    }
-
-    setLogs(prev => [newItem, ...prev]);
-    setLiveCounter(c => c + 1);
-  };
 
   // Unique list of users for dropdown filter
   const userList = useMemo(() => {
@@ -963,45 +647,29 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
           </div>
         </div>
 
-        {/* 2. REALTIME SIMULATION TRIGGER BAR */}
+        {/* 2. LIVE AUDIT TRAIL STATUS BAR */}
         <div className="bg-gradient-to-r from-emerald-950 via-zinc-900 to-zinc-950 p-4 rounded-2xl border border-emerald-800/80 shadow-md flex flex-col md:flex-row items-center justify-between gap-4 text-white">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30 shrink-0">
-              <Sparkles className="w-5 h-5 animate-spin" style={{ animationDuration: '6s' }} />
+            <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 shrink-0">
+              <Database className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-xs font-black text-emerald-400 flex items-center gap-2">
-                <span>{lang === 'ar' ? 'أداة اختبار المحاكاة الفورية للحركات الحساسة' : 'Real-time Instant Action Injector & Simulation Tool'}</span>
+                <span>{lang === 'ar' ? 'سجل التدقيق المركزي الحي — بيانات حقيقية من قاعدة البيانات' : 'Live Central Audit Trail — real database records'}</span>
               </h3>
               <p className="text-[10px] text-emerald-100/70 mt-0.5">
-                {lang === 'ar' ? 'اضغط المحاكاة لاختبار ظهور الحركة فوراً في جدول التدقيق وتدفق المراقبة' : 'Click any simulation button to test instant real-time audit entry injection'}
+                {lang === 'ar' ? `يتم تحديث القائمة تلقائياً كل 15 ثانية من جدول audit_logs (${logs.length} حدثاً محملاً)` : `Auto-refreshing every 15s from the audit_logs table (${logs.length} events loaded)`}
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             <button
-              onClick={() => triggerSimulatedAction('budget_update')}
+              onClick={fetchLogs}
               className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
-              <DollarSign className="w-3.5 h-3.5" />
-              <span>{lang === 'ar' ? '+ محاكاة تعديل موازنة' : '+ Sim Budget Update'}</span>
-            </button>
-
-            <button
-              onClick={() => triggerSimulatedAction('role_change')}
-              className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <Key className="w-3.5 h-3.5" />
-              <span>{lang === 'ar' ? '+ محاكاة ترقية صلاحيات' : '+ Sim Role Escalation'}</span>
-            </button>
-
-            <button
-              onClick={() => triggerSimulatedAction('security_event')}
-              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>{lang === 'ar' ? '+ محاكاة اختراق أمني' : '+ Sim Security Alert'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>{lang === 'ar' ? 'تحديث السجل الآن' : 'Refresh Now'}</span>
             </button>
           </div>
         </div>
@@ -1130,7 +798,7 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
             id="audit_logs_main"
             title={lang === 'ar' ? 'سجل تتبع التعديلات الحساسة والحركات الحية' : 'Sensitive Data Modification Real-time Trail'}
             icon={FileText}
-            onRefresh={async () => { setLogs([...initialAuditLogs]); }}
+            onRefresh={fetchLogs}
             loading={loading}
             defaultHeight={500}
           >

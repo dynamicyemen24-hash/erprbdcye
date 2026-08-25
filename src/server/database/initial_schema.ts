@@ -139,7 +139,8 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
         total_debit NUMERIC(18,2) DEFAULT 0,
         total_credit NUMERIC(18,2) DEFAULT 0,
         status VARCHAR(20) DEFAULT 'DRAFT',
-        created_by_id UUID REFERENCES users(id),
+        sync_status VARCHAR(30) DEFAULT 'PENDING',
+        version INTEGER DEFAULT 1,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
@@ -147,6 +148,39 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
       CREATE TABLE IF NOT EXISTS transaction_lines (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
         transaction_id UUID NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        line_number INTEGER NOT NULL,
+        account_id UUID NOT NULL REFERENCES chart_of_accounts(id),
+        debit NUMERIC(18,2) DEFAULT 0,
+        credit NUMERIC(18,2) DEFAULT 0,
+        currency_code VARCHAR(10) DEFAULT 'YER',
+        exchange_rate NUMERIC(18,6) DEFAULT 1,
+        description TEXT,
+        project_id UUID,
+        activity_id UUID,
+        party_id UUID,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS journal_entries (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        entry_number VARCHAR(50) NOT NULL,
+        entry_date DATE DEFAULT CURRENT_DATE,
+        description TEXT,
+        reference_no VARCHAR(100),
+        fiscal_year_id UUID REFERENCES fiscal_years(id),
+        status VARCHAR(30) DEFAULT 'DRAFT',
+        sync_status VARCHAR(30) DEFAULT 'PENDING',
+        version INTEGER DEFAULT 1,
+        created_by_id UUID REFERENCES users(id),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS journal_entry_lines (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        journal_entry_id UUID NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
         organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         line_number INTEGER NOT NULL,
         account_id UUID NOT NULL REFERENCES chart_of_accounts(id),
@@ -220,14 +254,26 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
         name_ar TEXT NOT NULL,
         name_en TEXT,
         status_code VARCHAR(30) DEFAULT 'PLANNING',
-        budget NUMERIC(18,2) DEFAULT 0,
+budget NUMERIC(18,2) DEFAULT 0 CHECK (budget >= 0),
         progress_percent NUMERIC(5,2) DEFAULT 0,
         start_date DATE,
         end_date DATE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        deleted_at TIMESTAMP WITH TIME ZONE
+        deleted_at TIMESTAMP WITH TIME ZONE,
+        sync_status VARCHAR(30) DEFAULT 'PENDING',
+        version INTEGER DEFAULT 1
       );
+
+      -- ══════════════════════════════════════════════════════════════
+      -- Indexes for Project Sync Performance
+      -- ═══════════════════════════════════════════════════════════════
+      CREATE INDEX IF NOT EXISTS idx_projects_sync_status
+        ON projects(organization_id, sync_status) WHERE deleted_at IS NULL;
+      CREATE INDEX IF NOT EXISTS idx_projects_version_sync
+        ON projects(organization_id, version DESC, sync_status) WHERE deleted_at IS NULL;
+      CREATE INDEX IF NOT EXISTS idx_projects_deleted_at
+        ON projects(deleted_at) WHERE deleted_at IS NOT NULL;
 
       CREATE TABLE IF NOT EXISTS milestones (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -250,9 +296,26 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
         budget_allocated NUMERIC(18,2) DEFAULT 0,
         spent_amount NUMERIC(18,2) DEFAULT 0,
         status VARCHAR(30) DEFAULT 'PLANNING',
+        offline_enabled BOOLEAN DEFAULT false,
+        sync_status VARCHAR(30) DEFAULT 'PENDING',
+        version INTEGER DEFAULT 1 CHECK (version > 0),
+        deleted_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        -- HR Integration Fields
+        staff_id UUID REFERENCES hr_staff(id),
+        volunteer_id UUID REFERENCES volunteers(id)
       );
+
+      -- ═══════════════════════════════════════════════════════════════
+      -- Indexes for Offline-First Sync Performance
+      -- ═══════════════════════════════════════════════════════════════
+      CREATE INDEX IF NOT EXISTS idx_activities_sync_status
+        ON activities(organization_id, sync_status) WHERE deleted_at IS NULL;
+      CREATE INDEX IF NOT EXISTS idx_activities_version_sync
+        ON activities(organization_id, version DESC, sync_status) WHERE deleted_at IS NULL;
+      CREATE INDEX IF NOT EXISTS idx_activities_deleted_at
+        ON activities(deleted_at) WHERE deleted_at IS NOT NULL;
 
       CREATE TABLE IF NOT EXISTS project_schedules (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -294,11 +357,42 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
         birth_date DATE,
         national_id VARCHAR(20),
         phone VARCHAR(50),
-        family_members_count INTEGER DEFAULT 1,
-        vulnerability_status VARCHAR(20),
+        family_members_count INTEGER DEFAULT 1 CHECK (family_members_count >= 1),
+        vulnerability_status VARCHAR(20) DEFAULT 'NORMAL',
         governorate VARCHAR(100),
         district VARCHAR(100),
-        status VARCHAR(30) DEFAULT 'ACTIVE',
+        status VARCHAR(30) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE', 'ARCHIVED')),
+        sync_status VARCHAR(30) DEFAULT 'PENDING',
+        version INTEGER DEFAULT 1,
+        deleted_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- ══════════════════════════════════════════════════════════════
+      -- Indexes for Beneficiary Sync Performance
+      -- ═══════════════════════════════════════════════════════════════
+      CREATE INDEX IF NOT EXISTS idx_beneficiaries_sync_status
+        ON beneficiaries(organization_id, sync_status) WHERE deleted_at IS NULL;
+      CREATE INDEX IF NOT EXISTS idx_beneficiaries_version_sync
+        ON beneficiaries(organization_id, version DESC, sync_status) WHERE deleted_at IS NULL;
+      CREATE INDEX IF NOT EXISTS idx_beneficiaries_deleted_at
+        ON beneficiaries(deleted_at) WHERE deleted_at IS NOT NULL;
+
+      CREATE TABLE IF NOT EXISTS field_disbursements (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        beneficiary_id UUID REFERENCES beneficiaries(id),
+        project_id UUID REFERENCES projects(id),
+        disbursement_number VARCHAR(50) NOT NULL,
+        amount NUMERIC(18,2) DEFAULT 0,
+        currency_code VARCHAR(10) DEFAULT 'YER',
+        disbursement_date DATE DEFAULT CURRENT_DATE,
+        purpose TEXT,
+        payment_method VARCHAR(50),
+        status VARCHAR(30) DEFAULT 'PENDING',
+        sync_status VARCHAR(30) DEFAULT 'PENDING',
+        version INTEGER DEFAULT 1,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
@@ -483,12 +577,14 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
         organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         campaign_id UUID,
         donor_party_id UUID REFERENCES parties(id),
-        amount NUMERIC(18,2) NOT NULL,
+        amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
         currency_code VARCHAR(10) DEFAULT 'YER',
         payment_method VARCHAR(50),
         payment_reference VARCHAR(100),
         donation_date DATE DEFAULT CURRENT_DATE,
         status VARCHAR(30) DEFAULT 'RECEIVED',
+        sync_status VARCHAR(30) DEFAULT 'PENDING',
+        version INTEGER DEFAULT 1,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
 
@@ -595,6 +691,210 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
       );
 
       -- ═══════════════════════════════════════════════════════════════
+      -- NEB-02: PORTFOLIO MANAGEMENT OS
+      -- ═══════════════════════════════════════════════════════════════
+
+      CREATE TABLE IF NOT EXISTS investment_portfolios (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        portfolio_code VARCHAR(50) NOT NULL,
+        name_ar TEXT NOT NULL,
+        name_en TEXT,
+        description TEXT,
+        total_allocated NUMERIC(18,2) DEFAULT 0,
+        currency_code VARCHAR(10) DEFAULT 'USD',
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS portfolio_projects (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        portfolio_id UUID NOT NULL REFERENCES investment_portfolios(id) ON DELETE CASCADE,
+        project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        allocated_amount NUMERIC(18,2) DEFAULT 0,
+        spent_amount NUMERIC(18,2) DEFAULT 0,
+        status VARCHAR(30) DEFAULT 'PLANNING',
+        role VARCHAR(50) DEFAULT 'CONTRIBUTOR',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS portfolio_risks (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        portfolio_id UUID NOT NULL REFERENCES investment_portfolios(id) ON DELETE CASCADE,
+        title_ar TEXT NOT NULL,
+        title_en TEXT,
+        risk_level VARCHAR(20) DEFAULT 'MEDIUM',
+        mitigation TEXT,
+        probability VARCHAR(20) DEFAULT 'POSSIBLE',
+        impact VARCHAR(20) DEFAULT 'MODERATE',
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS portfolio_milestones (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        portfolio_id UUID NOT NULL REFERENCES investment_portfolios(id) ON DELETE CASCADE,
+        milestone_title_ar TEXT NOT NULL,
+        milestone_title_en TEXT,
+        target_date DATE,
+        completed_date DATE,
+        status VARCHAR(30) DEFAULT 'PENDING',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS portfolio_benchmarks (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        portfolio_id UUID NOT NULL REFERENCES investment_portfolios(id) ON DELETE CASCADE,
+        name_ar TEXT NOT NULL,
+        name_en TEXT,
+        benchmark_type VARCHAR(50),
+        target_value NUMERIC(18,2),
+        actual_value NUMERIC(18,2) DEFAULT 0,
+        unit VARCHAR(50),
+        measurement_date DATE,
+        status VARCHAR(30) DEFAULT 'ON_TRACK',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS portfolio_allocations (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        portfolio_id UUID NOT NULL REFERENCES investment_portfolios(id) ON DELETE CASCADE,
+        account_id UUID NOT NULL REFERENCES chart_of_accounts(id),
+        allocated_amount NUMERIC(18,2) DEFAULT 0,
+        currency_code VARCHAR(10) DEFAULT 'USD',
+        allocation_date DATE DEFAULT CURRENT_DATE,
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- NEB-12: INTEGRATION & DIGITAL SERVICES OS
+      -- ═══════════════════════════════════════════════════════════════
+
+      CREATE TABLE IF NOT EXISTS api_endpoints (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        endpoint_name VARCHAR(100) NOT NULL,
+        path VARCHAR(200) NOT NULL,
+        method VARCHAR(10) NOT NULL,
+        description TEXT,
+        is_authenticated BOOLEAN DEFAULT true,
+        is_public BOOLEAN DEFAULT false,
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS api_credentials (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        api_endpoint_id UUID NOT NULL REFERENCES api_endpoints(id) ON DELETE CASCADE,
+        credential_name VARCHAR(100) NOT NULL,
+        credential_type VARCHAR(50) NOT NULL,
+        encrypted_credentials JSONB,
+        is_active BOOLEAN DEFAULT true,
+        expires_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS iati_registrations (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        registration_id VARCHAR(100) NOT NULL,
+        status VARCHAR(30) DEFAULT 'PENDING',
+        last_sync TIMESTAMP WITH TIME ZONE,
+        next_sync TIMESTAMP WITH TIME ZONE,
+        xml_payload_url TEXT,
+        validation_errors TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS neon_connections (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        connection_name VARCHAR(100) NOT NULL,
+        connection_string VARCHAR(500) NOT NULL,
+        is_active BOOLEAN DEFAULT true,
+        last_connected TIMESTAMP WITH TIME ZONE,
+        connection_type VARCHAR(50) DEFAULT 'POSTGRESQL',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- NEB-13: AI INTELLIGENCE & IMPACT OS
+      -- ═══════════════════════════════════════════════════════════════
+
+      CREATE TABLE IF NOT EXISTS ai_model_configs (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        model_name VARCHAR(100) NOT NULL,
+        provider VARCHAR(50) NOT NULL,
+        purpose VARCHAR(50) NOT NULL,
+        config_parameters JSONB DEFAULT '{}',
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS ai_prompt_templates (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        template_name VARCHAR(100) NOT NULL,
+        title_ar TEXT NOT NULL,
+        title_en TEXT,
+        prompt_text_ar TEXT,
+        prompt_text_en TEXT,
+        category VARCHAR(50),
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS ai_interaction_logs (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id),
+        model_name VARCHAR(100) NOT NULL,
+        prompt_text TEXT,
+        response_text TEXT,
+        token_count INTEGER DEFAULT 0,
+        cost NUMERIC(18,4) DEFAULT 0,
+        status VARCHAR(30) DEFAULT 'SUCCESS',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- ═══════════════════════════════════════════════════════════════
+      -- Organization Settings
+      -- ═══════════════════════════════════════════════════════════════
+      CREATE TABLE IF NOT EXISTS organization_settings (
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        setting_key VARCHAR(100) NOT NULL,
+        setting_value TEXT,
+        setting_type VARCHAR(50) DEFAULT 'string',
+        PRIMARY KEY (organization_id, setting_key)
+      );
+
+      CREATE TABLE IF NOT EXISTS impact_metrics (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        metric_name VARCHAR(100) NOT NULL,
+        metric_ar TEXT,
+        metric_en TEXT,
+        measurement_formula TEXT,
+        target_value NUMERIC(18,2),
+        current_value NUMERIC(18,2) DEFAULT 0,
+        unit VARCHAR(50),
+        reporting_period VARCHAR(30) DEFAULT 'ANNUAL',
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
       -- NEB-01: STRATEGY & PERFORMANCE
       -- ═══════════════════════════════════════════════════════════════
 
@@ -643,6 +943,14 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
         status VARCHAR(30) DEFAULT 'ACTIVE',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS meta (
+        key VARCHAR(100) PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      INSERT INTO meta (key, value) VALUES ('first_run', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true', updated_at = NOW();
 
       CREATE TABLE IF NOT EXISTS swot_items (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -734,6 +1042,10 @@ export async function runInitialSchema(pool: pg.Pool): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status_code);
       CREATE INDEX IF NOT EXISTS idx_milestones_project ON milestones(project_id);
       CREATE INDEX IF NOT EXISTS idx_activities_project ON activities(project_id);
+      CREATE INDEX IF NOT EXISTS idx_activities_staff ON activities(staff_id) WHERE staff_id IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_activities_volunteer ON activities(volunteer_id) WHERE volunteer_id IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_activities_project_staff ON activities(project_id, staff_id) WHERE staff_id IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_activities_project_volunteer ON activities(project_id, volunteer_id) WHERE volunteer_id IS NOT NULL;
       CREATE INDEX IF NOT EXISTS idx_beneficiaries_org ON beneficiaries(organization_id);
       CREATE INDEX IF NOT EXISTS idx_beneficiaries_national_id ON beneficiaries(national_id);
       CREATE INDEX IF NOT EXISTS idx_service_deliveries_beneficiary ON service_deliveries(beneficiary_id);

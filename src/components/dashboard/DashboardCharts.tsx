@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip, 
   PieChart, Pie, Cell, BarChart, Bar, Legend, ResponsiveContainer 
@@ -14,7 +14,82 @@ interface DashboardChartsProps {
   projects?: any[];
 }
 
-export function DashboardCharts({ 
+const CustomAreaTooltip = React.memo(({ active, payload, lang }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-slate-900/95 dark:bg-zinc-950/95 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs font-semibold backdrop-blur-md">
+        <p className="text-slate-400 mb-1">{data.month}</p>
+        <div className="flex items-center gap-2 justify-between">
+          <span className="text-emerald-400 font-bold">
+            {lang === 'ar' ? 'إجمالي الحالات:' : 'Cumulative Cases:'}
+          </span>
+          <span className="font-black text-white">
+            {data.cases.toLocaleString()}
+          </span>
+        </div>
+        {data.added > 0 && (
+          <div className="flex items-center gap-2 justify-between mt-1 text-[11px] text-slate-300">
+            <span>{lang === 'ar' ? 'المضاف حديثاً:' : 'Newly Added:'}</span>
+            <span className="text-amber-400">+{data.added}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
+});
+
+const CustomPieTooltip = React.memo(({ active, payload, lang }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-slate-900/95 dark:bg-zinc-950/95 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs font-semibold backdrop-blur-md">
+        <p className="font-bold mb-1" style={{ color: data.color }}>{data.name}</p>
+        <div className="flex items-center gap-2 justify-between">
+          <span className="text-slate-400">{lang === 'ar' ? 'الموازنة:' : 'Budget:'}</span>
+          <span className="font-black">
+            {data.value.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+});
+
+const CustomBarTooltip = React.memo(({ active, payload, lang }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900/95 dark:bg-zinc-950/95 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs font-semibold backdrop-blur-md">
+        <p className="font-bold text-slate-200 mb-1.5">{payload[0].payload.name}</p>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-emerald-400 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              {lang === 'ar' ? 'موازنة البرنامج:' : 'Program Budget:'}
+            </span>
+            <span className="font-black text-white">
+              {payload[0].value} {lang === 'ar' ? 'مليون' : 'M'}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-amber-400 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              {lang === 'ar' ? 'مخصص المشاريع:' : 'Projects Allocation:'}
+            </span>
+            <span className="font-black text-white">
+              {payload[1].value} {lang === 'ar' ? 'مليون' : 'M'}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+});
+
+function DashboardChartsInner({ 
   lang, 
   beneficiaryGrowthData, 
   budgetDistributionData,
@@ -22,84 +97,20 @@ export function DashboardCharts({
 }: DashboardChartsProps) {
   const [rightTab, setRightTab] = useState<'donut' | 'bars'>('donut');
 
-  // Custom tooltips for supreme visual fidelity
-  const CustomAreaTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-slate-900/95 dark:bg-zinc-950/95 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs font-semibold backdrop-blur-md">
-          <p className="text-slate-400 mb-1">{data.month}</p>
-          <div className="flex items-center gap-2 justify-between">
-            <span className="text-emerald-400 font-bold">
-              {lang === 'ar' ? 'إجمالي الحالات:' : 'Cumulative Cases:'}
-            </span>
-            <span className="font-black text-white">
-              {data.cases.toLocaleString()}
-            </span>
-          </div>
-          {data.added > 0 && (
-            <div className="flex items-center gap-2 justify-between mt-1 text-[11px] text-slate-300">
-              <span>{lang === 'ar' ? 'المضاف حديثاً:' : 'Newly Added:'}</span>
-              <span className="text-amber-400">+{data.added}</span>
-            </div>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
+  const areaChartMargin = useMemo(() => ({ top: 15, right: 10, left: -20, bottom: 5 }), []);
+  const barChartMargin = useMemo(() => ({ top: 20, right: 10, left: -15, bottom: 5 }), []);
+  const areaActiveDot = useMemo(() => ({ r: 5, stroke: '#10b981', strokeWidth: 2, fill: '#fff' }), []);
 
-  const CustomPieTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-slate-900/95 dark:bg-zinc-950/95 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs font-semibold backdrop-blur-md">
-          <p className="font-bold mb-1" style={{ color: data.color }}>{data.name}</p>
-          <div className="flex items-center gap-2 justify-between">
-            <span className="text-slate-400">{lang === 'ar' ? 'الموازنة:' : 'Budget:'}</span>
-            <span className="font-black">
-              {data.value.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
-            </span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+  const totalBudget = useMemo(
+    () => budgetDistributionData.reduce((sum, item) => sum + item.value, 0),
+    [budgetDistributionData]
+  );
 
-  const CustomBarTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-slate-900/95 dark:bg-zinc-950/95 text-white p-3 rounded-lg shadow-xl border border-slate-800 text-xs font-semibold backdrop-blur-md">
-          <p className="font-bold text-slate-200 mb-1.5">{payload[0].payload.name}</p>
-          <div className="space-y-1">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-emerald-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                {lang === 'ar' ? 'موازنة البرنامج:' : 'Program Budget:'}
-              </span>
-              <span className="font-black text-white">
-                {payload[0].value} {lang === 'ar' ? 'مليون' : 'M'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-amber-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                {lang === 'ar' ? 'مخصص المشاريع:' : 'Projects Allocation:'}
-              </span>
-              <span className="font-black text-white">
-                {payload[1].value} {lang === 'ar' ? 'مليون' : 'M'}
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+  const areaTooltipContent = useMemo(() => <CustomAreaTooltip lang={lang} />, [lang]);
+  const pieTooltipContent = useMemo(() => <CustomPieTooltip lang={lang} />, [lang]);
+  const barTooltipContent = useMemo(() => <CustomBarTooltip lang={lang} />, [lang]);
 
-  // Sleek Tab Switcher inside Card Header Actions
-  const rightTabActions = (
+  const rightTabActions = useMemo(() => (
     <div className="flex bg-slate-100 dark:bg-zinc-800/80 p-0.5 rounded-lg shrink-0">
       <button
         onClick={() => setRightTab('donut')}
@@ -124,7 +135,7 @@ export function DashboardCharts({
         <span>{lang === 'ar' ? 'البرامج/المشاريع' : 'Programs/Projects'}</span>
       </button>
     </div>
-  );
+  ), [rightTab, lang, setRightTab]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -140,7 +151,7 @@ export function DashboardCharts({
         {({ width, height }) => (
           <div className="flex flex-col h-full justify-between pb-2">
             <ChartContainer height={height - 50}>
-              <AreaChart data={beneficiaryGrowthData} margin={{ top: 15, right: 10, left: -20, bottom: 5 }}>
+              <AreaChart data={beneficiaryGrowthData} margin={areaChartMargin}>
                 <defs>
                   <linearGradient id="colorCases" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#059669" stopOpacity={0.25}/>
@@ -161,14 +172,14 @@ export function DashboardCharts({
                   axisLine={false} 
                   tickLine={false} 
                 />
-                <ReTooltip content={<CustomAreaTooltip />} />
+                <ReTooltip content={areaTooltipContent} />
                 <Area 
                   type="monotone" 
                   dataKey="cases" 
                   stroke="#059669" 
                   strokeWidth={2.5} 
                   fill="url(#colorCases)" 
-                  activeDot={{ r: 5, stroke: '#10b981', strokeWidth: 2, fill: '#fff' }}
+                  activeDot={areaActiveDot}
                 />
               </AreaChart>
             </ChartContainer>
@@ -237,7 +248,7 @@ export function DashboardCharts({
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <ReTooltip content={<CustomPieTooltip />} />
+                      <ReTooltip content={pieTooltipContent} />
                     </PieChart>
                   </ChartContainer>
                 </div>
@@ -245,7 +256,6 @@ export function DashboardCharts({
                 {/* Left/Right customized Legend column */}
                 <div className="w-full md:w-1/2 flex flex-col justify-center space-y-2 text-xs">
                   {budgetDistributionData.slice(0, 4).map((entry, idx) => {
-                    const totalBudget = budgetDistributionData.reduce((sum, item) => sum + item.value, 0);
                     const percentage = totalBudget > 0 ? ((entry.value / totalBudget) * 100).toFixed(1) : '0.0';
                     return (
                       <div key={idx} className="flex items-center justify-between p-1.5 hover:bg-slate-50 dark:hover:bg-zinc-800/40 rounded-lg transition-all">
@@ -268,7 +278,7 @@ export function DashboardCharts({
               // Tab B: Bar Chart (Program vs Project Budgets)
               <div className="flex flex-col h-full justify-between px-2">
                 <ChartContainer height={height - 80}>
-                  <BarChart data={projectBudgetData} margin={{ top: 20, right: 10, left: -15, bottom: 5 }}>
+                  <BarChart data={projectBudgetData} margin={barChartMargin}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.08)" />
                     <XAxis 
                       dataKey="name" 
@@ -284,7 +294,7 @@ export function DashboardCharts({
                       tickLine={false}
                       unit="M"
                     />
-                    <ReTooltip content={<CustomBarTooltip />} />
+                    <ReTooltip content={barTooltipContent} />
                     <Bar dataKey="programBudget" fill="#059669" radius={[4, 4, 0, 0]} barSize={12} name={lang === 'ar' ? 'ميزانية البرنامج' : 'Program Budget'} />
                     <Bar dataKey="projectsBudget" fill="#d97706" radius={[4, 4, 0, 0]} barSize={12} name={lang === 'ar' ? 'مخصص المشاريع' : 'Projects Budget'} />
                   </BarChart>
@@ -312,7 +322,7 @@ export function DashboardCharts({
               </span>
               <span className="text-emerald-700 dark:text-emerald-400 font-black text-sm">
                 {rightTab === 'donut' 
-                  ? (budgetDistributionData.reduce((acc, curr) => acc + curr.value, 0) / 1000000).toFixed(0) + 'M YER'
+                  ? (totalBudget / 1000000).toFixed(0) + 'M YER'
                   : (projectBudgetData.reduce((acc, curr) => acc + curr.programBudget, 0)).toFixed(0) + 'M YER'
                 }
               </span>
@@ -323,3 +333,6 @@ export function DashboardCharts({
     </div>
   );
 }
+
+export default React.memo(DashboardChartsInner);
+export { DashboardChartsInner as DashboardCharts };

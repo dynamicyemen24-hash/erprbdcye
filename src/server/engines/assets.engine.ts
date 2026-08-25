@@ -6,6 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext } from '../core/helpers';
+import logger from '../core/logger';
 
 // ─── Fixed Assets ──────────────────────────────────────
 
@@ -41,7 +42,7 @@ export class AssetEngine {
     if (!asset) return null;
     const lifecycle = await queryMany(
       'SELECT * FROM asset_lifecycle_events WHERE asset_id = $1 ORDER BY created_at DESC', [assetId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'assets', error: err.message }); return []; });
     return { ...asset, lifecycle };
   }
 
@@ -229,6 +230,6 @@ export class WarehouseEngine {
     });
     values.push(warehouseId);
     if (sets.length === 0) return null;
-    return queryOne(`UPDATE warehouses SET ${sets.join(', ')} WHERE id = $${idx} RETURNING *`, values);
+    return queryOne(`UPDATE d.warehouses SET ${sets.join(', ')} WHERE id = $${idx} RETURNING *`, values);
   }
 }

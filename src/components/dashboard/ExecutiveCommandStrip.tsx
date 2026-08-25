@@ -18,7 +18,7 @@ interface ExecutiveCommandStripProps {
   };
 }
 
-export function ExecutiveCommandStrip({ lang, onNavigate, healthMetrics }: ExecutiveCommandStripProps) {
+function ExecutiveCommandStripInner({ lang, onNavigate, healthMetrics }: ExecutiveCommandStripProps) {
   const [selectedDomain, setSelectedDomain] = React.useState<string | null>(null);
 
   const getStatus = (score: number) => {
@@ -163,3 +163,6 @@ export function ExecutiveCommandStrip({ lang, onNavigate, healthMetrics }: Execu
     </div>
   );
 }
+
+export default React.memo(ExecutiveCommandStripInner);
+export { ExecutiveCommandStripInner as ExecutiveCommandStrip };

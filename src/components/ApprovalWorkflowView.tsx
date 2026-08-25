@@ -34,6 +34,7 @@ import {
 import { Project, Program, ApprovalRequest, ApprovalHistory, WorkflowDefinition } from '../types';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { ErrorBoundary } from '../app/components/ErrorBoundary';
 
 interface UserProfile {
   id: string;
@@ -1301,6 +1302,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
   };
 
   return (
+    <ErrorBoundary domainName="ApprovalWorkflowView" lang={lang || 'ar'}>
     <ModuleShell titleAr="نظام الموافقات والاعتمادات" titleEn="Workflows & Approvals OS" domainCode="NEB-10" icon={ShieldCheck} accent="indigo" lang={lang} onRefresh={onRefresh}>
     <div className="space-y-6 animate-fade-in print:bg-white print:p-0">
       
@@ -2441,5 +2443,6 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
     </div>
     </ModuleShell>
+    </ErrorBoundary>
   );
 }

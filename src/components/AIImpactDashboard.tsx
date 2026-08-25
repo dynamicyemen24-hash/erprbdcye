@@ -103,42 +103,36 @@ export default function AIImpactDashboard({ projects, lang }: AIImpactDashboardP
   const prevAnomaliesRef = useRef<string[]>([]);
   const { panels, visible } = useDashboardLayout();
 
-  // Fetch real ledger data instead of hardcoded mocks
+  // Fetch REAL ledger transactions for anomaly detection — strict no-demo-data policy
   const [ledgerEntries, setLedgerEntries] = useState<any[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('rbd_token');
-        if (token) {
-          const res = await fetch('/api/tables/chart_of_accounts?limit=50', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const entries = (data.data || data || []).map((e: any) => ({
-              id: e.id || `tx-${Math.random().toString(36).substr(2, 6)}`,
-              amount: parseFloat(e.current_balance || e.opening_balance || 0),
-              type: e.account_type || 'ASSET'
-            }));
-            setLedgerEntries(entries.length > 0 ? entries : [
-              { id: 'tx-demo-1', amount: 5000, type: 'EXPENSE' },
-              { id: 'tx-demo-2', amount: 15000, type: 'REVENUE' },
-              { id: 'tx-demo-3', amount: 8000, type: 'EXPENSE' },
-            ]);
-          }
-        }
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('/api/tables/transactions?limit=200', { headers });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const rows = data.data || data || [];
+        if (cancelled) return;
+        // Map real IPSAS journal entries — empty DB stays empty (no fabricated rows)
+        const entries = rows.map((t: any) => ({
+          id: t.id || t.transaction_number,
+          amount: parseFloat(t.total_debit || t.total_credit || 0),
+          type: t.transaction_type || 'JOURNAL_ENTRY'
+        }));
+        setLedgerEntries(entries);
       } catch {
-        // Fallback to minimal demo data
-        setLedgerEntries([
-          { id: 'tx-demo-1', amount: 5000, type: 'EXPENSE' },
-          { id: 'tx-demo-2', amount: 15000, type: 'REVENUE' },
-        ]);
+        if (!cancelled) setLedgerEntries([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchData();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -224,8 +218,8 @@ export default function AIImpactDashboard({ projects, lang }: AIImpactDashboardP
       case 'sync': return visible.sync && wrappedRender(<OfflineSyncView lang={lang} />);
       case 'yoy': return visible.yoy && wrappedRender(<YoYPerformanceView lang={lang} />);
       case 'risk': return visible.risk && wrappedRender(<StrategicRiskSimulator lang={lang} />);
-      case 'global_kpi': return visible.global_kpi && wrappedRender(<GlobalKPITrendView lang={lang} />);
-      case 'branch_kpi': return visible.branch_kpi && wrappedRender(<GlobalBranchKPIComparisonView lang={lang} />);
+      case 'global_kpi': return visible.global_kpi && wrappedRender(<GlobalKPITrendView lang={lang} projects={projects} />);
+      case 'branch_kpi': return visible.branch_kpi && wrappedRender(<GlobalBranchKPIComparisonView lang={lang} projects={projects} />);
       case 'ipsas_audit': return visible.ipsas_audit && wrappedRender(<IPSASComplianceAuditLedger lang={lang} />);
       case 'maintenance': return visible.maintenance && wrappedRender(<PredictiveMaintenanceView lang={lang} />);
       case 'optimizer': return visible.optimizer && wrappedRender(<AIResourceOptimizer lang={lang} />);

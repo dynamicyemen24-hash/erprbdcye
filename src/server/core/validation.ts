@@ -24,7 +24,7 @@ interface FieldSchema {
   default?: any;
 }
 
-type Schema = Record<string, FieldSchema>;
+export type Schema = Record<string, FieldSchema>;
 
 interface ValidationResult {
   valid: boolean;

@@ -8,6 +8,7 @@ import {
   ArrowUpRight, ArrowDownLeft, ShieldAlert, History
 } from 'lucide-react';
 import { printHTML } from '../../lib/printUtils';
+import { generateShortId, generateNumericCode } from '../../lib/idGenerator';
 
 interface Account {
   id: string;
@@ -304,7 +305,7 @@ export default function TransactionDocumentCycleTracker({
     
     const updatedAudit = [
       {
-        id: `audit-${Date.now()}`,
+        id: generateShortId('audit'),
         action: isRtl ? 'تحديث صورة التوثيق' : 'Workflow Status Shift',
         user: isRtl ? 'أ. خالد باوزير (المدير المالي)' : 'K. BaWazir (CFO)',
         date: new Date().toLocaleString(),
@@ -340,7 +341,7 @@ export default function TransactionDocumentCycleTracker({
     if (!selectedTxId || !txMeta || !noteInput.trim()) return;
     
     const newNote = {
-      id: `note-${Date.now()}`,
+      id: generateShortId('note'),
       text: noteInput,
       author: isRtl ? 'المدير التشغيلي / مراجع نكسورا' : 'Operations Manager / Nexora Auditor',
       date: new Date().toLocaleDateString()
@@ -348,7 +349,7 @@ export default function TransactionDocumentCycleTracker({
     
     const updatedAudit = [
       {
-        id: `audit-${Date.now()}`,
+        id: generateShortId('audit'),
         action: isRtl ? 'إنشاء وتجهيز السند' : 'Note Appended',
         user: isRtl ? 'إلغاء ارتباط متبادل' : 'Finance Officer',
         date: new Date().toLocaleString(),
@@ -374,7 +375,7 @@ export default function TransactionDocumentCycleTracker({
     if (!selectedTxId || !txMeta || !alertTextInput.trim()) return;
     
     const newAlert = {
-      id: `alert-${Date.now()}`,
+      id: generateShortId('alert'),
       text: alertTextInput,
       severity: alertSeverity,
       date: new Date().toLocaleDateString()
@@ -382,7 +383,7 @@ export default function TransactionDocumentCycleTracker({
     
     const updatedAudit = [
       {
-        id: `audit-${Date.now()}`,
+        id: generateShortId('audit'),
         action: isRtl ? 'منطقة عالية الأمان' : 'Alert Trigger Set',
         user: isRtl ? 'إدارة الرقابة والامتثال' : 'Compliance & Risk Officer',
         date: new Date().toLocaleString(),
@@ -418,7 +419,7 @@ export default function TransactionDocumentCycleTracker({
     if (!txMeta.linkedTxIds.includes(linkTargetTxId)) {
       const updatedAudit = [
         {
-          id: `audit-${Date.now()}`,
+          id: generateShortId('audit'),
           action: isRtl ? 'بند خدمات جديد' : 'Manual Link Associated',
           user: isRtl ? 'رئيس قسم القيود والحسابات' : 'Head of General Ledger',
           date: new Date().toLocaleString(),
@@ -442,7 +443,7 @@ export default function TransactionDocumentCycleTracker({
         const sourceTx = transactions.find(t => t.id === selectedTxId);
         targetMeta.linkedTxIds.push(selectedTxId);
         targetMeta.auditTrail.unshift({
-          id: `audit-tgt-${Date.now()}`,
+          id: generateShortId('audit-tgt'),
           action: isRtl ? 'اعتماد الصرف المالي' : 'Reciprocal Document Link',
           user: isRtl ? 'رئيس قسم القيود والحسابات' : 'Head of General Ledger',
           date: new Date().toLocaleString(),
@@ -471,7 +472,7 @@ export default function TransactionDocumentCycleTracker({
       linkedTxIds: txMeta.linkedTxIds.filter(id => id !== targetId),
       auditTrail: [
         {
-          id: `audit-${Date.now()}`,
+          id: generateShortId('audit'),
           action: isRtl ? 'إعادة ضبط التخطيط' : 'Document Unlinked',
           user: isRtl ? 'نمذجة تنبؤية' : 'Voucher Reviewer',
           date: new Date().toLocaleString(),
@@ -488,7 +489,7 @@ export default function TransactionDocumentCycleTracker({
     const targetMeta = loadTxMeta(targetId);
     targetMeta.linkedTxIds = targetMeta.linkedTxIds.filter(id => id !== selectedTxId);
     targetMeta.auditTrail.unshift({
-      id: `audit-unlink-tgt-${Date.now()}`,
+      id: generateShortId('audit-unlink-tgt'),
       action: isRtl ? 'الصرف المالي الفعلي' : 'Reciprocal Link Severed',
       user: isRtl ? 'مسؤول النشاط' : 'Voucher Reviewer',
       date: new Date().toLocaleString(),
@@ -519,7 +520,7 @@ export default function TransactionDocumentCycleTracker({
     
     try {
       const payAmount = parseFloat(quickPayAmount);
-      const newVoucherNo = `PV-AUTO-${Date.now().toString().slice(-4)}`;
+      const newVoucherNo = `PV-AUTO-${generateNumericCode(0, 9999)}`;
       const expAcc = accounts.find(a => a.id === quickPayAccount);
       const cashAcc = accounts.find(a => a.id === quickPayCashAccount);
       
@@ -598,7 +599,7 @@ export default function TransactionDocumentCycleTracker({
       const invoiceMeta = { ...txMeta };
       invoiceMeta.linkedTxIds.push(newTxResult.id);
       invoiceMeta.notes.push({
-        id: `note-${Date.now()}`,
+        id: generateShortId('note'),
         text: isRtl 
           ? `تم صرف سند الصرف رقم ${newVoucherNo} بمبلغ ${payAmount.toLocaleString()} YER وربطه تلقائياً بالفاتورة.`
           : `Created Payment Voucher ${newVoucherNo} with amount ${payAmount.toLocaleString()} YER and linked to Invoice.`,
@@ -606,7 +607,7 @@ export default function TransactionDocumentCycleTracker({
         date: new Date().toLocaleDateString()
       });
       invoiceMeta.auditTrail.unshift({
-        id: `audit-${Date.now()}`,
+        id: generateShortId('audit'),
         action: isRtl ? 'سداد قيد وفاتورة' : 'Invoice Settlement Voucher Created',
         user: isRtl ? 'أ. محاسب صرف ومدفوعات' : 'Payment Disbursement Officer',
         date: new Date().toLocaleString(),
@@ -666,7 +667,7 @@ export default function TransactionDocumentCycleTracker({
       : `${(file.size / 1024).toFixed(0)} KB`;
 
     const newAttachment = {
-      id: `att-${Date.now()}`,
+      id: generateShortId('att'),
       name: file.name,
       size: sizeStr,
       type: file.type || 'application/octet-stream',
@@ -675,7 +676,7 @@ export default function TransactionDocumentCycleTracker({
 
     const updatedAudit = [
       {
-        id: `audit-${Date.now()}`,
+        id: generateShortId('audit'),
         action: isRtl ? 'حقائب نظافة طارئة' : 'Attachment Dossier Filed',
         user: isRtl ? 'أخصائي الحفظ واللوجستيات' : 'Archivist & Logistical Officer',
         date: new Date().toLocaleString(),
@@ -703,7 +704,7 @@ export default function TransactionDocumentCycleTracker({
       attachments: txMeta.attachments.filter(a => a.id !== attId),
       auditTrail: [
         {
-          id: `audit-${Date.now()}`,
+          id: generateShortId('audit'),
           action: isRtl ? 'فئة ونوع الشريك' : 'Supporting Document Purged',
           user: isRtl ? 'هاتف المستلم للمطابقة' : 'Internal Audit Manager',
           date: new Date().toLocaleString(),
@@ -735,7 +736,7 @@ export default function TransactionDocumentCycleTracker({
       // Update Audit log
       const updatedAudit = [
         {
-          id: `audit-notif-${Date.now()}`,
+          id: generateShortId('audit-notif'),
           action: isRtl ? 'حقائب نظافة طارئة' : 'External Alert Dispatched',
           user: isRtl ? 'تقديم الخدمات والمستفيدون' : 'Digital Messaging Gateway',
           date: new Date().toLocaleString(),

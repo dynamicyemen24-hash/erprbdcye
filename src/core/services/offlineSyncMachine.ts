@@ -82,7 +82,7 @@ class NexoraOfflineSyncMachine {
     endpoint: string,
     payload: T
   ): Promise<OfflineTransaction<T>> {
-    const idempotencyKey = `tx_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const idempotencyKey = `tx_${crypto.randomUUID()}`;
     const tx: OfflineTransaction<T> = {
       idempotencyKey,
       entityType,

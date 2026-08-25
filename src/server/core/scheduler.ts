@@ -3,6 +3,8 @@
  * Cron-like job scheduling for background tasks
  */
 
+import logger from './logger';
+
 // ─── Job Types ─────────────────────────────────────────
 
 export interface ScheduledJob {
@@ -33,7 +35,7 @@ class SchedulerEngine {
       status: 'idle',
       nextRun: this.calculateNextRun(job.schedule),
     });
-    console.log(`[Scheduler] Registered job: ${job.name} (${job.schedule})`);
+    logger.info(`[Scheduler] Registered job: ${job.name} (${job.schedule})`, { context: 'scheduler' });
   }
 
   /**
@@ -42,7 +44,7 @@ class SchedulerEngine {
   start() {
     if (this.running) return;
     this.running = true;
-    console.log('[Scheduler] Starting...');
+    logger.info('[Scheduler] Starting...', { context: 'scheduler' });
 
     for (const [id, job] of this.jobs.entries()) {
       if (job.enabled) {
@@ -61,7 +63,7 @@ class SchedulerEngine {
       clearInterval(timer);
     }
     this.timers.clear();
-    console.log('[Scheduler] Stopped');
+    logger.info('[Scheduler] Stopped', { context: 'scheduler' });
   }
 
   /**
@@ -93,11 +95,11 @@ class SchedulerEngine {
       try {
         await job.handler();
         job.status = 'idle';
-        console.log(`[Scheduler] Job '${job.name}' completed successfully`);
+        logger.info(`[Scheduler] Job '${job.name}' completed successfully`, { context: 'scheduler' });
       } catch (err: any) {
         job.status = 'error';
         job.lastError = err.message;
-        console.error(`[Scheduler] Job '${job.name}' failed:`, err.message);
+        logger.error(`[Scheduler] Job '${job.name}' failed: ${err.message}`, { context: 'scheduler', error: err });
       }
     }, intervalMs);
 
@@ -156,7 +158,7 @@ export function registerDefaultJobs() {
     enabled: true,
     handler: async () => {
       const { query } = await import('../core/database');
-      await query(`DELETE FROM refresh_tokens WHERE expires_at < NOW()`).catch(() => {});
+      await query(`DELETE FROM refresh_tokens WHERE expires_at < NOW()`).catch((err) => { logger.warn(`[Scheduler] Session cleanup failed: ${err.message}`, { context: 'scheduler' }); });
     },
   });
 
@@ -172,8 +174,8 @@ export function registerDefaultJobs() {
       await query(`
         DELETE FROM audit_logs
         WHERE created_at < NOW() - INTERVAL '1 year'
-      `).catch(() => {});
-      console.log('[Scheduler] Audit log rotation completed');
+      `).catch((err) => { logger.warn(`[Scheduler] Audit log rotation failed: ${err.message}`, { context: 'scheduler' }); });
+      logger.info('[Scheduler] Audit log rotation completed', { context: 'scheduler' });
     },
   });
 
@@ -184,7 +186,7 @@ export function registerDefaultJobs() {
     schedule: '6hours',
     enabled: true,
     handler: async () => {
-      console.log('[Scheduler] Exchange rate refresh triggered');
+      logger.info('[Scheduler] Exchange rate refresh triggered', { context: 'scheduler' });
       // Can be extended to fetch live rates from external API
     },
   });
@@ -200,9 +202,9 @@ export function registerDefaultJobs() {
       const memUsage = process.memoryUsage();
       const loadAvg = os.loadavg();
       // Store metrics for monitoring dashboard
-      console.log(`[Metrics] Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB | CPU: ${loadAvg[0].toFixed(2)}`);
+      logger.debug(`[Metrics] Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB | CPU: ${loadAvg[0].toFixed(2)}`, { context: 'metrics' });
     },
   });
 
-  console.log('[Scheduler] Default jobs registered');
+  logger.info('[Scheduler] Default jobs registered', { context: 'scheduler' });
 }

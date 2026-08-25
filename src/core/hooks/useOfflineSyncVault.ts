@@ -44,7 +44,7 @@ export function useOfflineSyncVault() {
   // Save snapshot to vault
   const saveSnapshot = useCallback((domain: string, payload: any) => {
     const newSnapshot: OfflineSnapshot = {
-      id: 'snap_' + Math.random().toString(36).substring(2, 9),
+      id: 'snap_' + crypto.randomUUID(),
       domain,
       payload,
       timestamp: new Date().toISOString(),

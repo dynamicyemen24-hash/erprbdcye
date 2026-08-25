@@ -7,7 +7,7 @@ export interface GlobalOperationalFooterProps {
   orgName: string;
 }
 
-export const GlobalOperationalFooter: React.FC<GlobalOperationalFooterProps> = ({
+const GlobalOperationalFooterInner: React.FC<GlobalOperationalFooterProps> = ({
   lang,
   dbConnected,
   totalRecordsCount,
@@ -42,4 +42,5 @@ export const GlobalOperationalFooter: React.FC<GlobalOperationalFooterProps> = (
   );
 };
 
-export default GlobalOperationalFooter;
+export default React.memo(GlobalOperationalFooterInner);
+export { GlobalOperationalFooterInner as GlobalOperationalFooter };

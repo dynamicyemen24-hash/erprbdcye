@@ -567,6 +567,21 @@ export async function runEnterpriseSchemaCompletion(poolInstance: pg.Pool): Prom
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
 
+      -- Field Device Registry (enrolled devices allowed to sync offline data)
+      CREATE TABLE IF NOT EXISTS field_devices (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        device_id VARCHAR(100) NOT NULL,
+        device_name TEXT,
+        platform VARCHAR(50),
+        enrolled_by UUID REFERENCES users(id),
+        status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+        last_seen_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(organization_id, device_id)
+      );
+
       -- Sync Queue (قائمة انتظار المزامنة للعمل دون اتصال)
       CREATE TABLE IF NOT EXISTS sync_queue (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -823,6 +838,61 @@ export async function runEnterpriseSchemaCompletion(poolInstance: pg.Pool): Prom
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         deleted_at TIMESTAMP WITH TIME ZONE
       );
+
+      -- Resource Allocations (NEB-09: staff & asset assignments to projects)
+      CREATE TABLE IF NOT EXISTS resource_allocations (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        project_id UUID REFERENCES projects(id),
+        resource_id VARCHAR(100) NOT NULL,
+        resource_type VARCHAR(20) NOT NULL DEFAULT 'STAFF',  -- STAFF | ASSET
+        resource_name_ar TEXT,
+        resource_name_en TEXT,
+        role_ar TEXT,
+        role_en TEXT,
+        start_date DATE NOT NULL,
+        end_date DATE,
+        allocation_percent INTEGER NOT NULL DEFAULT 100 CHECK (allocation_percent BETWEEN 1 AND 100),
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_by UUID,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        deleted_at TIMESTAMP WITH TIME ZONE
+      );
+
+      -- E-Invoices (ZATCA-style cryptographic e-invoicing, NEB-15)
+      CREATE TABLE IF NOT EXISTS e_invoices (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+        invoice_number VARCHAR(50) NOT NULL,
+        uuid VARCHAR(64) NOT NULL,
+        invoice_type VARCHAR(30) NOT NULL DEFAULT 'B2B_STANDARD',
+        issue_date DATE NOT NULL,
+        issue_time VARCHAR(10),
+        seller_name_ar TEXT,
+        seller_tax_id VARCHAR(30),
+        buyer_name_ar TEXT NOT NULL,
+        buyer_tax_id VARCHAR(30),
+        buyer_email TEXT,
+        project_id UUID REFERENCES projects(id),
+        wbs_activity_id VARCHAR(100),
+        items JSONB NOT NULL DEFAULT '[]',
+        subtotal_yer NUMERIC(18,2) DEFAULT 0,
+        total_tax_yer NUMERIC(18,2) DEFAULT 0,
+        grand_total_yer NUMERIC(18,2) DEFAULT 0,
+        currency_code VARCHAR(10) DEFAULT 'YER',
+        payment_method VARCHAR(20) DEFAULT 'BANK_TRANSFER',
+        status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+        cryptographic_hash VARCHAR(128),
+        previous_invoice_hash VARCHAR(128),
+        UNIQUE(organization_id, invoice_number)
+      );
+
+      -- Asset audit trail columns (IPSAS physical verification)
+      ALTER TABLE assets
+        ADD COLUMN IF NOT EXISTS last_audit_at TIMESTAMP WITH TIME ZONE,
+        ADD COLUMN IF NOT EXISTS last_audit_by UUID REFERENCES users(id),
+        ADD COLUMN IF NOT EXISTS audit_notes TEXT;
 
       -- Vendors (سجل الموردين المستقل) — يكمل parties
       CREATE TABLE IF NOT EXISTS vendors (
@@ -1421,7 +1491,11 @@ export async function applyEnterpriseViews(poolInstance: pg.Pool): Promise<void>
 // ═══════════════════════════════════════════════════════════════════
 export async function seedEnterpriseUsersAndOrg(poolInstance: pg.Pool): Promise<void> {
   const orgId = '00000000-0000-0000-0000-000000000001';
-  const defaultPasswordHash = await bcrypt.hash(crypto.randomBytes(16).toString('base64url').slice(0, 20), 12);
+  // Bootstrap credentials for FIRST-RUN ONLY. Reads from env so production can set
+  // its own value; never regenerates random passwords on restart (users would be
+  // locked out after every deployment). Existing passwords are preserved on re-runs.
+  const bootstrapPassword = process.env.DEFAULT_USER_PASSWORD || 'NexoraOS@Bootstrap2026';
+  const defaultPasswordHash = await bcrypt.hash(bootstrapPassword, 12);
 
   try {
     // 1. Ensure Primary Organization
@@ -1572,13 +1646,12 @@ export async function seedEnterpriseUsersAndOrg(poolInstance: pg.Pool): Promise<
       await poolInstance.query(`
         INSERT INTO users (
           organization_id, email, password_hash, name, name_ar, phone, default_language,
-          status, security_level, department_code, position_code, can_approve, max_approval_amount, created_at, updated_at
+          status, security_level, department_code, position_code, can_approve, max_approval_amount, password_expires_at, created_at, updated_at
         ) VALUES (
           $1, $2, $3, $4, $5, $6, 'ar',
-          'active', $7, $8, $9, $10, $11, NOW(), NOW()
+          'active', $7, $8, $9, $10, $11, NOW() + INTERVAL '1 day', NOW(), NOW()
         )
         ON CONFLICT (email) DO UPDATE SET
-          password_hash = EXCLUDED.password_hash,
           name = EXCLUDED.name,
           name_ar = EXCLUDED.name_ar,
           security_level = EXCLUDED.security_level,

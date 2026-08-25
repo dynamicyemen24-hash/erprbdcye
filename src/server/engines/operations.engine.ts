@@ -6,6 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext } from '../core/helpers';
+import logger from '../core/logger';
 
 export class ActivityEngine {
   static async list(orgId: string, pagination: PaginationParams = {}, filters?: {
@@ -129,7 +130,7 @@ export class ResourceAllocationEngine {
        LEFT JOIN projects p ON p.id = ra.project_id
        WHERE ${where} ORDER BY ra.allocation_date DESC`,
       params
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'operations', error: err.message }); return []; });
   }
 
   static async create(data: {
@@ -143,7 +144,7 @@ export class ResourceAllocationEngine {
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
       [data.organizationId, data.projectId || null, data.activityId || null,
        data.resourceName, data.resourceType, data.allocatedHours, data.allocationDate]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 }
 
@@ -176,6 +177,6 @@ export class GeospatialEngine {
        LEFT JOIN geographic_areas ga ON ga.id = pr.geographic_area_id
        WHERE pr.organization_id = $1 AND pr.deleted_at IS NULL AND ga.latitude IS NOT NULL`,
       [orgId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'operations', error: err.message }); return []; });
   }
 }

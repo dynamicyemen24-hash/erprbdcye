@@ -13,8 +13,14 @@
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
-    "allowJs": true,
+    "allowJs": false,
     "jsx": "react-jsx",
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "noUncheckedIndexedAccess": false,
     "paths": {
       "@/*": [
         "./*"
@@ -22,5 +28,31 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": [
+    "src",
+    "server.ts",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "logs",
+    "backups",
+    "scripts",
+    "migrations",
+    "*.js",
+    "*.cjs",
+    "*.mjs",
+    "file_list.ts",
+    "fast_views.ts",
+    "inspect_views.ts",
+    "query_views.ts",
+    "query_views_batch.ts",
+    "db-explore.ts",
+    "db-summary.ts",
+    "check_db.js",
+    "execution_result.cjs"
+  ]
 }

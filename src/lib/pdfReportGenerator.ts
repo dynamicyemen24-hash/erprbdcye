@@ -1,3 +1,6 @@
+import { sanitizeHtml } from './htmlSanitizer';
+import { generateNumericCode } from './idGenerator';
+
 export function safeArray<T = any>(input: any): T[] {
   if (Array.isArray(input)) return input;
   if (input && typeof input === 'object') {
@@ -29,7 +32,7 @@ export function getPDFHeaderHTML(options: PDFReportHeaderOptions): string {
     ? (options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية')
     : (options.orgNameEn || 'Rohamā\'a Baynahum Charity Foundation');
   const logo = options.logoUrl || '/LogoRohamaab.png';
-  const docNo = options.docNumber || `NEX-${Math.floor(100000 + Math.random() * 900000)}`;
+  const docNo = options.docNumber || `NEX-${generateNumericCode(100000, 999999)}`;
   const today = options.date || new Date().toLocaleDateString(isRtl ? 'ar-YE' : 'en-US', {
     year: 'numeric',
     month: 'long',
@@ -570,7 +573,7 @@ export async function generateAndDownloadPDF(htmlContent: string, filename: stri
   container.style.top = '0';
   container.style.width = '800px';
   container.style.backgroundColor = '#ffffff';
-  container.innerHTML = htmlContent;
+  container.innerHTML = sanitizeHtml(htmlContent);
   document.body.appendChild(container);
 
   try {
@@ -1159,16 +1162,42 @@ export function buildPredictiveReportPDFHTML(options: {
   const lang = options.lang || 'ar';
   const isRtl = lang === 'ar';
   const accentColor = options.accentColor || '#059669';
-  
+
   const headerHTML = getPDFHeaderHTML({
     title: options.title || (isRtl ? 'التحليلات التنبؤية واستدامة التمويل' : 'Predictive BI & Budget Runway Report'),
-    subtitle: options.subtitle || (isRtl ? 'توقعات التدفق النقدي واستقرار ميزانية الأيتام ومحاكاة التضخم' : 'Cash flow runway forecasts, fund stability and inflation simulation'),
+    subtitle: options.subtitle || (isRtl ? 'تحليل التنفيذ المالي والمخاطر الزمنية من السجل الحي للمشاريع' : 'Execution and schedule-risk analysis derived from the live project register'),
     lang,
     accentColor,
     orgNameAr: options.orgNameAr,
     orgNameEn: options.orgNameEn,
     classification: 'OFFICIAL'
   });
+
+  // ── Real figures computed from the live register ──────────────────────────
+  const projects = safeArray(options.projects);
+  const programs = safeArray(options.programs);
+  const now = new Date();
+
+  let totalBudget = 0;
+  let weightedProgress = 0; // Σ(budget × progress)
+  let completedCount = 0;
+  let overdueCount = 0;
+  let activeCount = 0;
+
+  projects.forEach((p: any) => {
+    const budget = parseFloat(p.budget || '0');
+    const progress = Math.min(100, Math.max(0, parseFloat(p.progress_percent || '0')));
+    totalBudget += budget;
+    weightedProgress += budget * progress;
+    if (progress >= 100) completedCount++;
+    else if (p.end_date && new Date(p.end_date) < now) overdueCount++;
+    else activeCount++;
+  });
+
+  const executionRate = totalBudget > 0 ? (weightedProgress / totalBudget) : 0;
+  const remainingBudget = totalBudget * (1 - executionRate / 100);
+
+  const fmtYER = (v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 0 });
 
   const summaryHTML = `
     <div style="
@@ -1180,59 +1209,68 @@ export function buildPredictiveReportPDFHTML(options: {
       font-family: sans-serif;
     ">
       <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; text-align: center;">
-        <div style="font-size: 10px; color: #1e40af; font-weight: 700;">${isRtl ? 'فترة التدفق الآمن (Liquidity Runway)' : 'Cash Runway Period'}</div>
-        <div style="font-size: 14px; font-weight: 900; color: #1d4ed8; margin-top: 4px;">12.4 ${isRtl ? 'شهراً' : 'Months'}</div>
+        <div style="font-size: 10px; color: #1e40af; font-weight: 700;">${isRtl ? 'إجمالي الموازنات المرصودة' : 'Total Allocated Budget'}</div>
+        <div style="font-size: 14px; font-weight: 900; color: #1d4ed8; margin-top: 4px;">${fmtYER(totalBudget)} YER</div>
       </div>
       <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; text-align: center;">
-        <div style="font-size: 10px; color: #b45309; font-weight: 700;">${isRtl ? 'معامل استقرار التمويل' : 'Funding Stability Index'}</div>
-        <div style="font-size: 14px; font-weight: 900; color: #92400e; margin-top: 4px;">96.8%</div>
+        <div style="font-size: 10px; color: #b45309; font-weight: 700;">${isRtl ? 'معدل التنفيذ الموزون بالموازنات' : 'Budget-Weighted Execution Rate'}</div>
+        <div style="font-size: 14px; font-weight: 900; color: #92400e; margin-top: 4px;">${executionRate.toFixed(1)}%</div>
       </div>
       <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; padding: 12px; text-align: center;">
-        <div style="font-size: 10px; color: #9f1239; font-weight: 700;">${isRtl ? 'مخاطر التضخم المتوقعة (YER)' : 'Estimated YER Inflation Risk'}</div>
-        <div style="font-size: 14px; font-weight: 900; color: #be123c; margin-top: 4px;">8.2% (Low)</div>
+        <div style="font-size: 10px; color: #9f1239; font-weight: 700;">${isRtl ? 'مشاريع متجاوزة لتاريخ الإغلاق' : 'Overdue Projects'}</div>
+        <div style="font-size: 14px; font-weight: 900; color: #be123c; margin-top: 4px;">${overdueCount} / ${projects.length}</div>
       </div>
     </div>
   `;
 
+  // ── Real per-program execution table ───────────────────────────────────────
+  const programRows = programs.length > 0
+    ? programs.map((prog: any) => {
+        const progProjects = projects.filter((p: any) => p.program_id === prog.id);
+        const progBudget = progProjects.reduce((s: number, p: any) => s + parseFloat(p.budget || '0'), 0);
+        const progWeighted = progProjects.reduce((s: number, p: any) => s + parseFloat(p.budget || '0') * Math.min(100, Math.max(0, parseFloat(p.progress_percent || '0'))), 0);
+        const avgProgress = progBudget > 0 ? (progWeighted / progBudget) : 0;
+        const statusLabel = avgProgress >= 100
+          ? (isRtl ? 'مكتمل' : 'Completed')
+          : avgProgress >= 60
+            ? (isRtl ? 'على المسار' : 'On Track')
+            : avgProgress >= 25
+              ? (isRtl ? 'يحتاج متابعة' : 'Needs Attention')
+              : (isRtl ? 'متأخر' : 'At Risk');
+        return `
+          <tr>
+            <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: 700;">${isRtl ? (prog.name_ar || prog.name_en || '-') : (prog.name_en || prog.name_ar || '-')}</td>
+            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${progProjects.length}</td>
+            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-family: monospace;">${fmtYER(progBudget)}</td>
+            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: 800;">${avgProgress.toFixed(1)}%</td>
+            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700;">${statusLabel}</td>
+          </tr>`;
+      }).join('')
+    : `<tr><td colspan="5" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'لا توجد برامج مسجلة.' : 'No program records available.'}</td></tr>`;
+
   const detailsHTML = `
     <div style="direction: ${isRtl ? 'rtl' : 'ltr'}; font-family: sans-serif; font-size: 10.5px; line-height: 1.6; margin-bottom: 24px; color: #334155;">
       <h3 style="font-size: 12px; font-weight: 800; color: ${accentColor}; margin-bottom: 12px; border-right: ${isRtl ? `4px solid ${accentColor}` : 'none'}; border-left: ${!isRtl ? `4px solid ${accentColor}` : 'none'}; padding: 0 8px;">
-        ${isRtl ? 'التوقعات والنمذجة الرياضية (Mathematical Forecast Modelling)' : 'Mathematical Forecasting and Cash Projections'}
+        ${isRtl ? 'تحليل تنفيذ المحفظة التشغيلية (من السجل الحي)' : 'Portfolio Execution Analysis (from live register)'}
       </h3>
       <p style="margin-bottom: 12px;">
-        ${isRtl 
-          ? 'بناءً على وتيرة الصرف الحالية المسجلة في قاعدة بيانات Neon PostgreSQL (متوسط Burn Rate يبلغ 84.5%)، تم تشكيل محاكاة إحصائية باستخدام معامل مونت كارلو للتنبؤ بحجم التدفقات النقدية المتاحة خلال الـ 12 شهراً القادمة.' 
-          : 'Based on the current burn rate logged in our database (84.5% on average), a Monte Carlo simulation model has been configured to project cash liquidity across the upcoming 12 months.'}
+        ${isRtl
+          ? `تُحتسب جميع المؤشرات أعلاه مباشرةً من سجل المشاريع والبرامج الفعلي (${projects.length} مشروعاً ضمن ${programs.length} برنامجاً). معدل التنفيذ الموزون يبلغ ${executionRate.toFixed(1)}%، مع موازنة غير منفذة قدرها ${fmtYER(remainingBudget)} YER، و${completedCount} مشروعاً مكتملاً و${overdueCount} مشروعاً متجاوزاً لتاريخ الإغلاق المجدول.`
+          : `All indicators above are computed directly from the actual project and program register (${projects.length} projects across ${programs.length} programs). The budget-weighted execution rate stands at ${executionRate.toFixed(1)}%, with ${fmtYER(remainingBudget)} YER of unexecuted budget, ${completedCount} completed project(s) and ${overdueCount} project(s) past their scheduled closure date.`}
       </p>
-      
+
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; margin-bottom: 16px;">
         <thead>
           <tr style="background-color: #f1f5f9; color: #0f172a; font-weight: 800; font-size: 10px;">
-            <th style="padding: 8px; border: 1px solid #cbd5e1;">${isRtl ? 'الربع المالي' : 'Fiscal Quarter'}</th>
-            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${isRtl ? 'الإيرادات المتوقعة' : 'Projected Inflow'}</th>
-            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${isRtl ? 'المصروفات المتوقعة' : 'Projected Outflow'}</th>
-            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'حالة السيولة والاحتياطي' : 'Reserve Status'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1;">${isRtl ? 'البرنامج التشغيلي' : 'Operational Program'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'المشاريع' : 'Projects'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${isRtl ? 'الموازنة المرصودة (YER)' : 'Allocated Budget (YER)'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'متوسط الإنجاز' : 'Avg Progress'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'الحالة' : 'Status'}</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700;">Q1 2026</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #059669; font-family: monospace; font-weight: 700;">320,000,000 YER</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #dc2626; font-family: monospace; font-weight: 700;">270,000,000 YER</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; color: #166534; font-weight: 800;">${isRtl ? 'آمن وفائض' : 'Secure Surplus'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700;">Q2 2026</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #059669; font-family: monospace; font-weight: 700;">350,000,000 YER</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #dc2626; font-family: monospace; font-weight: 700;">290,000,000 YER</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; color: #166534; font-weight: 800;">${isRtl ? 'آمن وفائض' : 'Secure Surplus'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700;">Q3 2026</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #059669; font-family: monospace; font-weight: 700;">310,000,000 YER</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #dc2626; font-family: monospace; font-weight: 700;">280,000,000 YER</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; color: #166534; font-weight: 800;">${isRtl ? 'آمن وفائض' : 'Secure Surplus'}</td>
-          </tr>
+          ${programRows}
         </tbody>
       </table>
     </div>
@@ -1277,16 +1315,39 @@ export function buildEvaluationReportPDFHTML(options: {
   const lang = options.lang || 'ar';
   const isRtl = lang === 'ar';
   const accentColor = options.accentColor || '#059669';
-  
+
   const headerHTML = getPDFHeaderHTML({
-    title: options.title || (isRtl ? 'تقرير التقييم الاستراتيجي ومؤشرات الأثر الموحدة' : 'Strategic Evaluations & CHS Impact Report'),
-    subtitle: options.subtitle || (isRtl ? 'مطابقة معايير الميثاق الإنساني العالمي وجودة رعاية الأيتام' : 'Global humanitarian standards audit and orphan care quality metrics'),
+    title: options.title || (isRtl ? 'تقرير التقييم الاستراتيجي ومؤشرات الأثر الموحدة' : 'Strategic Evaluation & Impact Report'),
+    subtitle: options.subtitle || (isRtl ? 'تقييم الأداء والوصول المستهدف من السجل الحي للمشاريع' : 'Performance and target-reach evaluation derived from the live project register'),
     lang,
     accentColor,
     orgNameAr: options.orgNameAr,
     orgNameEn: options.orgNameEn,
     classification: 'OFFICIAL'
   });
+
+  // ── Real impact metrics computed from the register ─────────────────────────
+  const projects = safeArray(options.projects);
+  const now = new Date();
+
+  let totalTarget = 0;
+  let totalActual = 0;
+  let completedCount = 0;
+  let atRiskCount = 0;
+
+  projects.forEach((p: any) => {
+    const target = p.target_beneficiaries || 0;
+    const actual = p.actual_beneficiaries || 0;
+    totalTarget += target;
+    totalActual += actual;
+    const progress = parseFloat(p.progress_percent || '0');
+    if (progress >= 100) completedCount++;
+    const overdue = p.end_date && new Date(p.end_date) < now && progress < 100;
+    if (overdue || (p.risk_level === 'HIGH' && progress < 50)) atRiskCount++;
+  });
+
+  const reachRate = totalTarget > 0 ? Math.min(999, (totalActual / totalTarget) * 100) : 0;
+  const completionRate = projects.length > 0 ? (completedCount / projects.length) * 100 : 0;
 
   const summaryHTML = `
     <div style="
@@ -1298,53 +1359,64 @@ export function buildEvaluationReportPDFHTML(options: {
       font-family: sans-serif;
     ">
       <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px; text-align: center;">
-        <div style="font-size: 10px; color: #047857; font-weight: 700;">${isRtl ? 'مؤشر أثر معايير CHS' : 'CHS Impact Index'}</div>
-        <div style="font-size: 16px; font-weight: 900; color: #065f46; margin-top: 4px;">94 / 100</div>
+        <div style="font-size: 10px; color: #047857; font-weight: 700;">${isRtl ? 'نسبة تحقيق الوصول المستهدف' : 'Target Reach Achievement'}</div>
+        <div style="font-size: 16px; font-weight: 900; color: #065f46; margin-top: 4px;">${reachRate.toFixed(1)}%</div>
+        <div style="font-size: 9px; color: #64748b;">${totalActual.toLocaleString()} / ${totalTarget.toLocaleString()}</div>
       </div>
       <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; text-align: center;">
-        <div style="font-size: 10px; color: #1e40af; font-weight: 700;">${isRtl ? 'مطابقة معايير الميثاق (Sphere)' : 'Sphere Compliance'}</div>
-        <div style="font-size: 16px; font-weight: 900; color: #1d4ed8; margin-top: 4px;">98.2%</div>
+        <div style="font-size: 10px; color: #1e40af; font-weight: 700;">${isRtl ? 'نسبة المشاريع المكتملة' : 'Projects Completed'}</div>
+        <div style="font-size: 16px; font-weight: 900; color: #1d4ed8; margin-top: 4px;">${completionRate.toFixed(1)}%</div>
+        <div style="font-size: 9px; color: #64748b;">${completedCount} / ${projects.length}</div>
       </div>
-      <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; text-align: center;">
-        <div style="font-size: 10px; color: #b45309; font-weight: 700;">${isRtl ? 'تحقيق الأهداف الاستراتيجية' : 'Strategic Goal Realization'}</div>
-        <div style="font-size: 16px; font-weight: 900; color: #92400e; margin-top: 4px;">84.5%</div>
+      <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 10px; color: #9f1239; font-weight: 700;">${isRtl ? 'مشاريع تحتاج تدخلاً' : 'Projects Requiring Intervention'}</div>
+        <div style="font-size: 16px; font-weight: 900; color: #be123c; margin-top: 4px;">${atRiskCount}</div>
+        <div style="font-size: 9px; color: #64748b;">${isRtl ? 'متأخر عن الجدول أو عالي المخاطر' : 'overdue or high-risk'}</div>
       </div>
     </div>
   `;
 
+  // ── Real per-project evaluation table (top 25 by budget) ───────────────────
+  const evalRows = [...projects]
+    .sort((a: any, b: any) => parseFloat(b.budget || '0') - parseFloat(a.budget || '0'))
+    .slice(0, 25)
+    .map((p: any) => {
+      const progress = Math.min(100, Math.max(0, parseFloat(p.progress_percent || '0')));
+      const target = p.target_beneficiaries || 0;
+      const actual = p.actual_beneficiaries || 0;
+      const reach = target > 0 ? ((actual / target) * 100).toFixed(0) + '%' : '-';
+      const status = progress >= 100
+        ? (isRtl ? 'مكتمل' : 'Completed')
+        : (p.end_date && new Date(p.end_date) < now)
+          ? (isRtl ? 'متأخر' : 'Overdue')
+          : (isRtl ? 'قيد التنفيذ' : 'In Progress');
+      return `
+          <tr>
+            <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: 700;">${p.code || '-'}</td>
+            <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${(isRtl ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar) || '-').substring(0, 60)}</td>
+            <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace;">${progress}%</td>
+            <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace;">${reach}</td>
+            <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700;">${status}</td>
+          </tr>`;
+    }).join('');
+
   const matrixHTML = `
     <div style="margin-bottom: 24px; direction: ${isRtl ? 'rtl' : 'ltr'}; font-family: sans-serif; font-size: 10px;">
       <h3 style="font-size: 12px; font-weight: 800; color: ${accentColor}; margin-bottom: 12px; border-right: ${isRtl ? `4px solid ${accentColor}` : 'none'}; border-left: ${!isRtl ? `4px solid ${accentColor}` : 'none'}; padding: 0 8px;">
-        ${isRtl ? 'تدقيق مطابقة معايير الميثاق الإنساني العالمي (Sphere Standards)' : 'Sphere Standards Humanitarian Alignment Matrix'}
+        ${isRtl ? 'جدول تقييم أداء المشاريع (الأعلى موازنة)' : 'Project Performance Evaluation Table (Top by Budget)'}
       </h3>
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1;">
         <thead>
           <tr style="background-color: #0f172a; color: #ffffff; font-weight: 800;">
-            <th style="padding: 8px; border: 1px solid #cbd5e1;">${isRtl ? 'المعيار الإنساني' : 'Sphere Standard'}</th>
-            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'النسبة المستهدفة' : 'Target Metric'}</th>
-            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'الأداء الفعلي' : 'Actual Achieved'}</th>
-            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'حالة التقييم' : 'Evaluation Status'}</th>
+            <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">${isRtl ? 'الرمز' : 'Code'}</th>
+            <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">${isRtl ? 'المشروع' : 'Project'}</th>
+            <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'الإنجاز' : 'Progress'}</th>
+            <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'الوصول' : 'Reach'}</th>
+            <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'الحالة' : 'Status'}</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: 700;">${isRtl ? 'الإمداد بالماء الصالح للشرب' : 'Water Supply (WASH)'}</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace;">15 L / Person / Day</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace; font-weight: 700; color: #059669;">16.5 L / Person / Day</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; color: #166534; font-weight: 800;">${isRtl ? 'ممتاز' : 'Exceeded'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: 700;">${isRtl ? 'الرعاية الصحية للأيتام' : 'Healthcare & Nutrition'}</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace;">100% Diagnostic Coverage</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace; font-weight: 700; color: #059669;">98.2% Diagnostics Done</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; color: #166534; font-weight: 800;">${isRtl ? 'مستوفي' : 'Compliant'}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: 700;">${isRtl ? 'آلية الشكاوى والمسؤولية' : 'Feedback & Complaints'}</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace;">Response within 7 Days</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace; font-weight: 700; color: #dc2626;">Response in 8.5 Days</td>
-            <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; color: #b45309; font-weight: 800;">${isRtl ? 'يحتاج تحسين' : 'Needs Optimization'}</td>
-          </tr>
+          ${evalRows || `<tr><td colspan="5" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'لا توجد مشاريع مسجلة.' : 'No project records available.'}</td></tr>`}
         </tbody>
       </table>
     </div>
@@ -1400,25 +1472,67 @@ export function buildInterconnectedReportPDFHTML(options: {
     classification: 'OFFICIAL'
   });
 
+  // ── Real cross-domain figures from the live register ───────────────────────
+  const projects = safeArray(options.projects);
+  const programs = safeArray(options.programs);
+  const now = new Date();
+
+  let totalBudget = 0;
+  const programAgg = new Map<string, { name: string; budget: number; count: number; weighted: number }>();
+  programs.forEach((prog: any) => {
+    programAgg.set(prog.id, { name: isRtl ? (prog.name_ar || prog.name_en) : (prog.name_en || prog.name_ar), budget: 0, count: 0, weighted: 0 });
+  });
+  let overdueBudget = 0;
+  projects.forEach((p: any) => {
+    const budget = parseFloat(p.budget || '0');
+    const progress = Math.min(100, Math.max(0, parseFloat(p.progress_percent || '0')));
+    totalBudget += budget;
+    const agg = programAgg.get(p.program_id);
+    if (agg) { agg.budget += budget; agg.count += 1; agg.weighted += budget * progress; }
+    if (p.end_date && new Date(p.end_date) < now && progress < 100) overdueBudget += budget;
+  });
+
+  const topPrograms = Array.from(programAgg.values())
+    .filter(a => a.count > 0)
+    .sort((a, b) => b.budget - a.budget)
+    .slice(0, 5);
+  const concentration = totalBudget > 0
+    ? (topPrograms.reduce((s, a) => s + a.budget, 0) / totalBudget * 100).toFixed(1)
+    : '0.0';
+  const overdueShare = totalBudget > 0 ? ((overdueBudget / totalBudget) * 100).toFixed(1) : '0.0';
+
   const detailsHTML = `
     <div style="direction: ${isRtl ? 'rtl' : 'ltr'}; font-family: sans-serif; font-size: 10.5px; line-height: 1.6; margin-bottom: 24px; color: #334155;">
       <h3 style="font-size: 12px; font-weight: 800; color: ${accentColor}; margin-bottom: 12px; border-right: ${isRtl ? `4px solid ${accentColor}` : 'none'}; border-left: ${!isRtl ? `4px solid ${accentColor}` : 'none'}; padding: 0 8px;">
         ${isRtl ? 'مؤشرات الترابط والتحليلات المتداخلة' : 'Interconnectivity and Multi-Dimensional Metrics'}
       </h3>
       <p style="margin-bottom: 12px;">
-        ${isRtl 
-          ? 'يسجل التقرير مدى الارتباط التبادلي بين مخصصات الميزانيات المعتمدة ونتائج الأثر الفعلي على حياة الفئات المستفيدة ومستويات الاستقرار المالي للمؤسسة.' 
-          : 'This report outlines cross-dimensional indices correlating authorized budget lines with actual beneficiary impact and institutional financial health metrics.'}
+        ${isRtl
+          ? `تُحتسب جميع المؤشرات أدناه مباشرةً من سجل المشاريع (${projects.length} مشروعاً ضمن ${programs.length} برنامجاً). تتركز ${(topPrograms.reduce((s, a) => s + a.budget, 0) / 1000000).toFixed(1)}M YER من الموازنة في أكبر ${topPrograms.length} برامج بنسبة تركّز ${concentration}%، بينما تمثل المشاريع المتأخرة عن جدولها الزمني ${overdueShare}% من إجمالي الموازنات المرصودة.`
+          : `All metrics below are computed directly from the project register (${projects.length} projects across ${programs.length} programs). The top ${topPrograms.length} programs concentrate ${(topPrograms.reduce((s, a) => s + a.budget, 0) / 1000000).toFixed(1)}M YER of budget (${concentration}% concentration), while schedule-overdue projects represent ${overdueShare}% of total allocated budgets.`}
       </p>
-      
-      <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 10px; font-weight: 600; line-height: 1.7;">
-        <strong style="color: ${accentColor};">${isRtl ? 'أبرز الروابط المتكاملة المكتشفة:' : 'Primary Detected Interconnections:'}</strong>
-        <ol style="margin-top: 6px; padding-right: 20px; padding-left: 20px;">
-          <li>${isRtl ? 'ارتباط بنسبة 91% بين سرعة تسوية دفعات الموردين (NEB-14) ونسب إنجاز الأنشطة الميدانية (NEB-05).' : '91% correlation between vendor payment cycle efficiency (NEB-14) and project task completion rates (NEB-05).'}</li>
-          <li>${isRtl ? 'معامل ارتباط إيجابي (+0.84) يثبت تأثير توفير مصادر المياه النظيفة على استدامة خدمات الرعاية الصحية والغذائية للمستفيدين.' : 'Positive correlation coefficient (+0.84) showing the direct positive impact of WASH projects on community health indices.'}</li>
-          <li>${isRtl ? 'كفاءة ربط دفتر الأستاذ العام (NEB-10) مع الموازنات التقديرية يقلل انحرافات الصرف الطارئة بنسبة 14.8%.' : 'IPSAS double-entry reconciliation (NEB-10) reduces budget leakage and variance by 14.8%.'}</li>
-        </ol>
-      </div>
+
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 10px;">
+        <thead>
+          <tr style="background-color: #f1f5f9; color: #0f172a; font-weight: 800;">
+            <th style="padding: 8px; border: 1px solid #cbd5e1;">${isRtl ? 'البرنامج' : 'Program'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'المشاريع' : 'Projects'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${isRtl ? 'الموازنة (YER)' : 'Budget (YER)'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'الإنجاز الموزون' : 'Weighted Progress'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'حصة المحفظة' : 'Portfolio Share'}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${topPrograms.map(a => `
+            <tr>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: 700;">${a.name || '-'}</td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center;">${a.count}</td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: right; font-family: monospace;">${a.budget.toLocaleString('en-US', { maximumFractionDigits: 0 })}</td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700;">${a.budget > 0 ? (a.weighted / a.budget).toFixed(1) : '0.0'}%</td>
+              <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center;">${totalBudget > 0 ? ((a.budget / totalBudget) * 100).toFixed(1) : '0.0'}%</td>
+            </tr>`).join('') || `<tr><td colspan="5" style="padding: 12px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'لا توجد بيانات برامج مرتبطة.' : 'No linked program data.'}</td></tr>`}
+        </tbody>
+      </table>
     </div>
   `;
 
@@ -1462,24 +1576,13 @@ export function buildStrategyReportPDFHTML(options: {
   const accentColor = options.accentColor || '#059669';
   const plans = safeArray(options.plans);
   const goals = safeArray(options.goals);
-  
-  const activePlan = plans[0] || {
-    plan_code: 'STR-2026',
-    title_ar: 'الخطة الاستراتيجية الخمسية لجمعية رُحماء بينهم',
-    title_en: 'Rohama\'a Baynahum 5-Year Strategic Plan',
-    start_year: 2026,
-    end_year: 2031,
-    vision_ar: 'الريادة والتميز في العمل الإنساني والتمكين الاجتماعي المستدام.',
-    vision_en: 'Pioneering excellence in humanitarian action and sustainable social empowerment.',
-    mission_ar: 'تقديم خدمات إنسانية وتنموية مبتكرة ومتميزة للفئات الأكثر احتياجاً وفق حوكمة رشيدة وشراكات فاعلة.',
-    mission_en: 'Providing innovative and high-quality humanitarian and development services to high-need groups under sound governance and partnerships.',
-    overall_progress_pct: 0,
-    total_estimated_budget_yer: 1200000000
-  };
+  const activePlan = plans[0];
 
   const headerHTML = getPDFHeaderHTML({
     title: options.title || (isRtl ? 'وثيقة الخطة الاستراتيجية المعتمدة' : 'Official Strategic Plan Document'),
-    subtitle: options.subtitle || (isRtl ? `الفترة الزمنية للرؤية: ${activePlan.start_year} - ${activePlan.end_year}` : `Vision Period: ${activePlan.start_year} - ${activePlan.end_year}`),
+    subtitle: options.subtitle || (activePlan
+      ? (isRtl ? `الفترة الزمنية للرؤية: ${activePlan.start_year} - ${activePlan.end_year}` : `Vision Period: ${activePlan.start_year} - ${activePlan.end_year}`)
+      : (isRtl ? 'لا توجد خطة استراتيجية مسجلة بعد' : 'No strategic plan registered yet')),
     lang,
     accentColor,
     orgNameAr: options.orgNameAr,
@@ -1487,7 +1590,7 @@ export function buildStrategyReportPDFHTML(options: {
     classification: 'OFFICIAL'
   });
 
-  const bodyHTML = `
+  const bodyHTML = activePlan ? `
     <div style="direction: ${isRtl ? 'rtl' : 'ltr'}; font-family: sans-serif; font-size: 11px; color: #1e293b; line-height: 1.6;">
       <!-- Vision & Mission -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
@@ -1509,7 +1612,7 @@ export function buildStrategyReportPDFHTML(options: {
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
           <div>
             <span style="font-size: 9.5px; color: #64748b; font-weight: 700;">${isRtl ? 'الموازنة التقديرية الكلية' : 'Estimated Strategic Budget'}</span>
-            <div style="font-size: 13px; font-weight: 900; color: #0f172a; margin-top: 4px;">${parseFloat(activePlan.total_estimated_budget_yer || '1200000000').toLocaleString()} YER</div>
+            <div style="font-size: 13px; font-weight: 900; color: #0f172a; margin-top: 4px;">${parseFloat(activePlan.total_estimated_budget_yer || '0').toLocaleString()} YER</div>
           </div>
           <div>
             <span style="font-size: 9.5px; color: #64748b; font-weight: 700;">${isRtl ? 'معدل التقدم العام' : 'Overall Progress Rate'}</span>
@@ -1517,7 +1620,7 @@ export function buildStrategyReportPDFHTML(options: {
           </div>
           <div>
             <span style="font-size: 9.5px; color: #64748b; font-weight: 700;">${isRtl ? 'حالة الرؤية الاستراتيجية' : 'Strategic Plan Status'}</span>
-            <div style="font-size: 13px; font-weight: 900; color: #d97706; margin-top: 4px;">${isRtl ? 'نشطة ومعتمدة' : 'Active Approved'}</div>
+            <div style="font-size: 13px; font-weight: 900; color: #d97706; margin-top: 4px;">${activePlan.status_code || activePlan.status || '-'}</div>
           </div>
         </div>
       </div>
@@ -1554,6 +1657,11 @@ export function buildStrategyReportPDFHTML(options: {
           </table>
         `}
       </div>
+    </div>
+  ` : `
+    <div style="direction: ${isRtl ? 'rtl' : 'ltr'}; font-family: sans-serif; font-size: 11px; color: #334155; text-align: center; padding: 32px 12px;">
+      <p style="font-weight: 800; color: #0f172a;">${isRtl ? 'لا توجد خطة استراتيجية مسجلة في النظام بعد.' : 'No strategic plan has been registered in the system yet.'}</p>
+      <p style="color: #64748b; font-size: 10px;">${isRtl ? 'يُنشأ هذا المستند تلقائياً فور اعتماد خطة عبر وحدة الاستراتيجية والأداء (NEB-01).' : 'This document is generated automatically once a plan is approved via the Strategy & Performance domain (NEB-01).'}</p>
     </div>
   `;
 

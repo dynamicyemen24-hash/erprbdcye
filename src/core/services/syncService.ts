@@ -17,6 +17,8 @@ export interface SyncStatus {
 class OfflineSyncManager {
   private queueKey = 'nexora_offline_sync_queue';
   private syncing = false;
+  private cachedQueue: any[] | null = null;
+  private isDirty = false;
   private listeners: ((status: SyncStatus) => void)[] = [];
 
   constructor() {
@@ -38,17 +40,23 @@ class OfflineSyncManager {
     return true;
   }
 
-  getQueue(): OfflineTask[] {
+  getQueue(): any[] {
+    if (this.cachedQueue !== null) return this.cachedQueue;
     try {
-      const q = localStorage.getItem(this.queueKey);
-      return q ? JSON.parse(q) : [];
-    } catch (e) {
-      return [];
+      const stored = localStorage.getItem(this.queueKey);
+      this.cachedQueue = stored ? JSON.parse(stored) : [];
+    } catch {
+      this.cachedQueue = [];
     }
+    return this.cachedQueue;
   }
 
-  saveQueue(q: OfflineTask[]) {
-    localStorage.setItem(this.queueKey, JSON.stringify(q));
+  saveQueue(q: any[]) {
+    this.cachedQueue = q;
+    this.isDirty = true;
+    try {
+      localStorage.setItem(this.queueKey, JSON.stringify(q));
+    } catch {}
     this.notify();
   }
 
@@ -56,7 +64,7 @@ class OfflineSyncManager {
     const q = this.getQueue();
     q.push({
       ...task,
-      id: Math.random().toString(36).substring(2, 9),
+      id: crypto.randomUUID(),
       timestamp: Date.now()
     });
     this.saveQueue(q);

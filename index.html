@@ -34,6 +34,8 @@
     <!-- Icons & Favicon -->
     <link rel="icon" type="image/png" href="/LogoRohamaab.png" />
     <link rel="apple-touch-icon" href="/LogoRohamaab.png" />
+    <!-- Preload brand logo: primary LCP element of the login gateway -->
+    <link rel="preload" as="image" href="/LogoRohamaab.png" fetchpriority="high" />
 
     <!-- Typography & External Styles (non-blocking) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -42,7 +44,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /></noscript>
   </head>
-  <body class="bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 antialiased overflow-x-hidden select-none sm:select-auto">
+  <body class="bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 antialiased overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -75,6 +75,9 @@ import {
   PartnershipTranche
 } from '../types';
 import { printElement } from '../lib/printUtils';
+import { escapeHtml } from '../lib/htmlSanitizer';
+import { generateId, generateShortId, generateNumericCode } from '../lib/idGenerator';
+import { PolicyButton } from '../core/security/PermissionGate';
 
 interface ContractManagementViewProps {
   lang?: 'ar' | 'en';
@@ -99,6 +102,10 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
   // ==================== DATA STATE (API-DRIVEN) ====================
   const [loading, setLoading] = useState(true);
 
+  // ==================== PERMISSION / SECURITY STATE ====================
+  const [securityLevel] = useState(3);
+  const [userRole] = useState('admin');
+
   // ==================== PARTNERSHIP & DONORS OS STATE (NEB-08) ====================
   const [partnerships, setPartnerships] = useState<PartnershipRecord[]>([]);
 
@@ -114,7 +121,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
   // New Partnership Form State
   const [newPartnershipForm, setNewPartnershipForm] = useState({
-    partnershipCode: `PRT-2026-NEW-${Math.floor(100 + Math.random() * 900)}`,
+    partnershipCode: `PRT-2026-NEW-${generateNumericCode(100, 999)}`,
     titleAr: '',
     titleEn: '',
     partnerNameAr: '',
@@ -179,8 +186,8 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
   // New PO Form State
   const [newPoForm, setNewPoForm] = useState({
-    poNumber: `PO-YEM-2026-${Math.floor(100 + Math.random() * 900)}`,
-    requisitionRef: `PR-YEM-2026-${Math.floor(100 + Math.random() * 900)}`,
+    poNumber: `PO-YEM-2026-${generateNumericCode(100, 999)}`,
+    requisitionRef: `PR-YEM-2026-${generateNumericCode(100, 999)}`,
     vendorNameAr: '',
     projectId: '',
     wbsActivityId: 'ACT-MAR-101',
@@ -191,7 +198,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
   // New Sales Invoice Form State
   const [newInvoiceForm, setNewInvoiceForm] = useState({
-    invoiceCode: `INV-SLS-2026-${Math.floor(100 + Math.random() * 900)}`,
+    invoiceCode: `INV-SLS-2026-${generateNumericCode(100, 999)}`,
     clientOrDonorNameAr: '',
     invoiceType: 'DONOR_PLEDGE' as any,
     projectId: '',
@@ -203,7 +210,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
   // New Contract Form State
   const [newContractForm, setNewContractForm] = useState({
-    contractCode: `CNT-2026-${Math.floor(100 + Math.random() * 900)}`,
+    contractCode: `CNT-2026-${generateNumericCode(100, 999)}`,
     titleAr: '',
     titleEn: '',
     vendorNameAr: '',
@@ -217,7 +224,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
     endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     renewalAlertDays: 30,
     autoRenew: false,
-    procurementPoRef: `PO-YEM-2026-${Math.floor(100 + Math.random() * 900)}`,
+    procurementPoRef: `PO-YEM-2026-${generateNumericCode(100, 999)}`,
     notes: ''
   });
 
@@ -359,7 +366,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               ...t,
               disbursementStatus: 'DISBURSED' as const,
               conditionsCleared: true,
-              disbursementRef: `TR-DISB-${Math.floor(100 + Math.random() * 900)}`
+              disbursementRef: `TR-DISB-${generateNumericCode(100, 999)}`
             };
           }
           return t;
@@ -417,27 +424,28 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
   };
 
   const handlePrintPartnershipCertificate = (prt: PartnershipRecord) => {
+    const e = escapeHtml;
     const printContainer = document.createElement('div');
     printContainer.id = 'printable-partnership-doc';
     printContainer.className = 'hidden';
     printContainer.innerHTML = `
       <div style="font-family: sans-serif; direction: rtl; padding: 30px; background: #fff; color: #0f172a;">
         <div style="text-align: center; border-bottom: 3px double #059669; padding-bottom: 15px; margin-bottom: 25px;">
-          <h1 style="color: #059669; font-size: 20px; font-weight: 900; margin: 0 0 5px 0;">${localStorage.getItem('rbd_org_name') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية'}</h1>
+          <h1 style="color: #059669; font-size: 20px; font-weight: 900; margin: 0 0 5px 0;">${e(localStorage.getItem('rbd_org_name') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية')}</h1>
           <h2 style="color: #d97706; font-size: 16px; font-weight: 800; margin: 0 0 10px 0;">نظام التشغيل المؤسسي NexoraOS™ - إدارة الشراكات والتمويل المؤسسي</h2>
           <div style="font-size: 14px; font-weight: bold; color: #334155;">وثيقة اتفاقية شراكة رسمية معتمدة</div>
-          <div style="font-family: monospace; font-size: 12px; color: #64748b; margin-top: 5px;">كود الشراكة: ${prt.partnershipCode} | معيار IATI: ${prt.iatiActivityId || 'N/A'}</div>
+          <div style="font-family: monospace; font-size: 12px; color: #64748b; margin-top: 5px;">كود الشراكة: ${e(prt.partnershipCode)} | معيار IATI: ${e(prt.iatiActivityId || 'N/A')}</div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12px;">
-          <div><strong>عنوان الشراكة:</strong> ${prt.titleAr}</div>
-          <div><strong>الجهة الشريكة:</strong> ${prt.partnerNameAr}</div>
-          <div><strong>نوع الشريحة والجهة:</strong> ${prt.partnerType}</div>
-          <div><strong>شكل الاتفاقية:</strong> ${prt.agreementType}</div>
-          <div><strong>المبلغ الإجمالي للمنحة:</strong> ${prt.totalGrantYer.toLocaleString()} YER ($${prt.totalGrantUsd.toLocaleString()} USD)</div>
-          <div><strong>التمويل المقابل (Co-Funding):</strong> ${prt.matchFundingYer.toLocaleString()} YER (${prt.matchFundingPercent}%)</div>
-          <div><strong>مستوى التقييم المؤسسي PCA:</strong> ${prt.pcaScore}% (مستوى أمان مرتفع)</div>
-          <div><strong>تاريخ السريان والانتهاء:</strong> من ${prt.startDate} إلى ${prt.endDate}</div>
+          <div><strong>عنوان الشراكة:</strong> ${e(prt.titleAr)}</div>
+          <div><strong>الجهة الشريكة:</strong> ${e(prt.partnerNameAr)}</div>
+          <div><strong>نوع الشريحة والجهة:</strong> ${e(prt.partnerType)}</div>
+          <div><strong>شكل الاتفاقية:</strong> ${e(prt.agreementType)}</div>
+          <div><strong>المبلغ الإجمالي للمنحة:</strong> ${e(prt.totalGrantYer.toLocaleString())} YER ($${e(prt.totalGrantUsd.toLocaleString())} USD)</div>
+          <div><strong>التمويل المقابل (Co-Funding):</strong> ${e(prt.matchFundingYer.toLocaleString())} YER (${e(String(prt.matchFundingPercent))}%)</div>
+          <div><strong>مستوى التقييم المؤسسي PCA:</strong> ${e(String(prt.pcaScore))}% (مستوى أمان مرتفع)</div>
+          <div><strong>تاريخ السريان والانتهاء:</strong> من ${e(prt.startDate)} إلى ${e(prt.endDate)}</div>
         </div>
 
         <h3 style="color: #059669; font-size: 14px; font-weight: bold; margin-bottom: 8px;">جدول الدفعات والاقساط التمويلية (Tranches Schedule)</h3>
@@ -454,10 +462,10 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           <tbody>
             ${prt.tranches.map(t => `
               <tr style="text-align: center;">
-                <td style="padding: 6px; border: 1px solid #cbd5e1;">الدفعة ${t.trancheNo}</td>
-                <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">${t.titleAr}</td>
-                <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">${t.amountYer.toLocaleString()}</td>
-                <td style="padding: 6px; border: 1px solid #cbd5e1;">${t.dueDate}</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1;">الدفعة ${e(String(t.trancheNo))}</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">${e(t.titleAr)}</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">${e(t.amountYer.toLocaleString())}</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1;">${e(t.dueDate)}</td>
                 <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; color: ${t.disbursementStatus === 'DISBURSED' ? '#059669' : '#d97706'};">
                   ${t.disbursementStatus === 'DISBURSED' ? 'تم الصرف والإيداع' : 'قيد المراجعة والمطابقة'}
                 </td>
@@ -468,7 +476,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
         <div style="margin-bottom: 20px; font-size: 11px;">
           <strong>معايير الإمتثال والشفافية المعتمدة:</strong>
-          <div style="margin-top: 5px; color: #475569;">${prt.complianceStandards.join(' • ')}</div>
+          <div style="margin-top: 5px; color: #475569;">${e(prt.complianceStandards.join(' • '))}</div>
         </div>
 
         <div style="display: flex; justify-content: space-between; margin-top: 50px; text-align: center; font-size: 12px; font-weight: bold;">
@@ -1364,6 +1372,31 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
       {activeSubTab === 'contracts' && (
         <div className="space-y-4">
           
+          {/* Contracts Control Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <div>
+              <h3 className="font-extrabold text-sm text-slate-800 dark:text-zinc-100">
+                {isRtl ? 'عقود الموردين والمقاولين والخدمات' : 'Vendor, Contractor & Service Agreements'}
+              </h3>
+              <p className="text-xs text-slate-500">
+                {isRtl ? 'إدارة دورة حياة العقود من الإبرام إلى التجديد أو الإنهاء مع ربط أوامر الشراء وال值 budgets المعتمدة.' : 'Full contract lifecycle from signing to renewal or closure, linked to POs and approved budgets.'}
+              </p>
+            </div>
+
+            <PolicyButton
+              action="create"
+              domain="contracts"
+              securityLevel={securityLevel}
+              userRole={userRole}
+              actionLabel={isRtl ? 'إضافة عقد' : 'Add Contract'}
+              onClick={() => setIsNewContractModalOpen(true)}
+              className="px-3 py-2 bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{isRtl ? 'إضافة عقد جديد' : 'Add New Contract'}</span>
+            </PolicyButton>
+          </div>
+
           {/* Contracts List / Matrix */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {contracts.length === 0 && !loading && (
@@ -1459,33 +1492,166 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedContractForDetails(contract);
-                        setIsDetailsDrawerOpen(true);
-                      }}
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{isRtl ? 'تفاصيل العقد والمرفقات' : 'Contract Details'}</span>
-                    </button>
+                  <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <PolicyButton
+                        action="read"
+                        domain="contracts"
+                        securityLevel={securityLevel}
+                        userRole={userRole}
+                        actionLabel={isRtl ? 'عرض العقد' : 'View Contract'}
+                        onClick={() => {
+                          setSelectedContractForDetails(contract);
+                          setIsDetailsDrawerOpen(true);
+                        }}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-slate-500" />
+                        <span>{isRtl ? 'تفاصيل' : 'Details'}</span>
+                      </PolicyButton>
 
-                    <button
-                      onClick={() => {
-                        setSelectedContractForRenewal(contract);
-                        setRenewalForm({
-                          newEndDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                          additionalValueYer: '0',
-                          amendmentNotes: ''
-                        });
-                        setIsRenewalModalOpen(true);
-                      }}
-                      className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>{isRtl ? 'تجديد العقد' : 'Renew Agreement'}</span>
-                    </button>
+                      <PolicyButton
+                        action="update"
+                        domain="contracts"
+                        securityLevel={securityLevel}
+                        userRole={userRole}
+                        actionLabel={isRtl ? 'تعديل العقد' : 'Edit Contract'}
+                        onClick={() => {
+                          setSelectedContractForDetails(contract);
+                          setIsDetailsDrawerOpen(true);
+                        }}
+                        className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>{isRtl ? 'تعديل' : 'Edit'}</span>
+                      </PolicyButton>
+
+                      <PolicyButton
+                        action="delete"
+                        domain="contracts"
+                        securityLevel={securityLevel}
+                        userRole={userRole}
+                        actionLabel={isRtl ? 'حذف العقد' : 'Delete Contract'}
+                        onClick={() => {
+                          if (window.confirm(isRtl ? 'هل أنت متأكد من حذف هذا العقد؟' : 'Are you sure you want to delete this contract?')) {
+                            setContracts(prev => prev.filter(c => c.id !== contract.id));
+                          }
+                        }}
+                        className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{isRtl ? 'حذف' : 'Delete'}</span>
+                      </PolicyButton>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <PolicyButton
+                        action="approve"
+                        domain="contracts"
+                        securityLevel={securityLevel}
+                        userRole={userRole}
+                        actionLabel={isRtl ? 'اعتماد العقد' : 'Approve Contract'}
+                        onClick={() => {
+                          setContracts(prev => prev.map(c => c.id === contract.id ? { ...c, status: 'ACTIVE' } : c));
+                        }}
+                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{isRtl ? 'اعتماد' : 'Approve'}</span>
+                      </PolicyButton>
+
+                      <PolicyButton
+                        action="print"
+                        domain="contracts"
+                        securityLevel={securityLevel}
+                        userRole={userRole}
+                        actionLabel={isRtl ? 'طباعة العقد' : 'Print Contract'}
+                        onClick={() => {
+                          const e = escapeHtml;
+                          const container = document.createElement('div');
+                          container.id = 'printable-contract-doc';
+                          container.className = 'hidden';
+                          container.innerHTML = `
+                            <div style="font-family: sans-serif; direction: rtl; padding: 30px; background: #fff; color: #0f172a;">
+                              <div style="text-align: center; border-bottom: 3px double #d97706; padding-bottom: 15px; margin-bottom: 25px;">
+                                <h1 style="color: #059669; font-size: 20px; font-weight: 900; margin: 0 0 5px 0;">${e(localStorage.getItem('rbd_org_name') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية')}</h1>
+                                <h2 style="color: #d97706; font-size: 16px; font-weight: 800; margin: 0 0 10px 0;">نظام التشغيل المؤسسي NexoraOS™ - إدارة عقود الموردين والمقاولين</h2>
+                                <div style="font-size: 14px; font-weight: bold; color: #334155;">وثيقة عقد رسمية معتمدة</div>
+                                <div style="font-family: monospace; font-size: 12px; color: #64748b; margin-top: 5px;">كود العقد: ${e(contract.contractCode)} | النوع: ${e(contract.contractType)}</div>
+                              </div>
+                              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12px;">
+                                <div><strong>عنوان العقد:</strong> ${e(contract.titleAr)}</div>
+                                <div><strong>المورد / المقاول:</strong> ${e(contract.vendorNameAr)}</div>
+                                <div><strong>قيمة العقد الإجمالية:</strong> ${e(contract.totalValueYer.toLocaleString())} YER</div>
+                                <div><strong>المبلغ المدفوع:</strong> ${e(contract.paidValueYer.toLocaleString())} YER</div>
+                                <div><strong>تاريخ البداية:</strong> ${e(contract.startDate)}</div>
+                                <div><strong>تاريخ الانتهاء:</strong> ${e(contract.endDate)}</div>
+                                <div><strong>رقم أمر الشراء المرتبط:</strong> ${e(contract.procurementPoRef)}</div>
+                                <div><strong>حالة العقد:</strong> ${e(contract.status)}</div>
+                              </div>
+                              <div style="display: flex; justify-content: space-between; margin-top: 50px; text-align: center; font-size: 12px; font-weight: bold;">
+                                <div>
+                                  <div>المورد / المقاول</div>
+                                  <div style="margin-top: 40px; color: #64748b;">التوقيع والختم</div>
+                                </div>
+                                <div>
+                                  <div>جمعية رُحماء بينهم</div>
+                                  <div style="margin-top: 40px; color: #059669;">المسؤول المعني</div>
+                                </div>
+                              </div>
+                            </div>
+                          `;
+                          document.body.appendChild(container);
+                          printElement('printable-contract-doc');
+                          setTimeout(() => { document.body.removeChild(container); }, 1000);
+                        }}
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-violet-600" />
+                        <span>{isRtl ? 'طباعة' : 'Print'}</span>
+                      </PolicyButton>
+
+                      <PolicyButton
+                        action="share"
+                        domain="contracts"
+                        securityLevel={securityLevel}
+                        userRole={userRole}
+                        actionLabel={isRtl ? 'مشاركة العقد' : 'Share Contract'}
+                        onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({ title: contract.titleAr, text: `${contract.contractCode} - ${contract.titleAr}` });
+                          } else {
+                            navigator.clipboard.writeText(`${contract.contractCode} - ${contract.titleAr}`);
+                            alert(isRtl ? 'تم نسخ بيانات العقد' : 'Contract details copied');
+                          }
+                        }}
+                        className="px-3 py-1.5 bg-violet-50 text-violet-700 hover:bg-violet-600 hover:text-white border border-violet-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{isRtl ? 'مشاركة' : 'Share'}</span>
+                      </PolicyButton>
+
+                      <PolicyButton
+                        action="update"
+                        domain="contracts"
+                        securityLevel={securityLevel}
+                        userRole={userRole}
+                        actionLabel={isRtl ? 'تجديد العقد' : 'Renew Contract'}
+                        onClick={() => {
+                          setSelectedContractForRenewal(contract);
+                          setRenewalForm({
+                            newEndDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            additionalValueYer: '0',
+                            amendmentNotes: ''
+                          });
+                          setIsRenewalModalOpen(true);
+                        }}
+                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>{isRtl ? 'تجديد' : 'Renew'}</span>
+                      </PolicyButton>
+                    </div>
                   </div>
 
                 </div>

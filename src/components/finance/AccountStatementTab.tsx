@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Printer, Calendar, RefreshCw, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { Account, Transaction, TransactionLine } from './FinanceTypes';
-import { printHTML } from '../../lib/printUtils';
+import { printHTML, createPrintDocument } from '../../lib/printUtils';
 
 interface AccountStatementTabProps {
   accounts: Account[];
@@ -100,28 +100,8 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
   const handlePrint = () => {
     if (!selectedAcc) return;
 
-    let printWindow: any = null;
-    try {
-      printWindow = window.open('', '_blank');
-    } catch (e) { console.error('[AccountStatement] Failed to open print window:', e); }
-
-    let writtenHTML = '';
-    const mockDoc = {
-      write: (html: string) => {
-        if (printWindow) {
-          printWindow.document.write(html);
-        } else {
-          writtenHTML += html;
-        }
-      },
-      close: () => {
-        if (printWindow) {
-          printWindow.document.close();
-        } else {
-          printHTML(writtenHTML);
-        }
-      }
-    };
+    // Resilient print writer — popup window when allowed, sandbox-safe iframe fallback
+    const printDoc = createPrintDocument();
 
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     const rowsHTML = statementRows.map((row, idx) => `
@@ -136,7 +116,7 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
       </tr>
     `).join('');
 
-    mockDoc.write(`
+    printDoc.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">
       <head>
@@ -248,7 +228,7 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
       </body>
       </html>
     `);
-    mockDoc.close();
+    printDoc.close();
   };
 
   return (

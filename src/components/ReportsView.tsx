@@ -70,6 +70,7 @@ import { Program, Currency } from '../types';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 import { printHTML } from '../lib/printUtils';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { ErrorBoundary } from '../app/components/ErrorBoundary';
 
 interface ReportsViewProps {
   programs: Program[];
@@ -260,6 +261,25 @@ export default function ReportsView({
     return projects.reduce((sum, p) => sum + parseFloat(p.budget || '0'), 0);
   }, [projects]);
 
+  // REAL portfolio indicators — computed from live records only (no fabricated forecasts)
+  const completedProjectsCount = useMemo(
+    () => projects.filter(p => parseFloat(p.progress_percent || '0') >= 100).length,
+    [projects]
+  );
+  const topProgramBudgetShare = useMemo(() => {
+    if (programs.length === 0 || totalProgramsBudget <= 0) return 0;
+    const maxBudget = Math.max(...programs.map(p => parseFloat(p.budget || '0')));
+    return Math.round((maxBudget / totalProgramsBudget) * 100);
+  }, [programs, totalProgramsBudget]);
+  const sponsorshipRate = useMemo(
+    () => (beneficiaries.length > 0 ? Math.round((sponsorships.length / beneficiaries.length) * 100) : 0),
+    [beneficiaries.length, sponsorships.length]
+  );
+  const projectsDataCompleteness = useMemo(
+    () => (projects.length > 0 ? Math.round((projects.filter(p => parseFloat(p.progress_percent || '0') > 0).length / projects.length) * 100) : 0),
+    [projects]
+  );
+
   const primaryCurrency = currencies[0]?.code || 'YER';
 
   // Currency collection map
@@ -289,69 +309,37 @@ export default function ReportsView({
 
   // Interconnected Program -> Project -> Activities -> Beneficiaries tree
   const interconnectedTree = useMemo(() => {
-    return filteredPrograms.map((prog, pIdx) => {
-      const progProjects = filteredProjects.filter(prj => String(prj.program_id) === String(prog.id) || pIdx % 2 === 0);
+    return filteredPrograms.map((prog) => {
+      // STRICT DB linkage only — projects are never assigned by index heuristics
+      const progProjects = filteredProjects.filter(prj => String(prj.program_id) === String(prog.id));
       const totalProgProjBudget = progProjects.reduce((s, prj) => s + parseFloat(prj.budget || '0'), 0);
-      
+
       return {
         program: prog,
-        projects: progProjects.map((prj, prjIdx) => {
-          // Get actual activities from database for this project
+        projects: progProjects.map((prj) => {
+          // REAL WBS activities from database — no synthetic packages
           const actualActivities = activities.filter(act => act.project_id === prj.id);
-          
-          const prjActivities = actualActivities.length > 0
-            ? actualActivities.map(act => ({
-                code: act.activity_code || `WBS-ACT-${act.id.slice(0,4).toUpperCase()}`,
-                title: lang === 'ar' ? act.name_ar : act.name_en,
-                progress: act.metadata?.tasks
-                  ? Math.round((act.metadata.tasks.filter((t: any) => t.completed).length / act.metadata.tasks.length) * 100)
-                  : 50,
-                budget: parseFloat(act.budget || '0') || Math.round(parseFloat(prj.budget || '0') * 0.25),
-                status: act.status_code || (lang === 'ar' ? 'يوم' : 'Active'),
-                gps: act.metadata?.gps_coordinates,
-                photo: act.metadata?.photo_evidence,
-                tasks: act.metadata?.tasks || []
-              }))
-            : [
-                {
-                  code: `WBS-${prj.project_code || 'PRJ'}-01`,
-                  title: lang === 'ar' ? 'مسح وحصر الحالات والاستحقاق الميداني' : 'Field Need Assessment & Beneficiary Screening',
-                  progress: 100,
-                  budget: Math.round(parseFloat(prj.budget || '0') * 0.15),
-                  status: lang === 'ar' ? 'إلغاء' : 'Completed',
-                  gps: null,
-                  photo: null,
-                  tasks: []
-                },
-                {
-                  code: `WBS-${prj.project_code || 'PRJ'}-02`,
-                  title: lang === 'ar' ? 'توريد وإعداد القسائم والسلال الإغاثية' : 'Procurement & Ration Kits Preparation',
-                  progress: prj.progress_percent || 75,
-                  budget: Math.round(parseFloat(prj.budget || '0') * 0.65),
-                  status: lang === 'ar' ? 'رقم القسيمة' : 'In Progress',
-                  gps: null,
-                  photo: null,
-                  tasks: []
-                },
-                {
-                  code: `WBS-${prj.project_code || 'PRJ'}-03`,
-                  title: lang === 'ar' ? 'التوزيع الميداني والتوثيق بـ GPS والكرت الرقمي' : 'Field Distribution, GPS Geofencing & Digital Sign-off',
-                  progress: Math.max(0, (prj.progress_percent || 50) - 20),
-                  budget: Math.round(parseFloat(prj.budget || '0') * 0.20),
-                  status: lang === 'ar' ? 'قيد التوزيع' : 'Active Field Work',
-                  gps: null,
-                  photo: null,
-                  tasks: []
-                }
-              ];
 
-          // Related beneficiaries
+          const prjActivities = actualActivities.map(act => ({
+            code: act.activity_code || `WBS-ACT-${String(act.id).slice(0, 4).toUpperCase()}`,
+            title: lang === 'ar' ? act.name_ar : act.name_en,
+            progress: act.metadata?.tasks?.length
+              ? Math.round((act.metadata.tasks.filter((t: any) => t.completed).length / act.metadata.tasks.length) * 100)
+              : 0,
+            budget: parseFloat(act.budget || '0'),
+            status: act.status_code || act.status || '',
+            gps: act.metadata?.gps_coordinates,
+            photo: act.metadata?.photo_evidence,
+            tasks: act.metadata?.tasks || []
+          }));
+
+          // Related beneficiaries — exact count from DB, no estimation formulas
           const relatedBens = filteredBeneficiaries.filter(b => b.governorate === prj.governorate).slice(0, 5);
 
           return {
             project: prj,
             activities: prjActivities,
-            beneficiariesCount: relatedBens.length || (prj.progress_percent ? Math.round(prj.progress_percent * 3) : 12),
+            beneficiariesCount: relatedBens.length,
             beneficiariesSample: relatedBens
           };
         }),
@@ -364,33 +352,44 @@ export default function ReportsView({
   // NEB-03 (Program Budget) → NEB-13 (Actual Impact Metrics) CROSS-DOMAIN DATA
   // ---------------------------------------------------------------------------
   const crossDomainCorrelationData = useMemo(() => {
-    return programs.map((prog, pIdx) => {
+    return programs.map((prog) => {
       const progBudget = parseFloat(prog.budget || '0');
       const linkedProjects = projects.filter(prj => String(prj.program_id) === String(prog.id));
       const projectCount = linkedProjects.length;
-      
-      const avgProgress = linkedProjects.length > 0 
-        ? Math.round(linkedProjects.reduce((s, p) => s + (parseFloat(p.progress_percent || '0') || 75), 0) / linkedProjects.length)
-        : 75;
 
-      const govList = linkedProjects.map(p => p.governorate).filter(Boolean);
-      const relatedBens = beneficiaries.filter(b => govList.includes(b.governorate));
-      
-      const benCount = relatedBens.length > 0 
-        ? relatedBens.length * 22 + (pIdx + 1) * 320
-        : Math.round(progBudget > 0 ? progBudget / 16500 : 450 + (pIdx + 1) * 180);
+      // REAL field progress only — no synthetic fallback percentages
+      const progressValues = linkedProjects
+        .map(p => parseFloat(p.progress_percent || '0'))
+        .filter(v => !isNaN(v) && v > 0);
+      const avgProgress = progressValues.length > 0
+        ? Math.round(progressValues.reduce((s, v) => s + v, 0) / progressValues.length)
+        : 0;
 
-      const sponsoredCount = sponsorships.filter(s => relatedBens.some(b => b.id === s.beneficiary_id)).length || Math.round(benCount * 0.22);
+      // REAL beneficiaries: direct program link OR matched via project governorates.
+      // Strict no-inflation policy — counts are exactly what the DB returns.
+      const govList = Array.from(new Set(linkedProjects.map(p => p.governorate).filter(Boolean)));
+      const directBens = beneficiaries.filter(b => String((b as any).program_id || '') === String(prog.id));
+      const geoBens = govList.length > 0 ? beneficiaries.filter(b => govList.includes(b.governorate)) : [];
+      const benSet = new Set<string>([...directBens.map(b => String(b.id)), ...geoBens.map(b => String(b.id))]);
+      const benCount = benSet.size;
 
-      // Sphere / CHS Quality Impact Score (NEB-13 Metric)
-      const baseScore = 88.5 + (pIdx % 3) * 3.2 + (avgProgress * 0.08);
-      const impactScore = Math.min(99.6, Math.max(83.0, parseFloat(baseScore.toFixed(1))));
+      // REAL sponsorships only — never estimated from beneficiary totals
+      const sponsoredCount = sponsorships.filter(s => benSet.has(String(s.beneficiary_id))).length;
 
-      // Cost per Beneficiary (YER)
-      const costPerBen = benCount > 0 ? Math.round(progBudget / benCount) : 0;
+      // Sphere/CHS quality index derived ONLY from real delivery signals:
+      // 60% verified avg field progress + 40% real sponsorship coverage rate.
+      // Null when insufficient real data exists → UI renders an honest dash.
+      let impactScore: number | null = null;
+      if (progressValues.length > 0 && benCount > 0) {
+        const coverageRate = Math.min(1, sponsoredCount / benCount);
+        impactScore = parseFloat(Math.min(99.9, avgProgress * 0.6 + coverageRate * 40).toFixed(1));
+      }
 
-      // Efficiency Ratio (Beneficiaries per 1M YER spent)
-      const efficiencyRatio = progBudget > 0 ? parseFloat(((benCount / progBudget) * 1000000).toFixed(1)) : 0;
+      // Cost per Beneficiary (YER) — real budget / real beneficiaries
+      const costPerBen = progBudget > 0 && benCount > 0 ? Math.round(progBudget / benCount) : 0;
+
+      // Efficiency Ratio (Beneficiaries per 1M YER)
+      const efficiencyRatio = progBudget > 0 && benCount > 0 ? parseFloat(((benCount / progBudget) * 1000000).toFixed(1)) : 0;
 
       const name = lang === 'ar' ? (prog.name_ar || prog.name_en) : (prog.name_en || prog.name_ar);
 
@@ -553,6 +552,7 @@ export default function ReportsView({
   };
 
   return (
+    <ErrorBoundary domainName="ReportsView" lang={lang || 'ar'}>
     <ModuleShell
       titleAr="التقارير والتحليلات"
       titleEn="Reports & Analytics"
@@ -762,7 +762,7 @@ export default function ReportsView({
               </span>
             </div>
             <span className="text-[11px] leading-tight">
-              {lang === 'ar' ? 'الموازنة التلقائية للكوادر' : 'Executive Master Reports'}
+              {lang === 'ar' ? 'التقارير الرئيسية الشاملة' : 'Executive Master Reports'}
             </span>
           </button>
 
@@ -782,7 +782,7 @@ export default function ReportsView({
               </span>
             </div>
             <span className="text-[11px] leading-tight">
-              {lang === 'ar' ? 'الباقة المؤسسية المتقدمة' : 'Financial Ledger & Funds'}
+              {lang === 'ar' ? 'دفتر الأستاذ المالي والصناديق' : 'Financial Ledger & Funds'}
             </span>
           </button>
 
@@ -822,7 +822,7 @@ export default function ReportsView({
               </span>
             </div>
             <span className="text-[11px] leading-tight">
-              {lang === 'ar' ? 'التوصية التنفيذية للمحاكاة' : 'Programs & Projects'}
+              {lang === 'ar' ? 'البرامج والمشاريع' : 'Programs & Projects'}
             </span>
           </button>
 
@@ -905,7 +905,7 @@ export default function ReportsView({
           {showBI && (
             <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold flex items-center gap-1">
               <Brain className="w-3 h-3" />
-              <span>{lang === 'ar' ? 'تنبؤ: +12% نمو متوقع' : 'Forecast: +12% growth expected'}</span>
+              <span>{lang === 'ar' ? `تركّز الموازنة: أكبر برنامج يمثل ${topProgramBudgetShare}% من الإجمالي` : `Budget concentration: largest program = ${topProgramBudgetShare}% of total`}</span>
             </p>
           )}
         </div>
@@ -944,7 +944,7 @@ export default function ReportsView({
           {showBI && (
             <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold flex items-center gap-1">
               <Brain className="w-3 h-3" />
-              <span>{lang === 'ar' ? 'تنبؤ: إنجاز 85% بحلول Q4' : 'Forecast: 85% completion by Q4'}</span>
+              <span>{lang === 'ar' ? `${completedProjectsCount} مشروعاً مكتمل 100% من إجمالي ${projects.length}` : `${completedProjectsCount} of ${projects.length} projects fully completed`}</span>
             </p>
           )}
         </div>
@@ -983,7 +983,7 @@ export default function ReportsView({
           {showBI && (
             <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold flex items-center gap-1">
               <Brain className="w-3 h-3" />
-              <span>{lang === 'ar' ? 'تنبؤ: +200 مستفيد جديد/شهر' : 'Forecast: +200 new beneficiaries/month'}</span>
+              <span>{lang === 'ar' ? `معدل الكفالة الفعلي: ${sponsorshipRate}%` : `Actual sponsorship rate: ${sponsorshipRate}%`}</span>
             </p>
           )}
         </div>
@@ -999,18 +999,18 @@ export default function ReportsView({
             </div>
           </div>
           <p className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-            96.8% <span className="text-xs text-zinc-400 font-normal">Sphere/CHS</span>
+            {projectsDataCompleteness}% <span className="text-xs text-zinc-400 font-normal">{lang === 'ar' ? 'اكتمال بيانات التنفيذ' : 'Progress data coverage'}</span>
           </p>
           {(showDetailed || showSummary) && (
             <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-purple-500" />
-              <span>{lang === 'ar' ? 'مطابق لأفضل المعايير الدولية' : 'Fully compliant with standards'}</span>
+              <span>{lang === 'ar' ? 'نسبة المشاريع ذات نسب إنجاز مسجلة فعلياً' : 'Share of projects with recorded progress'}</span>
             </p>
           )}
           {showAnalytical && (
             <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold flex items-center gap-1">
               <TrendingUp className="w-3 h-3 text-purple-500" />
-              <span>{lang === 'ar' ? 'Trend: +2.1% هذا الربع' : 'Trend: +2.1% this quarter'}</span>
+              <span>{lang === 'ar' ? `متوسط الإنجاز: ${projects.length > 0 ? Math.round(projects.reduce((s, p) => s + parseFloat(p.progress_percent || '0'), 0) / projects.length) : 0}%` : `Avg progress: ${projects.length > 0 ? Math.round(projects.reduce((s, p) => s + parseFloat(p.progress_percent || '0'), 0) / projects.length) : 0}%`}</span>
             </p>
           )}
           {showEvaluation && (
@@ -1022,11 +1022,83 @@ export default function ReportsView({
           {showBI && (
             <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold flex items-center gap-1">
               <Brain className="w-3 h-3" />
-              <span>{lang === 'ar' ? 'تنبؤ: 98.2% بحلول Q1 2027' : 'Forecast: 98.2% by Q1 2027'}</span>
+              <span>{lang === 'ar' ? `${completedProjectsCount} مشروعاً مكتمل • تغطية بيانات ${projectsDataCompleteness}%` : `${completedProjectsCount} completed • ${projectsDataCompleteness}% data coverage`}</span>
             </p>
           )}
         </div>
 
+      </div>
+
+      {/* Unified Output Control Bar */}
+
+      {/* Unified Output Control Bar — applies view/output actions to the ACTIVE portal */}
+      <div className="sticky top-2 z-30 bg-slate-900 dark:bg-zinc-950/95 text-white rounded-2xl border border-slate-700/60 shadow-lg p-3 flex flex-wrap items-center justify-between gap-3 print:hidden">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg shrink-0">
+            <Printer className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[9px] font-black uppercase tracking-wider text-zinc-400">
+              {lang === 'ar' ? 'شريط التحكم الموحد بالمخرجات' : 'Unified Output Control'}
+            </p>
+            <p className="text-xs font-black truncate">
+              {lang === 'ar' ? 'البوابة النشطة: ' : 'Active portal: '}
+              {activeTab === 'intelligence' ? (lang === 'ar' ? 'الذكاء الاستراتيجي و BI' : 'Strategic Intelligence & BI')
+              : activeTab === 'executive_report' ? (lang === 'ar' ? 'التقرير التنفيذي المتكامل' : 'Integrated Executive Report')
+              : activeTab === 'interconnected' ? (lang === 'ar' ? 'ترابط النطاقات' : 'Cross-Domain Correlations')
+              : activeTab === 'financial' ? (lang === 'ar' ? 'القوائم المالية' : 'Financial Statements')
+              : activeTab === 'beneficiaries_sponsorships' ? (lang === 'ar' ? 'المستفيدون والكفالات' : 'Beneficiaries & Sponsorships')
+              : activeTab === 'programs_projects' ? (lang === 'ar' ? 'البرامج والمشاريع' : 'Programs & Projects')
+              : activeTab === 'geographic' ? (lang === 'ar' ? 'الأنشطة الميدانية' : 'Field Activities')
+              : activeTab === 'predictive_bi' ? (lang === 'ar' ? 'التحليلات التنبؤية' : 'Predictive BI')
+              : activeTab === 'evaluations' ? (lang === 'ar' ? 'التقييم والأثر' : 'Evaluations & Impact')
+              : activeTab === 'hr_human_capital' ? (lang === 'ar' ? 'الموارد البشرية' : 'HR & Human Capital')
+              : (lang === 'ar' ? 'مستكشف مخطط البيانات' : 'DB Views Explorer')}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {/* View mode quick switch — mirrors the main selector */}
+          <select
+            value={viewMode}
+            onChange={(e) => setViewMode(e.target.value as ViewMode)}
+            className="px-2.5 py-1.5 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl text-[11px] font-black text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+            title={lang === 'ar' ? 'نمط العرض المطبق على البوابة النشطة' : 'View mode applied to the active portal'}
+          >
+            <option value="detailed">{lang === 'ar' ? 'عرض تفصيلي' : 'Detailed'}</option>
+            <option value="summary">{lang === 'ar' ? 'ملخص تنفيذي' : 'Summary'}</option>
+            <option value="analytical">{lang === 'ar' ? 'تحليلي متقدم' : 'Analytical'}</option>
+            <option value="evaluation">{lang === 'ar' ? 'تقييمي (Sphere)' : 'Evaluation'}</option>
+            <option value="bi">{lang === 'ar' ? 'ذكاء الأعمال' : 'BI Intelligence'}</option>
+          </select>
+
+          <button
+            onClick={() => { setCustomPDFType(null); setIsPDFModalOpen(true); }}
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5"
+            title={lang === 'ar' ? 'قالب PDF معتمد للبوابة النشطة' : 'Certified PDF template for the active portal'}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>{lang === 'ar' ? 'PDF معتمد' : 'Official PDF'}</span>
+          </button>
+
+          <button
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5"
+            title={lang === 'ar' ? 'تصدير Excel / CSV / JSON' : 'Export Excel / CSV / JSON'}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-300" />
+            <span>{lang === 'ar' ? 'تصدير بيانات' : 'Export Data'}</span>
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>{lang === 'ar' ? 'طباعة' : 'Print'}</span>
+          </button>
+        </div>
       </div>
 
       {/* ViewMode Indicator Badge */}
@@ -1870,7 +1942,7 @@ export default function ReportsView({
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" />
                             <XAxis dataKey="shortName" tick={{ fontSize: 10 }} stroke="#a1a1aa" />
                             <YAxis yAxisId="left" orientation="left" stroke="#059669" tick={{ fontSize: 10 }} />
-                            <YAxis yAxisId="right" orientation="right" domain={[70, 100]} stroke="#7c3aed" tick={{ fontSize: 10 }} />
+                            <YAxis yAxisId="right" orientation="right" domain={[0, 100]} stroke="#7c3aed" tick={{ fontSize: 10 }} />
                             <Tooltip formatter={(val: any, name: string) => [
                               name.includes('CHS') ? `${val}%` : `${val?.toLocaleString()} YER`,
                               name
@@ -1950,7 +2022,7 @@ export default function ReportsView({
                           </h5>
                         </div>
                         <span className="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                          {item.impactScore}% CHS
+                          {item.impactScore != null ? `${item.impactScore}% CHS` : (lang === 'ar' ? 'بيانات غير كافية' : 'Insufficient data')}
                         </span>
                       </div>
 
@@ -1981,9 +2053,11 @@ export default function ReportsView({
                             {lang === 'ar' ? 'توصية الذكاء الاصطناعي للأثر:' : 'AI Impact Recommendation:'}
                           </span>
                           <span>
-                            {item.efficiencyRatio > 50
-                              ? (lang === 'ar' ? 'برنامج عالي الكفاءة. يُنصح بزيادة التمويل بنسبة 15% لتوسيع التغطية الميدانية.' : 'High cost efficiency ratio. Recommend 15% budget expansion for higher field coverage.')
-                              : (lang === 'ar' ? 'مؤشر أثر ممتاز وفق معايير إسفير. التكلفة المباشرة متوازنة مع الخدمة المقدمة.' : 'Optimal Sphere compliance. Cost ratio balanced with quality of delivery.')}
+                            {item.efficiencyRatio === 0
+                              ? (lang === 'ar' ? 'لا تتوفر بيانات مستفيدين موثقة كافية لهذا البرنامج بعد — سجل المستفيدين والمصروفات لتفعيل التحليل.' : 'Insufficient verified beneficiary data yet — register beneficiaries and expenditures to enable analysis.')
+                              : item.efficiencyRatio > 50
+                              ? (lang === 'ar' ? 'كفاءة تكلفة مرتفعة بناءً على السجلات الفعلية. يُدرس توسيع التمويل مع الحفاظ على جودة الخدمة.' : 'High cost efficiency based on actual records. Consider funding expansion while preserving service quality.')
+                              : (lang === 'ar' ? 'التكلفة المباشرة للمستفيد متوازنة وفق السجلات المحاسبية الفعلية.' : 'Cost per beneficiary is balanced according to actual ledger records.')}
                           </span>
                         </div>
                       </div>
@@ -2104,10 +2178,10 @@ export default function ReportsView({
                               <div className="space-y-1">
                                 <div className="flex justify-between text-[10px] font-bold">
                                   <span className="text-slate-500">{lang === 'ar' ? 'نسبة التنفيذ الميداني:' : 'Field Progress:'}</span>
-                                  <span className="text-emerald-600 font-mono">{prj.progress_percent || 75}%</span>
+                                  <span className="text-emerald-600 font-mono">{prj.progress_percent || 0}%</span>
                                 </div>
                                 <div className="w-full bg-zinc-200 dark:bg-zinc-700 h-1.5 rounded-full overflow-hidden">
-                                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${prj.progress_percent || 75}%` }}></div>
+                                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${prj.progress_percent || 0}%` }}></div>
                                 </div>
                               </div>
 
@@ -2117,7 +2191,13 @@ export default function ReportsView({
                                   {lang === 'ar' ? 'حزم الأنشطة (WBS Activities):' : 'WBS Activities:'}
                                 </p>
                                 <div className="space-y-1.5">
-                                  {pObj.activities.map((act, actIdx) => {
+                                  {pObj.activities.length === 0 ? (
+                                    <p className="text-[10px] text-zinc-400 italic p-2 bg-slate-100 dark:bg-zinc-800/60 rounded-lg">
+                                      {lang === 'ar'
+                                        ? 'لا توجد أنشطة WBS مسجلة في قاعدة البيانات لهذا المشروع بعد.'
+                                        : 'No WBS activities registered in the database for this project yet.'}
+                                    </p>
+                                  ) : pObj.activities.map((act, actIdx) => {
                                     const completedTasksCount = act.tasks ? act.tasks.filter((t: any) => t.completed).length : 0;
                                     const totalTasksCount = act.tasks ? act.tasks.length : 0;
                                     return (
@@ -2186,7 +2266,13 @@ export default function ReportsView({
                                   {lang === 'ar' ? 'المستفيدين والعمليات الميدانية في نطاق المحافظة:' : 'Beneficiaries & Field Activities in Governorates:'}
                                 </p>
                                 <div className="grid grid-cols-1 gap-1">
-                                  {pObj.beneficiariesSample.map((ben, bIdx) => {
+                                  {pObj.beneficiariesSample.length === 0 ? (
+                                    <p className="text-[10px] text-zinc-400 italic p-1.5">
+                                      {lang === 'ar'
+                                        ? 'لا يوجد مستفيدون موثقون في نطاق هذه المحافظة بعد.'
+                                        : 'No verified beneficiaries registered in this governorate yet.'}
+                                    </p>
+                                  ) : pObj.beneficiariesSample.map((ben, bIdx) => {
                                     const benName = lang === 'ar' ? (ben.name_ar || ben.name) : (ben.name_en || ben.name);
                                     return (
                                       <div key={ben.id || bIdx} className="bg-slate-100 dark:bg-zinc-800 p-1.5 rounded border border-slate-200 dark:border-zinc-700 flex items-center justify-between text-[10px]">
@@ -2998,5 +3084,6 @@ export default function ReportsView({
 
     </div>
     </ModuleShell>
+    </ErrorBoundary>
   );
 }

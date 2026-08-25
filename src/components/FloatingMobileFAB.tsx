@@ -376,8 +376,8 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
      }
    };
 
-  // Predefined scannable assets for simulator / demo
-  const mockScanAssets: ScanAsset[] = [
+  // Predefined simulator samples (used ONLY by the Smart Simulator tab / offline)
+  const simulatorSamples: ScanAsset[] = [
     {
       id: 'asset-id-yem',
       type: 'beneficiary',
@@ -463,6 +463,70 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
     window.addEventListener('resize', checkTouchAndMobile);
     return () => window.removeEventListener('resize', checkTouchAndMobile);
   }, []);
+
+  // LIVE DATABASE scan assets — real beneficiaries & projects take priority over simulator samples
+  const [realScanAssets, setRealScanAssets] = useState<ScanAsset[]>([]);
+
+  useEffect(() => {
+    if (!showScannerModal) return;
+    let cancelled = false;
+
+    const token = localStorage.getItem('rbd_token');
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+    Promise.all([
+      fetch('/api/tables/beneficiaries?limit=50', { headers }).then(r => r.ok ? r.json() : { data: [] }).catch(() => ({ data: [] })),
+      fetch('/api/tables/projects?limit=50', { headers }).then(r => r.ok ? r.json() : { data: [] }).catch(() => ({ data: [] }))
+    ]).then(([benRes, prjRes]) => {
+      if (cancelled) return;
+      const bens: ScanAsset[] = (benRes.data || []).map((b: any) => ({
+        id: `db-ben-${b.id}`,
+        type: 'beneficiary' as const,
+        labelAr: `🪪 ${b.full_name_ar || b.fullNameAr || 'مستفيد مسجل'}`,
+        labelEn: `🪪 ${b.full_name_en || b.fullNameEn || b.full_name_ar || 'Registered Beneficiary'}`,
+        summaryAr: `سجل مستفيد حقيقي من قاعدة البيانات — ${b.beneficiary_code || b.governorate || ''}`,
+        summaryEn: `Live DB beneficiary record — ${b.beneficiary_code || b.governorate || ''}`,
+        data: {
+          fullNameAr: b.full_name_ar || '',
+          beneficiaryCode: b.beneficiary_code || '',
+          phonePrimary: b.phone_primary || b.phone || '',
+          age: b.birth_date ? String(new Date().getFullYear() - new Date(b.birth_date).getFullYear()) : (b.age || ''),
+          governorate: b.governorate || '',
+          district: b.district || '',
+          categoryCode: b.vulnerability_status || 'GENERAL',
+          genderCode: (b.gender || '').toUpperCase(),
+          financialStatus: b.financial_status || 'poor',
+          notes: isRtl
+            ? 'تم جلب هذا السجل مباشرة من قاعدة بيانات المستفيدين الموحدة.'
+            : 'Fetched live from the unified beneficiary database.'
+        }
+      }));
+      const prjs: ScanAsset[] = (prjRes.data || []).map((p: any) => ({
+        id: `db-prj-${p.id}`,
+        type: 'project' as const,
+        labelAr: `📄 ${p.name_ar || p.nameAr || p.project_code || 'مشروع'}`,
+        labelEn: `📄 ${p.name_en || p.nameAr || p.project_code || 'Project'}`,
+        summaryAr: `مشروع حقيقي من قاعدة البيانات — ${p.project_code || ''}`,
+        summaryEn: `Live DB project record — ${p.project_code || ''}`,
+        data: {
+          code: p.project_code || '',
+          nameAr: p.name_ar || '',
+          nameEn: p.name_en || '',
+          budget: String(p.budget || '0'),
+          locationName: p.location_name || p.district || '',
+          description: p.description || ''
+        }
+      }));
+      setRealScanAssets([...bens, ...prjs]);
+    });
+
+    return () => { cancelled = true; };
+  }, [showScannerModal, isRtl]);
+
+  // Priority list: real database records first, curated simulator samples after
+  const scanAssets = realScanAssets.length > 0
+    ? [...realScanAssets, ...simulatorSamples]
+    : simulatorSamples;
 
   // Check Speech Recognition support on mount
   useEffect(() => {
@@ -694,11 +758,11 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
     });
   };
 
-  // Camera Snapshot Simulator (since we don't have server-side OCR on live video, we parse a random mockup card if they capture)
+  // Camera Snapshot Simulator (server-side OCR is not available; resolves against live DB records first)
   const handleCameraCapture = () => {
-    // Pick a random mock asset to simulate a successful capture OCR
-    const randomIndex = Math.floor(Math.random() * mockScanAssets.length);
-    const chosenAsset = mockScanAssets[randomIndex];
+    // Pick a random asset — real database records take priority over simulator samples
+    const randomIndex = Math.floor(Math.random() * scanAssets.length);
+    const chosenAsset = scanAssets[randomIndex];
     
     setIsScanning(true);
     setScanProgress(10);
@@ -738,8 +802,8 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
     // Pick first project or beneficiary randomly to simulate upload scan
     const isProject = e.target.files[0].name.toLowerCase().includes('proj') || Math.random() > 0.5;
     const selectedDemoAsset = isProject 
-      ? mockScanAssets.find(a => a.type === 'project') || mockScanAssets[2]
-      : mockScanAssets.find(a => a.type === 'beneficiary') || mockScanAssets[0];
+      ? scanAssets.find(a => a.type === 'project') || scanAssets[0]
+      : scanAssets.find(a => a.type === 'beneficiary') || scanAssets[scanAssets.length - 1];
 
     setIsScanning(true);
     setScanProgress(20);
@@ -1154,17 +1218,23 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                       </h4>
                       <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed mb-3">
                         {isRtl 
-                          ? 'اختر أحد أصول أو وثائق العمليات الميدانية الافتراضية التالية لمحاكاة عملية مسح سريعة وقراءة البيانات تلقائياً بضغطة واحدة:'
-                          : 'Select one of the following mock field assets/vouchers to simulate instant camera OCR scanning and parse data metrics:'}
+                          ? (realScanAssets.length > 0
+                            ? `اختر أحد السجلات الحقيقية من قاعدة البيانات (${realScanAssets.length} سجل مباشر) أو عينات المحاكي لمسح فوري واستخراج تلقائي للبيانات:`
+                            : 'تعذر جلب سجلات حقيقية حالياً — اختر إحدى عينات المحاكي التالية لاستعراض دورة المسح والاستخراج:')
+                          : (realScanAssets.length > 0
+                            ? `Select a live database record (${realScanAssets.length} synced) or a simulator sample for instant OCR scanning and field extraction:`
+                            : 'Live records unavailable right now — pick one of the simulator samples below to preview the scan & extract flow:')}
                       </p>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                        {mockScanAssets.map((asset) => (
+                        {scanAssets.map((asset) => (
                           <button
                             key={asset.id}
                             type="button"
                             onClick={() => triggerScanSequence(asset)}
-                            className="p-3 border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-emerald-500/5 hover:border-emerald-500 text-left rounded-xl transition-all flex flex-col gap-1 text-xs cursor-pointer group"
+                            className={`p-3 border text-left rounded-xl transition-all flex flex-col gap-1 text-xs cursor-pointer group ${asset.id.startsWith('db-')
+                              ? 'border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500'
+                              : 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-emerald-500/5 hover:border-emerald-500'}`}
                           >
                             <span className="font-black text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                               {isRtl ? asset.labelAr : asset.labelEn}

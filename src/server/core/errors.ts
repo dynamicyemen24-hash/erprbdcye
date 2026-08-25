@@ -5,6 +5,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import logger from './logger';
 
 // ─── Custom Error Classes ──────────────────────────────
 
@@ -88,11 +89,11 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     };
 
     if (res.statusCode >= 500) {
-      console.error('[ERROR]', JSON.stringify(log));
+      logger.error(JSON.stringify(log), { context: 'http' });
     } else if (res.statusCode >= 400) {
-      console.warn('[WARN]', JSON.stringify(log));
+      logger.warn(JSON.stringify(log), { context: 'http' });
     } else if (process.env.NODE_ENV !== 'production') {
-      console.log('[INFO]', JSON.stringify(log));
+      logger.debug(JSON.stringify(log), { context: 'http' });
     }
   });
 
@@ -165,11 +166,10 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
   }
 
   // Unknown errors (log full stack in production)
-  console.error('[UNHANDLED ERROR]', {
-    message: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method,
+  logger.error(`[UNHANDLED ERROR] ${err.message}`, {
+    context: 'error',
+    error: err,
+    meta: { path: req.path, method: req.method },
   });
 
   const statusCode = 500;

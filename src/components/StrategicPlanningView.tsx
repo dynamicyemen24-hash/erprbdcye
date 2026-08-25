@@ -6,6 +6,7 @@ import {
   Check, X, Edit3, PieChart, Lock, Eye, Award, User
 } from 'lucide-react';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { generateNumericCode } from '../lib/idGenerator';
 
 interface StrategicPlanningViewProps {
   lang: 'ar' | 'en';
@@ -35,7 +36,7 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
   });
 
   const [newGoalForm, setNewGoalForm] = useState({
-    goal_code: `OBJ-2025-${Math.floor(Math.random() * 90 + 10)}`,
+    goal_code: `OBJ-2025-${generateNumericCode(10, 99)}`,
     pillar_code: 'PIL-FINANCE',
     title_ar: '',
     title_en: '',

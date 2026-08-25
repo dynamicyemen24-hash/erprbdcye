@@ -9,6 +9,8 @@ import {
   MapPin, Hammer, Home, Store, Sparkles, Landmark, Ruler, Compass, Tag
 } from 'lucide-react';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { generateNumericCode } from '../lib/idGenerator';
+import { ErrorBoundary } from '../app/components/ErrorBoundary';
 
 export interface InvestmentProject {
   id: string;
@@ -149,7 +151,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
   // Form States
   const [newProjectForm, setNewProjectForm] = useState({
-    project_code: `INV-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+    project_code: `INV-${new Date().getFullYear()}-${generateNumericCode(100, 999)}`,
     title_ar: '',
     title_en: '',
     category: 'REAL_ESTATE_ENDOWMENT',
@@ -160,7 +162,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
     humanitarian_distribution_pct: 75,
     assigned_investment_manager: 'د. عبدالحكيم السقاف',
     location_governorate: 'مأرب',
-    shariah_cert_number: `SH-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+    shariah_cert_number: `SH-${new Date().getFullYear()}-${generateNumericCode(1000, 9999)}`,
     capex_yer: 120000000,
     opex_annual_yer: 15000000
   });
@@ -173,7 +175,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
   const [newContractForm, setNewContractForm] = useState({
     project_id: '',
-    contract_code: `CNT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+    contract_code: `CNT-${new Date().getFullYear()}-${generateNumericCode(100, 999)}`,
     title_ar: '',
     title_en: '',
     contract_type: 'TENANT_LEASE' as InvestmentContract['contract_type'],
@@ -188,7 +190,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
   const [newActivityForm, setNewActivityForm] = useState({
     project_id: '',
-    activity_code: `ACT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+    activity_code: `ACT-${new Date().getFullYear()}-${generateNumericCode(100, 999)}`,
     title_ar: '',
     title_en: '',
     activity_type: 'MAINTENANCE' as InvestmentActivity['activity_type'],
@@ -829,6 +831,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
   };
 
   return (
+    <ErrorBoundary domainName="InvestmentProjectsView" lang={lang || 'ar'}>
     <ModuleShell titleAr="المشاريع الاستثمارية والأوقاف" titleEn="Investment & Endowment OS" domainCode="NEB-15" icon={TrendingUp} accent="amber" lang={lang}>
     <div className="space-y-6 pb-12 font-sans" dir={isAr ? 'rtl' : 'ltr'}>
       {/* Toast Notification */}
@@ -2553,7 +2556,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 e.preventDefault();
                 const newMicroProj: InvestmentProject = {
                   id: Date.now().toString(),
-                  project_code: `MICRO-2026-${Math.floor(100 + Math.random() * 900)}`,
+                  project_code: `MICRO-2026-${generateNumericCode(100, 999)}`,
                   title_ar: microForm.title_ar,
                   title_en: microForm.title_ar,
                   category: microForm.category,
@@ -2716,5 +2719,6 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
       )}
     </div>
     </ModuleShell>
+    </ErrorBoundary>
   );
 };

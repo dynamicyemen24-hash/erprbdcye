@@ -8,6 +8,8 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { serverConfig } from '../config';
+import logger from '../core/logger';
+import { queryOne } from '../core/database';
 
 // ─────────────────────────────────────────────
 // 1. JWT Authentication Middleware
@@ -208,3 +210,80 @@ export function validationError(res: Response, message: string, field?: string):
 export function extractTenantId(req: AuthenticatedRequest): string {
   return req.user?.org_id || serverConfig.defaultOrgId;
 }
+
+/**
+ * Checks if user has permission to access a specific activity.
+ * Supports: org-admin (all), staff owner (own activities), volunteer owner (own activities)
+ * Also checks hr_staff/volunteers assignment to the activity.
+ */
+export const checkActivityPermission = (activityId: string, allowOrgAdmin: boolean = true):
+  (req: AuthenticatedRequest, res: Response, next: NextFunction) => void => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    try {
+      // Org admins have full access
+      if (allowOrgAdmin && req.user.security_level === 5) {
+        return next();
+      }
+
+      // SUPER_ADMIN role bypass
+      if (req.user.role === 'SUPER_ADMIN') {
+        return next();
+      }
+
+      // REAL assignment check against the activities table:
+      // the user must be linked via users.hr_staff_id / users.volunteer_id,
+      // or be the activity's assigned staff/volunteer record owner.
+      const activity = await queryOne<{ id: string; organization_id: string; staff_id: string | null; volunteer_id: string | null }>(
+        `SELECT id, organization_id, staff_id, volunteer_id
+         FROM activities
+         WHERE id = $1 AND deleted_at IS NULL`,
+        [activityId]
+      );
+
+      if (!activity) {
+        res.status(404).json({ error: 'Activity not found' });
+        return;
+      }
+
+      // Tenant isolation first — cross-org access is always denied
+      if (req.user.org_id && activity.organization_id && String(activity.organization_id) !== String(req.user.org_id)) {
+        res.status(403).json({ error: 'Access Denied: activity belongs to another organization' });
+        return;
+      }
+
+      // Resolve which hr_staff / volunteers rows belong to this user.
+      // hr_staff links directly via user_id; volunteers link via party email match on the user's email.
+      const identity = await queryOne<{ staff_id: string | null; volunteer_id: string | null }>(
+        `SELECT
+           (SELECT id FROM hr_staff WHERE user_id = $1 AND deleted_at IS NULL LIMIT 1) AS staff_id,
+           (SELECT v.id FROM volunteers v
+              JOIN parties p ON p.id = v.party_id
+              JOIN users u ON LOWER(u.email) = LOWER(p.email)
+              WHERE u.id = $1 LIMIT 1) AS volunteer_id`,
+        [req.user.id]
+      );
+
+      const hasStaffAssignment = !!(identity?.staff_id && activity.staff_id === identity.staff_id);
+      const hasVolunteerAssignment = !!(identity?.volunteer_id && activity.volunteer_id === identity.volunteer_id);
+
+      if (hasStaffAssignment || hasVolunteerAssignment) {
+        return next();
+      }
+
+      res.status(403).json({
+        error: 'Access Denied: You are not assigned to this activity as staff or volunteer. ' +
+               'Contact an administrator to be assigned, or request appropriate permissions.'
+      });
+      return;
+    } catch (error) {
+      logger.error('Permission check error: ' + (error instanceof Error ? error.message : String(error)));
+      res.status(500).json({ error: 'Internal server error during permission check' });
+      return;
+    }
+};
+};

@@ -8,7 +8,7 @@ interface FinancialStatementsTabProps {
   lang: 'ar' | 'en';
 }
 
-export default function FinancialStatementsTab({ accounts, lang }: FinancialStatementsTabProps) {
+function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabProps) {
   const [statementType, setStatementType] = useState<'trial' | 'income' | 'balance_sheet'>('trial');
   const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
 
@@ -267,3 +267,5 @@ export default function FinancialStatementsTab({ accounts, lang }: FinancialStat
     </div>
   );
 }
+
+export default React.memo(FinancialStatementsTabInner);

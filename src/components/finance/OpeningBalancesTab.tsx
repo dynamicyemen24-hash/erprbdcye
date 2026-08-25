@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Save, 
@@ -35,19 +35,85 @@ export default function OpeningBalancesTab({ accounts, lang, onRefresh }: Openin
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Sample data for non-account opening balances
-  const [inventoryBalances, setInventoryBalances] = useState([
-    { id: 'inv-1', code: 'WH-MRB-01', name_ar: 'مخزن الأغذية الرئيسي - مأرب', category: 'سلال غذائية طارئة', item_count: 1200, unit_val_yer: 45000, opening_qty: '1200', opening_val_yer: '54000000' },
-    { id: 'inv-2', code: 'WH-KHX-01', name_ar: 'مستودع المولدات والمستلزمات الطبية - الخوخة', category: 'أجهزة ومستلزمات طبية', item_count: 450, unit_val_yer: 120000, opening_qty: '450', opening_val_yer: '54000000' },
-    { id: 'inv-3', code: 'WH-ADE-02', name_ar: 'مخزن المواد الإغاثية - عدن', category: 'حقائب نظافة طارئة', item_count: 3100, unit_val_yer: 18000, opening_qty: '3100', opening_val_yer: '55800000' }
-  ]);
+  // LIVE inventory opening balances aggregated from warehouses + inventory tables
+  const [inventoryBalances, setInventoryBalances] = useState<any[]>([]);
+  const [bankBalances, setBankBalances] = useState<any[]>([]);
+  const [invLoading, setInvLoading] = useState(true);
+  const [invError, setInvError] = useState<string | null>(null);
 
-  const [bankBalances, setBankBalances] = useState([
-    { id: 'bnk-1', bank_code: 'BNK-TAD-USD', bank_name_ar: 'بنك التضامن الإسلامي - حساب الدولار USD', account_no: '1020304050', currency: 'USD', opening_val: '150000' },
-    { id: 'bnk-2', bank_code: 'BNK-TAD-YER', bank_name_ar: 'بنك التضامن الإسلامي - حساب الريال YER', account_no: '1020304051', currency: 'YER', opening_val: '45000000' },
-    { id: 'bnk-3', bank_code: 'BNK-KRA-YER', bank_name_ar: 'مصرف الكريمي - حساب التشغيل الميداني YER', account_no: '70809010', currency: 'YER', opening_val: '28000000' },
-    { id: 'bnk-4', bank_code: 'CSH-MAIN-YER', bank_name_ar: 'الصندوق الرئيسي - الخزينة المركزية صنعاء', account_no: 'CSH-01', currency: 'YER', opening_val: '12000000' }
-  ]);
+  useEffect(() => {
+    let cancelled = false;
+    const loadOpeningData = async () => {
+      setInvLoading(true);
+      setInvError(null);
+      try {
+        const token = localStorage.getItem('rbd_token');
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+        const getRows = async (table: string) => {
+          try {
+            const res = await fetch(`/api/tables/${table}`, { headers });
+            if (!res.ok) return [];
+            const data = await res.json();
+            const rows = data.data || data || [];
+            return Array.isArray(rows) ? rows : [];
+          } catch { return []; }
+        };
+
+        const [warehouses, inventory] = await Promise.all([getRows('warehouses'), getRows('inventory')]);
+        if (cancelled) return;
+
+        // Aggregate real stock value per warehouse
+        const agg = new Map<string, any>();
+        warehouses.forEach((w: any) => {
+          agg.set(w.id, {
+            id: w.id,
+            code: w.code || w.location || '-',
+            name_ar: w.name_ar,
+            category: '-',
+            item_count: 0,
+            unit_val_yer: 0,
+            opening_qty: '0',
+            opening_val_yer: '0'
+          });
+        });
+        inventory.forEach((it: any) => {
+          const wh = agg.get(it.warehouse_id);
+          if (!wh) return;
+          const qty = parseFloat(it.quantity || 0);
+          const cost = parseFloat(it.unit_cost || 0);
+          wh.item_count += 1;
+          wh.opening_qty = String(parseFloat(wh.opening_qty) + qty);
+          wh.unit_val_yer = cost;
+          wh.opening_val_yer = String(parseFloat(wh.opening_val_yer) + qty * cost);
+        });
+        setInventoryBalances(Array.from(agg.values()));
+
+        // Bank & cash balances come from the live chart of accounts (ASSET accounts)
+        const bankLike = accounts.filter((a: any) => {
+          const t = String(a.account_type || '').toUpperCase();
+          if (t !== 'ASSET') return false;
+          const name = `${a.name_ar || ''} ${a.name_en || ''}`.toLowerCase();
+          return name.includes('بنك') || name.includes('bank') || name.includes('صندوق') || name.includes('cash') || name.includes('خزينة');
+        });
+        setBankBalances(bankLike.map((a: any) => ({
+          id: a.id,
+          bank_code: a.account_code,
+          bank_name_ar: a.name_ar || a.name_en,
+          account_no: a.account_code,
+          currency: a.currency_code || 'YER',
+          opening_val: String(a.current_balance || 0)
+        })));
+      } catch (err) {
+        console.error('[OpeningBalances] Failed to load live data:', err);
+        if (!cancelled) setInvError(isRtl ? 'تعذر تحميل بيانات الأرصدة الافتتاحية.' : 'Failed to load opening balance data.');
+      } finally {
+        if (!cancelled) setInvLoading(false);
+      }
+    };
+    loadOpeningData();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleBalanceChange = (accountId: string, value: string) => {
     setBalances(prev => ({ ...prev, [accountId]: value }));

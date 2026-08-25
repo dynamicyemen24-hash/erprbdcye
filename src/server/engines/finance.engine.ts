@@ -13,6 +13,7 @@ import {
   paginatedQuery, requireField, optionalString, optionalNumber,
   generateTxNumber, auditLog, AuthContext
 } from '../core/helpers';
+import logger from '../core/logger';
 
 // ─── Chart of Accounts ─────────────────────────────────
 
@@ -260,7 +261,7 @@ export class LedgerEngine {
             linesCount: entry.lines.length,
           }),
         ]
-      ).catch(() => {});
+      ).catch((err) => { logger.warn(`[Finance] Failed to log voucher audit: ${err.message}`, { context: 'finance' }); });
 
       return {
         transactionId: txId,

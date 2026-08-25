@@ -8,7 +8,7 @@ interface EnvironmentModeBannerProps {
   showToggle?: boolean;
 }
 
-export const EnvironmentModeBanner: React.FC<EnvironmentModeBannerProps> = ({
+const EnvironmentModeBannerInner: React.FC<EnvironmentModeBannerProps> = ({
   lang,
   variant = 'full',
   showToggle = true,
@@ -318,4 +318,5 @@ const EnvironmentModeConfirmModal: React.FC<EnvironmentModeConfirmModalProps> = 
   );
 };
 
+export const EnvironmentModeBanner = React.memo(EnvironmentModeBannerInner);
 export default EnvironmentModeBanner;

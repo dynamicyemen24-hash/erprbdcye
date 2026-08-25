@@ -428,7 +428,7 @@ function DefaultErrorState({
  * Main Component
  * -------------------------------------------------------------------------- */
 
-export function ChartContainer({
+function ChartContainerInner({
   children,
 
   height = DEFAULT_HEIGHT,
@@ -605,3 +605,5 @@ export function ChartContainer({
     </section>
   );
 }
+
+export const ChartContainer = React.memo(ChartContainerInner);

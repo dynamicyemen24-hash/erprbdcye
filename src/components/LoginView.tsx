@@ -55,6 +55,45 @@ interface LoginViewProps {
   onThemeToggle?: () => void;
 }
 
+// Static module-level data — never recreated across renders (performance)
+const roleQuickAccess = [
+  {
+    roleAr: 'المدير التنفيذي العام',
+    roleEn: 'Executive Director',
+    level: 'Level 5 (CEO)',
+    icon: Briefcase,
+    color: 'text-amber-500 bg-amber-500/10'
+  },
+  {
+    roleAr: 'مدير العمليات والمشاريع',
+    roleEn: 'Operations & Programs Director',
+    level: 'Level 4 (Director)',
+    icon: Layers,
+    color: 'text-blue-500 bg-blue-500/10'
+  },
+  {
+    roleAr: 'المدير المالي والحوكمة',
+    roleEn: 'Chief Financial Officer',
+    level: 'Level 4 (CFO)',
+    icon: Coins,
+    color: 'text-emerald-500 bg-emerald-500/10'
+  },
+  {
+    roleAr: 'مسؤول اللوجستيات والميدان',
+    roleEn: 'Field Logistics Lead',
+    level: 'Level 3 (Field)',
+    icon: Compass,
+    color: 'text-cyan-500 bg-cyan-500/10'
+  },
+  {
+    roleAr: 'مدير النظام والتحكم',
+    roleEn: 'Enterprise System Admin',
+    level: 'Level 5 (IT Admin)',
+    icon: ShieldCheck,
+    color: 'text-purple-500 bg-purple-500/10'
+  }
+] as const;
+
 export default function LoginView({
   users,
   onLoginSuccess,
@@ -109,45 +148,14 @@ export default function LoginView({
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSubmitted, setForgotSubmitted] = useState(false);
 
-  // Role-based quick access (no hardcoded emails or personal data exposed)
-  const roleQuickAccess = [
-    { 
-      roleAr: 'المدير التنفيذي العام', 
-      roleEn: 'Executive Director', 
-      level: 'Level 5 (CEO)', 
-      icon: Briefcase, 
-      color: 'text-amber-500 bg-amber-500/10' 
-    },
-    { 
-      roleAr: 'مدير العمليات والمشاريع', 
-      roleEn: 'Operations & Programs Director', 
-      level: 'Level 4 (Director)', 
-      icon: Layers, 
-      color: 'text-blue-500 bg-blue-500/10' 
-    },
-    { 
-      roleAr: 'المدير المالي والحوكمة', 
-      roleEn: 'Chief Financial Officer', 
-      level: 'Level 4 (CFO)', 
-      icon: Coins, 
-      color: 'text-emerald-500 bg-emerald-500/10' 
-    },
-    { 
-      roleAr: 'مسؤول اللوجستيات والميدان', 
-      roleEn: 'Field Logistics Lead', 
-      level: 'Level 3 (Field)', 
-      icon: Compass, 
-      color: 'text-cyan-500 bg-cyan-500/10' 
-    },
-    { 
-      roleAr: 'مدير النظام والتحكم', 
-      roleEn: 'Enterprise System Admin', 
-      level: 'Level 5 (IT Admin)', 
-      icon: ShieldCheck, 
-      color: 'text-purple-500 bg-purple-500/10' 
-    }
-  ];
-
+  // Role directory — focuses the email field so the user enters their own official credentials
+  const handleRoleSelect = () => {
+    setError(null);
+    triggerHaptic('light');
+    setIdentifier('');
+    setPassword('');
+    setTimeout(() => identifierInputRef.current?.focus(), 60);
+  };
   // Auto-focus username on initial render
   const identifierInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -229,14 +237,6 @@ export default function LoginView({
     } finally {
       setLoading(false);
     }
-  };
-
-  // Quick Account Picker — fills the role hint only (user still enters their own email)
-  const handleQuickSelect = (acc: typeof roleQuickAccess[0]) => {
-    setIdentifier('');
-    setPassword('');
-    setError(null);
-    triggerHaptic('light');
   };
 
   // Biometric / WebAuthn Passkey Login Handler
@@ -352,7 +352,24 @@ export default function LoginView({
           from { opacity: 0; transform: translateX(${isRtl ? '20px' : '-20px'}); }
           to { opacity: 1; transform: translateX(0); }
         }
+        @keyframes loginAuroraDrift {
+          0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+          50% { transform: translate3d(2%, -3%, 0) scale(1.06); }
+        }
       `}</style>
+
+      {/* Ambient Aurora Background — GPU-friendly, purely decorative */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+        <div
+          className="absolute -top-32 ltr:-left-24 rtl:-right-24 w-[34rem] h-[34rem] rounded-full bg-emerald-500/15 dark:bg-emerald-500/10 blur-3xl"
+          style={{ animation: 'loginAuroraDrift 18s ease-in-out infinite' }}
+        />
+        <div
+          className="absolute -bottom-40 ltr:-right-32 rtl:-left-32 w-[30rem] h-[30rem] rounded-full bg-amber-400/10 dark:bg-amber-500/[0.07] blur-3xl"
+          style={{ animation: 'loginAuroraDrift 22s ease-in-out infinite reverse' }}
+        />
+      </div>
+
       {/* Top Header Bar */}
       <header className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-6 flex items-center justify-between z-10 pt-safe">
         {/* Organization Brand */}
@@ -416,6 +433,9 @@ export default function LoginView({
                 onThemeToggle();
               }}
               className="p-2 rounded-xl border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 transition-colors cursor-pointer"
+              role="switch"
+              aria-checked={theme === 'dark'}
+              aria-label={theme === 'dark' ? (isRtl ? 'الوضع النهاري' : 'Light Mode') : (isRtl ? 'الوضع الداكن' : 'Dark Mode')}
               title={theme === 'dark' ? (isRtl ? 'الوضع النهاري' : 'Light Mode') : (isRtl ? 'الوضع الداكن' : 'Dark Mode')}
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
@@ -425,7 +445,7 @@ export default function LoginView({
       </header>
 
       {/* Main Intelligent Gateway Body */}
-      <main className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-12 flex-1 flex items-center justify-center">
+      <main className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-12 flex-1 flex items-center justify-center relative z-10">
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* Left Column: Human Purpose & Mission */}
@@ -498,7 +518,10 @@ export default function LoginView({
 
           {/* Right Column: Intelligent Access Card */}
           <div className="lg:col-span-6 w-full max-w-md mx-auto" style={{ animation: 'loginCardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both' }}>
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative space-y-6">
+            <div className="bg-white dark:bg-zinc-900/95 dark:backdrop-blur-xl border border-slate-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-emerald-950/5 dark:shadow-black/40 relative space-y-6 overflow-hidden">
+              {/* Brand Accent Line */}
+              <div aria-hidden="true" className="absolute top-0 inset-x-0 h-1 bg-gradient-to-l from-emerald-500 via-emerald-400 to-amber-400" />
+
               
               {/* Offline Notice Banner if disconnected */}
               {!isOnline && (
@@ -561,7 +584,34 @@ export default function LoginView({
 
                   <button
                     type="button"
-                    onClick={() => onLoginSuccess(cachedUser)}
+                    onClick={async () => {
+                      // Validate existing token before restoring session
+                      const token = localStorage.getItem('rbd_token');
+                      if (!token) {
+                        setCachedUser(null);
+                        setIdentifier('');
+                        return;
+                      }
+                      try {
+                        const res = await fetch('/api/auth/me', {
+                          headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (res.ok) {
+                          onLoginSuccess(cachedUser);
+                        } else {
+                          // Token invalid — clear and show login form
+                          setCachedUser(null);
+                          setIdentifier('');
+                          localStorage.removeItem('rbd_user');
+                          localStorage.removeItem('roh_user');
+                          localStorage.removeItem('rbd_token');
+                          localStorage.removeItem('rbd_refresh_token');
+                        }
+                      } catch {
+                        // Network error — allow offline mode with cached data
+                        onLoginSuccess(cachedUser);
+                      }
+                    }}
                     className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>{isRtl ? 'المتابعة إلى مساحة العمل' : 'Continue to Workspace'}</span>
@@ -582,7 +632,7 @@ export default function LoginView({
 
               {/* Error Alert Box */}
               {error && (
-                <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-start gap-2.5 text-xs text-rose-800 dark:text-rose-300 animate-in fade-in duration-150">
+                <div role="alert" aria-live="assertive" className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-start gap-2.5 text-xs text-rose-800 dark:text-rose-300 animate-in fade-in duration-150">
                   <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                   <span className="font-bold leading-relaxed">{error}</span>
                 </div>
@@ -605,7 +655,8 @@ export default function LoginView({
                       value={identifier}
                       onChange={e => setIdentifier(e.target.value)}
                       placeholder={isRtl ? 'executive@rohamaab.org' : 'executive@rohamaab.org'}
-                      className="w-full pl-3.5 pr-10 py-3 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl text-xs font-bold text-slate-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                      aria-label={isRtl ? 'البريد الإلكتروني الرسمي' : 'Official Email Address'}
+                      className="w-full pl-3.5 pr-10 py-3 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl text-xs font-bold text-slate-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors duration-200"
                     />
                   </div>
                 </div>
@@ -637,11 +688,14 @@ export default function LoginView({
                       onKeyDown={checkCapsLock}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl text-xs font-bold text-slate-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                      aria-label={isRtl ? 'كلمة المرور' : 'Password'}
+                      className="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl text-xs font-bold text-slate-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors duration-200"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(p => !p)}
+                      aria-label={showPassword ? (isRtl ? 'إخفاء كلمة المرور' : 'Hide password') : (isRtl ? 'إظهار كلمة المرور' : 'Show password')}
+                      aria-pressed={showPassword}
                       className="p-1 text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 absolute left-3 cursor-pointer"
                       title={showPassword ? (isRtl ? 'إخفاء' : 'Hide') : (isRtl ? 'إظهار' : 'Show')}
                     >
@@ -676,7 +730,7 @@ export default function LoginView({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white text-sm font-black rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white text-sm font-black rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900"
                 >
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -700,28 +754,31 @@ export default function LoginView({
                   <span>{isRtl ? 'الدخول باستخدام البصمة أو مفتاح المرور (Passkey)' : 'Sign In with Passkey / Biometrics'}</span>
                 </button>
 
-                {/* Official Role Quick-Select Toggle */}
+                {/* Official Role Directory Toggle */}
                 <div className="text-center">
                   <button
                     type="button"
                     onClick={() => setShowOtherMethods(p => !p)}
+                    aria-expanded={showOtherMethods}
                     className="text-[11px] font-black text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-300 inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <span>{isRtl ? 'الدخول السريع بالحسابات الرسمية المعتمدة' : 'Official Role Quick Sign-in'}</span>
-                    <ChevronRight className={`w-3 h-3 transition-transform ${showOtherMethods ? 'rotate-90' : ''}`} />
+                    <span>{isRtl ? 'الأدوار المؤسسية المعتمدة في النظام' : 'Official Enterprise Roles'}</span>
+                    <ChevronRight className={`w-3 h-3 transition-transform ${showOtherMethods ? (isRtl ? '-rotate-90' : 'rotate-90') : ''}`} />
                   </button>
                 </div>
 
-                {/* Quick Role Buttons Grid */}
+                {/* Role Directory Grid — informational, guides users to their official email */}
                 {showOtherMethods && (
-                  <div className="grid grid-cols-1 gap-1.5 pt-1 animate-in fade-in duration-150">
+                  <div className="grid grid-cols-1 gap-1.5 pt-1 animate-in fade-in duration-150" role="list">
                     {roleQuickAccess.map((acc, idx) => {
                       const IconComp = acc.icon;
                       return (
                         <button
                           key={idx}
                           type="button"
-                          onClick={() => handleQuickSelect(acc)}
+                          role="listitem"
+                          onClick={handleRoleSelect}
+                          title={isRtl ? 'أدخل بريدك الإلكتروني الرسمي لتسجيل الدخول' : 'Enter your own official email to sign in'}
                           className="p-2 bg-slate-50 dark:bg-zinc-950/60 hover:bg-emerald-500/10 border border-slate-200/80 dark:border-zinc-800/80 rounded-xl flex items-center justify-between text-xs font-bold transition-colors cursor-pointer text-slate-700 dark:text-zinc-300 text-right"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
@@ -738,11 +795,14 @@ export default function LoginView({
                             </div>
                           </div>
                           <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-black shrink-0">
-                            {isRtl ? 'تعبئة' : 'Fill'}
+                            {isRtl ? 'دخول' : 'Sign in'}
                           </span>
                         </button>
                       );
                     })}
+                    <p className="text-[10px] text-zinc-400 font-bold text-center pt-1">
+                      {isRtl ? 'لك مستخدمٍ بريدٌ رسمي خاص به — أدخل بياناتك المعتمدة لتسجيل الدخول.' : 'Each user signs in with their own official credentials.'}
+                    </p>
                   </div>
                 )}
               </div>

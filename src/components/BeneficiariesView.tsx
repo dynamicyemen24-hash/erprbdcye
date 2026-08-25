@@ -20,7 +20,7 @@ import {
   Download
 } from 'lucide-react';
 import ExportToolsModal from './ExportToolsModal';
-import { printHTML } from '../lib/printUtils';
+import { printHTML, createPrintDocument } from '../lib/printUtils';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
@@ -123,33 +123,13 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   });
 
   const handlePrintBeneficiary = (b: any) => {
-    let printWindow: any = null;
-    try {
-      printWindow = window.open('', '_blank');
-    } catch (e) { console.error('[Beneficiaries] Failed to open print window:', e); }
-
-    let writtenHTML = '';
-    const mockDoc = {
-      write: (html: string) => {
-        if (printWindow) {
-          printWindow.document.write(html);
-        } else {
-          writtenHTML += html;
-        }
-      },
-      close: () => {
-        if (printWindow) {
-          printWindow.document.close();
-        } else {
-          printHTML(writtenHTML);
-        }
-      }
-    };
+    // Resilient print writer — popup window when allowed, sandbox-safe iframe fallback
+    const printDoc = createPrintDocument();
 
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     const titleText = lang === 'ar' ? 'تقرير دراسة الحالة الميدانية والاستحقاق الاجتماعي' : 'Field Case Study & Welfare Report';
 
-    mockDoc.write(`
+    printDoc.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">
       <head>
@@ -337,7 +317,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       </body>
       </html>
     `);
-    mockDoc.close();
+    printDoc.close();
   };
 
   const openFormModal = (beneficiary: any | null = null, prefilledData?: any) => {

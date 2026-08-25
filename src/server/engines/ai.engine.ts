@@ -4,6 +4,7 @@
  */
 
 import { query, queryOne, queryMany } from '../core/database';
+import logger from '../core/logger';
 
 // ─── AI Insight Types ──────────────────────────────────
 
@@ -34,7 +35,7 @@ export class AIEngine {
       `SELECT ai.* FROM ai_insights ai
        WHERE ${where} ORDER BY ai.created_at DESC LIMIT 50`,
       params
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'ai', error: err.message }); return []; });
   }
 
   /**

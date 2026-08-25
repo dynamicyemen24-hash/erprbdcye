@@ -1483,10 +1483,10 @@ export default function ProjectStatusOverviewWidget({
         label = isRtl ? `منذ ${daysAgo} ?` : `${daysAgo}d ago`;
       }
       
-      // Simulate a stable and realistic variance progression ending at the current variance
+      // Honest trend: linear interpolation from 0 to current variance over the period
       let val = currentVar;
       if (i > 0) {
-        val = currentVar - (i * 0.45) + Math.sin(i * 1.5) * 1.3;
+        val = (currentVar / 7) * (7 - i);
       }
       points.push({
         name: label,

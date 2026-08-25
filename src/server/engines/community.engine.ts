@@ -6,6 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext } from '../core/helpers';
+import logger from '../core/logger';
 
 export class VolunteerEngine {
   static async list(orgId: string, pagination: PaginationParams = {}, filters?: {
@@ -37,7 +38,7 @@ export class VolunteerEngine {
     if (!volunteer) return null;
     const tasks = await queryMany(
       'SELECT * FROM volunteer_tasks WHERE volunteer_id = $1 ORDER BY created_at DESC', [volunteerId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'community', error: err.message }); return []; });
     return { ...volunteer, tasks };
   }
 
@@ -96,7 +97,7 @@ export class VolunteerEngine {
        GROUP BY v.id, v.name, v.field
        ORDER BY total_hours DESC`,
       params
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'community', error: err.message }); return []; });
   }
 }
 
@@ -109,7 +110,7 @@ export class CommitteeEngine {
         (SELECT COUNT(*) FROM committee_members cm WHERE cm.committee_id = cc.id) as member_count
        FROM community_committees cc WHERE cc.organization_id = $1 ORDER BY cc.name_ar`,
       [orgId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'community', error: err.message }); return []; });
   }
 
   static async create(data: {
@@ -134,7 +135,7 @@ export class CommitteeEngine {
       `INSERT INTO committee_members (committee_id, volunteer_id, role, join_date)
        VALUES ($1,$2,$3,$4) RETURNING *`,
       [committeeId, data.volunteerId, optionalString(data.role), data.joinDate || new Date().toISOString()]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 
   static async getMembers(committeeId: string) {
@@ -144,7 +145,7 @@ export class CommitteeEngine {
        LEFT JOIN volunteers v ON v.id = cm.volunteer_id
        WHERE cm.committee_id = $1`,
       [committeeId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'community', error: err.message }); return []; });
   }
 }
 

@@ -2,6 +2,7 @@ import { getDatabasePool } from './db.service';
 import { serverConfig } from '../config/index';
 import { IPSASFinanceService } from './finance.service';
 import { recordAuditLog } from './audit.service';
+import logger from '../core/logger';
 
 export class MasterOperationalOrchestratorService {
 
@@ -156,6 +157,8 @@ export class MasterOperationalOrchestratorService {
     const pool = getDatabasePool();
     const benRes = await pool.query('SELECT COUNT(*) FROM beneficiaries');
     const benCount = parseInt(benRes.rows[0].count) || 418;
+    // TODO: CHS scores must be computed from actual compliance data — these are placeholder values
+    logger.warn('[Orchestrator] CHS scores are hardcoded placeholders — compute from actual compliance data', { context: 'orchestrator' });
     const chsScores = [
       { commitment: 'CHS 1: Appropriate and relevant response', scorePct: 96 },
       { commitment: 'CHS 2: Effective and timely response', scorePct: 92 },

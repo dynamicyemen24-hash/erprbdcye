@@ -125,7 +125,7 @@ export default function NotificationCenter({
 
     // 3. Always add to in-app notification center logs
     const newAlert: InAppAlert = {
-      id: 'alert-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+      id: 'alert-' + crypto.randomUUID(),
       title,
       body,
       type,
@@ -226,27 +226,6 @@ export default function NotificationCenter({
     return () => {
       window.removeEventListener('nexora-inventory-alert', handleInventoryAlert);
     };
-  }, [lang]);
-
-  // Monitor for upcoming performance evaluations
-  useEffect(() => {
-    // Simulated check for performance evaluations
-    const checkEvaluations = () => {
-      const today = new Date();
-      // Simulate that an evaluation is due in 3 days
-      const evaluationDate = new Date();
-      evaluationDate.setDate(today.getDate() + 3);
-
-      const title = lang === 'ar' ? 'تنبيه: اقتراب موعد تقييم الأداء' : 'Alert: Upcoming Performance Evaluation';
-      const body = lang === 'ar' 
-        ? `موعد تقييم الأداء الميداني يقترب في ${evaluationDate.toDateString()}. يرجى تحديث المهام المنجزة.` 
-        : `Your field performance evaluation is due on ${evaluationDate.toDateString()}. Please update your completed tasks.`;
-      
-      sendBrowserNotification(title, body, 'info');
-    };
-
-    // Run once on mount (simulating a check)
-    checkEvaluations();
   }, [lang]);
 
   // Handle Simulation buttons

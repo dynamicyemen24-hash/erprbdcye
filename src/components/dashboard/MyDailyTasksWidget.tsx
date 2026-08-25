@@ -113,7 +113,7 @@ const DEFAULT_TASKS: DailyTask[] = [
   }
 ];
 
-export function MyDailyTasksWidget({ lang, currentUser }: MyDailyTasksWidgetProps) {
+function MyDailyTasksWidgetInner({ lang, currentUser }: MyDailyTasksWidgetProps) {
   const isRtl = lang === 'ar';
   const userEmail = currentUser?.email || 'admin@rohamaab.org';
   const userName = currentUser?.name || (isRtl ? 'المدير التنفيذي' : 'Executive Director');
@@ -513,6 +513,9 @@ export function MyDailyTasksWidget({ lang, currentUser }: MyDailyTasksWidgetProp
     </div>
   );
 }
+
+export default React.memo(MyDailyTasksWidgetInner);
+export { MyDailyTasksWidgetInner as MyDailyTasksWidget };
 
 // Single Task Card Component
 interface TaskCardProps {

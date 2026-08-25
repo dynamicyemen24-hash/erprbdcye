@@ -31,18 +31,20 @@ interface CalendarEvent {
   responsible_en: string;
 }
 
-export function CollaborativeCalendarWidget({ lang, projects }: CollaborativeCalendarWidgetProps) {
-  // Current context time is August 2026
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [currentMonth, setCurrentMonth] = useState(7); // 0-indexed: 7 is August
-  const [selectedDateStr, setSelectedDateStr] = useState<string>('2026-08-07');
+function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalendarWidgetProps) {
+  // Real current date
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(todayStr);
   const [filterType, setFilterType] = useState<string>('ALL');
   const [showAddEventModal, setShowAddEventModal] = useState(false);
 
   // Form State
   const [newEventTitleAr, setNewEventTitleAr] = useState('');
   const [newEventTitleEn, setNewEventTitleEn] = useState('');
-  const [newEventDate, setNewEventDate] = useState('2026-08-15');
+  const [newEventDate, setNewEventDate] = useState(todayStr);
   const [newEventCategory, setNewEventCategory] = useState<'PROJECT_DEADLINE' | 'FIELD_VISIT' | 'SPONSORSHIP_PAYMENT'>('FIELD_VISIT');
   const [newEventPriority, setNewEventPriority] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('MEDIUM');
   const [newEventLocationAr, setNewEventLocationAr] = useState('');
@@ -50,81 +52,8 @@ export function CollaborativeCalendarWidget({ lang, projects }: CollaborativeCal
   const [newEventRespAr, setNewEventRespAr] = useState('');
   const [newEventRespEn, setNewEventRespEn] = useState('');
 
-  // Initial Seed Collaborative Events
-  const [events, setEvents] = useState<CalendarEvent[]>([
-    {
-      id: 'e1',
-      title_ar: 'الموعد النهائي لتسليم سلة الغذاء المتكاملة - تعز',
-      title_en: 'Food Basket Delivery Deadline - Taiz',
-      date: '2026-08-15',
-      category: 'PROJECT_DEADLINE',
-      priority: 'HIGH',
-      location_ar: 'تعز، الحوبان والمدينة',
-      location_en: 'Taiz, Houban and City Center',
-      responsible_ar: 'أ. باسم المخلافي',
-      responsible_en: 'Bassem Al-Mikhlafi'
-    },
-    {
-      id: 'e2',
-      title_ar: 'زيارة ميدانية لتقييم وصيانة بئر موزع الارتوازي',
-      title_en: 'Mawza Well Technical Maintenance Field Visit',
-      date: '2026-08-10',
-      category: 'FIELD_VISIT',
-      priority: 'HIGH',
-      location_ar: 'موزع، الساحل الغربي',
-      location_en: 'Mawza, West Coast',
-      responsible_ar: 'م. طارق الوصابي',
-      responsible_en: 'Eng. Tareq Al-Wasabi'
-    },
-    {
-      id: 'e3',
-      title_ar: 'صرف كفالات الأيتام لشهر يوليو وأغسطس 2026',
-      title_en: 'July/August Orphans Sponsorship Cash Disbursement',
-      date: '2026-08-05',
-      category: 'SPONSORSHIP_PAYMENT',
-      priority: 'MEDIUM',
-      location_ar: 'المكلا، محافظة حضرموت',
-      location_en: 'Mukalla, Hadhramaut',
-      responsible_ar: 'د. عبدالكريم الهمداني',
-      responsible_en: 'Dr. Abdulkarim Al-Hamdani'
-    },
-    {
-      id: 'e4',
-      title_ar: 'تدشين مدرسة الحافظ بمارب القرآني التنموي',
-      title_en: 'Inauguration of Al-Hafiz Quranic School - Marib',
-      date: '2026-08-20',
-      category: 'PROJECT_DEADLINE',
-      priority: 'MEDIUM',
-      location_ar: 'مارب، حي الروضة',
-      location_en: 'Marib, Al-Rawdah District',
-      responsible_ar: 'أ. ماجد الحكيمي',
-      responsible_en: 'Majid Al-Hakimi'
-    },
-    {
-      id: 'e5',
-      title_ar: 'مسح ميداني لتوزيع كسوة شتوية للأسر الأشد فقراً',
-      title_en: 'Winter Clothing Needs Field Survey',
-      date: '2026-08-22',
-      category: 'FIELD_VISIT',
-      priority: 'LOW',
-      location_ar: 'صعدة، مديريات الصفراء وضحيان',
-      location_en: "Sa'dah, Al-Safra & Dhahyan Districts",
-      responsible_ar: 'أ. أمجد ربيح',
-      responsible_en: 'Amjad Rubaiah'
-    },
-    {
-      id: 'e6',
-      title_ar: 'توزيع مستحقات الأسر والتمكين الاقتصادي للأرامل',
-      title_en: 'Disbursement of Economic Widow Grants',
-      date: '2026-08-28',
-      category: 'SPONSORSHIP_PAYMENT',
-      priority: 'HIGH',
-      location_ar: 'مكتب الجمعية الموحد - صنعاء',
-      location_en: 'Unified Office - Sanaa',
-      responsible_ar: 'أ. حنان الشيباني',
-      responsible_en: 'Hanan Al-Shaibani'
-    }
-  ]);
+  // User-created events start empty; real project deadlines stream in via props
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   // Combine static events with actual dynamic project deadlines from props
   const combinedEvents = useMemo(() => {
@@ -331,7 +260,7 @@ export function CollaborativeCalendarWidget({ lang, projects }: CollaborativeCal
                     ? `${monthNamesAr[currentMonth]} ${currentYear}` 
                     : `${monthNamesEn[currentMonth]} ${currentYear}`}
                 </span>
-                {currentYear === 2026 && currentMonth === 7 && (
+                {currentYear === today.getFullYear() && currentMonth === today.getMonth() && (
                   <span className="text-[9px] font-black bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded ml-1">
                     {lang === 'ar' ? 'الشهر الحالي' : 'Current Month'}
                   </span>
@@ -347,9 +276,9 @@ export function CollaborativeCalendarWidget({ lang, projects }: CollaborativeCal
                 </button>
                 <button
                   onClick={() => {
-                    setCurrentYear(2026);
-                    setCurrentMonth(7);
-                    setSelectedDateStr('2026-08-07');
+                    setCurrentYear(today.getFullYear());
+                    setCurrentMonth(today.getMonth());
+                    setSelectedDateStr(todayStr);
                   }}
                   className="px-2 py-1 text-[10px] font-extrabold border border-slate-200 dark:border-zinc-800 rounded-md hover:bg-white dark:hover:bg-zinc-950 cursor-pointer text-slate-600 dark:text-zinc-400"
                 >
@@ -387,7 +316,7 @@ export function CollaborativeCalendarWidget({ lang, projects }: CollaborativeCal
                   else ringColor = 'ring-1 ring-blue-500/60';
                 }
 
-                const isCurrentSimulatedDay = cell.dateString === '2026-08-07';
+                const isCurrentSimulatedDay = cell.dateString === todayStr;
 
                 return (
                   <div
@@ -723,3 +652,6 @@ export function CollaborativeCalendarWidget({ lang, projects }: CollaborativeCal
     </WidgetFrame>
   );
 }
+
+export default React.memo(CollaborativeCalendarWidgetInner);
+export { CollaborativeCalendarWidgetInner as CollaborativeCalendarWidget };

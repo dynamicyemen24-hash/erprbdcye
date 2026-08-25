@@ -64,93 +64,30 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
   const [claimCurrency, setClaimCurrency] = useState('YER');
   const [claimInvoiceRef, setClaimInvoiceRef] = useState('');
 
-  // Load live parties and storage records
+  // Load LIVE parties, digital entitlements, claims & settlements from the database (E2E)
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/tables/parties');
-      const partyData = await res.json();
-      if (Array.isArray(partyData)) {
-        setParties(partyData);
-      }
+      const token = localStorage.getItem('rbd_token');
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+      const getRows = async (table: string) => {
+        try {
+          const res = await fetch(`/api/tables/${table}`, { headers });
+          if (!res.ok) return [];
+          const data = await res.json();
+          const rows = data.data || data || [];
+          return Array.isArray(rows) ? rows : [];
+        } catch {
+          return [];
+        }
+      };
 
-      // Load mock/local vouchers, claims, settlements
-      const savedVouchers = localStorage.getItem('nexora_digital_vouchers');
-      if (savedVouchers) {
-        setVouchers(JSON.parse(savedVouchers));
-      } else {
-        const initialVouchers: DigitalEntitlement[] = [
-          {
-            id: 'VOUCH-2026-1001',
-            tenant_id: tenantContext.tenantId,
-            organization_id: tenantContext.organizationId,
-            beneficiary_party_id: 'ben-01',
-            beneficiary_name: 'أسرة عبدالله سعيد علي',
-            entitlement_code: 'ENT-FOOD-991',
-            item_or_service_name: 'سلة غذائية متكاملة - نموذج SPHERE',
-            quantity: 1,
-            unit_value: 50000,
-            total_value: 50000,
-            currency_code: 'YER',
-            expiry_date: '2026-12-31',
-            status: 'REDEEMED',
-            merchant_name: 'مؤسسة البركة للتجارة والمواد الغذائية',
-            redemption_date: new Date().toISOString()
-          },
-          {
-            id: 'VOUCH-2026-1002',
-            tenant_id: tenantContext.tenantId,
-            organization_id: tenantContext.organizationId,
-            beneficiary_party_id: 'ben-02',
-            beneficiary_name: 'أسرة محمد حسين ناصر',
-            entitlement_code: 'ENT-FOOD-992',
-            item_or_service_name: 'سلة غذائية متكاملة - نموذج SPHERE',
-            quantity: 1,
-            unit_value: 50000,
-            total_value: 50000,
-            currency_code: 'YER',
-            expiry_date: '2026-12-31',
-            status: 'REDEEMED',
-            merchant_name: 'مؤسسة البركة للتجارة والمواد الغذائية',
-            redemption_date: new Date().toISOString()
-          }
-        ];
-        setVouchers(initialVouchers);
-        localStorage.setItem('nexora_digital_vouchers', JSON.stringify(initialVouchers));
-      }
-
-      const savedClaims = localStorage.getItem('nexora_merchant_claims');
-      if (savedClaims) {
-        setClaims(JSON.parse(savedClaims));
-      } else {
-        const initialClaims: ThirdPartyClaim[] = [
-          {
-            id: 'CLM-2026-8801',
-            tenant_id: tenantContext.tenantId,
-            organization_id: tenantContext.organizationId,
-            claim_number: 'CLM-2026-8801',
-            merchant_party_id: 'merch-01',
-            merchant_name: 'مؤسسة البركة للتجارة والمواد الغذائية',
-            voucher_count: 25,
-            claimed_amount: 1250000,
-            approved_amount: 1250000,
-            currency_code: 'YER',
-            invoice_reference: 'INV-BARAKA-9921',
-            status: 'APPROVED',
-            reconciliation_status: 'MATCHED',
-            created_at: new Date().toISOString()
-          }
-        ];
-        setClaims(initialClaims);
-        localStorage.setItem('nexora_merchant_claims', JSON.stringify(initialClaims));
-      }
-
-      const savedSettlements = localStorage.getItem('nexora_merchant_settlements');
-      if (savedSettlements) {
-        setSettlements(JSON.parse(savedSettlements));
-      }
+      setParties(await getRows('parties'));
+      setVouchers(await getRows('digital_entitlements'));
+      setClaims(await getRows('third_party_claims'));
+      setSettlements(await getRows('third_party_settlements'));
     } catch (err) {
-      console.error(err);
+      console.error('[ThirdParty] Failed to load live records:', err);
     } finally {
       setLoading(false);
     }
@@ -171,79 +108,122 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
     }
   };
 
-  // Handle Submit Merchant Claim
-  const handleCreateClaim = (e: React.FormEvent) => {
+  // Handle Submit Merchant Claim — persisted to third_party_claims table
+  const handleCreateClaim = async (e: React.FormEvent) => {
     e.preventDefault();
-    const merch = parties.find(p => p.id === selectedMerchantId) || { name_ar: 'مركز التوفير الإغاثي والتجاري' };
+    const merch = parties.find(p => p.id === selectedMerchantId);
+    if (!merch) {
+      enterpriseBus.notifyToast({
+        type: 'error',
+        title: isRtl ? 'التاجر غير محدد' : 'Merchant not selected',
+        message: isRtl ? 'يرجى اختيار تاجر معتمد من القائمة.' : 'Please select an approved merchant.'
+      });
+      return;
+    }
     const countNum = parseInt(claimVoucherCount) || 1;
     const amountNum = parseFloat(claimAmount) || 0;
 
-    const newClaim: ThirdPartyClaim = {
-      id: `CLM-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    const token = localStorage.getItem('rbd_token');
+    const claimNumber = `CLM-${Date.now().toString().slice(-8)}`;
+    const payload = {
       tenant_id: tenantContext.tenantId,
       organization_id: tenantContext.organizationId,
-      claim_number: `CLM-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      merchant_party_id: selectedMerchantId || 'merch-gen',
-      merchant_name: merch.name_ar || merch.name_en || 'التاجر المعتمد',
+      claim_number: claimNumber,
+      merchant_party_id: selectedMerchantId,
+      merchant_name: merch.name_ar || merch.name_en || '',
       voucher_count: countNum,
       claimed_amount: amountNum,
-      approved_amount: amountNum,
+      approved_amount: 0, // approval is a separate workflow decision
       currency_code: claimCurrency,
-      invoice_reference: claimInvoiceRef || `INV-REF-${Math.floor(100 + Math.random() * 900)}`,
-      status: 'APPROVED',
-      reconciliation_status: 'MATCHED',
-      created_at: new Date().toISOString()
+      invoice_reference: claimInvoiceRef || '',
+      status: 'PENDING',
+      reconciliation_status: 'PENDING'
     };
 
-    const updated = [newClaim, ...claims];
-    setClaims(updated);
+    let savedClaim: ThirdPartyClaim;
     try {
-      localStorage.setItem('nexora_merchant_claims', JSON.stringify(updated));
-    } catch (err) { console.error('[ThirdParty] Failed to save merchant claims to localStorage:', err); }
+      const res = await fetch('/api/tables/third_party_claims', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const saved = await res.json();
+      savedClaim = (saved?.id || saved?.data?.id) ? { ...payload as any, id: saved.id || saved.data.id } : payload as ThirdPartyClaim;
+    } catch (err) {
+      console.error('[ThirdParty] Claim persistence failed:', err);
+      enterpriseBus.notifyToast({
+        type: 'error',
+        title: isRtl ? 'تعذر حفظ المطالبة' : 'Failed to save claim',
+        message: isRtl ? 'لم يتم حفظ المطالبة في قاعدة البيانات. تحقق من الاتصال.' : 'The claim was not saved to the database. Check connectivity.'
+      });
+      return;
+    }
 
-    enterpriseBus.notifyStateSync('NEB-14_PROCUREMENT', 'THIRD_PARTY_CLAIM_SUBMITTED', newClaim);
+    setClaims(prev => [savedClaim!, ...prev]);
+    enterpriseBus.notifyStateSync('NEB-14_PROCUREMENT', 'THIRD_PARTY_CLAIM_SUBMITTED', savedClaim!);
     enterpriseBus.notifyToast({
       type: 'success',
-      title: isRtl ? 'تم رفع مطالبة الطرف الثالث والتجار 🛒' : 'Third-Party Claim Submitted',
-      message: isRtl ? `تم تسجيل مطالبة التاجر ${newClaim.merchant_name} بمبلغ ${amountNum.toLocaleString()} ${claimCurrency} وتمريرها للمطابقة.` : `Claim registered for ${newClaim.merchant_name}.`
+      title: isRtl ? 'تم رفع مطالبة الطرف الثالث 🛒' : 'Third-Party Claim Submitted',
+      message: isRtl ? `تم تسجيل مطالبة ${savedClaim!.merchant_name} بمبلغ ${amountNum.toLocaleString()} ${claimCurrency} في قاعدة البيانات.` : `Claim for ${savedClaim!.merchant_name} persisted successfully.`
     });
 
     setIsNewClaimOpen(false);
   };
 
-  // Handle Approve & Settle Claim
-  const handleSettleClaim = (claim: ThirdPartyClaim) => {
-    const newSettlement: ThirdPartySettlement = {
-      id: `SETTLE-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+  // Handle Approve & Settle Claim — persisted to third_party_settlements + claim status update
+  const handleSettleClaim = async (claim: ThirdPartyClaim) => {
+    const token = localStorage.getItem('rbd_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+    const settlementNumber = `SETTLE-${Date.now().toString().slice(-8)}`;
+    const newSettlement = {
       tenant_id: tenantContext.tenantId,
       organization_id: tenantContext.organizationId,
-      settlement_number: `SETTLE-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      settlement_number: settlementNumber,
       claim_id: claim.id,
       merchant_party_id: claim.merchant_party_id,
       merchant_name: claim.merchant_name,
-      disbursed_amount: claim.approved_amount,
+      disbursed_amount: claim.approved_amount || claim.claimed_amount,
       currency_code: claim.currency_code,
       payment_type: 'BANK_TRANSFER',
-      bank_account_reference: `BANK-TX-${Math.floor(10000 + Math.random() * 90000)}`,
-      created_at: new Date().toISOString()
+      bank_account_reference: ''
     };
 
-    const updatedClaims = claims.map(c => c.id === claim.id ? { ...c, status: 'PAID' as const } : c);
-    setClaims(updatedClaims);
-    const updatedSettlements = [newSettlement, ...settlements];
-    setSettlements(updatedSettlements);
-
     try {
-      localStorage.setItem('nexora_merchant_claims', JSON.stringify(updatedClaims));
-      localStorage.setItem('nexora_merchant_settlements', JSON.stringify(updatedSettlements));
-    } catch (err) { console.error('[ThirdParty] Failed to save settlements to localStorage:', err); }
+      // 1) Persist the settlement
+      const res = await fetch('/api/tables/third_party_settlements', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(newSettlement)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const savedRes = await res.json();
+      const savedId = savedRes?.id || savedRes?.data?.id || settlementNumber;
 
-    enterpriseBus.notifyStateSync('NEB-10_FINANCE', 'THIRD_PARTY_CLAIM_SETTLED', newSettlement);
-    enterpriseBus.notifyToast({
-      type: 'success',
-      title: isRtl ? 'تم إجراء تسوية وصرف مستحقات التاجر 💳' : 'Third-Party Claim Settled',
-      message: isRtl ? `تم اعتماد وصرف مبلغ ${claim.approved_amount.toLocaleString()} ${claim.currency_code} لصالح التاجر ${claim.merchant_name}.` : `Claim settled.`
-    });
+      // 2) Mark the claim as PAID
+      await fetch(`/api/tables/third_party_claims/${claim.id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ status: 'PAID', reconciliation_status: 'MATCHED' })
+      });
+
+      setClaims(prev => prev.map(c => c.id === claim.id ? { ...c, status: 'PAID' as any } : c));
+      setSettlements(prev => [{ ...newSettlement, id: savedId } as any, ...prev]);
+
+      enterpriseBus.notifyStateSync('NEB-10_FINANCE', 'THIRD_PARTY_CLAIM_SETTLED', newSettlement);
+      enterpriseBus.notifyToast({
+        type: 'success',
+        title: isRtl ? 'تم إجراء تسوية وصرف مستحقات التاجر 💳' : 'Third-Party Claim Settled',
+        message: isRtl ? `تم اعتماد وصرف مبلغ ${(claim.approved_amount || claim.claimed_amount).toLocaleString()} ${claim.currency_code} لصالح التاجر ${claim.merchant_name}.` : `Claim settled for ${claim.merchant_name}.`
+      });
+    } catch (err) {
+      console.error('[ThirdParty] Settlement persistence failed:', err);
+      enterpriseBus.notifyToast({
+        type: 'error',
+        title: isRtl ? 'تعذر تنفيذ التسوية' : 'Settlement failed',
+        message: isRtl ? 'لم يتم حفظ التسوية في قاعدة البيانات. تحقق من الاتصال وأعد المحاولة.' : 'The settlement was not saved to the database. Check connectivity and retry.'
+      });
+    }
   };
 
   // Print Official Settlement Manifest

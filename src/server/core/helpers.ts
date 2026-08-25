@@ -4,8 +4,11 @@
  */
 
 import { Response } from 'express';
+import crypto from 'crypto';
 import { query, queryOne, queryMany } from './database';
 import { PaginationParams, PaginatedResult, ApiResponse, AuthContext, AuditLogEntry } from './types';
+import logger from './logger';
+export type { AuthContext } from './types';
 
 // ─── Pagination Builder ────────────────────────────────
 
@@ -135,7 +138,7 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
       ]
     );
   } catch (err: any) {
-    console.error('[Audit] Failed to log:', err.message);
+    logger.error(`[Audit] Failed to log: ${err.message}`, { context: 'audit' });
   }
 }
 
@@ -143,9 +146,10 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
 
 export function generateCode(prefix: string, length = 6): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const randomBytes = crypto.randomBytes(length);
   let result = prefix;
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars.charAt(randomBytes[i] % chars.length);
   }
   return result;
 }
@@ -153,12 +157,16 @@ export function generateCode(prefix: string, length = 6): string {
 export function generateTxNumber(type: string): string {
   const date = new Date();
   const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
-  const rand = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const rand = crypto.randomBytes(2).readUInt16BE(0).toString().padStart(4, '0').substring(0, 4);
   return `${type.substring(0, 3).toUpperCase()}-${dateStr}-${rand}`;
 }
 
 // ─── Tenant ID Extractor ───────────────────────────────
 
 export function extractTenantId(req: any): string {
-  return req.headers['x-organization-id'] || req.user?.org_id || req.user?.organization_id || '00000000-0000-0000-0000-000000000001';
+  const orgId = req.headers['x-organization-id'] || req.user?.org_id || req.user?.organization_id;
+  if (!orgId) {
+    throw new Error('Tenant ID (organization ID) is required. Provide it via x-organization-id header or authenticate with a valid JWT.');
+  }
+  return orgId;
 }

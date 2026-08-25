@@ -11,7 +11,8 @@ import logger from './logger';
 export interface QueryOptions {
   select?: string[];
   where?: Record<string, any>;
-  whereRaw?: string;
+  /** @deprecated REMOVED: SQL injection risk. Use parameterized 'where' conditions instead. */
+  whereRaw?: never;
   whereParams?: any[];
   orderBy?: { column: string; direction: 'ASC' | 'DESC' }[];
   limit?: number;
@@ -62,8 +63,8 @@ export class QueryBuilder {
         }
       }
       if (whereRaw && whereParams) {
-        conditions.push(whereRaw);
-        params.push(...whereParams);
+        logger.error('whereRaw is REMOVED due to SQL injection risk. Use parameterized where conditions.', { context: 'QueryBuilder' });
+        throw new Error('whereRaw is not allowed due to SQL injection risk. Use parameterized where conditions.');
       }
       if (conditions.length > 0) {
         const whereClause = ` WHERE ${conditions.join(' AND ')}`;
@@ -331,6 +332,19 @@ export async function seedDatabase(pool: Pool): Promise<void> {
   const qb = new QueryBuilder(pool);
   logger.info('Seeding database...', { context: 'seed' });
 
+  // Check if already seeded (first-run only)
+  const metaExists = await qb.exists('meta', { key: 'first_run' });
+  if (metaExists) {
+    const firstRunValue: { key: string; value: string } | null = await qb.findOne('meta', { key: 'first_run' });
+    if (firstRunValue && firstRunValue.value === 'false') {
+      logger.info('Database already seeded – skipping seed step.', { context: 'seed' });
+      return;
+    }
+  }
+
+  // Mark as seeded after this run
+  await qb.create('meta', { key: 'first_run', value: 'false' });
+
   // Seed default organization
   const orgExists = await qb.exists('organizations', { slug: 'rohamaa' });
   if (!orgExists) {
@@ -345,23 +359,28 @@ export async function seedDatabase(pool: Pool): Promise<void> {
     logger.info('Default organization seeded', { context: 'seed' });
   }
 
-  // Seed default admin user
+  // Seed default admin user with a randomly generated password
   const adminExists = await qb.exists('users', { email: 'admin@nexora.org' });
   if (!adminExists) {
     const bcrypt = await import('bcryptjs');
-    const hashedPw = await bcrypt.hash('Nexora@2024!', 12);
+    const crypto = await import('crypto');
+    const randomPassword = crypto.randomBytes(18).toString('base64url').replace(/[=+/]/g, '').substring(0, 16);
+    const hashedPw = await bcrypt.hash(randomPassword, 12);
     // Get the org we just created
-    const org = await qb.findOne('organizations', { slug: 'rohamaa' });
-    const orgId = org?.id || '00000000-0000-0000-0000-000000000001';
+    const org = await qb.findOne<{ id: string }>('organizations', { slug: 'rohamaa' });
+    if (!org) {
+      logger.error('Cannot seed admin: default organization not found', { context: 'seed' });
+      return;
+    }
     await qb.create('users', {
       email: 'admin@nexora.org',
       password_hash: hashedPw,
       name: 'System Administrator',
       name_ar: 'مدير النظام',
       role: 'SUPER_ADMIN',
-      org_id: orgId,
+      org_id: org.id,
     });
-    logger.info('Default admin seeded (admin@nexora.org / Nexora@2024!)', { context: 'seed' });
+    logger.info(`Default admin seeded (admin@nexora.org / ${randomPassword}) — CHANGE THIS PASSWORD IMMEDIATELY`, { context: 'seed' });
   }
 
   // Seed default currency rates

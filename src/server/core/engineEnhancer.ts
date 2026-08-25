@@ -5,7 +5,7 @@
 
 import { cache, cacheKey } from './cache';
 import { logger } from './logger';
-import { validate, Schema } from './validation';
+import { validate, Schema, Schemas } from './validation';
 import webhookService, { WebhookEvents } from './webhooks';
 
 // ─── Cache-Enhanced Query Helper ───────────────────────

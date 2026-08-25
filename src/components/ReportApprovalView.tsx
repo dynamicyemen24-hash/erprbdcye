@@ -11,9 +11,15 @@ interface ReportApprovalViewProps {
 
 export default function ReportApprovalView({ report, lang, currentUser }: ReportApprovalViewProps) {
   const handleVerifiedSign = async (signature: any) => {
-    const result = await approveFinancialReport(report.id, signature);
+    const result = await approveFinancialReport(report.id, signature, {
+      email: currentUser?.email,
+      name: currentUser?.name,
+      role: currentUser?.role
+    });
     if (result.success) {
       alert(lang === 'ar' ? 'تم اعتماد التقرير بنجاح' : 'Report approved successfully');
+    } else {
+      alert(lang === 'ar' ? result.message : result.message);
     }
   };
 

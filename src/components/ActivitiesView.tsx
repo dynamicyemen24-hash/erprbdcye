@@ -40,7 +40,8 @@ import {
   Zap,
   Sliders,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react';
 import { Project, Program } from '../types';
 import { printHTML } from '../lib/printUtils';
@@ -48,6 +49,7 @@ import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
 import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
+import { generateNumericCode } from '../lib/idGenerator';
 
 // ==================== SECTOR & ACTIVITY TYPES TAXONOMY ====================
 export interface ActivitySector {
@@ -316,6 +318,7 @@ export default function ActivitiesView({
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isVerifyingGPS, setIsVerifyingGPS] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [fetchError, setFetchError] = useState<boolean>(false);
 
   // Form State for creating new activity
   const [formData, setFormData] = useState({
@@ -337,21 +340,22 @@ export default function ActivitiesView({
 
   const fetchActivities = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const res = await fetch('/api/tables/activities');
       if (res.ok) {
         const data = await res.json();
-        if (data && Array.isArray(data) && data.length > 0) {
-          setActivities(data);
-        } else {
-          setActivities(getDefaultMockActivities());
-        }
+        // Strict real-database policy: never substitute fabricated demo records.
+        setActivities(data && Array.isArray(data) ? data : []);
       } else {
-        setActivities(getDefaultMockActivities());
+        console.error('[Activities] Fetch failed with status:', res.status);
+        setActivities([]);
+        setFetchError(true);
       }
     } catch (err) {
       console.error('Error fetching activities:', err);
-      setActivities(getDefaultMockActivities());
+      setActivities([]);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -361,177 +365,6 @@ export default function ActivitiesView({
     fetchActivities();
   }, []);
 
-  // Comprehensive default mock activities for all sectors
-  const getDefaultMockActivities = (): Activity[] => {
-    const projId = projects[0]?.id || 'PROJ-001';
-    return [
-      {
-        id: 'ACT-QURAN-101',
-        project_id: projId,
-        name_ar: 'حلقة الإمام عثمان بن عفان لتحفيظ القرآن والتلاوة',
-        name_en: 'Othman Bin Affan Quran Circle',
-        description: 'تحفيظ وتسميع الجزء 28، 29، 30 مع الأحكام الشرعية والتلاوة اليومية',
-        activity_type_code: 'QURAN_MEMORIZATION',
-        sector_id: 'EDUCATION_QURAN',
-        status_code: 'active',
-        start_datetime: new Date().toISOString(),
-        location_name_ar: 'جامع عمر بن الخطاب - حي الروضة - تعز',
-        location_name: 'Al-Rawdah Mosque, Taiz',
-        budget: '250000',
-        disbursed_budget: 120000,
-        currency_code: 'YER',
-        target_beneficiaries: 25,
-        actual_beneficiaries: 24,
-        created_at: new Date().toISOString(),
-        metadata: {
-          teacher_name: 'الشيخ / يحيى عبدالملك العولقي',
-          session_time: 'بعد الظهر (Daily 4:00 PM)',
-          governorate: 'تعز',
-          district: 'الروضة',
-          gps_coordinates: '13.5784° N, 44.0192° E',
-          photo_evidence: '/LogoRohamaab.png',
-          photo_verified_at: new Date().toISOString(),
-          tasks: getDefaultTasksForSubtype('QURAN_MEMORIZATION')
-        }
-      },
-      {
-        id: 'ACT-LITERACY-102',
-        project_id: projId,
-        name_ar: 'صف محو الأمية والتمكين المعرفي للأسر المعيلة',
-        name_en: 'Adult Literacy & Numeracy Class',
-        description: 'تعليم مبادئ القرائية والحساب الأساسي للنساء والأسر المعيلة بمركز عتق',
-        activity_type_code: 'LITERACY_EDUCATION',
-        sector_id: 'EDUCATION_QURAN',
-        status_code: 'active',
-        start_datetime: new Date().toISOString(),
-        location_name_ar: 'مركز الأمل التنموي - شبوة عتق',
-        location_name: 'Al-Amal Center, Shabwah',
-        budget: '180000',
-        disbursed_budget: 90000,
-        currency_code: 'YER',
-        target_beneficiaries: 30,
-        actual_beneficiaries: 28,
-        created_at: new Date().toISOString(),
-        metadata: {
-          teacher_name: 'أ. فاطمة الشبواني',
-          session_time: 'صباحاً (9:00 AM)',
-          governorate: 'شبوة',
-          district: 'عتق',
-          gps_coordinates: '14.5321° N, 46.8312° E',
-          tasks: getDefaultTasksForSubtype('LITERACY_EDUCATION')
-        }
-      },
-      {
-        id: 'ACT-RELIEF-201',
-        project_id: projId,
-        name_ar: 'توزيع السلل الغذائية الكبرى للأسر الأشد فقراً',
-        name_en: 'Emergency Relief Food Basket Distribution',
-        description: 'توزيع السلل الغذائية المعتمدة وفق معيار SPHERE مع التحقق بالبصمة الحيوية',
-        activity_type_code: 'RELIEF_FOOD_BASKET',
-        sector_id: 'RELIEF_HUMANITARIAN',
-        status_code: 'active',
-        start_datetime: new Date().toISOString(),
-        location_name_ar: 'مستودع الأمانة المركزي - صنعاء',
-        location_name: 'Main Depot Sanaa',
-        budget: '1200000',
-        disbursed_budget: 850000,
-        currency_code: 'YER',
-        target_beneficiaries: 150,
-        actual_beneficiaries: 142,
-        created_at: new Date().toISOString(),
-        metadata: {
-          teacher_name: 'م. خالد الحيمي (منسق الإغاثة)',
-          session_time: 'طوال اليوم',
-          governorate: 'أمانة العاصمة',
-          district: 'السبعين',
-          gps_coordinates: '15.3524° N, 44.1921° E',
-          photo_evidence: '/LogoRohamaab.png',
-          tasks: getDefaultTasksForSubtype('RELIEF_FOOD_BASKET')
-        }
-      },
-      {
-        id: 'ACT-HEALTH-301',
-        project_id: projId,
-        name_ar: 'القافلة الطبية الميدانية ومعاينة سوء التغذية',
-        name_en: 'Mobile Health & Malnutrition Clinic',
-        description: 'تقديم المعاينات والفحوصات الطبية المجانية وصرف الأدوية للأطفال والحوامل',
-        activity_type_code: 'HEALTH_MOBILE_CLINIC',
-        sector_id: 'HEALTH_MEDICAL',
-        status_code: 'active',
-        start_datetime: new Date().toISOString(),
-        location_name_ar: 'مخيم النازحين - مأرب الوادي',
-        location_name: 'IDP Camp Marib',
-        budget: '600000',
-        disbursed_budget: 450000,
-        currency_code: 'YER',
-        target_beneficiaries: 120,
-        actual_beneficiaries: 115,
-        created_at: new Date().toISOString(),
-        metadata: {
-          teacher_name: 'د. طارق المأربي',
-          session_time: 'صباحاً ومساءً',
-          governorate: 'مأرب',
-          district: 'الوادي',
-          gps_coordinates: '15.4510° N, 45.3280° E',
-          tasks: getDefaultTasksForSubtype('HEALTH_MOBILE_CLINIC')
-        }
-      },
-      {
-        id: 'ACT-WASH-401',
-        project_id: projId,
-        name_ar: 'حفر وتجهيز بئر مياه سطحي وتأهيل منظومة الطاقة الشمسية',
-        name_en: 'WASH Solar Well Drilling Project',
-        description: 'حفر بئر مياه بعمق 120 متر مع تركيبة منظومة طاقة شمسية وخزان سعة 50,000 لتر',
-        activity_type_code: 'WASH_WELL_DRILLING',
-        sector_id: 'WASH_INFRASTRUCTURE',
-        status_code: 'active',
-        start_datetime: new Date().toISOString(),
-        location_name_ar: 'منطقة الحسينية - الحديدة',
-        location_name: 'Al-Hussainiyah, Hodeidah',
-        budget: '4500000',
-        disbursed_budget: 3200000,
-        currency_code: 'YER',
-        target_beneficiaries: 500,
-        actual_beneficiaries: 500,
-        created_at: new Date().toISOString(),
-        metadata: {
-          teacher_name: 'م. أنور التهامي (مهندس WASH)',
-          session_time: 'الفترة الإنشائية',
-          governorate: 'الحديدة',
-          district: 'بيت الفقيه',
-          gps_coordinates: '14.7981° N, 43.1205° E',
-          tasks: getDefaultTasksForSubtype('WASH_WELL_DRILLING')
-        }
-      },
-      {
-        id: 'ACT-ORPHAN-501',
-        project_id: projId,
-        name_ar: 'تسليم الكفالات النقدية الدورية وأنشطة الدعم النفسي للأيتام',
-        name_en: 'Orphan Stipend & Psychosocial Support Event',
-        description: 'تسليم مبالغ الكفالة الشهرية للأيتام المسجلين مع إقامة مهرجان ترفيهي ودعم نفسي',
-        activity_type_code: 'ORPHAN_STIPEND_DELIVERY',
-        sector_id: 'ORPHAN_CARE',
-        status_code: 'active',
-        start_datetime: new Date().toISOString(),
-        location_name_ar: 'قاعة الجمعية المركزية - عدن',
-        location_name: 'Rohamā\'a Hall Aden',
-        budget: '850000',
-        disbursed_budget: 850000,
-        currency_code: 'YER',
-        target_beneficiaries: 60,
-        actual_beneficiaries: 60,
-        created_at: new Date().toISOString(),
-        metadata: {
-          teacher_name: 'أ. سمية العدنية (أخصائية الأيتام)',
-          session_time: 'صباحاً',
-          governorate: 'عدن',
-          district: 'خورمكسر',
-          gps_coordinates: '12.8256° N, 45.0341° E',
-          tasks: getDefaultTasksForSubtype('ORPHAN_STIPEND_DELIVERY')
-        }
-      }
-    ];
-  };
 
   // Task Toggle
   const handleToggleTask = async (activity: Activity, taskId: string) => {
@@ -743,7 +576,7 @@ export default function ActivitiesView({
     const amountNum = parseFloat(financialForm.amount) || 0;
 
     const newRecord = {
-      id: `FIN-DISB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `FIN-DISB-2026-${generateNumericCode(1000, 9999)}`,
       activityId: financialForm.activityId,
       activityName: act?.name_ar || financialForm.activityId,
       projectId: act?.project_id || 'PROJ-001',
@@ -794,7 +627,7 @@ export default function ActivitiesView({
     const qtyNum = parseInt(materialForm.requestedQty) || 0;
 
     const newReq = {
-      id: `MAT-REQ-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `MAT-REQ-2026-${generateNumericCode(1000, 9999)}`,
       activityId: materialForm.activityId,
       activityName: act?.name_ar || materialForm.activityId,
       projectId: act?.project_id || 'PROJ-001',
@@ -1186,6 +1019,21 @@ export default function ActivitiesView({
       </div>
 
       {/* Grid of operational activities */}
+      {fetchError && !loading && (
+        <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{isRtl ? 'تعذر الاتصال بقاعدة البيانات — لم يتم جلب الأنشطة الميدانية.' : 'Database connection failed — field activities could not be loaded.'}</span>
+          </div>
+          <button
+            onClick={fetchActivities}
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-[11px] font-black flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>{isRtl ? 'إعادة المحاولة' : 'Retry'}</span>
+          </button>
+        </div>
+      )}
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3">
           <Clock className="w-8 h-8 text-emerald-500 animate-spin" />

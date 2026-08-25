@@ -5,7 +5,7 @@
 
 import { Router, Response } from 'express';
 import { AuthEngine } from '../../engines/auth.engine';
-import { AuthenticatedRequest, authRateLimiter, validateBody } from '../../middleware/auth.middleware';
+import { AuthenticatedRequest, authRateLimiter } from '../../middleware/auth.middleware';
 import { successResponse, errorResponse } from '../../core/helpers';
 
 const router = Router();

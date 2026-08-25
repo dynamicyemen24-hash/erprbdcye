@@ -12,6 +12,7 @@ import {
   paginatedQuery, requireField, optionalString, optionalNumber,
   generateCode, auditLog, AuthContext
 } from '../core/helpers';
+import logger from '../core/logger';
 
 // ─── RFQ Management ────────────────────────────────────
 
@@ -343,8 +344,8 @@ export class PurchaseOrderEngine {
           optionalString(data.notes),
           auth.userId,
         ]
-      ).catch(() => {
-        // Table may not exist - graceful degradation
+      ).catch((err) => {
+        logger.error('Goods receipt insert failed', { context: 'procurement', error: err.message });
       });
 
       // Update PO
@@ -392,7 +393,7 @@ export class ThreeWayMatchEngine {
       const receipts = await client.query(
         'SELECT COALESCE(SUM(received_amount), 0) as total_received FROM goods_receipts WHERE purchase_order_id = $1',
         [poId]
-      ).catch(() => ({ rows: [{ total_received: 0 }] }));
+      ).catch((err) => { logger.error('Goods receipts sum failed', { context: 'procurement', error: err.message }); return { rows: [{ total_received: 0 }] }; });
 
       const totalReceived = Number(receipts.rows[0].total_received);
       const totalOrdered = Number(purchaseOrder.total_amount);
@@ -430,8 +431,8 @@ export class ThreeWayMatchEngine {
           optionalString(data.notes),
           auth.userId,
         ]
-      ).catch(() => {
-        // Table may not exist
+      ).catch((err) => {
+        logger.error('Three-way match insert failed', { context: 'procurement', error: err.message });
       });
 
       return {
@@ -457,7 +458,7 @@ export class ThreeWayMatchEngine {
        WHERE purchase_order_id = $1
        ORDER BY created_at DESC`,
       [poId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'procurement', error: err.message }); return []; });
   }
 }
 

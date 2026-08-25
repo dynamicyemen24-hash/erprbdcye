@@ -21,7 +21,7 @@ export const serverConfig = {
   databaseUrl: `postgresql://${env.database.user}:${env.database.password}@${env.database.host}:${env.database.port}/${env.database.name}${env.database.ssl ? '?sslmode=require' : ''}`,
   jwtSecret: env.jwt.secret,
   jwtRefreshSecret,
-  geminiApiKey: env.ai.geminiApiKey || 'mock-api-key-for-development',
+  geminiApiKey: env.ai.geminiApiKey || '',
   isProduction: env.env === 'production',
   env: env.env,
   defaultOrgId: '00000000-0000-0000-0000-000000000001',

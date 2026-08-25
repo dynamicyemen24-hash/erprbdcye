@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import pg from 'pg';
 import { serverConfig } from './config';
+import logger from './core/logger';
 
 export interface AuthenticatedUser {
   id: string;
@@ -77,19 +78,15 @@ export async function authenticateTenantContext(
       }
     }
 
-    // Fallback/System context for unauthenticated or public API routes
-    req.userContext = {
-      id: userId || '00000000-0000-0000-0000-000000000000',
-      email: userEmail || 'system@nexora.org',
-      name: 'Authenticated Tenant Scope',
-      role: 'SYSTEM',
-      organizationId: targetOrgId,
-      securityLevel: 5
-    };
-
-    next();
+    // Reject unauthenticated requests — no fallback with max privileges
+    // Public routes (health, docs) should be exempted before this middleware is called
+    return res.status(401).json({
+      success: false,
+      error: { code: 'UNAUTHORIZED', message: 'Authentication required. Valid JWT token must be provided.' },
+      timestamp: new Date().toISOString(),
+    });
   } catch (error: any) {
-    console.error('[TenantSecurity] Middleware error:', error.message);
+    logger.error('[TenantSecurity] Middleware error', { context: 'tenant', error });
     res.status(500).json({ error: 'Tenant authentication verification failed' });
   }
 }

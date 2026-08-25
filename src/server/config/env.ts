@@ -12,7 +12,7 @@ import { URL } from 'url';
 
 export type Environment = 'development' | 'staging' | 'production' | 'test';
 
-interface DatabaseConfig {
+export interface DatabaseConfig {
   host: string;
   port: number;
   name: string;
@@ -25,7 +25,7 @@ interface DatabaseConfig {
   idleTimeoutMs: number;
 }
 
-interface EnvironmentConfig {
+export interface EnvironmentConfig {
   env: Environment;
   port: number;
   host: string;
@@ -109,8 +109,8 @@ function parseDatabaseUrl(url: string): { host: string; port: number; name: stri
       password: parsed.password,
       ssl,
     };
-  } catch {
-    return { host: 'localhost', port: 5432, name: 'nexora', user: 'nexora', password: 'nexora', ssl: false };
+  } catch (err) {
+    throw new Error(`Failed to parse DATABASE_URL. Set a valid DATABASE_URL environment variable. Error: ${(err as Error).message}`);
   }
 }
 
@@ -129,10 +129,10 @@ function buildDatabaseConfig(): DatabaseConfig {
     host: env('DB_HOST', 'localhost'),
     port: envInt('DB_PORT', 5432),
     name: env('DB_NAME', 'nexora'),
-    user: env('DB_USER', 'nexora'),
-    password: env('DB_PASSWORD', 'nexora'),
+    user: env('DB_USER', process.env.NODE_ENV === 'production' ? undefined : 'nexora'),
+    password: env('DB_PASSWORD', process.env.NODE_ENV === 'production' ? undefined : 'nexora'),
     ssl: envBool('DB_SSL', process.env.NODE_ENV === 'production'),
-    url: `postgresql://${env('DB_USER', 'nexora')}:${env('DB_PASSWORD', 'nexora')}@${env('DB_HOST', 'localhost')}:${envInt('DB_PORT', 5432)}/${env('DB_NAME', 'nexora')}`,
+    url: `postgresql://${env('DB_USER', process.env.NODE_ENV === 'production' ? undefined : 'nexora')}:${env('DB_PASSWORD', process.env.NODE_ENV === 'production' ? undefined : 'nexora')}@${env('DB_HOST', 'localhost')}:${envInt('DB_PORT', 5432)}/${env('DB_NAME', 'nexora')}`,
     poolMin,
     poolMax,
     idleTimeoutMs,
@@ -148,8 +148,12 @@ export function loadConfig(): EnvironmentConfig {
     baseUrl: env('BASE_URL', `http://localhost:${envInt('PORT', 3000)}`),
     database: buildDatabaseConfig(),
     jwt: {
-      secret: env('JWT_SECRET', 'dev-secret-change-in-production'),
-      refreshSecret: env('JWT_REFRESH_SECRET', 'dev-refresh-secret-change-in-production'),
+      secret: process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET
+        ? (() => { throw new Error('JWT_SECRET is required in production. Generate a random 64+ character string.'); })()
+        : env('JWT_SECRET', 'dev-secret-change-in-production'),
+      refreshSecret: process.env.NODE_ENV === 'production' && !process.env.JWT_REFRESH_SECRET
+        ? (() => { throw new Error('JWT_REFRESH_SECRET is required in production. Generate a random 64+ character string.'); })()
+        : env('JWT_REFRESH_SECRET', 'dev-refresh-secret-change-in-production'),
       accessExpiresIn: env('JWT_ACCESS_EXPIRES', '1h'),
       refreshExpiresIn: env('JWT_REFRESH_EXPIRES', '7d'),
     },

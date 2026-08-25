@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { Project, Program } from '../core/types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
+import { ErrorBoundary } from '../app/components/ErrorBoundary';
 
 export interface GanttPhase {
   id: string;
@@ -757,6 +758,7 @@ export default function ProjectGanttView({
   }, [phases, expandedProjects, redrawCounter, isRtl, selectedProjectId]);
 
   return (
+    <ErrorBoundary domainName="Project Gantt View" lang={lang}>
     <div id="nexora-project-gantt-view" className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm p-5 space-y-5">
       
       {/* 1. TOP CONTROL BAR */}
@@ -1702,5 +1704,6 @@ export default function ProjectGanttView({
       </AnimatePresence>
 
     </div>
+    </ErrorBoundary>
   );
 }

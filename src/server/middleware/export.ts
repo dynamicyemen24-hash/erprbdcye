@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import { ReportExportEngine } from '../engines/reporting.engine';
 import { extractTenantId } from '../core/helpers';
+import { escapeHtml } from '../../lib/htmlSanitizer';
 
 // ─── PDF Export ────────────────────────────────────────
 
@@ -33,7 +34,7 @@ export async function exportPDF(req: Request, res: Response) {
       <html lang="ar" dir="rtl">
       <head>
         <meta charset="UTF-8">
-        <title>${report.title || report.titleEn || 'Report'}</title>
+        <title>${escapeHtml(report.title || report.titleEn || 'Report')}</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;700&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -58,7 +59,7 @@ export async function exportPDF(req: Request, res: Response) {
       <body>
         <div class="header">
           <div class="org-name">جمعية رُحماء بينهم للعمل الإنساني والتنمية</div>
-          <div class="report-title">${report.title || report.titleEn || 'Report'}</div>
+          <div class="report-title">${escapeHtml(report.title || report.titleEn || 'Report')}</div>
           <div class="meta">${report.titleEn || ''} | ${report.generatedAt || new Date().toISOString()}</div>
         </div>
         ${html}
@@ -106,7 +107,7 @@ function generateReportHTML(report: any): string {
     html += '<div class="summary">';
     for (const [key, value] of Object.entries(report.summary)) {
       const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-      html += `<div class="summary-card"><div class="value">${value}</div><div class="label">${label}</div></div>`;
+      html += `<div class="summary-card"><div class="value">${escapeHtml(String(value))}</div><div class="label">${escapeHtml(label)}</div></div>`;
     }
     html += '</div>';
   }
@@ -117,9 +118,9 @@ function generateReportHTML(report: any): string {
       const title = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
       html += `<h3 style="margin: 15px 0 5px; color: #059669;">${title}</h3>`;
       html += '<table>';
-      html += '<tr>' + Object.keys(value[0] as object).map(k => `<th>${k}</th>`).join('') + '</tr>';
+      html += '<tr>' + Object.keys(value[0] as object).map(k => '<th>' + escapeHtml(k) + '</th>').join('') + '</tr>';
       for (const row of value as any[]) {
-        html += '<tr>' + Object.values(row).map(v => `<td>${v ?? ''}</td>`).join('') + '</tr>';
+        html += '<tr>' + Object.values(row).map(v => '<td>' + escapeHtml(String(v ?? '')) + '</td>').join('') + '</tr>';
       }
       html += '</table>';
     }

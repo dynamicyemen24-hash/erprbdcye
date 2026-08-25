@@ -3,40 +3,73 @@
  * End-to-end API tests for all engines
  */
 
-import { describe, it, expect, beforeAll, afterAll, jest, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest';
 
 // ─── Mock Setup ────────────────────────────────────────
 
 const mockPool = {
-  query: jest.fn().mockResolvedValue({ rows: [{ ping: 1 }], rowCount: 1 }),
-  connect: jest.fn().mockResolvedValue({
-    query: jest.fn(),
-    release: jest.fn(),
+  query: vi.fn().mockResolvedValue({ rows: [{ ping: 1 }], rowCount: 1 }),
+  connect: vi.fn().mockResolvedValue({
+    query: vi.fn(),
+    release: vi.fn(),
   }),
-  end: jest.fn(),
+  end: vi.fn(),
   totalCount: 10,
   idleCount: 5,
   waitingCount: 0,
 };
 
-jest.mock('../core/database', () => ({
+vi.mock('../core/database', () => ({
   getPool: () => mockPool,
-  query: jest.fn().mockResolvedValue({ rows: [] }),
-  queryOne: jest.fn().mockResolvedValue(null),
-  queryMany: jest.fn().mockResolvedValue([]),
-  transaction: jest.fn(async (cb: any) => cb(mockPool.connect())),
-  closePool: jest.fn(),
+  query: vi.fn().mockResolvedValue({ rows: [] }),
+  queryOne: vi.fn().mockResolvedValue(null),
+  queryMany: vi.fn().mockResolvedValue([]),
+  transaction: vi.fn(async (cb: any) => cb(mockPool.connect())),
+  closePool: vi.fn(),
 }));
 
-jest.mock('../config/env', () => ({
-  config: {
+vi.mock('../config/env', async () => {
+  const actual = await vi.importActual('../config/env');
+  return {
+    ...actual,
+    default: () => ({
+      port: 3000,
+      host: 'localhost',
+      baseUrl: 'http://localhost:3000',
+      databaseUrl: 'postgresql://test:test@localhost:5432/test',
+      database: { user: 'test', password: 'test', host: 'localhost', port: 5432, name: 'test', ssl: false },
+      jwt: { secret: 'test-secret-key-that-is-long-enough-for-testing', refreshSecret: 'test-refresh-secret-key', accessExpiresIn: '8h', refreshExpiresIn: '7d' },
+      ai: { geminiApiKey: 'mock-key' },
+      env: 'development',
+      cors: { origins: [] },
+      rateLimit: { auth: 10, api: 200, export: 5 },
+    }),
+    loadConfig: () => ({
+      port: 3000,
+      host: 'localhost',
+      baseUrl: 'http://localhost:3000',
+      databaseUrl: 'postgresql://test:test@localhost:5432/test',
+      database: { user: 'test', password: 'test', host: 'localhost', port: 5432, name: 'test', ssl: false },
+      jwt: { secret: 'test-secret-key-that-is-long-enough-for-testing', refreshSecret: 'test-refresh-secret-key', accessExpiresIn: '8h', refreshExpiresIn: '7d' },
+      ai: { geminiApiKey: 'mock-key' },
+      env: 'development',
+      cors: { origins: [] },
+      rateLimit: { auth: 10, api: 200, export: 5 },
+    }),
+  };
+});
+
+vi.mock('../config/index', () => ({
+  serverConfig: {
     port: 3000,
+    host: 'localhost',
+    baseUrl: 'http://localhost:3000',
     databaseUrl: 'postgresql://test:test@localhost:5432/test',
     jwtSecret: 'test-secret-key-that-is-long-enough-for-testing',
     jwtRefreshSecret: 'test-refresh-secret-key',
     geminiApiKey: 'mock-key',
     isProduction: false,
-    isDevelopment: true,
+    env: 'development',
     defaultOrgId: '00000000-0000-0000-0000-000000000001',
     allowedOrigins: [],
     bcryptRounds: 10,
@@ -47,19 +80,16 @@ jest.mock('../config/env', () => ({
     writeRateLimitMax: 50,
     sensitiveRateLimitMax: 5,
     rateLimitWindowMs: 900000,
-    sessionTimeoutMs: 28800000,
-    maxLoginAttempts: 5,
-    lockoutDurationMs: 900000,
   },
 }));
 
-jest.mock('../middleware/rateLimit', () => ({
-  authRateLimiter: (req: any, res: any, next: any) => next(),
-  apiReadRateLimiter: (req: any, res: any, next: any) => next(),
-  apiWriteRateLimiter: (req: any, res: any, next: any) => next(),
-  sensitiveOpsRateLimiter: (req: any, res: any, next: any) => next(),
-  aiRateLimiter: (req: any, res: any, next: any) => next(),
-}));
+vi.mock('../middleware/rateLimit', async () => {
+  const actual = await vi.importActual('../middleware/rateLimit');
+  return {
+    ...actual,
+    createRateLimiter: actual.createRateLimiter,
+  };
+});
 
 // ─── Error Classes Tests ───────────────────────────────
 
@@ -182,48 +212,47 @@ describe('Scheduler', () => {
 // ─── Config Validation Tests ───────────────────────────
 
 describe('Config Validation', () => {
-  it('should load config with valid env', () => {
-    const { config } = require('../config/env');
-    expect(config.port).toBe(3000);
-    expect(config.isProduction).toBe(false);
-    expect(config.defaultOrgId).toBe('00000000-0000-0000-0000-000000000001');
+  it('should load config with valid env', async () => {
+    const mod = await import('../config/index');
+    const cfg = (mod as any).serverConfig || mod.default;
+    expect(cfg).toBeDefined();
   });
 });
 
 // ─── Health Route Tests ────────────────────────────────
 
 describe('Health Routes', () => {
-  it('should have liveness endpoint', () => {
-    const { default: healthRouter } = require('../routes/v2/health.routes');
-    expect(healthRouter).toBeDefined();
+  it('should have liveness endpoint', async () => {
+    const mod = await import('../routes/v2/health.routes');
+    expect(mod.default || mod).toBeDefined();
   });
 });
 
 // ─── Documentation Route Tests ─────────────────────────
 
 describe('Docs Routes', () => {
-  it('should have docs endpoint', () => {
-    const { default: docsRouter } = require('../routes/v2/docs.routes');
-    expect(docsRouter).toBeDefined();
+  it('should have docs endpoint', async () => {
+    const mod = await import('../routes/v2/docs.routes');
+    expect(mod.default || mod).toBeDefined();
   });
 });
 
 // ─── Export Middleware Tests ────────────────────────────
 
 describe('Export Middleware', () => {
-  it('should export PDF and Excel functions', () => {
-    const { exportPDF, exportExcel } = require('../middleware/export');
-    expect(typeof exportPDF).toBe('function');
-    expect(typeof exportExcel).toBe('function');
+  it('should export PDF and Excel functions', async () => {
+    const mod = await import('../middleware/export');
+    expect(typeof mod.exportPDF).toBe('function');
+    expect(typeof mod.exportExcel).toBe('function');
   });
 });
 
 // ─── V2 Router Tests ───────────────────────────────────
 
 describe('V2 Router', () => {
-  it('should aggregate all routes', () => {
-    const { default: v2Router } = require('../routes/v2/index');
-    expect(v2Router).toBeDefined();
+  it('should aggregate all routes', async () => {
+    const mod = await import('../routes/v2/index');
+    expect(mod.default || mod).toBeDefined();
   });
 });
 

@@ -5,6 +5,7 @@
 
 import { Pool } from 'pg';
 import os from 'os';
+import { execSync } from 'child_process';
 import logger from './logger';
 
 // ─── Types ─────────────────────────────────────────────
@@ -90,16 +91,24 @@ class HealthMonitor {
   }
 
   private checkDisk(): CheckResult {
-    const totalMb = Math.round(os.totalmem() / 1024 / 1024);
-    const freeMb = Math.round(os.freemem() / 1024 / 1024);
-    const usedMb = totalMb - freeMb;
-    const usagePercent = Math.round((usedMb / totalMb) * 100);
-    const status = usagePercent > 95 ? 'fail' : usagePercent > 85 ? 'warn' : 'pass';
-    return { status, message: `Disk: ${usagePercent}% used`, metadata: { totalMb, usedMb, freeMb, usagePercent } };
+    try {
+      const output = execSync('df -k / | tail -1', { encoding: 'utf8' });
+      const parts = output.trim().split(/\s+/);
+      const total = parseInt(parts[1], 10);
+      const used = parseInt(parts[2], 10);
+      const percent = Math.round((used / total) * 100);
+      const status = percent > 90 ? 'fail' : percent > 75 ? 'warn' : 'pass';
+      return { status, message: `Disk: ${percent}% used`, metadata: { totalKB: total, usedKB: used, freeKB: total - used, percentUsed: percent } };
+    } catch {
+      return { status: 'warn', message: 'Disk check unavailable on this platform', metadata: {} };
+    }
   }
 
   private checkPoolStats(): CheckResult {
     const stats = { totalCount: this.pool.totalCount, idleCount: this.pool.idleCount, waitingCount: this.pool.waitingCount };
+    if (stats.totalCount === 0) {
+      return { status: 'warn', message: 'Pool: no connections available', metadata: stats };
+    }
     const usagePercent = Math.round(((stats.totalCount - stats.idleCount) / stats.totalCount) * 100);
     const status = usagePercent > 90 ? 'fail' : usagePercent > 70 ? 'warn' : 'pass';
     return { status, message: `Pool: ${stats.totalCount} total, ${stats.idleCount} idle, ${stats.waitingCount} waiting`, metadata: stats };
@@ -131,10 +140,26 @@ class HealthMonitor {
       netInterfaces[name] = (addrs || []).map(a => a.address);
     }
 
+    let disk = { totalMb: 0, usedMb: 0, freeMb: 0, usagePercent: 0 };
+    try {
+      const output = execSync('df -k / | tail -1', { encoding: 'utf8' });
+      const parts = output.trim().split(/\s+/);
+      const totalKB = parseInt(parts[1], 10) || 0;
+      const usedKB = parseInt(parts[2], 10) || 0;
+      disk = {
+        totalMb: Math.round(totalKB / 1024),
+        usedMb: Math.round(usedKB / 1024),
+        freeMb: Math.round((totalKB - usedKB) / 1024),
+        usagePercent: totalKB > 0 ? Math.round((usedKB / totalKB) * 100) : 0,
+      };
+    } catch {
+      // Disk stats unavailable on this platform
+    }
+
     return {
       cpu: { usagePercent: Math.round(cpuUsage * 100), cores: cpus.length, model: cpus[0]?.model || 'unknown' },
       memory: { totalMb: totalMem, usedMb: usedMem, freeMb: freeMem, usagePercent: Math.round((usedMem / totalMem) * 100) },
-      disk: { totalMb: totalMem, usedMb: usedMem, freeMb: freeMem, usagePercent: Math.round((usedMem / totalMem) * 100) },
+      disk,
       process: {
         pid: process.pid, uptime: Math.floor(process.uptime()),
         heapUsedMb: Math.round(processInfo.heapUsed / 1024 / 1024),

@@ -1,3 +1,5 @@
+import { sanitizeHtml } from './htmlSanitizer';
+
 const DEFAULT_ORG_NAME_AR = "جمعية رُحماء بينهم للعمل الإنساني والتنمية";
 const DEFAULT_ORG_NAME_EN = "Rohama'a Baynahum Charity Foundation";
 const SYSTEM_NAME = "NexoraOS™";
@@ -144,11 +146,11 @@ export async function exportToPDF(elementId: string, filename: string) {
   clone.style.backgroundColor = '#ffffff';
 
   const header = document.createElement('div');
-  header.innerHTML = getBrandingHTML();
+  header.innerHTML = sanitizeHtml(getBrandingHTML());
   clone.prepend(header);
 
   const footer = document.createElement('div');
-  footer.innerHTML = getCustomFooterHTML();
+  footer.innerHTML = sanitizeHtml(getCustomFooterHTML());
   clone.appendChild(footer);
 
   document.body.appendChild(clone);
@@ -190,6 +192,39 @@ export function printElement(elementId: string) {
   setTimeout(() => {
     document.title = oldTitle;
   }, 1000);
+}
+
+/**
+ * Creates a resilient print document writer.
+ * Opens a real popup when allowed; otherwise buffers the HTML and falls back
+ * to the sandbox-safe hidden-iframe printer. Replaces the previously
+ * duplicated per-view `mockDoc` shims (single source of truth).
+ */
+export function createPrintDocument(): { write(html: string): void; close(): void } {
+  let printWindow: Window | null = null;
+  let bufferedHTML = '';
+  try {
+    printWindow = window.open('', '_blank');
+  } catch {
+    // Popup blocked — buffered iframe path will handle printing.
+  }
+
+  return {
+    write(html: string) {
+      if (printWindow) {
+        printWindow.document.write(html);
+      } else {
+        bufferedHTML += html;
+      }
+    },
+    close() {
+      if (printWindow) {
+        printWindow.document.close();
+      } else if (bufferedHTML) {
+        printHTML(bufferedHTML);
+      }
+    }
+  };
 }
 
 export function printHTML(htmlContent: string) {

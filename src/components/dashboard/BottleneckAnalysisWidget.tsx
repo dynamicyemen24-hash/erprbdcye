@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { designTokens } from '../../lib/designTokens';
 import { 
   AlertTriangle, 
@@ -50,71 +50,15 @@ interface StageStats {
   requests: ApprovalRequest[];
 }
 
-export function BottleneckAnalysisWidget({ approvalRequests = [], lang }: BottleneckAnalysisWidgetProps) {
+function BottleneckAnalysisWidgetInner({ approvalRequests = [], lang }: BottleneckAnalysisWidgetProps) {
   const [activeTab, setActiveTab] = useState<'matrix' | 'stalled'>('matrix');
   const [actionFeedback, setActionFeedback] = useState<{ id: string; type: 'remind' | 'escalate' | 'reroute'; msg: string } | null>(null);
-  const [simulatedRequests, setSimulatedRequests] = useState<ApprovalRequest[]>(() => {
-    // If we have very little data or empty, we seed some standard high-security requests to make it incredibly functional
-    const base = [...approvalRequests];
-    if (base.length < 5) {
-      const extra: ApprovalRequest[] = [
-        {
-          id: 'sim1',
-          request_code: 'REQ-2026-092',
-          title: 'صرف ميزانية طوارئ الإصحاح البيئي بمحافظة الحديدة',
-          requester_name: 'أ. باسم المخلافي',
-          amount: '85000000',
-          currency_code: 'YER',
-          status: 'pending',
-          created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000 - 3 * 3600 * 1000).toISOString(), // 4 days 3h ago
-          module_code: 'WASH',
-          priority_code: 'urgent',
-          current_step_name: 'اعتماد المدير التنفيذي'
-        },
-        {
-          id: 'sim2',
-          request_code: 'REQ-2026-095',
-          title: 'شراء وتوريد مستلزمات كفالة حفاظ القرآن الكريم لعدد 120 مدرسة',
-          requester_name: 'م. طارق الوصابي',
-          amount: '18500000',
-          currency_code: 'YER',
-          status: 'pending',
-          created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 - 10 * 3600 * 1000).toISOString(), // 6 days 10h ago
-          module_code: 'WELFARE',
-          priority_code: 'high',
-          current_step_name: 'مراجعة الموازنة والتبويب المالي'
-        },
-        {
-          id: 'sim3',
-          request_code: 'REQ-2026-097',
-          title: 'المطابقة الختامية لعقود بناء شبكات مياه موزع والأبار الجوفية',
-          requester_name: 'Eng. Tareq Al-Wasabi',
-          amount: '62000000',
-          currency_code: 'YER',
-          status: 'pending',
-          created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 - 15 * 3600 * 1000).toISOString(), // 1.6 days ago
-          module_code: 'WASH',
-          priority_code: 'medium',
-          current_step_name: 'اعتماد الهيئة العليا والمدير التنفيذي'
-        },
-        {
-          id: 'sim4',
-          request_code: 'REQ-2026-098',
-          title: 'تفويض وتكليف الفريق الميداني لمسح نازحي الساحل الغربي',
-          requester_name: 'أ. باسم المخلافي',
-          amount: '3200000',
-          currency_code: 'YER',
-          status: 'pending',
-          created_at: new Date(Date.now() - 1 * 3600 * 1000).toISOString(), // 1 hour ago
-          module_code: 'WELFARE',
-          priority_code: 'low',
-          current_step_name: 'مطابقة التقييم الميداني والفني'
-        }
-      ];
-      return [...base, ...extra];
-    }
-    return base;
-  });
+  // Local mirror of the live approval requests (supports optimistic updates)
+  const [liveRequests, setLiveRequests] = useState<ApprovalRequest[]>(approvalRequests);
+
+  useEffect(() => {
+    setLiveRequests(approvalRequests);
+  }, [approvalRequests]);
 
   // Calculate elapsed time in hours
   const calculateHoursElapsed = (createdAtStr: string): number => {
@@ -204,7 +148,7 @@ export function BottleneckAnalysisWidget({ approvalRequests = [], lang }: Bottle
   });
 
   // Calculate durations and counts
-  simulatedRequests.forEach(req => {
+  liveRequests.forEach(req => {
     const stageId = getStageForRequest(req);
     const stats = stageStatsMap[stageId];
     if (stats) {
@@ -228,14 +172,7 @@ export function BottleneckAnalysisWidget({ approvalRequests = [], lang }: Bottle
     if (stats.pendingCount > 0) {
       stats.averageHours = parseFloat((stats.averageHours / stats.pendingCount).toFixed(1));
     } else {
-      // If no active pending, set default simulated baseline performance for nice visual representation
-      const defaultBaselines: Record<string, number> = {
-        ops: 4.5,
-        finance: 18.2,
-        executive: 42.4,
-        compliance: 8.8
-      };
-      stats.averageHours = defaultBaselines[def.id] || 6;
+      stats.averageHours = 0;
     }
 
     if (stats.averageHours > maxAvgHours && stats.pendingCount > 0) {
@@ -262,52 +199,99 @@ export function BottleneckAnalysisWidget({ approvalRequests = [], lang }: Bottle
   // Actions
   const handleRemindApprover = (req: ApprovalRequest) => {
     const stage = stageStatsMap[getStageForRequest(req)];
+    // Record the follow-up in the persistent audit trail
+    fetch('/api/tables/audit_logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action_type: 'APPROVAL_REMINDER',
+        action_ar: `تذكير بمعاملة ${req.request_code}`,
+        action_en: `Follow-up reminder for request ${req.request_code}`,
+        module: 'admin',
+        severity: 'medium',
+        target_resource: req.request_code,
+        status: 'success',
+        timestamp: new Date().toISOString()
+      })
+    }).catch(() => { /* non-blocking */ });
     setActionFeedback({
       id: req.id,
       type: 'remind',
-      msg: lang === 'ar' 
-        ? `تم إرسال إشعار فوري عاجل ورسالة نصية SMS إلى [${stage.roleAr}] بخصوص المعاملة ${req.request_code}`
-        : `Urgent SMS & push notification dispatched directly to the ${stage.roleEn} for request ${req.request_code}!`
+      msg: lang === 'ar'
+        ? `تم تسجيل تذكير متابعة للمعاملة ${req.request_code} في سجل التدقيق الموجه إلى [${stage.roleAr}].`
+        : `Follow-up reminder for ${req.request_code} recorded to the audit trail for the ${stage.roleEn}.`
     });
     setTimeout(() => setActionFeedback(null), 5000);
   };
 
-  const handleEscalateRoute = (req: ApprovalRequest) => {
-    setSimulatedRequests(prev => prev.map(r => {
-      if (r.id === req.id) {
-        return { ...r, priority_code: 'urgent' };
-      }
-      return r;
-    }));
-    setActionFeedback({
-      id: req.id,
-      type: 'escalate',
-      msg: lang === 'ar'
-        ? `تم رفع أولوية المعاملة ${req.request_code} إلى "طاريء جداً" وإخطار الهيئة العليا تلقائياً.`
-        : `Request ${req.request_code} escalated to URGENT priority. Alerting Executive Cabinet...`
-    });
+  const handleEscalateRoute = async (req: ApprovalRequest) => {
+    setLiveRequests(prev => prev.map(r => (r.id === req.id ? { ...r, priority_code: 'urgent' } : r)));
+    try {
+      const token = localStorage.getItem('rbd_token');
+      const res = await fetch(`/api/tables/approval_requests/${req.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ priority_code: 'urgent' })
+      });
+      if (!res.ok) throw new Error('persist failed');
+      setActionFeedback({
+        id: req.id,
+        type: 'escalate',
+        msg: lang === 'ar'
+          ? `تم رفع أولوية المعاملة ${req.request_code} إلى "طاريء جداً" وحفظ التغيير.`
+          : `Request ${req.request_code} escalated to URGENT and saved.`
+      });
+    } catch {
+      setLiveRequests(prev => prev.map(r => (r.id === req.id ? { ...r, priority_code: req.priority_code } : r)));
+      setActionFeedback({
+        id: req.id,
+        type: 'escalate',
+        msg: lang === 'ar' ? 'تعذر حفظ رفع الأولوية. حاول مجدداً.' : 'Could not save the escalation. Please retry.'
+      });
+    }
     setTimeout(() => setActionFeedback(null), 5000);
   };
 
-  const handleRerouteRequest = (req: ApprovalRequest) => {
-    // Re-route to standard delegate (simulate moving current stage)
-    setSimulatedRequests(prev => prev.map(r => {
-      if (r.id === req.id) {
-        return { 
-          ...r, 
-          current_step_name: lang === 'ar' ? 'رقابة الامتثال وحوكمة السياسات' : 'Governance & Compliance Verification',
-          created_at: new Date().toISOString() // resets clock to show immediate resolution
-        };
-      }
-      return r;
-    }));
-    setActionFeedback({
-      id: req.id,
-      type: 'reroute',
-      msg: lang === 'ar'
-        ? `تمت إعادة توجيه المعاملة ${req.request_code} آلياً إلى جهة التفويض البديلة (أمين الرقابة) لتجاوز العنق.`
-        : `Bypassed current bottleneck! Re-routed request ${req.request_code} to Deputy Commissioner.`
-    });
+  const handleRerouteRequest = async (req: ApprovalRequest) => {
+    const newStep = lang === 'ar' ? 'رقابة الامتثال وحوكمة السياسات' : 'Governance & Compliance Verification';
+    const prevStep = req.current_step_name;
+    const prevCreated = req.created_at;
+    setLiveRequests(prev => prev.map(r => (
+      r.id === req.id
+        ? { ...r, current_step_name: newStep, created_at: new Date().toISOString() }
+        : r
+    )));
+    try {
+      const token = localStorage.getItem('rbd_token');
+      const res = await fetch(`/api/tables/approval_requests/${req.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ current_step_name: newStep })
+      });
+      if (!res.ok) throw new Error('persist failed');
+      setActionFeedback({
+        id: req.id,
+        type: 'reroute',
+        msg: lang === 'ar'
+          ? `تمت إعادة توجيه المعاملة ${req.request_code} إلى جهة التفويض البديلة (أمين الرقابة).`
+          : `Re-routed request ${req.request_code} to the Deputy Commissioner.`
+      });
+    } catch {
+      setLiveRequests(prev => prev.map(r => (
+        r.id === req.id ? { ...r, current_step_name: prevStep, created_at: prevCreated } : r
+      )));
+      setActionFeedback({
+        id: req.id,
+        type: 'reroute',
+        msg: lang === 'ar' ? 'تعذر حفظ إعادة التوجيه. حاول مجدداً.' : 'Could not save the re-route. Please retry.'
+      });
+    }
     setTimeout(() => setActionFeedback(null), 5000);
   };
 
@@ -357,7 +341,7 @@ export function BottleneckAnalysisWidget({ approvalRequests = [], lang }: Bottle
           >
             {lang === 'ar' ? 'المعاملات الراكدة' : 'Stalled Requests'}
             <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
-              {simulatedRequests.filter(r => r.status === 'pending').length}
+              {liveRequests.filter(r => r.status === 'pending').length}
             </span>
           </button>
         </div>
@@ -520,7 +504,7 @@ export function BottleneckAnalysisWidget({ approvalRequests = [], lang }: Bottle
       {/* Tab Content 2: Stalled Requests Listing with action items */}
       {activeTab === 'stalled' && (
         <div className="space-y-3.5 animate-fadeIn max-h-[350px] overflow-y-auto pr-1">
-          {simulatedRequests.filter(r => r.status === 'pending').length === 0 ? (
+          {liveRequests.filter(r => r.status === 'pending').length === 0 ? (
             <div className="p-8 text-center bg-slate-50 dark:bg-zinc-950 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800">
               <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-2 animate-bounce" />
               <h5 className="text-xs font-bold">{lang === 'ar' ? 'جميع مسارات الموافقات تسير بأداء مثالي!' : 'All approval queues are operating efficiently!'}</h5>
@@ -528,7 +512,7 @@ export function BottleneckAnalysisWidget({ approvalRequests = [], lang }: Bottle
             </div>
           ) : (
             <div className="space-y-2.5">
-              {simulatedRequests
+              {liveRequests
                 .filter(r => r.status === 'pending')
                 .map(req => {
                   const stage = stageStatsMap[getStageForRequest(req)];
@@ -641,3 +625,6 @@ export function BottleneckAnalysisWidget({ approvalRequests = [], lang }: Bottle
     </div>
   );
 }
+
+export default React.memo(BottleneckAnalysisWidgetInner);
+export { BottleneckAnalysisWidgetInner as BottleneckAnalysisWidget };

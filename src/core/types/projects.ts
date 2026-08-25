@@ -23,6 +23,21 @@ export interface Project {
   updated_at: string;
 }
 
+export interface Activity {
+  id: string;
+  project_id: string;
+  organization_id: string;
+  name_ar: string;
+  name_en: string | null;
+  budget_allocated: string | null;
+  spent_amount: string | null;
+  status: 'PLANNING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  staff_id: string | null;
+  volunteer_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ProjectMilestone {
   id: string;
   projectId: string;

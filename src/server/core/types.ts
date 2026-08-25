@@ -127,6 +127,11 @@ export interface EVMData {
   etc: number; // Estimate to Complete
   vac: number; // Variance at Completion
   percentComplete: number;
+  milestones?: {
+    total: number;
+    completed: number;
+    completionPct: number;
+  };
 }
 
 // ─── Procurement Types ─────────────────────────────────
@@ -168,6 +173,7 @@ export interface BeneficiaryCreate {
   vulnerabilityStatus?: string;
   governorate?: string;
   district?: string;
+  nationalId?: string;
 }
 
 export interface ServiceDeliveryCreate {

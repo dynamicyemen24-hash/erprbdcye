@@ -6,6 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext, generateCode } from '../core/helpers';
+import logger from '../core/logger';
 
 // ─── Donations ─────────────────────────────────────────
 
@@ -165,7 +166,7 @@ export class CampaignEngine {
         (SELECT COUNT(*) FROM donations d WHERE d.campaign_id = dc.id AND d.status = 'COMPLETED') as donation_count,
         (SELECT COALESCE(SUM(d.amount), 0) FROM donations d WHERE d.campaign_id = dc.id AND d.status = 'COMPLETED') as total_raised
        FROM donation_campaigns dc WHERE dc.organization_id = $1 ORDER BY dc.created_at DESC`, [orgId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'sales', error: err.message }); return []; });
   }
 
   static async create(data: {
@@ -180,7 +181,7 @@ export class CampaignEngine {
       [data.organizationId, requireField(data.nameAr, 'nameAr'), optionalString(data.nameEn),
        data.targetAmount, data.currencyCode || 'YER',
        data.startDate || null, data.endDate || null, optionalString(data.description)]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 
   static async getProgress(campaignId: string) {
@@ -189,7 +190,7 @@ export class CampaignEngine {
         (SELECT COALESCE(SUM(d.amount), 0) FROM donations d WHERE d.campaign_id = dc.id AND d.status = 'COMPLETED') as total_raised,
         (SELECT COUNT(*) FROM donations d WHERE d.campaign_id = dc.id AND d.status = 'COMPLETED') as donation_count
        FROM donation_campaigns dc WHERE dc.id = $1`, [campaignId]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 }
 
@@ -201,7 +202,7 @@ export class InvestmentEngine {
       `SELECT ip.*,
         (SELECT COALESCE(SUM(irh.return_amount), 0) FROM investment_returns_history irh WHERE irh.investment_id = ip.id) as total_returns
        FROM investment_projects ip WHERE ip.organization_id = $1 ORDER BY ip.created_at DESC`, [orgId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'sales', error: err.message }); return []; });
   }
 
   static async create(data: {
@@ -216,7 +217,7 @@ export class InvestmentEngine {
       [data.organizationId, requireField(data.nameAr, 'nameAr'), optionalString(data.nameEn),
        data.investmentAmount, data.currencyCode || 'YER',
        data.expectedReturnPct || 0, data.startDate || null]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 
   static async recordReturn(data: {
@@ -227,6 +228,6 @@ export class InvestmentEngine {
       `INSERT INTO investment_returns_history (investment_id, return_amount, return_date, notes)
        VALUES ($1,$2,$3,$4) RETURNING *`,
       [data.investmentId, data.returnAmount, data.returnDate, optionalString(data.notes)]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 }

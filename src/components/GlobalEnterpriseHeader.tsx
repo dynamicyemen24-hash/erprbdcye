@@ -183,6 +183,8 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
               if (confirm(isRtl ? 'هل ترغب في قفل الجلسة والحروج؟' : 'Lock session and return to login?')) {
                 localStorage.removeItem('rbd_token');
                 localStorage.removeItem('rbd_refresh_token');
+                localStorage.removeItem('rbd_user');
+                localStorage.removeItem('roh_user');
                 setCurrentUser(null);
               }
             }}

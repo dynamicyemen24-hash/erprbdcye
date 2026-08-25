@@ -3,9 +3,9 @@
  * Central export of all core modules
  */
 
-export { default as logger, requestLogger } from './logger';
-export { default as cache, cached, cacheKey } from './cache';
-export { default as db, getPool, query, transaction, initDatabase } from './database';
+export { default as logger, requestLogger as requestLoggerMiddleware } from './logger';
+export { default as cache, cached, cacheKey, apiCache } from './cache';
+export { default as db, getPool, query, queryOne, queryMany, transaction, closePool, initDatabase, queryWithRetry, getTableSchemaInfo, tableSchemaCache, type TableSchemaInfo } from './database';
 export { default as QueryBuilder, MigrationRunner, seedDatabase, type PaginatedResult, type QueryOptions } from './dbOptimization';
 export { validate, validateBody, validateQuery, Schemas } from './validation';
 export { default as webhookService, WebhookEvents, type WebhookEvent, type WebhookSubscription } from './webhooks';
@@ -40,3 +40,4 @@ export * from './types';
 export * from './helpers';
 export * from './errors';
 export * from './scheduler';
+export * from './constants';

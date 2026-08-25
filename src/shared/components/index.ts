@@ -7,7 +7,6 @@ export { EnterpriseToolStrip } from '../../components/EnterpriseToolStrip';
 export { default as ContextualActionBar } from '../../components/ContextualActionBar';
 export { default as HeaderQuickMenu } from '../../components/HeaderQuickMenu';
 export { default as NexoraBottomNav } from '../../components/NexoraBottomNav';
-export { PinnedLiveBenchmarkDock } from '../../components/PinnedLiveBenchmarkDock';
 export { SystemsDockPanel } from '../../components/SystemsDockPanel';
 export { default as UnifiedContextRibbon } from '../../components/UnifiedContextRibbon';
 
@@ -23,3 +22,7 @@ export { default as GlobalEnterpriseHeader } from '../../components/GlobalEnterp
 export { default as LeftUtilityRail } from '../../components/LeftUtilityRail';
 export { default as GlobalOperationalFooter } from '../../components/GlobalOperationalFooter';
 export { UnifiedLeftSidebar } from '../../components/UnifiedLeftSidebar';
+
+// Guidance & UX primitives
+export { ViewGuidanceBanner } from './ViewGuidanceBanner';
+export { EmptyState } from './EmptyState';

@@ -54,12 +54,13 @@ import {
 // Enterprise Domain Features & Shared Component Imports
 import LoginView from './components/LoginView';
 import NexoraTopProgressBar from './components/NexoraTopProgressBar';
+import NexoraMicroProgress from './components/NexoraMicroProgress';
 const DocumentationView = React.lazy(() => import('./components/DocumentationView'));
 const OperationalScenariosView = React.lazy(() => import('./components/OperationalScenariosView'));
 
-import AboutSystemModal from './components/AboutSystemModal';
+const AboutSystemModal = React.lazy(() => import('./components/AboutSystemModal'));
 import UserProfilePopover from './components/UserProfilePopover';
-import FloatingMobileFAB from './components/FloatingMobileFAB';
+const FloatingMobileFAB = React.lazy(() => import('./components/FloatingMobileFAB'));
 
 // Lazy-loaded modal drawers to ensure zero impact on initial App Shell rendering
 const ExportToolsModal = React.lazy(() => import('./components/ExportToolsModal'));
@@ -79,7 +80,6 @@ import {
   EnterpriseToolStrip,
   HeaderQuickMenu,
   NexoraBottomNav,
-  PinnedLiveBenchmarkDock,
   SystemsDockPanel,
   UnifiedLeftSidebar,
   UnifiedContextRibbon,
@@ -100,6 +100,8 @@ import { useEnterprise } from './core/context/EnterpriseContext';
 import { useEnvironmentMode } from './core/context/EnvironmentModeContext';
 import { updateFavicon } from './core/utils/faviconUtils';
 import { TabContentRenderer } from './app/components';
+import { SuspenseFallback } from './components/common/SuspenseFallback';
+import { STORAGE_KEYS, INTERVALS } from './lib/constants';
 const ProjectStatusOverviewWidget = React.lazy(() => import('./components/ProjectStatusOverviewWidget'));
 import { ActiveTab } from './core/types';
 import { resumeIntelligenceService } from './core/services/resumeIntelligence';
@@ -109,7 +111,7 @@ export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
     try {
-      const saved = localStorage.getItem('rbd_theme');
+      const saved = localStorage.getItem(STORAGE_KEYS.THEME);
       if (saved === 'dark' || saved === 'light') return saved;
       return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     } catch (e) {
@@ -127,9 +129,7 @@ export default function App() {
       try {
         performance.measure('app-startup-to-shell', 'app-start', 'app-shell-render');
         const measure = performance.getEntriesByName('app-startup-to-shell')[0];
-        if (process.env.NODE_ENV !== 'production') {
-          console.log(`[StartupPerf] App Shell rendered in ${Math.round(measure.duration)}ms from app-start`);
-        }
+
       } catch (e) { console.error('[StartupPerf] Failed to measure app startup performance:', e); }
     }
   }, []);
@@ -207,7 +207,7 @@ export default function App() {
   }, []);
 
   const addToast = useCallback((message: string, type: 'critical' | 'delayed' | 'info' | 'anomaly' = 'info') => {
-    const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
+    const id = 'toast-' + crypto.randomUUID();
     const isCritical = type === 'critical' || message.toLowerCase().includes('critical') || message.includes('تعز');
     const toastType: ToastNotification['type'] = isCritical ? 'critical' : (type === 'info' ? 'delayed' : type);
 
@@ -249,10 +249,10 @@ export default function App() {
 
     setToasts(prev => [...prev, newToast]);
 
-    // Auto-remove after 6 seconds
+    // Auto-remove after configured interval
     setTimeout(() => {
       removeToast(id);
-    }, 6000);
+    }, INTERVALS.TOAST_AUTO_DISMISS);
   }, [removeToast]);
 
   useEffect(() => {
@@ -391,7 +391,7 @@ export default function App() {
   const [showUserProfilePopover, setShowUserProfilePopover] = useState(false);
   const [layoutDensity, setLayoutDensity] = useState<'compact' | 'comfortable' | 'spacious'>(() => {
     try {
-      const saved = localStorage.getItem('rbd_density');
+      const saved = localStorage.getItem(STORAGE_KEYS.DENSITY);
       if (saved === 'compact' || saved === 'comfortable' || saved === 'spacious') return saved;
     } catch (e) { console.error('[LayoutDensity] Failed to read layout density from localStorage:', e); }
     return 'comfortable';
@@ -399,7 +399,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('rbd_density', layoutDensity);
+      localStorage.setItem(STORAGE_KEYS.DENSITY, layoutDensity);
       document.documentElement.setAttribute('data-density', layoutDensity);
     } catch (e) { console.error('[LayoutDensity] Failed to save layout density to localStorage:', e); }
   }, [layoutDensity]);
@@ -447,17 +447,76 @@ export default function App() {
   
   // User Authentication State
   const enterprise = useEnterprise();
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    try {
-      const token = localStorage.getItem('rbd_token');
-      const saved = localStorage.getItem('rbd_user') || localStorage.getItem('roh_user');
-      if (saved && token) {
+  const [authChecked, setAuthChecked] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Validate token on mount — force login if token is missing/expired/invalid
+  useEffect(() => {
+    const validateSession = async () => {
+      try {
+        const token = localStorage.getItem('rbd_token');
+        const saved = localStorage.getItem('rbd_user') || localStorage.getItem('roh_user');
+        if (!saved || !token) {
+          localStorage.removeItem('rbd_user');
+          localStorage.removeItem('roh_user');
+          localStorage.removeItem('rbd_token');
+          localStorage.removeItem('rbd_refresh_token');
+          setAuthChecked(true);
+          return;
+        }
+
+        // Decode JWT to check expiry
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp && payload.exp * 1000 < Date.now()) {
+          // Token expired — try refresh
+          const refreshToken = localStorage.getItem('rbd_refresh_token');
+          if (refreshToken) {
+            try {
+              const res = await fetch('/api/auth/refresh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken })
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (data.token) {
+                  localStorage.setItem('rbd_token', data.token);
+                  const parsed = JSON.parse(saved);
+                  if (parsed && (parsed.id || parsed.email)) {
+                    setCurrentUser(parsed);
+                    setAuthChecked(true);
+                    return;
+                  }
+                }
+              }
+            } catch { /* refresh failed */ }
+          }
+          // Could not refresh — clear and force login
+          localStorage.removeItem('rbd_user');
+          localStorage.removeItem('roh_user');
+          localStorage.removeItem('rbd_token');
+          localStorage.removeItem('rbd_refresh_token');
+          setAuthChecked(true);
+          return;
+        }
+
+        // Token is valid — restore session
         const parsed = JSON.parse(saved);
-        if (parsed && (parsed.id || parsed.email)) return parsed;
+        if (parsed && (parsed.id || parsed.email)) {
+          setCurrentUser(parsed);
+        }
+      } catch (e) {
+        console.error('[Auth] Session validation failed:', e);
+        localStorage.removeItem('rbd_user');
+        localStorage.removeItem('roh_user');
+        localStorage.removeItem('rbd_token');
+        localStorage.removeItem('rbd_refresh_token');
       }
-    } catch (e) { console.error('[Auth] Failed to parse saved user from localStorage:', e); }
-    return null;
-  });
+      setAuthChecked(true);
+    };
+
+    validateSession();
+  }, []);
 
   // Keep EnterpriseContext currentUser synchronized and auto-authenticate modules
   useEffect(() => {
@@ -474,6 +533,8 @@ export default function App() {
     onTimeout: () => {
       setCurrentUser(null);
       setAuthenticatedModules([]);
+      localStorage.removeItem('rbd_user');
+      localStorage.removeItem('roh_user');
       localStorage.removeItem('rbd_token');
       localStorage.removeItem('rbd_refresh_token');
       alert(lang === 'ar' ? 'تم تسجيل الخروج تلقائياً لعدم النشاط (حماية أمنية).' : 'Automatically logged out due to inactivity (Security protection).');
@@ -568,7 +629,7 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
     try {
-      localStorage.setItem('rbd_theme', theme);
+      localStorage.setItem(STORAGE_KEYS.THEME, theme);
     } catch (e) { console.error('[Theme] Failed to save theme to localStorage:', e); }
   }, [theme]);
 
@@ -661,6 +722,19 @@ export default function App() {
   const dbConnected = !!serverStats;
   const pendingApprovalsCount = approvalRequests.filter(r => r.status === 'pending').length;
 
+  if (!authChecked) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950">
+        <div className="text-center space-y-4">
+          <div className="w-10 h-10 border-3 border-emerald-500/30 border-t-emerald-600 rounded-full animate-spin mx-auto" />
+          <p className="text-xs font-bold text-slate-500 dark:text-zinc-400">
+            {lang === 'ar' ? 'جاري التحقق من الجلسة...' : 'Validating session...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentUser) {
     return (
       <LoginView
@@ -671,7 +745,7 @@ export default function App() {
           try {
             localStorage.setItem('rbd_user', JSON.stringify(user));
           } catch (e) { console.error('[Auth] Failed to save user to localStorage:', e); }
-          fetchAllData(true); // Refetch all data securely after login
+          fetchAllData(true);
         }}
         lang={lang}
         onLanguageToggle={() => setLang(l => l === 'ar' ? 'en' : 'ar')}
@@ -684,6 +758,13 @@ export default function App() {
   return (
     <div className="h-screen max-h-screen bg-slate-50 dark:bg-zinc-950 font-sans flex flex-col antialiased selection:bg-amber-100 selection:text-amber-900 text-slate-800 dark:text-zinc-100 transition-colors duration-200 overflow-hidden">
       
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-emerald-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
+      >
+        تخطي إلى المحتوى الرئيسي
+      </a>
+
       {/* ULTRA-PROFESSIONAL GLOBAL PROGRESS BAR */}
       <NexoraTopProgressBar
         isLoading={loading}
@@ -691,6 +772,9 @@ export default function App() {
         lang={lang}
         activeTabLabel={TAB_CONFIG[activeTab]?.[lang === 'ar' ? 'title_ar' : 'title_en']}
       />
+
+      {/* MICRO E2E FETCH PROGRESS — precise real-network 2px indicator */}
+      <NexoraMicroProgress />
 
       {/* LAYER 1: GLOBAL ENTERPRISE HEADER */}
       <GlobalEnterpriseHeader
@@ -764,7 +848,7 @@ export default function App() {
         </div>
 
         {/* B. CENTER PRIMARY WORKSPACE */}
-        <main className="flex-1 flex flex-col min-w-0 bg-slate-50/50 dark:bg-zinc-900/30 overflow-hidden relative">
+        <main id="main-content" className="flex-1 flex flex-col min-w-0 bg-slate-50/50 dark:bg-zinc-900/30 overflow-hidden relative">
           
           {/* Enterprise Session Timeout Warning */}
           {isSessionWarning && currentUser && (
@@ -806,7 +890,15 @@ export default function App() {
           )}
 
           {/* Training vs Production Environment Mode Banner */}
-          <React.Suspense fallback={null}>
+          <React.Suspense fallback={
+            <div className="flex items-center justify-center min-h-[200px]">
+              <div className="animate-pulse space-y-4 w-full max-w-md">
+                <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
+                <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
+                <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
+              </div>
+            </div>
+          }>
             <div className="px-4 pt-3">
               <EnvironmentModeBanner lang={lang} variant="compact" showToggle={true} />
             </div>
@@ -821,7 +913,15 @@ export default function App() {
             ) : (
               <>
                 {activeTab === 'dashboard' && (
-                  <React.Suspense fallback={null}>
+                  <React.Suspense fallback={
+                    <div className="flex items-center justify-center min-h-[200px]">
+                      <div className="animate-pulse space-y-4 w-full max-w-md">
+                        <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
+                        <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
+                        <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
+                      </div>
+                    </div>
+                  }>
                     <ProjectStatusOverviewWidget 
                       projects={projects}
                       lang={lang}
@@ -870,7 +970,7 @@ export default function App() {
 
       {/* MODALS */}
       {showExportModal && (
-        <React.Suspense fallback={null}>
+        <React.Suspense fallback={<SuspenseFallback />}>
           <ExportToolsModal
             isOpen={showExportModal}
             onClose={() => setShowExportModal(false)}
@@ -879,6 +979,7 @@ export default function App() {
             data={projects.length > 0 ? projects : programs}
             fileName={`NexoraOS_${activeTab}_Report`}
             lang={lang}
+            tabName={activeTab}
           />
         </React.Suspense>
       )}
@@ -965,7 +1066,15 @@ export default function App() {
       )}
 
       {pendingSecureTab && (
-        <React.Suspense fallback={null}>
+        <React.Suspense fallback={
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="animate-pulse space-y-4 w-full max-w-md">
+              <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
+              <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
+              <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
+            </div>
+          </div>
+        }>
           <BiometricSecurityGate
             lang={lang}
             targetModule={pendingSecureTab as 'finance' | 'audit'}
@@ -985,7 +1094,15 @@ export default function App() {
         </React.Suspense>
       )}
 
-      <React.Suspense fallback={null}>
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-pulse space-y-4 w-full max-w-md">
+            <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
+            <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
+            <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
+          </div>
+        </div>
+      }>
         <NexoraAICopilotDrawer
           isOpen={showCopilotDrawer}
           onClose={() => setShowCopilotDrawer(false)}
@@ -1029,7 +1146,15 @@ export default function App() {
         setShowScenariosModal={setShowScenariosModal}
       />
 
-      <React.Suspense fallback={null}>
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-pulse space-y-4 w-full max-w-md">
+            <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
+            <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
+            <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
+          </div>
+        </div>
+      }>
         <AppMatrixLauncherModal
           isOpen={showAppLauncherModal}
           onClose={() => setShowAppLauncherModal(false)}
@@ -1050,7 +1175,15 @@ export default function App() {
         />
       </React.Suspense>
 
-      <React.Suspense fallback={null}>
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-pulse space-y-4 w-full max-w-md">
+            <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
+            <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
+            <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
+          </div>
+        </div>
+      }>
         <UniversalCommandCenter 
           lang={lang}
           isOpen={isCommandCenterOpen}
@@ -1070,7 +1203,15 @@ export default function App() {
         />
       </React.Suspense>
 
-      <React.Suspense fallback={null}>
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-pulse space-y-4 w-full max-w-md">
+            <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
+            <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
+            <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
+          </div>
+        </div>
+      }>
         <CustomizableShortcutsModal 
           lang={lang}
           isOpen={isShortcutsModalOpen}
@@ -1078,7 +1219,15 @@ export default function App() {
         />
       </React.Suspense>
 
-      <React.Suspense fallback={null}>
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-pulse space-y-4 w-full max-w-md">
+            <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
+            <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
+            <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
+          </div>
+        </div>
+      }>
         <FastRecordRetrievalDrawer 
           lang={lang}
           isOpen={isRecordRetrievalOpen}
@@ -1090,17 +1239,21 @@ export default function App() {
         />
       </React.Suspense>
 
-      <AboutSystemModal
-        isOpen={showAboutSystemModal}
-        onClose={() => setShowAboutSystemModal(false)}
-        lang={lang}
-        currentUser={currentUser as any}
-        isOnline={isOnline}
-        onOpenDocs={() => setShowDocsModal(true)}
-        onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
-      />
+      <React.Suspense fallback={<SuspenseFallback />}>
+        <AboutSystemModal
+          isOpen={showAboutSystemModal}
+          onClose={() => setShowAboutSystemModal(false)}
+          lang={lang}
+          currentUser={currentUser as any}
+          isOnline={isOnline}
+          onOpenDocs={() => setShowDocsModal(true)}
+          onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
+        />
+      </React.Suspense>
 
-      <FloatingMobileFAB onNavigate={handleSelectTab} />
+      <React.Suspense fallback={<SuspenseFallback />}>
+        <FloatingMobileFAB onNavigate={handleSelectTab} />
+      </React.Suspense>
 
       {/* Dynamic Toast System */}
       <div className={`fixed bottom-6 ${lang === 'ar' ? 'left-6' : 'right-6'} z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none`}>

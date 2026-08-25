@@ -6,6 +6,7 @@
  */
 
 import pg from 'pg';
+import logger from '../core/logger';
 import {
   validateEntityPolicy,
   getEntityPolicy,
@@ -77,7 +78,7 @@ async function loadPolicies(pool: pg.Pool, orgId: string): Promise<Record<string
     lastCacheRefresh = now;
     return policies;
   } catch (err) {
-    console.error('[PolicyEngine] Failed to load policies:', err);
+    logger.error('[PolicyEngine] Failed to load policies', { context: 'policy', error: err as any });
     return policyCache.get(cacheKey) || {};
   }
 }
@@ -148,7 +149,7 @@ export async function enforceApprovalLimits(
       }
     }
   } catch (err) {
-    console.error('[PolicyEngine] Approval limit check failed:', err);
+    logger.error('[PolicyEngine] Approval limit check failed', { context: 'policy', error: err as any });
   }
 
   // Check org-level tier limits
@@ -482,14 +483,37 @@ export async function enforceFieldSyncPolicy(
 ): Promise<PolicyViolation[]> {
   const violations: PolicyViolation[] = [];
 
-  // Validate device is registered
+  // Validate device is enrolled in the field device registry
   try {
     const deviceRes = await pool.query(
-      `SELECT id, status FROM sync_queue WHERE device_id = $1 LIMIT 1`,
+      `SELECT id, status FROM field_devices WHERE device_id = $1 LIMIT 1`,
       [syncPayload.deviceId]
     );
-    // Device validation (placeholder for real device registry)
-  } catch (err) { /* sync_queue may not exist */ }
+    const device = deviceRes.rows[0];
+    if (!device) {
+      violations.push({
+        code: 'DEVICE_NOT_ENROLLED',
+        severity: 'BLOCK',
+        messageAr: `الجهاز "${syncPayload.deviceId}" غير مسجل في سجل الأجهزة الميدانية — لا يمكن المزامنة`,
+        messageEn: `Device "${syncPayload.deviceId}" is not enrolled in the field device registry — sync denied`,
+        policyKey: 'field_sync_device_registry',
+      });
+    } else if (device.status === 'BLOCKED' || device.status === 'RETIRED') {
+      violations.push({
+        code: 'DEVICE_BLOCKED',
+        severity: 'BLOCK',
+        messageAr: `الجهاز "${syncPayload.deviceId}" محجوب أو متقاعد (${device.status})`,
+        messageEn: `Device "${syncPayload.deviceId}" is ${device.status} and cannot sync`,
+        policyKey: 'field_sync_device_registry',
+      });
+    } else {
+      // Heartbeat: record the successful sync attempt time
+      await pool.query(
+        `UPDATE field_devices SET last_seen_at = NOW(), updated_at = NOW() WHERE device_id = $1`,
+        [syncPayload.deviceId]
+      ).catch((err) => { logger.warn(`[PolicyEngine] Failed to update device heartbeat: ${err.message}`, { context: 'policy' }); });
+    }
+  } catch (err) { /* field_devices may not exist yet on legacy databases */ }
 
   // Validate entity type is allowed for field sync
   const allowedEntityTypes = [

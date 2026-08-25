@@ -53,8 +53,8 @@ COPY --from=backend-build /app/dist/ dist/
 # Copy built frontend
 COPY --from=frontend-build /app/dist/ public/
 
-# Copy necessary config files
-COPY .env* ./
+# Environment variables must be provided at runtime via --env-file or orchestration
+# DO NOT copy .env files into the image — they may contain secrets
 
 # Create logs and backups directories
 RUN mkdir -p logs backups && chown -R nexora:nexora /app

@@ -34,6 +34,7 @@ import {
 import { Project, Program } from '../types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { ErrorBoundary } from '../app/components/ErrorBoundary';
 
 // Import Google Maps SDK components
 import { APIProvider, Map as GoogleMap, AdvancedMarker, Pin, InfoWindow } from '@vis.gl/react-google-maps';
@@ -238,6 +239,7 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
   };
 
   return (
+    <ErrorBoundary domainName="Geospatial Dashboard View" lang={lang}>
     <ModuleShell
       titleAr="لوحة الخرائط الجغرافية"
       titleEn="Geospatial Dashboard"
@@ -856,6 +858,7 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
 
     </div>
     </ModuleShell>
+    </ErrorBoundary>
   );
 };
 

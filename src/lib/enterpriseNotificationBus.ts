@@ -9,6 +9,8 @@
  * - Universal Toast & Security Audit Feed
  */
 
+import { generateShortId } from './idGenerator';
+
 export interface ToastMessage {
   id: string;
   type: 'success' | 'info' | 'warning' | 'error';
@@ -40,7 +42,7 @@ class EnterpriseNotificationBus {
       window.addEventListener('online', () => {
         this.isOnline = true;
         this.notifyToast({
-          id: `toast-${Date.now()}`,
+          id: generateShortId('toast'),
           type: 'success',
           title: 'تم استعادة الاتصال بالشبكة 🌐',
           message: 'جاري رفع ومزامنة البيانات المحفوظة أثناء انقطاع الاتصال...',
@@ -52,7 +54,7 @@ class EnterpriseNotificationBus {
       window.addEventListener('offline', () => {
         this.isOnline = false;
         this.notifyToast({
-          id: `toast-${Date.now()}`,
+          id: generateShortId('toast'),
           type: 'warning',
           title: 'العمل في نمط عدم الاتصال (Offline Mode) 📡',
           message: 'تم تفعيل الحفظ المحلي الفوري. سيتم مزامنة البيانات تلقائياً فور توفر الشبكة.',
@@ -144,7 +146,7 @@ class EnterpriseNotificationBus {
   // Display Toast Alert to User UI
   public notifyToast(toast: Omit<ToastMessage, 'id' | 'timestamp'> & { id?: string; timestamp?: string }): void {
     const fullToast: ToastMessage = {
-      id: toast.id || `toast-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: toast.id || generateShortId('toast'),
       type: toast.type,
       title: toast.title,
       message: toast.message,
@@ -165,7 +167,7 @@ class EnterpriseNotificationBus {
   public enqueueOfflineItem(domain: string, action: string, payload: any): void {
     const queue = this.getOfflineQueue();
     const newItem: OfflineSyncItem = {
-      id: `off-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: generateShortId('off'),
       domain,
       action,
       payload,

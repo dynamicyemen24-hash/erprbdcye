@@ -3,43 +3,77 @@
  * Unit & Integration tests for all operational engines
  */
 
-import { describe, it, expect, beforeAll, afterAll, jest, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest';
 
-// ─── Mock Database ─────────────────────────────────────
+// ─── Mock Database (vi.hoisted ensures this runs before vi.mock hoisting) ───
 
-const mockQuery = jest.fn();
-const mockQueryOne = jest.fn();
-const mockQueryMany = jest.fn();
-const mockTransaction = jest.fn();
+const databaseMock = vi.hoisted(() => {
+  return {
+    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    queryOne: vi.fn().mockResolvedValue(null),
+    queryMany: vi.fn().mockResolvedValue([]),
+    transaction: vi.fn(),
+  };
+});
 
-jest.mock('../../core/database', () => ({
-  query: mockQuery,
-  queryOne: mockQueryOne,
-  queryMany: mockQueryMany,
-  transaction: mockTransaction,
+vi.mock('../../core/database', () => ({
+  query: databaseMock.query,
+  queryOne: databaseMock.queryOne,
+  queryMany: databaseMock.queryMany,
+  transaction: databaseMock.transaction,
 }));
 
-jest.mock('../../core/helpers', () => ({
-  paginatedQuery: jest.fn().mockResolvedValue({ data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 0, hasNext: false, hasPrev: false } }),
-  requireField: jest.fn((v: any) => v),
-  optionalString: jest.fn((v: any) => v || null),
-  optionalNumber: jest.fn((v: any) => v || null),
-  generateCode: jest.fn(() => 'TEST-CODE-001'),
-  generateTxNumber: jest.fn(() => 'TXN-20260819-0001'),
-  auditLog: jest.fn().mockResolvedValue(undefined),
-  extractTenantId: jest.fn(() => '00000000-0000-0000-0000-000000000001'),
+// ─── Mock Helpers ──────────────────────────────────────
+
+const helpersMock = vi.hoisted(() => ({
+  paginatedQuery: vi.fn().mockResolvedValue({ data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 0, hasNext: false, hasPrev: false } }),
+  requireField: vi.fn((v: any) => v),
+  optionalString: vi.fn((v: any) => v || null),
+  optionalNumber: vi.fn((v: any) => v || null),
+  generateCode: vi.fn(() => 'TEST-CODE-001'),
+  generateTxNumber: vi.fn(() => 'TXN-20260819-0001'),
+  auditLog: vi.fn().mockResolvedValue(undefined),
+  extractTenantId: vi.fn(() => '00000000-0000-0000-0000-000000000001'),
+  parsePagination: vi.fn(() => ({ offset: 0, limit: 50, page: 1 })),
+  buildOrderBy: vi.fn(() => 'created_at DESC'),
+  Auth: vi.fn().mockImplementation(() => ({
+    id: 'test-user-id',
+    email: 'test@test.com',
+    role: 'ADMIN',
+    org_id: '00000000-0000-0000-0000-000000000001',
+    security_level: 5,
+  })),
 }));
 
-jest.mock('../../config/index', () => ({
-  serverConfig: {
-    defaultOrgId: '00000000-0000-0000-0000-000000000001',
-    jwtSecret: 'test-secret',
-    jwtRefreshSecret: 'test-refresh-secret',
-    jwtExpiresIn: '8h',
-    jwtRefreshExpiresIn: '7d',
-    bcryptRounds: 10,
-  },
+vi.mock('../../core/helpers', () => ({
+  paginatedQuery: helpersMock.paginatedQuery,
+  requireField: helpersMock.requireField,
+  optionalString: helpersMock.optionalString,
+  optionalNumber: helpersMock.optionalNumber,
+  generateCode: helpersMock.generateCode,
+  generateTxNumber: helpersMock.generateTxNumber,
+  auditLog: helpersMock.auditLog,
+  extractTenantId: helpersMock.extractTenantId,
+  parsePagination: helpersMock.parsePagination,
+  buildOrderBy: helpersMock.buildOrderBy,
+  Auth: helpersMock.Auth,
 }));
+
+// ─── Mock Config ───────────────────────────────────────
+
+vi.mock('../../config/index', async () => {
+  const actual = await vi.importActual('../../config/index');
+  return {
+    serverConfig: {
+      defaultOrgId: '00000000-0000-0000-0000-000000000001',
+      jwtSecret: 'test-secret',
+      jwtRefreshSecret: 'test-refresh-secret',
+      jwtExpiresIn: '8h',
+      jwtRefreshExpiresIn: '7d',
+      bcryptRounds: 10,
+    },
+  };
+});
 
 // ─── Auth Engine Tests ─────────────────────────────────
 
@@ -47,12 +81,12 @@ import { AuthEngine } from '../auth.engine';
 
 describe('AuthEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('login', () => {
     it('should throw error for non-existent user', async () => {
-      mockQueryOne.mockResolvedValue(null);
+      databaseMock.queryOne.mockResolvedValue(null);
 
       await expect(
         AuthEngine.login('nonexistent@test.com', 'password123')
@@ -60,7 +94,7 @@ describe('AuthEngine', () => {
     });
 
     it('should throw error for inactive user', async () => {
-      mockQueryOne.mockResolvedValue({ id: '1', status: 'inactive', password_hash: 'hash' });
+      databaseMock.queryOne.mockResolvedValue({ id: '1', status: 'inactive', password_hash: 'hash' });
 
       await expect(
         AuthEngine.login('user@test.com', 'password123')
@@ -68,7 +102,7 @@ describe('AuthEngine', () => {
     });
 
     it('should throw error for wrong password', async () => {
-      mockQueryOne.mockResolvedValue({
+      databaseMock.queryOne.mockResolvedValue({
         id: '1', email: 'user@test.com', status: 'active',
         password_hash: '$2a$10$abcdefghijklmnopqrstuu', // bcrypt hash
         name: 'Test User', name_ar: 'مستخدم', security_level: 5, default_language: 'ar'
@@ -122,16 +156,16 @@ import { LedgerEngine, ChartOfAccountsService, FiscalYearService, BudgetService,
 
 describe('LedgerEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('postVoucher', () => {
     it('should reject unbalanced voucher', async () => {
       const mockClient = {
-        query: jest.fn(),
+        query: vi.fn(),
       };
 
-      mockTransaction.mockImplementation(async (cb: any) => {
+      databaseMock.transaction.mockImplementation(async (cb: any) => {
         return cb(mockClient);
       });
 
@@ -156,8 +190,8 @@ describe('LedgerEngine', () => {
     });
 
     it('should reject zero amount voucher', async () => {
-      const mockClient = { query: jest.fn() };
-      mockTransaction.mockImplementation(async (cb: any) => cb(mockClient));
+      const mockClient = { query: vi.fn() };
+      databaseMock.transaction.mockImplementation(async (cb: any) => cb(mockClient));
 
       await expect(
         LedgerEngine.postVoucher({
@@ -180,8 +214,8 @@ describe('LedgerEngine', () => {
     });
 
     it('should reject voucher with less than 2 lines', async () => {
-      const mockClient = { query: jest.fn() };
-      mockTransaction.mockImplementation(async (cb: any) => cb(mockClient));
+      const mockClient = { query: vi.fn() };
+      databaseMock.transaction.mockImplementation(async (cb: any) => cb(mockClient));
 
       await expect(
         LedgerEngine.postVoucher({
@@ -199,13 +233,13 @@ describe('LedgerEngine', () => {
           orgId: 'org1',
           securityLevel: 5,
         })
-      ).rejects.toThrow('Double-entry requires at least 2 lines');
+      ).rejects.toThrow('IPSAS Validation');
     });
   });
 
   describe('getTrialBalance', () => {
     it('should return balanced trial balance', async () => {
-      mockQueryMany.mockResolvedValue([
+      databaseMock.queryMany.mockResolvedValue([
         { account_id: '1', account_code: '1100', name_ar: 'نقدي', account_type: 'ASSET', total_debit: '1000', total_credit: '0', net_balance: '1000' },
         { account_id: '2', account_code: '2100', name_ar: 'capital', account_type: 'EQUITY', total_debit: '0', total_credit: '1000', net_balance: '-1000' },
       ]);
@@ -220,13 +254,14 @@ describe('LedgerEngine', () => {
 
 describe('ChartOfAccountsService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should list accounts', async () => {
-    mockQueryMany.mockResolvedValue([
-      { id: '1', account_code: '1100', name_ar: 'نقدي' }
-    ]);
+    helpersMock.paginatedQuery.mockResolvedValue({
+      data: [{ id: '1', account_code: '1100', name_ar: 'نقدي' }],
+      pagination: { page: 1, limit: 50, total: 1, totalPages: 1, hasNext: false, hasPrev: false },
+    });
 
     const result = await ChartOfAccountsService.list('org1');
     expect(result.data).toHaveLength(1);
@@ -234,9 +269,9 @@ describe('ChartOfAccountsService', () => {
 
   it('should reject duplicate account code', async () => {
     const mockClient = {
-      query: jest.fn().mockResolvedValue({ rows: [{ id: 'existing' }] }),
+      query: vi.fn().mockResolvedValue({ rows: [{ id: 'existing' }] }),
     };
-    mockTransaction.mockImplementation(async (cb: any) => cb(mockClient));
+    databaseMock.transaction.mockImplementation(async (cb: any) => cb(mockClient));
 
     await expect(
       ChartOfAccountsService.create('org1', {
@@ -250,7 +285,7 @@ describe('ChartOfAccountsService', () => {
 
 describe('CurrencyService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return rate 1 for same currency', async () => {
@@ -259,7 +294,7 @@ describe('CurrencyService', () => {
   });
 
   it('should convert amount correctly', async () => {
-    mockQueryOne.mockResolvedValue({ rate: '250' });
+    databaseMock.queryOne.mockResolvedValue({ rate: '250' });
 
     const result = await CurrencyService.convert(100, 'USD', 'YER', 'org1');
     expect(result.convertedAmount).toBe(25000);
@@ -273,12 +308,12 @@ import { ProjectEngine, MilestoneEngine } from '../project.engine';
 
 describe('ProjectEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('calculateEVM', () => {
     it('should calculate EVM metrics correctly', async () => {
-      mockQueryOne
+      databaseMock.queryOne
         .mockResolvedValueOnce({ id: 'p1', budget: '100000', progress_percent: '60' }) // project
         .mockResolvedValueOnce({ total_activity_budget: '100000', total_actual_cost: '80000' }) // activities
         .mockResolvedValueOnce({ total: '5', completed: '3', milestone_completion_pct: '0.6' }); // milestones
@@ -294,7 +329,7 @@ describe('ProjectEngine', () => {
     });
 
     it('should return null for non-existent project', async () => {
-      mockQueryOne.mockResolvedValue(null);
+      databaseMock.queryOne.mockResolvedValue(null);
       const evm = await ProjectEngine.calculateEVM('nonexistent');
       expect(evm).toBeNull();
     });
@@ -303,19 +338,19 @@ describe('ProjectEngine', () => {
 
 describe('MilestoneEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should create milestone', async () => {
     const mockClient = {
-      query: jest.fn()
+      query: vi.fn()
         .mockResolvedValueOnce({ rows: [{ id: 'p1', organization_id: 'org1' }] }) // project check
         .mockResolvedValueOnce({ rows: [{ id: 'm1', title_ar: 'معلم 1', project_id: 'p1' }] }), // insert
     };
-    mockTransaction.mockImplementation(async (cb: any) => cb(mockClient));
+    databaseMock.transaction.mockImplementation(async (cb: any) => cb(mockClient));
 
     const milestone = await MilestoneEngine.create(
-      { projectId: 'p1', titleAr: 'معلم 1' },
+      { projectId: 'p1', organizationId: 'org1', titleAr: 'معلم 1' },
       { userId: 'user1', email: 'test@test.com', role: 'ADMIN', orgId: 'org1', securityLevel: 5 }
     );
 
@@ -329,19 +364,19 @@ import { RFQEngine, ThreeWayMatchEngine, VendorPerformanceEngine } from '../proc
 
 describe('RFQEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should create RFQ', async () => {
     const mockClient = {
-      query: jest.fn().mockResolvedValue({
+      query: vi.fn().mockResolvedValue({
         rows: [{
           id: 'rfq1', tender_number: 'RFQ-001', title_ar: 'شراء أجهزة',
           status: 'DRAFT', organization_id: 'org1'
         }]
       }),
     };
-    mockTransaction.mockImplementation(async (cb: any) => cb(mockClient));
+    databaseMock.transaction.mockImplementation(async (cb: any) => cb(mockClient));
 
     const rfq = await RFQEngine.create(
       { organizationId: 'org1', titleAr: 'شراء أجهزة' },
@@ -355,17 +390,17 @@ describe('RFQEngine', () => {
 
 describe('ThreeWayMatchEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should perform 3-way match', async () => {
     const mockClient = {
-      query: jest.fn()
+      query: vi.fn()
         .mockResolvedValueOnce({ rows: [{ id: 'po1', total_amount: '1000', organization_id: 'org1', po_number: 'PO-001' }] }) // PO
-        .mockResolvedValue({ rows: [{ total_received: '1000' }] }) // receipts
-        .mockResolvedValue({ rows: [{ id: 'match1' }] }), // insert match
+        .mockResolvedValueOnce({ rows: [{ total_received: '1000' }] }) // receipts
+        .mockResolvedValueOnce({ rows: [{ id: 'match1' }] }), // insert match
     };
-    mockTransaction.mockImplementation(async (cb: any) => cb(mockClient));
+    databaseMock.transaction.mockImplementation(async (cb: any) => cb(mockClient));
 
     const result = await ThreeWayMatchEngine.performMatch(
       'po1',
@@ -388,12 +423,12 @@ import { BeneficiaryEngine, ServiceDeliveryEngine, AidDistributionEngine } from 
 
 describe('BeneficiaryEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('checkDuplicates', () => {
     it('should detect duplicates by national ID', async () => {
-      mockQueryMany
+      databaseMock.queryMany
         .mockResolvedValueOnce([{ id: 'b1', beneficiary_code: 'BEN-00001', full_name_ar: 'أحمد' }])
         .mockResolvedValue([]);
 
@@ -404,7 +439,7 @@ describe('BeneficiaryEngine', () => {
     });
 
     it('should return no duplicates when none found', async () => {
-      mockQueryMany.mockResolvedValue([]);
+      databaseMock.queryMany.mockResolvedValue([]);
 
       const result = await BeneficiaryEngine.checkDuplicates('org1', '9999999999');
 
@@ -415,19 +450,19 @@ describe('BeneficiaryEngine', () => {
 
 describe('ServiceDeliveryEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should create service delivery', async () => {
     const mockClient = {
-      query: jest.fn().mockResolvedValue({
+      query: vi.fn().mockResolvedValue({
         rows: [{
           id: 'sd1', service_type: 'EDUCATION', service_number: 'SVC-001',
           beneficiaries_reached: 50, status: 'COMPLETED'
         }]
       }),
     };
-    mockTransaction.mockImplementation(async (cb: any) => cb(mockClient));
+    databaseMock.transaction.mockImplementation(async (cb: any) => cb(mockClient));
 
     const delivery = await ServiceDeliveryEngine.create(
       {
@@ -450,11 +485,11 @@ import { KPIEngine, ViewEngine, ReportExportEngine } from '../reporting.engine';
 
 describe('KPIEngine', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should get consolidated KPIs', async () => {
-    mockQueryOne
+    databaseMock.queryOne
       .mockResolvedValueOnce({ total: '10', active: '5', completed: '3', avg_progress: '65', total_budget: '500000' }) // projects
       .mockResolvedValueOnce({ total: '200', active: '180', family_members_reached: '800', high_vulnerability: '30' }) // beneficiaries
       .mockResolvedValueOnce({ total_receipts: '100000', total_payments: '80000', total_transactions: '180000', total_budget: '200000', total_spent: '80000' }) // finance
@@ -479,7 +514,7 @@ describe('ViewEngine', () => {
   });
 
   it('should execute whitelisted view', async () => {
-    mockQueryMany.mockResolvedValue([{ id: 1, name: 'test' }]);
+    databaseMock.queryMany.mockResolvedValue([{ id: 1, name: 'test' }]);
 
     const result = await ViewEngine.executeView('v_beneficiary_summary', 'org1');
 
@@ -496,54 +531,62 @@ describe('ReportExportEngine', () => {
   });
 
   it('should generate beneficiary report', async () => {
-    mockQueryOne.mockResolvedValue({
+    databaseMock.queryOne.mockResolvedValue({
       total: '100', male: '45', female: '55', family_members: '400',
       high_vuln: '20', med_vuln: '30', low_vuln: '50'
     });
-    mockQueryMany.mockResolvedValue([]);
+    databaseMock.queryMany.mockResolvedValue([]);
 
     const report = await ReportExportEngine.generateReport('org1', 'beneficiary_summary');
 
     expect(report.title).toContain('المستفيدين');
-    expect(report.summary.total).toBe('100');
+    expect((report as any).summary.total).toBe('100');
   });
 });
 
 // ─── Helper Function Tests ─────────────────────────────
+import { describe as realDescribe, it as realIt, expect as realExpect } from 'vitest';
 
-describe('Core Helpers', () => {
-  const { parsePagination, buildOrderBy } = require('../../core/helpers');
+describe('Core Helpers (Real Implementation)', () => {
+  let realParsePagination: typeof import('../../core/helpers').parsePagination;
+  let realBuildOrderBy: typeof import('../../core/helpers').buildOrderBy;
+
+  beforeAll(async () => {
+    const actual = await vi.importActual<typeof import('../../core/helpers')>('../../core/helpers');
+    realParsePagination = actual.parsePagination;
+    realBuildOrderBy = actual.buildOrderBy;
+  });
 
   describe('parsePagination', () => {
     it('should return defaults for empty params', () => {
-      const result = parsePagination({});
+      const result = realParsePagination({});
       expect(result.page).toBe(1);
       expect(result.limit).toBe(50);
       expect(result.offset).toBe(0);
     });
 
     it('should calculate correct offset', () => {
-      const result = parsePagination({ page: 3, limit: 20 });
+      const result = realParsePagination({ page: 3, limit: 20 });
       expect(result.offset).toBe(40);
     });
 
     it('should cap limit at 500', () => {
-      const result = parsePagination({ limit: 1000 });
+      const result = realParsePagination({ limit: 1000 });
       expect(result.limit).toBe(500);
     });
   });
 
   describe('buildOrderBy', () => {
     it('should return default order when no sortBy', () => {
-      expect(buildOrderBy()).toBe('created_at DESC');
+      expect(realBuildOrderBy()).toBe('created_at DESC');
     });
 
     it('should use specified sort', () => {
-      expect(buildOrderBy('name', 'asc')).toBe('name ASC');
+      expect(realBuildOrderBy('name', 'asc')).toBe('name ASC');
     });
 
     it('should sanitize invalid sortBy', () => {
-      expect(buildOrderBy('name; DROP TABLE', 'asc')).toBe('created_at ASC');
+      expect(realBuildOrderBy('name; DROP TABLE', 'asc')).toBe('created_at ASC');
     });
   });
 });

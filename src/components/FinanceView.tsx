@@ -41,7 +41,7 @@ import {
 
 import { Currency, Project } from '../types';
 import { Account, Transaction, TransactionLine } from './finance/FinanceTypes';
-import { printHTML } from '../lib/printUtils';
+import { printHTML, createPrintDocument } from '../lib/printUtils';
 
 // Subcomponents
 import OpeningBalancesTab from './finance/OpeningBalancesTab';
@@ -66,6 +66,7 @@ import ReverseEntryModal from '../features/finance/ReverseEntryModal';
 import DataExchangeHub from './DataExchangeHub';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { PolicyButton } from '../core/security/PermissionGate';
 
 interface FinanceViewProps {
   currencies: Currency[];
@@ -86,6 +87,10 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Security State
+  const [securityLevel] = useState(3);
+  const [userRole] = useState('admin');
+
   const [coaSearch, setCoaSearch] = useState('');
   const [selectedType, setSelectedType] = useState('all');
 
@@ -208,28 +213,8 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
     try {
       const txLines = lines.filter((l: any) => l.transaction_id === tx.id);
 
-      let printWindow: any = null;
-      try {
-        printWindow = window.open('', '_blank');
-      } catch (e) { console.error('[Finance] Failed to open print window:', e); }
-
-      let writtenHTML = '';
-      const mockDoc = {
-        write: (html: string) => {
-          if (printWindow) {
-            printWindow.document.write(html);
-          } else {
-            writtenHTML += html;
-          }
-        },
-        close: () => {
-          if (printWindow) {
-            printWindow.document.close();
-          } else {
-            printHTML(writtenHTML);
-          }
-        }
-      };
+      // Resilient print writer — popup window when allowed, sandbox-safe iframe fallback
+      const printDoc = createPrintDocument();
 
       const dir = lang === 'ar' ? 'rtl' : 'ltr';
       const voucherTypeName = tx.transaction_type === 'RECEIPT' ? (lang === 'ar' ? 'سند قبض نقدي' : 'Receipt Voucher') :
@@ -251,7 +236,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         `;
       }).join('');
 
-      mockDoc.write(`
+      printDoc.write(`
         <!DOCTYPE html>
         <html lang="${lang}" dir="${dir}">
         <head>
@@ -354,7 +339,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         </body>
         </html>
       `);
-      mockDoc.close();
+      printDoc.close();
     } catch (err) {
       console.error(err);
     }
@@ -699,13 +684,17 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                         {(parseFloat(String(tx.total_debit || tx.total_credit || 0))).toLocaleString()}
                       </td>
                       <td className="p-3 text-center">
-                        <button
+                        <PolicyButton
+                          action="print"
+                          domain="finance"
+                          securityLevel={securityLevel}
+                          userRole={userRole}
                           onClick={() => handlePrintVoucher(tx)}
                           className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 rounded-xl font-black text-[10px] flex items-center justify-center gap-1 mx-auto transition-all cursor-pointer shadow-sm"
                         >
                           <FileText className="w-3.5 h-3.5 shrink-0" />
                           <span>{lang === 'ar' ? 'طباعة السند' : 'Print Voucher'}</span>
-                        </button>
+                        </PolicyButton>
                       </td>
                     </tr>
                   ))

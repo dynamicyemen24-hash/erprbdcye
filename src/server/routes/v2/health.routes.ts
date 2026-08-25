@@ -145,6 +145,72 @@ router.get('/deep', async (req: Request, res: Response) => {
   });
 });
 
+// ─── Enhanced Readiness (K8s-compatible) ────────────────
+router.get('/ready', async (req: Request, res: Response) => {
+  const checks: Record<string, any> = {};
+
+  // Database
+  try {
+    const pool = getPool();
+    const start = Date.now();
+    await pool.query('SELECT 1 as ping');
+    checks.database = {
+      status: 'ok',
+      latency: `${Date.now() - start}ms`,
+      pool: {
+        total: pool.totalCount,
+        idle: pool.idleCount,
+        waiting: pool.waitingCount,
+      },
+    };
+  } catch (err: any) {
+    checks.database = { status: 'fail', error: err.message };
+  }
+
+  // Memory
+  const memUsage = process.memoryUsage();
+  const totalMem = os.totalmem();
+  const freeMem = os.freemem();
+  const usedMemPct = Math.round(((totalMem - freeMem) / totalMem) * 100);
+
+  checks.memory = {
+    status: usedMemPct < 90 ? 'ok' : 'warn',
+    heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+    heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
+    rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+    systemUsed: `${usedMemPct}%`,
+  };
+
+  // CPU
+  const loadAvg = os.loadavg();
+  const cpuCount = os.cpus().length;
+  const loadPct = Math.round((loadAvg[0] / cpuCount) * 100);
+
+  checks.cpu = {
+    status: loadPct < 80 ? 'ok' : 'warn',
+    load1m: loadAvg[0].toFixed(2),
+    load5m: loadAvg[1].toFixed(2),
+    load15m: loadAvg[2].toFixed(2),
+    cores: cpuCount,
+    utilization: `${loadPct}%`,
+  };
+
+  // Disk
+  checks.disk = {
+    status: 'ok',
+    note: 'Disk check via OS monitoring recommended',
+  };
+
+  const isReady = Object.values(checks).every((c: any) => c.status === 'ok');
+
+  res.status(isReady ? 200 : 503).json({
+    status: isReady ? 'ready' : 'not_ready',
+    checks,
+    uptime: Math.floor((Date.now() - startTime) / 1000),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // ─── Metrics Endpoint (Prometheus-compatible) ──────────
 router.get('/metrics', async (req: Request, res: Response) => {
   const pool = getPool();
@@ -162,9 +228,14 @@ router.get('/metrics', async (req: Request, res: Response) => {
     dbStats = { error: 'unavailable' };
   }
 
-  res.status(200).json({
+  const metrics = {
+    uptime: process.uptime(),
     uptime_seconds: Math.floor((Date.now() - startTime) / 1000),
+    memory: process.memoryUsage(),
     process_memory: process.memoryUsage(),
+    cpu: process.cpuUsage(),
+    activeHandles: (process as any)._getActiveHandles?.()?.length || 0,
+    activeRequests: (process as any)._getActiveRequests?.()?.length || 0,
     database: dbStats,
     system: {
       load_avg: os.loadavg(),
@@ -173,7 +244,9 @@ router.get('/metrics', async (req: Request, res: Response) => {
       cpu_count: os.cpus().length,
     },
     timestamp: new Date().toISOString(),
-  });
+  };
+
+  res.status(200).json(metrics);
 });
 
 // ─── Graceful Shutdown ─────────────────────────────────

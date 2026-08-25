@@ -80,9 +80,10 @@ import {
 } from 'recharts';
 
 import { FixedAssetRecord } from '../types';
-import { printHTML } from '../lib/printUtils';
+import { printHTML, createPrintDocument } from '../lib/printUtils';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { generateId, generateShortId, generateRefCode, generateNumericCode } from '../lib/idGenerator';
 
 // Helper: Calculate Straight-Line Depreciation per IPSAS-17
 export function calculateDepreciation(
@@ -499,7 +500,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
     // 3. Log to local Push History
     const newLog = {
-      id: 'log-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+      id: generateId('log'),
       title,
       body,
       time: new Date().toLocaleTimeString(isRtl ? 'ar-YE' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -588,7 +589,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   
   // Verification & Execution
   const [verificationMode, setVerificationMode] = useState<'ELECTRONIC_MANIFEST' | 'BIOMETRIC_SIGNATURE' | 'DIRECT_WAREHOUSE_DISPATCH'>('ELECTRONIC_MANIFEST');
-  const [distributionBatchRef, setDistributionBatchRef] = useState<string>(`SARF-MULTI-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+  const [distributionBatchRef, setDistributionBatchRef] = useState<string>(`SARF-MULTI-2026-${generateNumericCode(1000, 9999)}`);
   const [isMultiExecuted, setIsMultiExecuted] = useState<boolean>(false);
   const [multiExecuting, setMultiExecuting] = useState<boolean>(false);
 
@@ -632,7 +633,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   const handleSavePlanTemplate = () => {
     if (!planTemplateName.trim()) return;
     const newPlan = {
-      id: `plan-${Date.now()}`,
+      id: generateShortId('plan'),
       title: planTemplateName.trim(),
       warehouseId: multiWarehouseId,
       projectActivity: multiProjectActivity,
@@ -697,15 +698,12 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     const selectedBensList = allBeneficiaries.filter(b => selectedBenIds.includes(b.id));
     const selectedItemsList = items.filter(i => selectedItemIds.includes(i.id));
 
-    let writtenHTML = '';
-    const mockDoc = {
-      write: (html: string) => { writtenHTML += html; },
-      close: () => { printHTML(writtenHTML); }
-    };
+    // Resilient print writer — popup window when allowed, sandbox-safe iframe fallback
+    const printDoc = createPrintDocument();
 
     const dir = isRtl ? 'rtl' : 'ltr';
 
-    mockDoc.write(`
+    printDoc.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">
       <head>
@@ -818,7 +816,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       </html>
     `);
 
-    mockDoc.close();
+    printDoc.close();
   };
 
   // Export Matrix to CSV File
@@ -915,7 +913,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       const sourceWh = warehouses.find(w => w.id === multiWarehouseId) || warehouses[0];
       const todayStr = new Date().toISOString().split('T')[0];
       const timeStr = new Date().toLocaleTimeString(isRtl ? 'ar-YE' : 'en-US', { hour12: false }).slice(0, 5);
-      const batchNo = distributionBatchRef || `SARF-MULTI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      const batchNo = distributionBatchRef || `SARF-MULTI-2026-${generateNumericCode(1000, 9999)}`;
       
       const newMovements: StockMovementRecord[] = [];
       const itemDeductions: Record<string, number> = {};
@@ -984,16 +982,13 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     const selectedBensList = allBeneficiaries.filter(b => selectedBenIds.includes(b.id));
     const selectedItemsList = items.filter(i => selectedItemIds.includes(i.id));
 
-    let writtenHTML = '';
-    const mockDoc = {
-      write: (html: string) => { writtenHTML += html; },
-      close: () => { printHTML(writtenHTML); }
-    };
+    // Resilient print writer — popup window when allowed, sandbox-safe iframe fallback
+    const printDoc = createPrintDocument();
 
     const dir = isRtl ? 'rtl' : 'ltr';
     const titleText = isRtl ? 'سند وكشف الصرف والتوزيع الميداني الإغاثي المتعدد' : 'Multi-Beneficiary Material Disbursement Manifest';
 
-    mockDoc.write(`
+    printDoc.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">
       <head>
@@ -1141,7 +1136,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       </html>
     `);
 
-    mockDoc.close();
+    printDoc.close();
   };
 
   const loadProcurementRequests = async () => {
@@ -1577,13 +1572,13 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     const costNum = parseFloat(registerAssetForm.purchaseCost) || 0;
     const lifeMonths = parseInt(registerAssetForm.usefulLifeMonths) || 60;
     const residualNum = parseFloat(registerAssetForm.residualValue) || 0;
-    const autoCode = registerAssetForm.assetCode.trim() || `AST-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const autoCode = registerAssetForm.assetCode.trim() || `AST-2026-${generateNumericCode(1000, 9999)}`;
 
     const proj = projectsList.find(p => p.id === registerAssetForm.projectId);
     const wh = warehouses.find(w => w.id === registerAssetForm.warehouseId);
 
     const newRecord: FixedAssetRecord = {
-      id: `ast-${Date.now()}`,
+      id: generateShortId('ast'),
       asset_code: autoCode,
       name_ar: registerAssetForm.nameAr.trim(),
       name_en: registerAssetForm.nameEn.trim() || registerAssetForm.nameAr.trim(),
@@ -1775,7 +1770,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     category: 'FOOD_AID' as ReliefInventoryItem['category'],
     unitValueYer: '30000',
     reorderLevel: '200',
-    batchNo: `BATCH-2026-${Math.floor(10 + Math.random() * 90)}`,
+    batchNo: `BATCH-2026-${generateNumericCode(10, 99)}`,
     expiryDate: '2027-12-31',
     donorRef: ''
   });
@@ -1793,7 +1788,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
   const [isNewBranchModalOpen, setIsNewBranchModalOpen] = useState(false);
   const [newBranchForm, setNewBranchForm] = useState({
-    code: `BR-${Math.floor(100 + Math.random() * 900)}`,
+    code: `BR-${generateNumericCode(100, 999)}`,
     nameAr: '',
     nameEn: '',
     regionAr: '',
@@ -1859,7 +1854,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           // Create new SKU entry in destination warehouse
           const newTargetItem: ReliefInventoryItem = {
             ...sourceItem,
-            id: `inv-${Date.now()}`,
+            id: generateShortId('inv'),
             warehouse_id: targetWh.id,
             qty: qtyChange,
             notes: isRtl ? `مادة محولة من ${sourceWh?.name_ar}` : `Transferred item from ${sourceWh?.name_en}`
@@ -1885,18 +1880,18 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     // Generate reference codes
     const autoRef = movementForm.refNo.trim() || (
       movementForm.type === 'RECEIVE' 
-        ? `GRN-2026-${Math.floor(100 + Math.random() * 900)}` 
+        ? `GRN-2026-${generateNumericCode(100, 999)}` 
         : movementForm.type === 'DISBURSE'
-        ? `SARF-2026-${Math.floor(100 + Math.random() * 900)}`
-        : `TRF-2026-${Math.floor(100 + Math.random() * 900)}`
+        ? `SARF-2026-${generateNumericCode(100, 999)}`
+        : `TRF-2026-${generateNumericCode(100, 999)}`
     );
 
     const autoWaybill = movementForm.waybillNo.trim() || (
-      movementForm.type === 'TRANSFER' ? `TR-WAY-2026-${Math.floor(10 + Math.random() * 90)}` : undefined
+      movementForm.type === 'TRANSFER' ? `TR-WAY-2026-${generateNumericCode(10, 99)}` : undefined
     );
 
     const newRecord: StockMovementRecord = {
-      id: `sm-${Date.now()}`,
+      id: generateShortId('sm'),
       date: new Date().toISOString().substring(0, 10),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       itemId: sourceItem.id,
@@ -1965,8 +1960,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     const targetWh = warehouses.find(w => w.id === whId);
 
     const newItem: ReliefInventoryItem = {
-      id: `inv-${Date.now()}`,
-      sku: newItemForm.sku.trim() || `SKU-REL-${Math.floor(100 + Math.random() * 900)}`,
+      id: generateShortId('inv'),
+      sku: newItemForm.sku.trim() || `SKU-REL-${generateNumericCode(100, 999)}`,
       name_ar: newItemForm.nameAr.trim(),
       name_en: newItemForm.nameEn.trim() || newItemForm.nameAr.trim(),
       qty: qtyNum,
@@ -1995,7 +1990,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
     // Create opening movement
     const openingMovement: StockMovementRecord = {
-      id: `sm-${Date.now()}`,
+      id: generateShortId('sm'),
       date: new Date().toISOString().substring(0, 10),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       itemId: newItem.id,
@@ -2006,7 +2001,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       unitAr: newItem.unit_ar,
       warehouseNameAr: targetWh?.name_ar || 'المستودع الرئيسي',
       warehouseNameEn: targetWh?.name_en || 'Central Warehouse',
-      refNo: `OPEN-${Math.floor(1000 + Math.random() * 9000)}`,
+      refNo: `OPEN-${generateNumericCode(1000, 9999)}`,
       recipientOrDonor: newItem.donor_ref || (isRtl ? 'رصيد افتتاحي' : 'Opening Stock'),
       notes: isRtl ? 'إدخال مادة مخزنية جديدة وتسجيل الرصيد الافتتاحي' : 'New inventory SKU registration & initial stock setup',
       authorizedBy: currentUser?.name || (isRtl ? 'مدير إدارة المخازن' : 'Inventory Director')
@@ -2022,7 +2017,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     if (!newWarehouseForm.nameAr.trim()) return;
 
     const newWh: WarehouseData = {
-      id: `wh-${Date.now()}`,
+      id: generateShortId('wh'),
       branch_id: newWarehouseForm.branchId || branches[0]?.id || 'br-1',
       name_ar: newWarehouseForm.nameAr.trim(),
       name_en: newWarehouseForm.nameEn.trim() || newWarehouseForm.nameAr.trim(),
@@ -2053,8 +2048,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     if (!newBranchForm.nameAr.trim()) return;
 
     const newBr: BranchData = {
-      id: `br-${Date.now()}`,
-      code: newBranchForm.code.trim() || `BR-${Math.floor(100 + Math.random() * 900)}`,
+      id: generateShortId('br'),
+      code: newBranchForm.code.trim() || `BR-${generateNumericCode(100, 999)}`,
       name_ar: newBranchForm.nameAr.trim(),
       name_en: newBranchForm.nameEn.trim() || newBranchForm.nameAr.trim(),
       region_ar: newBranchForm.regionAr.trim() || (isRtl ? 'إقليم إغاثي' : 'Relief Region'),
@@ -2589,7 +2584,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 qty: '100',
                 recipientOrDonor: '',
                 refNo: '',
-                waybillNo: `TR-WAY-2026-${Math.floor(10 + Math.random() * 90)}`,
+                waybillNo: `TR-WAY-2026-${generateNumericCode(10, 99)}`,
                 driverName: '',
                 vehiclePlate: '',
                 notes: ''
@@ -2809,7 +2804,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                       type: 'RECEIVE',
                       qty: String(activePushToast.item.reorder_level * 2 || 200),
                       recipientOrDonor: isRtl ? 'شحنة توريد طارئة معالجة لتنبيه الدفع المباشر' : 'Emergency Order triggered by Push Alert',
-                      refNo: `PUSH-PO-2026-${Math.floor(100 + Math.random() * 900)}`,
+                      refNo: `PUSH-PO-2026-${generateNumericCode(100, 999)}`,
                       waybillNo: '',
                       driverName: '',
                       vehiclePlate: '',
@@ -2937,7 +2932,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                         type: 'RECEIVE',
                         qty: String(ci.reorder_level * 2 || 200),
                         recipientOrDonor: isRtl ? 'أمر توريد طارئ سريع لتغذية المخزون الميداني' : 'Fast Emergency Reorder Receive',
-                        refNo: `ALERT-PO-2026-${Math.floor(100 + Math.random() * 900)}`,
+                        refNo: `ALERT-PO-2026-${generateNumericCode(100, 999)}`,
                         waybillNo: '',
                         driverName: '',
                         vehiclePlate: '',
@@ -3437,7 +3432,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                               type: 'RECEIVE',
                               qty: String(i.recommendedReorderQty || 100),
                               recipientOrDonor: isRtl ? 'أمر توريد آلي معتمد بناءً على توقعات الطلب' : 'Automated Order based on Demand Forecast',
-                              refNo: `AUTO-PO-2026-${Math.floor(100 + Math.random() * 900)}`,
+                              refNo: `AUTO-PO-2026-${generateNumericCode(100, 999)}`,
                               waybillNo: '',
                               driverName: '',
                               vehiclePlate: '',
@@ -4584,7 +4579,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                                 qty: '50',
                                 recipientOrDonor: '',
                                 refNo: '',
-                                waybillNo: `TR-WAY-2026-${Math.floor(10 + Math.random() * 90)}`,
+                                waybillNo: `TR-WAY-2026-${generateNumericCode(10, 99)}`,
                                 driverName: '',
                                 vehiclePlate: '',
                                 notes: ''

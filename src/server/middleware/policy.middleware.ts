@@ -5,6 +5,7 @@
  * Logs policy violations to audit_logs for compliance tracking.
  */
 
+import crypto from 'crypto';
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest, extractTenantId } from './auth.middleware';
 import { getDatabasePool } from '../services/db.service';
@@ -76,11 +77,25 @@ export interface EnvironmentAwareRequest extends AuthenticatedRequest {
 /**
  * Extracts environment mode from x-environment-mode header.
  * Defaults to 'production' if not specified.
+ * Non-admin users cannot set 'training' mode — it is silently ignored.
  */
-export function extractEnvironmentMode(req: EnvironmentAwareRequest): 'production' | 'training' {
+export function extractEnvironmentMode(
+  req: EnvironmentAwareRequest,
+  allowedTrainingRoles: string[] = ['super_admin', 'admin']
+): 'production' | 'training' {
   const mode = req.headers['x-environment-mode'];
-  if (mode === 'training' || mode === 'production') {
-    return mode;
+  if (mode === 'training') {
+    const userRole = req.user?.role ?? '';
+    if (!allowedTrainingRoles.includes(userRole)) {
+      console.warn(
+        `[PolicyMiddleware] Non-admin user '${req.user?.id || 'unknown'}' attempted to set training mode — forcing production`
+      );
+      return 'production';
+    }
+    return 'training';
+  }
+  if (mode === 'production') {
+    return 'production';
   }
   return 'production';
 }

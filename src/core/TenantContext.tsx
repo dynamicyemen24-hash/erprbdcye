@@ -31,7 +31,9 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const saved = localStorage.getItem('nexora_tenant_context');
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch (e) {
+      localStorage.removeItem('nexora_tenant_context');
+    }
     return DEFAULT_TENANT;
   });
 
@@ -72,7 +74,9 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setTenantContext(updated);
     try {
       localStorage.setItem('nexora_tenant_context', JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to save tenant context to localStorage:', e);
+    }
   };
 
   const switchFiscalYear = (fy: string) => {
@@ -83,7 +87,9 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setTenantContext(updated);
     try {
       localStorage.setItem('nexora_tenant_context', JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to save tenant context to localStorage:', e);
+    }
   };
 
   return (

@@ -32,11 +32,12 @@ export default function NexoraBottomNav({
   pendingApprovalsCount = 0
 }: NexoraBottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-slate-200 dark:border-zinc-800 flex items-center justify-around px-2 pb-safe z-50 lg:hidden shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] dark:shadow-none">
+    <nav aria-label="التنقل الرئيسي" className="fixed bottom-0 left-0 right-0 h-16 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-slate-200 dark:border-zinc-800 flex items-center justify-around px-2 pb-safe z-50 lg:hidden shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] dark:shadow-none">
       
       {/* 1. Command Center / Home */}
       <button
         onClick={() => onNavigate('dashboard')}
+        aria-current={activeTab === 'dashboard' ? 'page' : undefined}
         className={`flex flex-col items-center justify-center gap-1 transition-all flex-1 py-1 ${
           activeTab === 'dashboard' 
             ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105' 
@@ -69,6 +70,7 @@ export default function NexoraBottomNav({
       {/* 4. Nexora Enterprise Domains View */}
       <button
         onClick={() => onNavigate('domains')}
+        aria-current={activeTab === 'domains' || activeTab === 'programs' || activeTab === 'projects' || activeTab === 'activities' ? 'page' : undefined}
         className={`flex flex-col items-center justify-center gap-1 transition-all flex-1 py-1 ${
           activeTab === 'domains' || activeTab === 'programs' || activeTab === 'projects' || activeTab === 'activities'
             ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105' 

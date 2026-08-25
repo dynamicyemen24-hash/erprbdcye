@@ -11,7 +11,7 @@ interface PredictiveAnalyticsWidgetProps {
   programs?: any[];
 }
 
-export function PredictiveAnalyticsWidget({ lang, projects = [], programs = [] }: PredictiveAnalyticsWidgetProps) {
+function PredictiveAnalyticsWidgetInner({ lang, projects = [], programs = [] }: PredictiveAnalyticsWidgetProps) {
   const isRtl = lang === 'ar';
   const [activeModel, setActiveModel] = useState<'completion' | 'risk' | 'budget'>('completion');
   const [simulationOffset, setSimulationOffset] = useState<number>(10);
@@ -311,4 +311,5 @@ export function PredictiveAnalyticsWidget({ lang, projects = [], programs = [] }
   );
 }
 
-export default PredictiveAnalyticsWidget;
+export default React.memo(PredictiveAnalyticsWidgetInner);
+export { PredictiveAnalyticsWidgetInner as PredictiveAnalyticsWidget };

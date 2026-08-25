@@ -275,6 +275,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
                         ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 font-black'
                         : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-zinc-100'
                     }`}
+                    aria-current={isActive ? 'page' : undefined}
                     title={isCollapsed ? (isRtl ? item.titleAr : item.titleEn) : undefined}
                   >
                     <Icon className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${

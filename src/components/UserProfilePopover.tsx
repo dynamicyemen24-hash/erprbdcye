@@ -43,12 +43,7 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
 
   const isRtl = lang === 'ar';
 
-  const demoUsers = [
-    { id: 'usr-1', name: isRtl ? 'د. عبدالله المحمدي' : 'Dr. Abdullah Al-Mohammadi', role: isRtl ? 'المدير التنفيذي' : 'Executive Director', email: 'ceo@rohamaab.org' },
-    { id: 'usr-2', name: isRtl ? 'أ. فاطمة باحيدرة' : 'Fatima Ba-Haidarah', role: isRtl ? 'مدير الإدارة المالية' : 'Finance Director', email: 'finance@rohamaab.org' },
-    { id: 'usr-3', name: isRtl ? 'م. صالح العمري' : 'Saleh Al-Omari', role: isRtl ? 'مدير العمليات الميدانية' : 'Operations Director', email: 'operations@rohamaab.org' },
-    { id: 'usr-4', name: isRtl ? 'م. رائد الشميري' : 'Raed Al-Shumairi', role: isRtl ? 'مسؤول النظام التقني' : 'System Administrator', email: 'admin@rohamaab.org' },
-  ];
+  const demoUsers: Array<{ id: string; name: string; role: string; email: string }> = [];
 
   const handleSavePreferences = () => {
     setSavedMsg(true);

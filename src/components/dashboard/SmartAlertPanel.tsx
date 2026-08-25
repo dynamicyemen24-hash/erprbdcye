@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   AlertOctagon, AlertTriangle, Clock, Coins, ShieldAlert, CheckCircle2, 
   Search, ArrowUpRight, Bell, Check, RefreshCw, Filter, UserCheck, Eye, EyeOff
@@ -56,40 +56,50 @@ export function SmartAlertPanel({ lang, projects }: SmartAlertPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
   const [actionFeedback, setActionFeedback] = useState<{ [key: string]: string }>({});
+  // LIVE actual spend per project aggregated from posted ledger lines
+  const [spendByProject, setSpendByProject] = useState<Map<string, number>>(new Map());
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadActualSpend = async () => {
+      try {
+        const token = localStorage.getItem('rbd_token');
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('/api/tables/transaction_lines?limit=2000', { headers });
+        if (!res.ok) return;
+        const data = await res.json();
+        const rows = Array.isArray(data?.data) ? data.data : [];
+        if (cancelled) return;
+        const agg = new Map<string, number>();
+        rows.forEach((l: any) => {
+          if (!l.project_id) return;
+          agg.set(l.project_id, (agg.get(l.project_id) || 0) + parseFloat(l.debit || 0));
+        });
+        setSpendByProject(agg);
+        setLastSyncedAt(new Date());
+      } catch (err) {
+        console.error('[SmartAlertPanel] Failed to load actual spend:', err);
+      }
+    };
+    loadActualSpend();
+    return () => { cancelled = true; };
+  }, []);
 
   // 1. Analyze and generate intelligent alerts
   const allAlerts = useMemo(() => {
     const alerts: SmartAlert[] = [];
-    const baseDate = new Date('2026-08-07'); // Current context date
+    const baseDate = new Date();
 
     (projects || []).forEach((proj) => {
       const budgetNum = parseFloat(proj.budget || '0');
       const progressNum = parseFloat(proj.progress_percent || '0');
-      
-      // Calculate a realistic simulated spent to detect budget overruns
-      let simulatedSpent = budgetNum * (progressNum / 100);
-      let isOverrun = false;
-      let overrunPercent = 0;
 
-      // Add deterministic overruns for specific project codes or based on risks
-      if (proj.code === 'PROJ-Food-Taiz') {
-        simulatedSpent = budgetNum * 1.14; // Spent 114% of budget (overrun!)
-        isOverrun = true;
-        overrunPercent = 14;
-      } else if (proj.code === 'PROJ-Well-Shabwah') {
-        simulatedSpent = budgetNum * 1.07; // Spent 107%
-        isOverrun = true;
-        overrunPercent = 7;
-      } else if (proj.risk_level === 'HIGH' && progressNum < 40) {
-        // High risk projects with sluggish progress tend to have overhead overruns
-        simulatedSpent = budgetNum * 1.05;
-        isOverrun = true;
-        overrunPercent = 5;
-      }
-
-      // Overrun alert registration
-      if (isOverrun) {
-        const overrunVal = simulatedSpent - budgetNum;
+      // Real budget overrun detection from posted ledger lines
+      const actualSpent = spendByProject.get(proj.id);
+      if (budgetNum > 0 && actualSpent !== undefined && actualSpent > budgetNum) {
+        const overrunPercent = Math.round(((actualSpent - budgetNum) / budgetNum) * 100);
+        const overrunVal = actualSpent - budgetNum;
         alerts.push({
           id: `alert-budget-${proj.id}`,
           project_id: proj.id,
@@ -99,9 +109,9 @@ export function SmartAlertPanel({ lang, projects }: SmartAlertPanelProps) {
           severity: overrunPercent > 10 ? 'CRITICAL' : 'WARNING',
           title_ar: 'تجاوز الحد الائتماني للموازنة المعتمدة',
           title_en: 'Allocated Budget Threshold Overrun',
-          desc_ar: `تجاوزت نفقات المشروع الميزانية المرصودة بمقدار ${overrunPercent}% نتيجة تضخم تكاليف الإمداد اللوجستي الميداني.`,
-          desc_en: `Project expenditures exceeded allocated budget by ${overrunPercent}% due to local logistics inflation.`,
-          metricLabel_ar: 'جميع مستويات الأمان',
+          desc_ar: `تجاوزت النفقات المرحّلة في دفتر الأستاذ الميزانية المرصودة بمقدار ${overrunPercent}%.`,
+          desc_en: `Posted ledger expenditures exceeded the allocated budget by ${overrunPercent}%.`,
+          metricLabel_ar: 'انحراف الإنفاق الفعلي',
           metricLabel_en: 'Overrun Variance',
           metricValue: `${(overrunVal / 1000000).toFixed(2)}M YER`,
           overrunAmount: overrunVal
@@ -174,7 +184,7 @@ export function SmartAlertPanel({ lang, projects }: SmartAlertPanelProps) {
     });
 
     return alerts;
-  }, [projects, lang]);
+  }, [projects, lang, spendByProject]);
 
   // Filter & Search Logic
   const filteredAlerts = useMemo(() => {
@@ -515,7 +525,11 @@ export function SmartAlertPanel({ lang, projects }: SmartAlertPanelProps) {
                 : 'Alert engine complies alongside Sphere core standards for humanitarian accountability.'}
             </span>
             <span>
-              {lang === 'ar' ? 'آخر تحديث: قبل دقيقة واحدة' : 'Last synchronized: 1m ago'}
+              {lastSyncedAt
+                ? (lang === 'ar'
+                  ? `آخر مزامنة: ${lastSyncedAt.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}`
+                  : `Last synchronized: ${lastSyncedAt.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}`)
+                : (lang === 'ar' ? 'جارٍ المزامنة...' : 'Syncing...')}
             </span>
           </div>
 

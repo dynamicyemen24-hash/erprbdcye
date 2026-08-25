@@ -41,6 +41,8 @@ import {
 } from 'lucide-react';
 import { User, Role, Currency, Project } from '../types';
 import { InventoryManagementView } from './InventoryManagementView';
+import { generateNumericCode, generateShortId } from '../lib/idGenerator';
+import { ErrorBoundary } from '../app/components/ErrorBoundary';
 
 interface ResourcesAssetsViewProps {
   users: User[];
@@ -591,298 +593,6 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
     fetchSubData();
   }, []);
 
-  // Mock initializers
-  const getMockWarehouses = (): WarehouseData[] => [
-    {
-      id: 'wh-1',
-      name_ar: 'المستودع المركزي - مأرب الرئيسي',
-      name_en: 'Central Warehouse - Marib HQ',
-      location_ar: 'مأرب - حي الروضة الموحد',
-      location_en: 'Marib - Al Rawdah District',
-      manager_name: 'أ. صالح العولقي',
-      capacity: '12,000 m³',
-      percentage_used: 68
-    },
-    {
-      id: 'wh-2',
-      name_ar: 'مستودع الساحل الغربي - الحديدة',
-      name_en: 'West Coast Warehouse - Al Hudaydah',
-      location_ar: 'الحديدة - شارع الميناء الرئيسي',
-      location_en: 'Al Hudaydah - Main Port Road',
-      manager_name: 'أ. يحيى عبده عمر',
-      capacity: '8,000 m³',
-      percentage_used: 42
-    },
-    {
-      id: 'wh-3',
-      name_ar: 'مستودع حضرموت المركزي',
-      name_en: 'Hadramout Central Depot',
-      location_ar: 'المكلا - منطقة خلف الصناعية',
-      location_en: 'Mukalla - Khalaf Industrial Zone',
-      manager_name: 'أ. عمر باوزير',
-      capacity: '15,000 m³',
-      percentage_used: 31
-    }
-  ];
-
-  const getMockInventoryItems = (): InventoryItemData[] => [
-    {
-      id: 'inv-1',
-      name_ar: 'سلال غذائية متكاملة (دقيق، أرز، زيت، سكر)',
-      name_en: 'Complete Relief Food Baskets',
-      qty: 2450,
-      unit_ar: 'سلة',
-      unit_en: 'basket',
-      warehouse_id: 'wh-1',
-      category: 'FOOD_AID',
-      value_yer: 61250000
-    },
-    {
-      id: 'inv-2',
-      name_ar: 'وجبات تغذية جافة مخصصة للأطفال والأمهات',
-      name_en: 'Dry Nutritional Meals (Infant & Mother)',
-      qty: 12000,
-      unit_ar: 'وجبة',
-      unit_en: 'meal',
-      warehouse_id: 'wh-2',
-      category: 'NUTRITION',
-      value_yer: 14400000
-    },
-    {
-      id: 'inv-3',
-      name_ar: 'بطانيات صوف وفرش إيواء شتوية مقاومة للماء',
-      name_en: 'Thermal Blankets & Shelter Bedding Kits',
-      qty: 3100,
-      unit_ar: 'حقيبة shelter',
-      unit_en: 'shelter kit',
-      warehouse_id: 'wh-3',
-      category: 'SHELTER',
-      value_yer: 46500000
-    },
-    {
-      id: 'inv-4',
-      name_ar: 'أجهزة حاسوب مكتبية Core i5 للتمكين المهني',
-      name_en: 'Core i5 PC Computers for Vocational Training',
-      qty: 45,
-      unit_ar: 'جهاز',
-      unit_en: 'unit',
-      warehouse_id: 'wh-1',
-      category: 'EDUCATION_DEVICES',
-      value_yer: 18000000
-    },
-    {
-      id: 'inv-5',
-      name_ar: 'مضادات حيوية ومحاليل وريدية طبية طارئة',
-      name_en: 'Emergency Antibiotics & Medical IV Fluids',
-      qty: 1200,
-      unit_ar: 'كرتون طبي',
-      unit_en: 'medical box',
-      warehouse_id: 'wh-2',
-      category: 'MEDICAL_STORES',
-      value_yer: 9600000
-    }
-  ];
-
-  const getMockFixedAssets = (): FixedAssetData[] => [
-    {
-      id: 'asset-1',
-      name_ar: 'معدة حفر وهيدروليك ثقيلة (CAT 330D) لمشاريع الآبار',
-      name_en: 'Caterpillar Heavy Hydraulic Excavator CAT 330D',
-      location_ar: 'مأرب - موقع مشروع سد مأرب',
-      location_en: 'Marib - Dam Water Works Site',
-      purchase_date: '2022-03-15',
-      original_cost: 85000000,
-      current_value: 51500000,
-      status_ar: 'شغالة وتخضع للصيانة الدورية',
-      status_en: 'OPERATIONAL (UNDER SCHEDULED MAINTENANCE)',
-      type: 'EQUIPMENT',
-      serial_number: 'CAT-330D-YEM-8821',
-      useful_life_years: 8,
-      salvage_value: 5000000,
-      project_id: 'prj-1',
-      project_name_ar: 'مشروع حفر وتجهيز آبار المياه والمحميات بسد مأرب',
-      project_name_en: 'Marib Dam Water Wells & Irrigation Project',
-      wbs_code: 'WBS-MAR-1.2.4',
-      wbs_activity_ar: 'حفر الآبار الارتوازية ومد شبكات الري الزراعي',
-      wbs_activity_en: 'Drilling Artesian Wells & Irrigation Network',
-      latitude: 15.4582,
-      longitude: 45.3289,
-      gis_code: 'GIS-YEM-MAR-WBS-102',
-      region_ar: 'محافظة مأرب - مديرية الوادي',
-      region_en: 'Marib Governorate - Al Wadi District',
-      custodian_ar: 'م. عبدالغني العوامي - مدير الهندسة الميدانية',
-      custodian_en: 'Eng. Abdulghani Al-Awami - Field Engineering Lead',
-      capitalized_maintenance_total: 6500000,
-      accumulated_depreciation: 40000000,
-      maintenance_logs: [
-        {
-          id: 'log-101',
-          asset_id: 'asset-1',
-          maintenance_date: '2025-11-20',
-          type: 'OVERHAUL',
-          description_ar: 'تغيير مضخة الهيدروليك الرئيسية وعمرة الشاسيه بالكامل',
-          description_en: 'Hydraulic main pump replacement & chassis overhaul',
-          cost_yer: 6500000,
-          technician_or_center: 'مركز كاتربيلر الفني المعتمد - مأرب',
-          is_capitalized: true,
-          next_maintenance_date: '2026-11-20',
-          invoice_ref: 'CAT-INV-2025-099'
-        },
-        {
-          id: 'log-102',
-          asset_id: 'asset-1',
-          maintenance_date: '2026-04-10',
-          type: 'PREVENTIVE',
-          description_ar: 'تغيير فلاتر الزيت والوقود واستبدال الزيوت الهيدروليكية',
-          description_en: 'Oil and fuel filter replacements & hydraulic oil change',
-          cost_yer: 450000,
-          technician_or_center: 'فريق الصيانة الميدانية بالجمعية',
-          is_capitalized: false,
-          next_maintenance_date: '2026-10-10',
-          invoice_ref: 'MAINT-SRV-2026-044'
-        }
-      ]
-    },
-    {
-      id: 'asset-2',
-      name_ar: 'شاحنة العيادة الطبية المتنقلة المزودة بأجهزة أشعة وسونار',
-      name_en: 'Mobile Medical Clinic Truck with Ultrasound & X-Ray',
-      location_ar: 'الحديدة - مديرية الخوخة بالساحل الغربي',
-      location_en: 'Al Hudaydah - Al Khawkha West Coast',
-      purchase_date: '2023-01-10',
-      original_cost: 48000000,
-      current_value: 27000000,
-      status_ar: 'نشطة وميدانية 100%',
-      status_en: 'ACTIVE IN FIELD MEDICAL MISSIONS',
-      type: 'VEHICLE',
-      serial_number: 'ISUZU-MED-2024-99',
-      useful_life_years: 6,
-      salvage_value: 3000000,
-      project_id: 'prj-2',
-      project_name_ar: 'برنامج الرعاية الصحية الطارئة وإغاثة الساحل الغربي',
-      project_name_en: 'West Coast Emergency Mobile Health Project',
-      wbs_code: 'WBS-HUD-2.1.1',
-      wbs_activity_ar: 'تسيير العيادات المتنقلة بمديرية الخوخة وحيس',
-      wbs_activity_en: 'Deploying Mobile Clinics in Al Khawkha & Hays',
-      latitude: 13.8114,
-      longitude: 42.8436,
-      gis_code: 'GIS-YEM-HUD-WBS-204',
-      region_ar: 'الساحل الغربي - الحديدة',
-      region_en: 'West Coast - Al Hudaydah',
-      custodian_ar: 'د. ياسمين الشميري - رئيسة الفريق الطبي',
-      custodian_en: 'Dr. Yasmeen Al-Shumeiri - Medical Team Leader',
-      capitalized_maintenance_total: 1500000,
-      accumulated_depreciation: 22500000,
-      maintenance_logs: [
-        {
-          id: 'log-201',
-          asset_id: 'asset-2',
-          maintenance_date: '2026-02-15',
-          type: 'CORRECTIVE',
-          description_ar: 'إصلاح جهاز السونار ومعايرة المولد الكهربائي الملحق',
-          description_en: 'Ultrasound unit repair & generator calibration',
-          cost_yer: 1200000,
-          technician_or_center: 'الشركة اليمنية للأجهزة الطبية',
-          is_capitalized: false,
-          next_maintenance_date: '2026-08-15',
-          invoice_ref: 'MED-SER-2026-102'
-        }
-      ]
-    },
-    {
-      id: 'asset-3',
-      name_ar: 'المقر الرئيسي والمجمع التدريبي لجمعية رحماء',
-      name_en: 'Rohama Foundation HQ & Vocational Training Complex',
-      location_ar: 'صنعاء - حي حدة السكني المعتمد',
-      location_en: 'Sanaa - Hadda Residential Zone',
-      purchase_date: '2019-05-01',
-      original_cost: 180000000,
-      current_value: 150000000,
-      status_ar: 'مستغل بالكامل - ملك للجمعية',
-      status_en: 'FULLY OPERATIONAL (OWNED)',
-      type: 'BUILDING',
-      serial_number: 'HQ-SAN-BLD-01',
-      useful_life_years: 30,
-      salvage_value: 20000000,
-      project_id: 'prj-3',
-      project_name_ar: 'مشروع التمكين المهني واستدامة المهارات',
-      project_name_en: 'Vocational Empowerment & Skills Sustainability',
-      wbs_code: 'WBS-SAN-3.0.1',
-      wbs_activity_ar: 'تجهيز وتأهيل القاعات التدريبية المركزية',
-      wbs_activity_en: 'Outfitting Central Training Halls',
-      latitude: 15.3547,
-      longitude: 44.2066,
-      gis_code: 'GIS-YEM-SAN-HQ-001',
-      region_ar: 'أمانة العاصمة - صنعاء',
-      region_en: 'Capital Municipality - Sanaa',
-      custodian_ar: 'أ. صالح العولقي - مدير الإدارة العامة',
-      custodian_en: 'Saleh Al-Awlaqi - HQ General Director',
-      capitalized_maintenance_total: 12000000,
-      accumulated_depreciation: 42000000,
-      maintenance_logs: [
-        {
-          id: 'log-301',
-          asset_id: 'asset-3',
-          maintenance_date: '2025-08-12',
-          type: 'OVERHAUL',
-          description_ar: 'تركيب منظومة طاقة شمسية مركزية قدرة 50 كيلووات وقواعد حماية',
-          description_en: '50kW Central Solar Energy Installation & Roofing Upgrade',
-          cost_yer: 12000000,
-          technician_or_center: 'شركة الطاقة الشمسية المتجددة',
-          is_capitalized: true,
-          next_maintenance_date: '2027-08-12',
-          invoice_ref: 'SOLAR-2025-50KW'
-        }
-      ]
-    },
-    {
-      id: 'asset-4',
-      name_ar: 'خوادم نكسورا المؤسسية المتكاملة وشبكة الاتصال السحابية',
-      name_en: 'Nexora Core Enterprise Servers & Hybrid Cloud Infrastructure',
-      location_ar: 'غرفة تقنية المعلومات والتحكم الموحد',
-      location_en: 'HQ Core IT Server Room',
-      purchase_date: '2024-11-20',
-      original_cost: 15000000,
-      current_value: 12200000,
-      status_ar: 'نشط ومحمي سحابياً مع نسخ احتياطي',
-      status_en: 'ACTIVE & BACKED UP TO NEON CLOUD',
-      type: 'EQUIPMENT',
-      serial_number: 'DELL-R750-SRV',
-      useful_life_years: 5,
-      salvage_value: 1000000,
-      project_id: 'prj-4',
-      project_name_ar: 'مشروع التحول الرقمي وإدارة البيانات المؤسسية',
-      project_name_en: 'Enterprise Digital Transformation & Data Governance',
-      wbs_code: 'WBS-SYS-4.2.0',
-      wbs_activity_ar: 'ربط الفروع وقواعد بيانات Neon PostgreSQL',
-      wbs_activity_en: 'Connecting Branch Nodes & Neon PostgreSQL DB',
-      latitude: 15.3551,
-      longitude: 44.2070,
-      gis_code: 'GIS-YEM-SAN-IT-002',
-      region_ar: 'المقر الرئيسي - صنعاء',
-      region_en: 'HQ Complex - Sanaa',
-      custodian_ar: 'م. وائل الحمادي - مدير تقنية المعلومات',
-      custodian_en: 'Eng. Wael Al-Hammadi - IT Lead',
-      capitalized_maintenance_total: 0,
-      accumulated_depreciation: 2800000,
-      maintenance_logs: [
-        {
-          id: 'log-401',
-          asset_id: 'asset-4',
-          maintenance_date: '2026-03-01',
-          type: 'PREVENTIVE',
-          description_ar: 'تنظيف وغسل فلاتر التبريد واستبدال بطاريات المولد UPS',
-          description_en: 'Cooling filter cleaning & UPS battery replacement',
-          cost_yer: 350000,
-          technician_or_center: 'قسم تقنية المعلومات والشبكات',
-          is_capitalized: false,
-          next_maintenance_date: '2026-09-01',
-          invoice_ref: 'IT-SRV-2026-011'
-        }
-      ]
-    }
-  ];
-
   // User form modal opener
   const applyRoleProfile = (code: string) => {
     setRoleProfile(code);
@@ -1014,7 +724,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
           unitAr: targetItem.unit_ar,
           warehouseNameAr: targetWh?.name_ar || 'المستودع الرئيسي',
           warehouseNameEn: targetWh?.name_en || 'Central Warehouse',
-          refNo: stockForm.type === 'RECEIVE' ? `GRN-${Math.floor(1000 + Math.random() * 9000)}` : `SARF-${Math.floor(1000 + Math.random() * 9000)}`,
+          refNo: stockForm.type === 'RECEIVE' ? `GRN-${generateNumericCode(1000, 9999)}` : `SARF-${generateNumericCode(1000, 9999)}`,
           notes: stockForm.notes || (isRtl ? 'حركة مخزنية معتمدة' : 'Approved stock movement'),
           user: isRtl ? 'أمين المستودع' : 'Warehouse Keeper'
         };
@@ -1065,7 +775,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
       unitAr: newItem.unit_ar,
       warehouseNameAr: targetWh?.name_ar || 'المستودع الرئيسي',
       warehouseNameEn: targetWh?.name_en || 'Central Warehouse',
-      refNo: `IN-NEW-${Math.floor(1000 + Math.random() * 9000)}`,
+      refNo: `IN-NEW-${generateNumericCode(1000, 9999)}`,
       notes: isRtl ? 'تسجيل مادة مخزنية جديدة ورصيد افتتاح أول الموعد' : 'New inventory item initial stock setup',
       user: isRtl ? 'مدير المخازن' : 'Inventory Manager'
     };
@@ -1220,7 +930,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
       technician: 'المركز الفني الهندسي المعتمد',
       isCapitalized: false,
       nextMaintenanceDate: '2026-12-31',
-      invoiceRef: `INV-MAINT-2026-${Math.floor(100 + Math.random() * 900)}`
+      invoiceRef: `INV-MAINT-2026-${generateNumericCode(100, 999)}`
     });
   };
 
@@ -1277,6 +987,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
   });
 
   return (
+    <ErrorBoundary domainName="ResourcesAssetsView" lang={lang || 'ar'}>
     <div className="space-y-6 animate-fade-in">
       
       {/* 1. Header Area with Tabs */}
@@ -1704,8 +1415,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               <button
                 onClick={() => {
                   const newItem: CustodianshipItem = {
-                    id: `cust-${Date.now()}`,
-                    itemCode: `AST-GEN-${Math.floor(Math.random() * 900 + 100)}`,
+                    id: generateShortId('cust'),
+                    itemCode: `AST-GEN-${generateNumericCode(100, 999)}`,
                     nameAr: 'جهاز لوحي ميداني Samsung Tab Active',
                     nameEn: 'Samsung Field Tablet',
                     category: 'IT_LAPTOP',
@@ -1713,7 +1424,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                     assignedUserNameAr: isRtl ? (users[0]?.name_ar || users[0]?.name || 'موظف ميداني') : 'Staff Member',
                     assignedUserNameEn: 'Staff Member',
                     assignedDate: new Date().toISOString().substring(0, 10),
-                    serialNumber: `SM-TAB-${Math.floor(Math.random() * 90000 + 10000)}`,
+                    serialNumber: `SM-TAB-${generateNumericCode(10000, 99999)}`,
                     condition: 'EXCELLENT',
                     status: 'ASSIGNED'
                   };
@@ -3563,5 +3274,6 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
       )}
 
     </div>
+    </ErrorBoundary>
   );
 }

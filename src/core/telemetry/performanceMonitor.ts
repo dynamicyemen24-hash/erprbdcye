@@ -68,7 +68,7 @@ class NexoraPerformanceMonitor {
     this.activeTransactions.delete(name);
 
     const metric: TelemetryMetric = {
-      id: `m_${Math.random().toString(36).substring(2, 9)}`,
+      id: `m_${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`,
       name,
       category: transaction.category,
       value: parseFloat(duration.toFixed(2)),
@@ -87,7 +87,7 @@ class NexoraPerformanceMonitor {
   // Directly log an API latency event
   public recordApiLatency(endpoint: string, durationMs: number, status: number, method: string = 'GET') {
     const metric: TelemetryMetric = {
-      id: `api_${Math.random().toString(36).substring(2, 9)}`,
+      id: `api_${crypto.randomUUID().replace(/-/g, '').substring(0, 8)}`,
       name: `API Request: ${method} ${endpoint}`,
       category: 'api_latency',
       value: parseFloat(durationMs.toFixed(2)),

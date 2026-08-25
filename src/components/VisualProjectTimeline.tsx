@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { Project, Program, ProjectMilestone } from '../types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
+import { ErrorBoundary } from '../app/components/ErrorBoundary';
 
 interface VisualProjectTimelineProps {
   projects: Project[];
@@ -592,6 +593,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
   };
 
   return (
+    <ErrorBoundary domainName="Visual Project Timeline" lang={lang}>
     <div className="space-y-4 animate-fade-in" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Timeline Controls & Filters Header */}
       <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
@@ -1520,7 +1522,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Activity, Zap, CheckCircle2 } from 'lucide-react';
 
@@ -21,22 +21,45 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
 
   const active = isLoading || isNavigating;
 
+  const rafRef = useRef<number | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressRef = useRef(0);
+
   useEffect(() => {
-    let interval: any;
-    let timeout: any;
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
 
     if (active) {
       setVisible(true);
-      setProgress((prev) => (prev > 0 && prev < 90 ? prev : 15));
+      const initial = progressRef.current > 0 && progressRef.current < 90 ? progressRef.current : 15;
+      progressRef.current = initial;
+      setProgress(initial);
 
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev < 40) return prev + Math.random() * 15 + 10;
-          if (prev < 75) return prev + Math.random() * 8 + 3;
-          if (prev < 92) return prev + Math.random() * 3 + 1;
-          return prev;
-        });
-      }, 120);
+      let lastTime = performance.now();
+
+      const tick = (now: number) => {
+        const delta = now - lastTime;
+        if (delta >= 120) {
+          lastTime = now;
+          setProgress((prev) => {
+            let next = prev;
+            if (prev < 40) next = prev + Math.random() * 15 + 10;
+            else if (prev < 75) next = prev + Math.random() * 8 + 3;
+            else if (prev < 92) next = prev + Math.random() * 3 + 1;
+            progressRef.current = next;
+            return next;
+          });
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      };
+
+      rafRef.current = requestAnimationFrame(tick);
 
       setStatusMessage(
         isNavigating
@@ -46,17 +69,19 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
 
     } else {
       setProgress(100);
+      progressRef.current = 100;
       setStatusMessage(lang === 'ar' ? 'تمت المزامنة بنجاح' : 'Sync completed');
-      
-      timeout = setTimeout(() => {
+
+      timeoutRef.current = setTimeout(() => {
         setVisible(false);
         setProgress(0);
+        progressRef.current = 0;
       }, 400);
     }
 
     return () => {
-      if (interval) clearInterval(interval);
-      if (timeout) clearTimeout(timeout);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [active, isNavigating, activeTabLabel, lang]);
 
@@ -67,6 +92,10 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
       {/* Top Fixed High-Performance Progress Bar */}
       <div className="fixed top-0 left-0 right-0 z-[100000] pointer-events-none h-1 bg-slate-200/20 dark:bg-zinc-900/30 overflow-hidden">
         <motion.div
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
           className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 via-amber-400 to-emerald-400 dark:from-emerald-400 dark:via-cyan-300 dark:to-amber-300 relative shadow-[0_0_15px_rgba(16,185,129,0.9),0_0_6px_rgba(217,119,6,0.8)]"
           initial={{ width: '0%', opacity: 1 }}
           animate={{

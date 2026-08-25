@@ -6,6 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext, generateCode } from '../core/helpers';
+import logger from '../core/logger';
 
 // ─── Donors ────────────────────────────────────────────
 
@@ -114,7 +115,7 @@ export class GrantEngine {
     if (!grant) return null;
     const installments = await queryMany(
       'SELECT * FROM grant_installments WHERE grant_id = $1 ORDER BY due_date', [grantId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'funding', error: err.message }); return []; });
     return { ...grant, installments };
   }
 
@@ -241,7 +242,7 @@ export class PartnerAgreementEngine {
       `SELECT pa.*, d.name_ar as partner_name_ar FROM partner_agreements pa
        LEFT JOIN donors d ON d.id = pa.partner_id
        WHERE pa.organization_id = $1 ORDER BY pa.created_at DESC`, [orgId]
-    ).catch(() => []);
+    ).catch((err) => { logger.error('Query failed', { context: 'funding', error: err.message }); return []; });
   }
 
   static async create(data: {
@@ -256,7 +257,7 @@ export class PartnerAgreementEngine {
       [data.organizationId, data.partnerId, requireField(data.agreementNumber, 'agreementNumber'),
        requireField(data.titleAr, 'titleAr'), optionalString(data.titleEn),
        data.startDate, data.endDate, data.value || 0]
-    ).catch(() => null);
+    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
   }
 }
 

@@ -30,6 +30,7 @@ import {
 } from '../hr';
 import HRDocumentGeneratorModal from '../hr/HRDocumentGeneratorModal';
 import { ModuleShell } from '../../components/enterprise/ModuleShell';
+import { PolicyButton } from '../../core/security/PermissionGate';
 
 interface HRManagementWorkspaceProps {
   lang: 'ar' | 'en';
@@ -45,6 +46,10 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [workforceCategory, setWorkforceCategory] = useState<WorkforceCategory>('all');
+
+  // Security State
+  const [securityLevel] = useState(3);
+  const [userRole] = useState('admin');
 
   // Modal State
   const [showDocModal, setShowDocModal] = useState(false);
@@ -124,7 +129,11 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button
+          <PolicyButton
+            action="approve"
+            domain="hr"
+            securityLevel={securityLevel}
+            userRole={userRole}
             onClick={() => {
               setSelectedStaffForDoc(null);
               setShowDocModal(true);
@@ -133,7 +142,7 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
           >
             <Printer className="w-3.5 h-3.5" />
             <span>{isRtl ? 'طباعة العقود والوثائق' : 'Generate Contracts'}</span>
-          </button>
+          </PolicyButton>
 
           <button
             onClick={fetchHRData}
@@ -144,13 +153,17 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
             <span>{isRtl ? 'تحديث البيانات' : 'Refresh Data'}</span>
           </button>
 
-          <button
+          <PolicyButton
+            action="create"
+            domain="hr"
+            securityLevel={securityLevel}
+            userRole={userRole}
             onClick={() => alert(isRtl ? 'فتح نافذة تعيين موظف جديد' : 'New Employee Onboarding Modal')}
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>{isRtl ? 'تعيين موظف / متطوع' : 'Onboard Workforce'}</span>
-          </button>
+          </PolicyButton>
         </div>
       </div>
 

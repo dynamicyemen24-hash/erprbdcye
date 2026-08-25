@@ -4,7 +4,7 @@ interface SkeletonLoaderProps {
   lang?: 'ar' | 'en';
 }
 
-export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ lang = 'ar' }) => {
+const SkeletonLoaderInner: React.FC<SkeletonLoaderProps> = ({ lang = 'ar' }) => {
   return (
     <div className="space-y-6 animate-pulse" id="skeleton-loader-container">
       {/* Top Banner & Action Row Skeleton */}
@@ -104,4 +104,5 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ lang = 'ar' }) =
   );
 };
 
+export const SkeletonLoader = React.memo(SkeletonLoaderInner);
 export default SkeletonLoader;

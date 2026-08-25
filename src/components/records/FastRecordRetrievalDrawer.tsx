@@ -70,7 +70,6 @@ export const FastRecordRetrievalDrawer: React.FC<FastRecordRetrievalDrawerProps>
   programs = [],
   activities = []
 }) => {
-  if (!isOpen) return null;
   const isRtl = lang === 'ar';
 
   const [query, setQuery] = useState('');
@@ -84,185 +83,116 @@ export const FastRecordRetrievalDrawer: React.FC<FastRecordRetrievalDrawerProps>
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Live database records (E2E — no fabricated demo rows)
+  const [dbTransactions, setDbTransactions] = useState<any[]>([]);
+  const [dbContracts, setDbContracts] = useState<any[]>([]);
+
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 60);
+
+      const token = localStorage.getItem('rbd_token');
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+      fetch('/api/tables/transactions', { headers })
+        .then(res => res.ok ? res.json() : [])
+        .then(d => setDbTransactions(Array.isArray(d) ? d : (d?.data || d?.rows || [])))
+        .catch(() => setDbTransactions([]));
+      fetch('/api/tables/contracts', { headers })
+        .then(res => res.ok ? res.json() : [])
+        .then(d => setDbContracts(Array.isArray(d) ? d : (d?.data || d?.rows || [])))
+        .catch(() => setDbContracts([]));
     }
   }, [isOpen]);
 
-  // Generate unified searchable index across DB records
+  // Generate unified searchable index across LIVE database records (E2E — zero fabricated rows)
   const allRecords: UniversalRecord[] = useMemo(() => {
     const list: UniversalRecord[] = [];
 
-    // 1. Financial Vouchers (IPSAS Journal Entries & Payment Vouchers)
-    const mockVouchers: UniversalRecord[] = [
-      {
-        id: 'vch-001',
-        kind: 'voucher',
-        code: 'PV-2026-0801',
-        titleAr: 'سند صرف كفالات الأيتام الشهرية - دورة أغسطس',
-        titleEn: 'Monthly Orphan Sponsorship Payment - August',
-        categoryAr: 'سند صرف نقدي',
-        categoryEn: 'Payment Voucher',
-        date: '2026-08-10',
-        amount: 4500000,
+    // 1. Financial Vouchers — live IPSAS journal entries / payments / receipts from `transactions`
+    const VOUCHER_TYPE_MAP: Record<string, { ar: string; en: string }> = {
+      PAYMENT: { ar: 'سند صرف نقدي', en: 'Payment Voucher' },
+      RECEIPT: { ar: 'سند قبض', en: 'Receipt Voucher' },
+      TRANSFER: { ar: 'تحويل بنكي', en: 'Bank Transfer' },
+      JOURNAL_ENTRY: { ar: 'قيد يومية عام', en: 'Journal Entry' }
+    };
+    const liveVouchers: UniversalRecord[] = dbTransactions.map((t: any, idx: number) => {
+      const typeMeta = VOUCHER_TYPE_MAP[t.transaction_type] || VOUCHER_TYPE_MAP.JOURNAL_ENTRY;
+      return {
+        id: `vch-${t.id || idx}`,
+        kind: 'voucher' as const,
+        code: t.transaction_number || `TXN-${idx + 1}`,
+        titleAr: t.description || typeMeta.ar,
+        titleEn: t.description_en || t.description || typeMeta.en,
+        categoryAr: typeMeta.ar,
+        categoryEn: typeMeta.en,
+        date: t.transaction_date ? String(t.transaction_date).slice(0, 10) : '',
+        amount: Number(t.total_debit || t.total_credit || 0),
         currency: 'YER',
-        status: 'approved',
-        projectName: 'مشروع كفالة الأيتام والرعاية',
-        programName: 'برنامج رعاية الأيتام',
-        accountCode: '2101-01',
-        accountName: 'حساب كفالات الأيتام الميداني',
-        checksum: 'SHA256:8F9A-C10E-98DF'
-      },
-      {
-        id: 'vch-002',
-        kind: 'voucher',
-        code: 'PV-2026-0802',
-        titleAr: 'سند شراء سلال غذائية طارئة - محافظة تعز',
-        titleEn: 'Emergency Food Baskets Purchase - Taiz',
-        categoryAr: 'سند صرف بنكي',
-        categoryEn: 'Bank Payment Voucher',
-        date: '2026-08-12',
-        amount: 8200000,
-        currency: 'YER',
-        status: 'approved',
-        projectName: 'مشروع الاستجابة الغذائية الطارئة',
-        programName: 'برنامج الأمن الغذائي',
-        accountCode: '5102-04',
-        accountName: 'مصروفات الإغاثة الغذائية',
-        checksum: 'SHA256:4A2B-7E81-33FC'
-      },
-      {
-        id: 'vch-003',
-        kind: 'voucher',
-        code: 'RV-2026-0803',
-        titleAr: 'سند قبض منحة تمويل منظمة الأغذية العالمية WFP',
-        titleEn: 'Grant Receipt Voucher - WFP Taiz Sector',
-        categoryAr: 'سند قبض تحويل',
-        categoryEn: 'Receipt Voucher',
-        date: '2026-08-05',
-        amount: 35000,
-        currency: 'USD',
-        status: 'approved',
-        projectName: 'مشروع الدعم الغذائي المستدام',
-        programName: 'برنامج الأمن الغذائي',
-        accountCode: '4101-02',
-        accountName: 'إيرادات منح المنظمات الدولية',
-        checksum: 'SHA256:990D-22EA-17B4'
-      },
-      {
-        id: 'vch-004',
-        kind: 'voucher',
-        code: 'JV-2026-0804',
-        titleAr: 'قيد تسوية العهد المالية لمشروع مياه موزع',
-        titleEn: 'Petty Cash Settlement JV - Mawza Water',
-        categoryAr: 'قيد يومية عام',
-        categoryEn: 'Journal Entry',
-        date: '2026-08-14',
-        amount: 1250000,
-        currency: 'YER',
-        status: 'pending',
-        projectName: 'مشروع الإصحاح المائي موزع',
-        programName: 'برنامج المياه والإصحاح البيئي',
-        accountCode: '1103-01',
-        accountName: 'عهد المشرفين الميدانيين',
-        checksum: 'SHA256:11EC-77BB-940A'
-      }
-    ];
+        status: String(t.status || '').toUpperCase() === 'POSTED'
+          ? 'approved' as const
+          : String(t.status || '').toUpperCase() === 'DRAFT' ? 'draft' as const : 'pending' as const,
+        checksum: `DB:${String(t.id || '').slice(0, 8)}`
+      };
+    });
 
-    // 2. Invoices & Procurement Claims
-    const mockInvoices: UniversalRecord[] = [
-      {
-        id: 'inv-101',
-        kind: 'invoice',
-        code: 'INV-2026-0091',
-        titleAr: 'فاتورة توريد وتجهيز ألواح طاقة شمسية لآبار موزع',
-        titleEn: 'Solar Pumping System Supply Invoice - Mawza',
-        categoryAr: 'فاتورة مورد معتمد',
-        categoryEn: 'Vendor Invoice',
-        date: '2026-08-08',
-        amount: 14200000,
-        currency: 'YER',
-        status: 'approved',
-        projectName: 'مشروع مضخات الطاقة الشمسية',
-        programName: 'برنامج المياه والإصحاح البيئي',
-        accountCode: '2102-01',
-        accountName: 'موردو المعدات والشبكات',
-        checksum: 'SHA256:EE31-89AC-0045'
-      },
-      {
-        id: 'inv-102',
-        kind: 'invoice',
-        code: 'INV-2026-0092',
-        titleAr: 'مطالبة نقل وتوزيع المساعدات الإغاثية - الساحل الغربي',
-        titleEn: 'Logistics & Transport Claim - West Coast',
-        categoryAr: 'فاتورة خدمات نقل',
-        categoryEn: 'Logistics Invoice',
-        date: '2026-08-13',
-        amount: 980000,
-        currency: 'YER',
-        status: 'pending',
-        projectName: 'مشروع الإغاثة العاجلة',
-        programName: 'برنامج الاستجابة الإنسانية',
-        accountCode: '5201-08',
-        accountName: 'أجور النقل والخدمات اللوجستية',
-        checksum: 'SHA256:66A1-90FD-5211'
-      }
-    ];
+    // 2. Contracts & Procurement Claims — live vendor contracts from `contracts`
+    const liveInvoices: UniversalRecord[] = dbContracts.map((c: any, idx: number) => ({
+      id: `inv-${c.id || idx}`,
+      kind: 'invoice' as const,
+      code: c.contract_number || `CON-${idx + 1}`,
+      titleAr: c.title_ar || 'عقد توريد',
+      titleEn: c.title_en || c.title_ar || 'Vendor Contract',
+      categoryAr: 'عقد مورد معتمد',
+      categoryEn: 'Vendor Contract',
+      date: c.start_date ? String(c.start_date).slice(0, 10) : '',
+      amount: Number(c.total_value || 0),
+      currency: c.currency_code || 'YER',
+      status: ['ACTIVE'].includes(String(c.status || '').toUpperCase())
+        ? 'approved' as const
+        : ['COMPLETED', 'CLOSED'].includes(String(c.status || '').toUpperCase()) ? 'completed' as const : 'pending' as const,
+      checksum: `DB:${String(c.id || '').slice(0, 8)}`
+    }));
 
     // 3. Real Field Activities from Database
     const realActivities: UniversalRecord[] = (activities || []).map((act: any, idx: number) => ({
       id: `act-${act.id || idx}`,
       kind: 'activity',
-      code: act.code || `ACT-${act.id || idx + 1}`,
+      code: act.code || act.activity_code || `ACT-${act.id ? String(act.id).slice(0, 6) : idx + 1}`,
       titleAr: act.name_ar || act.title || 'نشاط ميداني',
       titleEn: act.name_en || act.title || 'Field Activity',
       categoryAr: 'نشاط تنفيذي WBS',
       categoryEn: 'WBS Field Activity',
-      date: act.start_date || '2026-08-01',
+      date: act.start_datetime || act.start_date || act.created_at || '',
       amount: Number(act.budget || 0),
-      currency: act.currency || 'YER',
-      status: act.status === 'completed' ? 'completed' : act.status === 'in_progress' ? 'approved' : 'pending',
+      currency: act.currency_code || act.currency || 'YER',
+      status: act.status === 'completed' || act.status === 'closed' ? 'completed' : act.status === 'active' || act.status === 'in_progress' ? 'approved' : 'pending',
       projectName: act.project_name || 'مشروع ميداني',
       programName: act.program_name || 'برنامج تنموي',
       checksum: `CRC32:${act.id || idx}-WBS`
     }));
 
-    // 4. Operational Tasks
-    const mockTasks: UniversalRecord[] = [
-      {
-        id: 'tsk-001',
-        kind: 'task',
-        code: 'TSK-2026-440',
-        titleAr: 'التحقق الميداني والمسح الشامل لأسر الأيتام في مديرية موزع',
-        titleEn: 'Field Needs Verification for Mawza Orphans',
-        categoryAr: 'مهمة مسح ميداني',
-        categoryEn: 'Survey Task',
-        date: '2026-08-16',
-        status: 'pending',
-        projectName: 'مشروع مسح الاحتياج التنموي',
-        programName: 'برنامج رعاية الأيتام',
-        checksum: 'TSK-VALID-9901'
-      },
-      {
-        id: 'tsk-002',
-        kind: 'task',
-        code: 'TSK-2026-441',
-        titleAr: 'إعداد تقرير المطابقة المحاسبية IPSAS للربع الثاني',
-        titleEn: 'Prepare Q2 IPSAS Compliance Audit File',
-        categoryAr: 'مهمة تدقيق مالي',
-        categoryEn: 'Audit Task',
-        date: '2026-08-15',
-        status: 'approved',
-        projectName: 'مشروع الامتثال والحوكمة',
-        programName: 'البرنامج العام للمؤسسة',
-        checksum: 'TSK-VALID-8802'
-      }
-    ];
+    // 4. Operational Tasks — extracted from REAL activities' task checklists (metadata.tasks)
+    const liveTasks: UniversalRecord[] = (activities || []).flatMap((act: any, aIdx: number) => {
+      const tasks = act?.metadata?.tasks;
+      if (!Array.isArray(tasks)) return [];
+      return tasks.map((t: any, tIdx: number) => ({
+        id: `tsk-${act.id || aIdx}-${tIdx}`,
+        kind: 'task' as const,
+        code: t.code || `TSK-${String(act.id || aIdx).slice(0, 4)}-${tIdx + 1}`,
+        titleAr: t.title_ar || t.name_ar || t.title || t.name || 'مهمة تشغيلية',
+        titleEn: t.title_en || t.name_en || t.title_ar || 'Operational Task',
+        categoryAr: 'مهمة ميدانية مرتبطة بنشاط',
+        categoryEn: 'Activity-linked Task',
+        date: act.start_datetime || act.start_date || '',
+        status: (t.done || t.completed) ? 'completed' as const : 'pending' as const,
+        projectName: act.project_name || act.name_ar || 'نشاط ميداني',
+        checksum: `TSK:${String(act.id || aIdx).slice(0, 6)}-${tIdx}`
+      }));
+    });
 
-    list.push(...mockVouchers, ...mockInvoices, ...realActivities, ...mockTasks);
+    list.push(...liveVouchers, ...liveInvoices, ...realActivities, ...liveTasks);
     return list;
-  }, [activities]);
+  }, [activities, dbTransactions, dbContracts]);
 
   // Multi-Criteria Filtering
   const filteredRecords = useMemo(() => {
@@ -298,6 +228,9 @@ export const FastRecordRetrievalDrawer: React.FC<FastRecordRetrievalDrawerProps>
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  // Early exit AFTER all hooks (React rules-of-hooks compliant)
+  if (!isOpen) return null;
 
   return (
     <div 

@@ -3,6 +3,7 @@
  * In-memory LRU cache with TTL, stats, and pattern invalidation
  */
 
+import { LRUCache } from 'lru-cache';
 import logger from './logger';
 
 interface CacheEntry<T = any> {
@@ -156,3 +157,13 @@ export function cacheKey(tenantId: string, namespace: string, ...parts: (string 
 
 export const cache = new NexoraCache();
 export default cache;
+
+// ─── LRU Cache for High-Frequency Dashboard Endpoints ──
+
+export const apiCache = new LRUCache<string, any>({
+  max: 500,
+  ttl: 1000 * 30, // 30 seconds TTL for fast-moving dashboard data
+  allowStale: true,
+  updateAgeOnGet: false,
+  updateAgeOnHas: false
+});

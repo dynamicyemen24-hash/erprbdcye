@@ -51,6 +51,7 @@ import { useEnvironmentMode, ENVIRONMENT_MODES } from '../core/context/Environme
 import { EnvironmentModeSettingsSection } from './settings/EnvironmentModeSettingsSection';
 import { OperationalPoliciesSettings } from './settings/OperationalPoliciesSettings';
 import { PolicyDashboardView } from './settings/PolicyDashboardView';
+import { ErrorBoundary } from '../app/components/ErrorBoundary';
 
 interface SettingsViewProps {
   organizations: Organization[];
@@ -76,7 +77,7 @@ export default function SettingsView({
 
   // Integrations & External Gateways States
   const [smsProvider, setSmsProvider] = useState<string>(() => localStorage.getItem('nexora_sms_provider') || 'whatsapp');
-  const [smsApiKey, setSmsApiKey] = useState<string>(() => localStorage.getItem('nexora_sms_api_key') || 'api_key_demo_88271');
+  const [smsApiKey, setSmsApiKey] = useState<string>(() => localStorage.getItem('nexora_sms_api_key') || '');
   const [smsSenderId, setSmsSenderId] = useState<string>(() => localStorage.getItem('nexora_sms_sender_id') || 'NexoraOS');
   const [smsTestPhone, setSmsTestPhone] = useState<string>('967770000000');
   const [smsTestMessage, setSmsTestMessage] = useState<string>('NexoraOS™ | تم تفعيل الربط السحابي لإرسال الإشعارات والتحقق الثنائي بنجاح.');
@@ -86,7 +87,7 @@ export default function SettingsView({
   const [emailSmtpHost, setEmailSmtpHost] = useState<string>(() => localStorage.getItem('nexora_email_host') || 'smtp.sendgrid.net');
   const [emailSmtpPort, setEmailSmtpPort] = useState<string>(() => localStorage.getItem('nexora_email_port') || '587');
   const [emailSmtpUser, setEmailSmtpUser] = useState<string>(() => localStorage.getItem('nexora_email_user') || 'apikey');
-  const [emailSmtpPass, setEmailSmtpPass] = useState<string>(() => localStorage.getItem('nexora_email_pass') || 'SG.demo_secret');
+  const [emailSmtpPass, setEmailSmtpPass] = useState<string>(() => localStorage.getItem('nexora_email_pass') || '');
   const [emailTestRecipient, setEmailTestRecipient] = useState<string>('admin@rohaama.org');
   const [emailTestSubject, setEmailTestSubject] = useState<string>('NexoraOS? System Gateway Test');
   const [emailTestLoading, setEmailTestLoading] = useState(false);
@@ -115,8 +116,8 @@ export default function SettingsView({
   const [selectedPlan, setSelectedPlan] = useState<string>(mainOrg?.subscription_plan || 'enterprise_pro');
   const [billingCycle, setBillingCycle] = useState<'annual' | 'monthly'>('annual');
   const [isChangingPlan, setIsChangingPlan] = useState(false);
-  const [stripeApiKey, setStripeApiKey] = useState('pk_live_51NexoraOS_Rohamaa_Key_9918');
-  const [stripeSecretKey, setStripeSecretKey] = useState('sk_live_51NexoraOS_Secret_8827');
+  const [stripeApiKey, setStripeApiKey] = useState('');
+  const [stripeSecretKey, setStripeSecretKey] = useState('');
   const [kuraimiMerchantId, setKuraimiMerchantId] = useState('KUR-RBD-908821');
   const [kuraimiApiKey, setKuraimiApiKey] = useState('KRM-JEBB-SEC-991823');
   const [bankWireDetails, setBankWireDetails] = useState('بنك الكريمي الإسلامي - حساب رقم: 30018827372 | بنك التضامن الإسلامي - حساب: 010099281');
@@ -868,6 +869,7 @@ export default function SettingsView({
   };
 
   return (
+    <ErrorBoundary domainName="SettingsView" lang={lang || 'ar'}>
     <ModuleShell titleAr="إعدادات النظام والمنظمة" titleEn="System Configurations OS" domainCode="NEB-12" icon={Settings} accent="slate" lang={lang} onRefresh={onRefresh}>
     <div className="space-y-6 animate-fade-in">
       {/* Title Header */}
@@ -1932,25 +1934,31 @@ export default function SettingsView({
                 <div className="space-y-3 text-xs">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Publishable Key</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={stripeApiKey}
                       onChange={(e) => setStripeApiKey(e.target.value)}
+                      placeholder="pk_live_••••••••••••"
                       className="w-full bg-white border border-slate-200 rounded-lg p-2 font-mono text-[11px]"
                     />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Secret Key</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       value={stripeSecretKey}
                       onChange={(e) => setStripeSecretKey(e.target.value)}
+                      placeholder="sk_live_••••••••••••"
                       className="w-full bg-white border border-slate-200 rounded-lg p-2 font-mono text-[11px]"
                     />
                   </div>
-                  <button 
+                  <button
                     onClick={() => {
-                      setGatewayTestStatus(lang === 'ar' ? '✓ تم التحقق من صحة مفاتيح بوابة Stripe بنجاح. الاتصال جاهز للاستخدام.' : '? Stripe connection verified successfully.');
+                      if (!stripeApiKey.trim() || !stripeSecretKey.trim()) {
+                        setGatewayTestStatus(lang === 'ar' ? '⚠ يرجى إدخال مفاتيح Stripe الفعلية قبل التحقق.' : '⚠ Enter your actual Stripe keys before verifying.');
+                        return;
+                      }
+                      setGatewayTestStatus(lang === 'ar' ? '✓ تم استقبال المفاتيح وجاري التحقق من بوابة Stripe...' : '✓ Keys received — verifying Stripe gateway...');
                     }}
                     className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
                   >
@@ -3657,6 +3665,7 @@ export default function SettingsView({
       )}
     </div>
     </ModuleShell>
+    </ErrorBoundary>
   );
 }
 

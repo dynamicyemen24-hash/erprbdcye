@@ -166,6 +166,13 @@ export function useNexoraData(lang: 'ar' | 'en') {
    */
   const fetchAllData = useCallback(async (forced: boolean = false) => {
     if (isFetchingRef.current && !forced) return;
+    // Skip prefetch entirely if not authenticated (avoids 401 storm on login screen)
+    const token = localStorage.getItem('rbd_token');
+    if (!token && !forced) {
+      isFetchingRef.current = false;
+      setData(prev => ({ ...prev, isPrefetching: false, loading: false }));
+      return;
+    }
     isFetchingRef.current = true;
 
     setData(prev => ({ 
@@ -308,7 +315,7 @@ export function useNexoraData(lang: 'ar' | 'en') {
     } finally {
       isFetchingRef.current = false;
     }
-  }, [lang]);
+  }, []);
 
   useEffect(() => {
     fetchAllData();

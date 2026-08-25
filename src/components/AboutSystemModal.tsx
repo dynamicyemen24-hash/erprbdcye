@@ -25,6 +25,7 @@ import {
   Award,
   TrendingUp
 } from 'lucide-react';
+import { STORAGE_KEYS } from '../lib/constants';
 
 interface AboutSystemModalProps {
   isOpen: boolean;
@@ -35,6 +36,8 @@ interface AboutSystemModalProps {
   onOpenDocs: () => void;
   onOpenShortcuts: () => void;
 }
+
+const CAROUSEL_STEP_INTERVAL = 3500;
 
 const SCENARIO_STEPS = [
   {
@@ -113,7 +116,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
     if (isPlaying) {
       interval = setInterval(() => {
         setCurrentStepIndex(prev => (prev + 1) % SCENARIO_STEPS.length);
-      }, 3500);
+      }, CAROUSEL_STEP_INTERVAL);
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
@@ -247,22 +250,22 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
           {activeTab === 'video' && (
             <div className="space-y-4 animate-fade-in">
               {/* Kinetic Motion Interactive Operational Scenario Showcase Player */}
-              <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-6 shadow-2xl space-y-6">
+              <div className="relative rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-6">
                 
                 {/* Header Strip with Controls */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-extrabold text-xs">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-extrabold text-xs">
                       {SCENARIO_STEPS[currentStepIndex].step}/5
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-white flex items-center gap-2">
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <span>{isRtl ? 'العرض التفاعلي الحركي للسيناريو التشغيلي' : 'Kinetic Motion Operational Showcase'}</span>
-                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                           {isRtl ? SCENARIO_STEPS[currentStepIndex].domain : SCENARIO_STEPS[currentStepIndex].domain}
                         </span>
                       </h4>
-                      <p className="text-[10px] text-slate-400">
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
                         {isRtl ? 'محاكاة حركية تفاعلية مدتها 5 مراحل تشغيلية تغطي دورة العمل في المنظومة' : 'Interactive 5-stage motion simulator demonstrating the full operational workflow'}
                       </p>
                     </div>
@@ -271,7 +274,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setCurrentStepIndex(prev => (prev > 0 ? prev - 1 : SCENARIO_STEPS.length - 1))}
-                      className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-all cursor-pointer"
                       title={isRtl ? 'المرحلة السابقة' : 'Previous Step'}
                     >
                       <ChevronRight className="w-4 h-4 rtl:rotate-180" />
@@ -291,7 +294,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
 
                     <button
                       onClick={() => setCurrentStepIndex(prev => (prev + 1) % SCENARIO_STEPS.length)}
-                      className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-all cursor-pointer"
                       title={isRtl ? 'المرحلة التالية' : 'Next Step'}
                     >
                       <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
@@ -310,14 +313,14 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                           ? 'bg-gradient-to-r from-emerald-400 to-teal-400 shadow-sm shadow-emerald-500/50 scale-y-125' 
                           : idx < currentStepIndex 
                           ? 'bg-emerald-500/50' 
-                          : 'bg-zinc-800'
+                          : 'bg-slate-300 dark:bg-zinc-800'
                       }`}
                     />
                   ))}
                 </div>
 
                 {/* Animated Kinetic Card Display */}
-                <div className="relative rounded-2xl bg-gradient-to-br from-slate-900 via-zinc-900 to-slate-950 border border-slate-800 p-6 min-h-[190px] flex flex-col justify-between overflow-hidden shadow-inner group">
+                <div className="relative rounded-2xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-zinc-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800 p-6 min-h-[190px] flex flex-col justify-between overflow-hidden shadow-inner group">
                   <div className="relative z-10 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-black font-mono text-white bg-gradient-to-r ${SCENARIO_STEPS[currentStepIndex].color} shadow-sm`}>
@@ -328,11 +331,11 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                       </span>
                     </div>
 
-                    <h3 className="text-base font-black text-white leading-tight animate-in fade-in duration-300">
+                    <h3 className="text-base font-black text-slate-900 dark:text-white leading-tight animate-in fade-in duration-300">
                       {isRtl ? SCENARIO_STEPS[currentStepIndex].titleAr : SCENARIO_STEPS[currentStepIndex].titleEn}
                     </h3>
 
-                    <p className="text-xs text-slate-300 leading-relaxed max-w-xl animate-in fade-in duration-300">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl animate-in fade-in duration-300">
                       {isRtl ? SCENARIO_STEPS[currentStepIndex].descAr : SCENARIO_STEPS[currentStepIndex].descEn}
                     </p>
                   </div>
@@ -349,8 +352,8 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                       onClick={() => setCurrentStepIndex(idx)}
                       className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${
                         idx === currentStepIndex
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
-                          : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-zinc-200'
+                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40 shadow-sm'
+                          : 'bg-slate-100 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 border border-slate-200 dark:border-zinc-800 hover:text-slate-700 dark:hover:text-zinc-200'
                       }`}
                     >
                       {isRtl ? `تحويل ${s.step}` : `Stage ${s.step}`}

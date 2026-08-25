@@ -19,6 +19,8 @@ export default defineConfig(() => {
     build: {
       target: 'esnext',
       cssCodeSplit: true,
+      sourcemap: false,
+      reportCompressedSize: false,
       chunkSizeWarningLimit: 1200,
       modulePreload: {
         resolveDependencies(filename, deps) {
@@ -70,11 +72,8 @@ export default defineConfig(() => {
       port: 3001,
       host: '0.0.0.0',
       strictPort: true,
-      hmr: false,
-      watch: {
-        usePolling: true,
-        interval: 2000,
-      }
+      hmr: isHmrDisabled ? false : { overlay: true },
+      watch: isHmrDisabled ? { usePolling: true, interval: 2000 } : undefined,
     },
   };
 });

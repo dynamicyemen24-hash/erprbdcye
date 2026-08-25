@@ -192,14 +192,17 @@ export function GeographicalMapWidget({ lang, projects }: GeographicalMapWidgetP
         govNameAr = 'سقطرى';
         govNameEn = 'Socotra';
       } else {
-        // Deterministic fallback based on index for simulated distribution
-        const fallbackGovs = GOVERNORATES.filter(g => g.id !== 'gov_socotra');
-        const govObj = fallbackGovs[idx % fallbackGovs.length];
-        govId = govObj.id;
-        x = govObj.center.x + (idx % 3 - 1) * 12; // slightly offset overlapping pins
-        y = govObj.center.y + (idx % 2 - 1) * 10;
-        govNameAr = govObj.name_ar.replace('محافظة ', '');
-        govNameEn = govObj.name_en.replace(' Governorate', '');
+        // Location not recognized → keep it OUT of the map to avoid misattribution
+        return {
+          ...p,
+          unmapped: true,
+          govId: '',
+          x: 0,
+          y: 0,
+          govNameAr: '',
+          govNameEn: '',
+          sector: 'WELFARE' as const
+        };
       }
 
       // Resolve sector category
@@ -241,6 +244,12 @@ export function GeographicalMapWidget({ lang, projects }: GeographicalMapWidgetP
     if (sectorFilter === 'ALL') return mappedProjects;
     return mappedProjects.filter(p => p.sector === sectorFilter);
   }, [mappedProjects, sectorFilter]);
+
+  // Projects whose location could not be matched to a governorate
+  const unmappedProjects = useMemo(
+    () => filteredProjects.filter((p: any) => (p as any).unmapped),
+    [filteredProjects]
+  );
 
   // Aggregate stats per governorate
   const governorateStats = useMemo(() => {
@@ -606,13 +615,22 @@ export function GeographicalMapWidget({ lang, projects }: GeographicalMapWidgetP
               </div>
             )}
 
+            {/* Unmapped projects notice */}
+            {unmappedProjects.length > 0 && (
+              <div className="p-2.5 bg-amber-50/60 dark:bg-amber-950/10 border border-amber-100/40 dark:border-amber-900/30 rounded-xl text-[10px] text-amber-800 dark:text-amber-400 font-bold">
+                {lang === 'ar'
+                  ? `${unmappedProjects.length} مشروع لم تُطابق موقعه الجغرافي مع المحافظات المعروضة — راجع حقل الموقع في سجل المشاريع.`
+                  : `${unmappedProjects.length} project(s) could not be matched to a displayed governorate — review the location field in the project register.`}
+              </div>
+            )}
+
             {/* Bottom Footer Callout (Spherical Standard and CHS standard indicator) */}
             <div className="p-2.5 bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100/30 dark:border-emerald-950/20 rounded-xl text-[10px] text-emerald-800 dark:text-emerald-400 font-bold flex items-center gap-1.5">
               <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>
-                {lang === 'ar' 
-                  ? 'تم التحقق من تطابق المواقع الجغرافية مع معايير Sphere والمواثيق الإنسانية الدولية (CHS).' 
-                  : 'Geocoded coordinates verified alongside Sphere Standards and CHS impact frameworks.'}
+                {lang === 'ar'
+                  ? 'يُعرض كل مشروع في محافظته المسجلة فقط؛ المشاريع غير المطابقة تُستبعد من الخريطة لضمان دقة التوزيع.'
+                  : 'Each project is shown only in its registered governorate; unmatched projects are excluded from the map for accuracy.'}
               </span>
             </div>
 

@@ -1,9 +1,10 @@
 /**
  * NexoraOS™ — Advanced Rate Limiting System
- * Tiered rate limiting with Redis-style sliding window
+ * Tiered rate limiting with Redis-backed sliding window for production
  */
 
 import { Request, Response, NextFunction } from 'express';
+import logger from '../core/logger';
 
 // ─── In-Memory Sliding Window Rate Limiter ─────────────
 
@@ -88,7 +89,10 @@ export function createRateLimiter(config: RateLimitConfig) {
   };
 }
 
-// ─── Pre-configured Rate Limiters ──────────────────────
+/**
+ * Pre-configured Rate Limiters (with defaults, to be overridden by server config)
+ * These are provided as defaults; server.ts will create instances using config values.
+ */
 
 export const authRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -128,7 +132,7 @@ export const aiRateLimiter = createRateLimiter({
 // ─── Dynamic Rate Limiter by Role ──────────────────────
 
 export function dynamicRateLimiter(req: Request, res: Response, next: NextFunction) {
-  const userRole = req.user?.role || 'GUEST';
+  const userRole = (req as any).user?.role || 'GUEST';
   const limits: Record<string, number> = {
     'ADMIN': 500,
     'MANAGER': 300,
@@ -163,4 +167,79 @@ export function dynamicRateLimiter(req: Request, res: Response, next: NextFuncti
   }
 
   next();
+}
+
+// ─── Redis-Backed Rate Limiting for Production ──────────
+
+let redisClient: any = null;
+
+async function getRedisClient(): Promise<any> {
+  if (process.env.NODE_ENV !== 'production') return null;
+  if (redisClient) return redisClient;
+
+  try {
+    const { default: Redis } = await import('ioredis');
+    redisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+      maxRetriesPerRequest: 3,
+      enableOfflineQueue: false,
+      lazyConnect: true,
+    });
+    redisClient.on('error', () => {});
+    await redisClient.connect();
+    return redisClient;
+  } catch {
+    return null;
+  }
+}
+
+export interface ProductionRateLimitOptions {
+  windowMs?: number;
+  max?: number;
+  keyPrefix?: string;
+}
+
+export async function createProductionRateLimiter(options: ProductionRateLimitOptions = {}) {
+  const client = await getRedisClient();
+  if (!client) {
+    return createRateLimiter({
+      windowMs: options.windowMs || 15 * 60 * 1000,
+      max: options.max || 100,
+      keyPrefix: options.keyPrefix || 'rl:prod',
+    });
+  }
+
+  const windowMs = options.windowMs || 15 * 60 * 1000;
+  const max = options.max || 100;
+  const keyPrefix = options.keyPrefix || 'rl:prod';
+
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const key = `${keyPrefix}:${req.ip || 'unknown'}`;
+    const now = Date.now();
+    const windowStart = Math.floor(now / windowMs);
+    const redisKey = `${key}:${windowStart}`;
+
+    try {
+      const count = await client.incr(redisKey);
+      if (count === 1) {
+        await client.pexpire(redisKey, windowMs);
+      }
+
+      res.setHeader('RateLimit-Limit', max);
+      res.setHeader('RateLimit-Remaining', Math.max(0, max - count));
+      res.setHeader('RateLimit-Reset', Math.ceil((windowStart * windowMs + windowMs) / 1000));
+
+      if (count > max) {
+        const retryAfter = Math.ceil((windowStart * windowMs + windowMs - now) / 1000);
+        return res.status(429).json({
+          success: false,
+          error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many requests, please try again later.', retryAfter },
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      next();
+    } catch {
+      return createRateLimiter({ windowMs, max, keyPrefix })(req, res, next);
+    }
+  };
 }

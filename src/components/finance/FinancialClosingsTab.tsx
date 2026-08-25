@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sliders, CheckCircle, AlertCircle, RefreshCw, Scale } from 'lucide-react';
 import { Account, Transaction } from './FinanceTypes';
+import { generateNumericCode } from '../../lib/idGenerator';
 
 interface FinancialClosingsTabProps {
   accounts: Account[];
@@ -39,7 +40,7 @@ export default function FinancialClosingsTab({ accounts, lang, onRefresh }: Fina
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          transaction_number: `CL-${fiscalYear}-${Math.floor(1000 + Math.random() * 9000)}`,
+          transaction_number: `CL-${fiscalYear}-${generateNumericCode(1000, 9999)}`,
           transaction_date: new Date().toISOString().split('T')[0],
           transaction_type: 'CLOSING',
           description: lang === 'ar' 

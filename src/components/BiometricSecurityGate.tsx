@@ -15,6 +15,7 @@ import {
   HelpCircle,
   RefreshCw
 } from 'lucide-react';
+import { ANIMATION } from '../lib/constants';
 
 interface BiometricSecurityGateProps {
   lang: 'ar' | 'en';
@@ -61,7 +62,7 @@ export default function BiometricSecurityGate({
           }
           return prev + 8;
         });
-      }, 150);
+      }, ANIMATION.FAST);
     }
     return () => clearInterval(interval);
   }, [step]);

@@ -18,6 +18,32 @@ export interface Beneficiary {
   created_at: string;
 }
 
+export interface Volunteer {
+  id: string;
+  organization_id: string;
+  full_name_ar: string;
+  full_name_en: string;
+  skills: string[];
+  availability: string;
+  total_hours: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Committee {
+  id: string;
+  organization_id: string;
+  name_ar: string;
+  name_en: string;
+  description: string;
+  chairperson_name: string;
+  member_count: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Sponsorship {
   id: string;
   beneficiary_id: string;

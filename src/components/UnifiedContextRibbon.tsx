@@ -62,7 +62,7 @@ interface UnifiedContextRibbonProps {
   organizationName?: string;
 }
 
-export const UnifiedContextRibbon: React.FC<UnifiedContextRibbonProps> = ({
+const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
   lang,
   activeTab,
   openTabs,
@@ -341,4 +341,5 @@ export const UnifiedContextRibbon: React.FC<UnifiedContextRibbonProps> = ({
   );
 };
 
-export default UnifiedContextRibbon;
+export default React.memo(UnifiedContextRibbonInner);
+export { UnifiedContextRibbonInner as UnifiedContextRibbon };

@@ -3,6 +3,7 @@ import { ActiveTab } from '../../core/types';
 import ViewSkeleton from '../../components/common/ViewSkeleton';
 import { ErrorBoundary } from './ErrorBoundary';
 import { RequireAuth } from '../../core/security/RequireAuth';
+import { ViewGuidanceBanner } from '../../shared/components/ViewGuidanceBanner';
 
 // Lazy-loaded domain views for asynchronous code splitting & instant initial render
 const DashboardView = lazy(() => import('../../components/DashboardView'));
@@ -160,26 +161,18 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     }, 4000);
   };
 
+  // Privacy screen: honest local privacy shield — resuming requires an explicit
+  // user action only (no fake PIN validation that would imply real security)
   const handleUnlockPrimary = () => {
-    if (enteredPin === '1234' || enteredPin === '') {
-      setIsPaused(false);
-      setEnteredPin('');
-      setPinError(false);
-    } else {
-      setPinError(true);
-      setTimeout(() => setPinError(false), 2000);
-    }
+    setIsPaused(false);
+    setEnteredPin('');
+    setPinError(false);
   };
 
   const handleUnlockSecondary = () => {
-    if (enteredSecondaryPin === '1234' || enteredSecondaryPin === '') {
-      setIsSecondaryPaused(false);
-      setEnteredSecondaryPin('');
-      setSecondaryPinError(false);
-    } else {
-      setSecondaryPinError(true);
-      setTimeout(() => setSecondaryPinError(false), 2000);
-    }
+    setIsSecondaryPaused(false);
+    setEnteredSecondaryPin('');
+    setSecondaryPinError(false);
   };
 
   // Enterprise Domain Mapping & Meta data
@@ -604,51 +597,22 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
                       <Lock className="w-8 h-8" />
                     </div>
                     <h3 className="text-base font-black text-white mb-2">
-                      {isRtl ? 'تم تعليق جلسة العمل مؤقتاً' : 'Work Session Suspended'}
+                      {isRtl ? 'شاشة خصوصية — الجلسة معلقة' : 'Privacy Screen — Session Suspended'}
                     </h3>
                     <p className="text-xs text-zinc-400 leading-relaxed mb-6">
-                      {isRtl 
-                        ? `تم تجميد وحماية البيانات المدخلة في [${primaryConfig.title_ar}] لتأمينها من الاختراقات الميدانية. أدخل رمز الأمان الفوري (1234) أو انقر للاستئناف.`
-                        : `Data entered inside [${primaryConfig.title_en}] has been locked to prevent access. Enter passkey (1234) or click to instantly unlock.`
-                      }
+                      {isRtl
+                        ? `تم إخفاء بيانات [${primaryConfig.title_ar}] عن المتطفلين المحيطين بك. انقر للاستئناف الفوري.`
+                        : `Data inside [${primaryConfig.title_en}] is hidden from shoulder-surfers. Click to instantly resume.`}
                     </p>
 
                     <div className="space-y-4">
-                      <input
-                        type="password"
-                        value={enteredPin}
-                        onChange={(e) => setEnteredPin(e.target.value)}
-                        placeholder={isRtl ? 'أدخل رمز الأمان الموحد (1234)' : 'Enter PIN (default: 1234)'}
-                        className={`w-full h-11 bg-zinc-950 border rounded-xl px-4 text-center font-mono text-lg text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                          pinError ? 'border-rose-500 animate-bounce' : 'border-zinc-800'
-                        }`}
-                        onKeyDown={(e) => e.key === 'Enter' && handleUnlockPrimary()}
-                      />
-
-                      {pinError && (
-                        <p className="text-[10px] font-black text-rose-500">
-                          {isRtl ? 'رمز الأمان غير صالح! الرجاء المحاولة مرة أخرى.' : 'Invalid PIN code! Please retry.'}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-2 pt-2">
-                        <button
-                          onClick={handleUnlockPrimary}
-                          className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                          <Unlock className="w-4 h-4" />
-                          <span>{isRtl ? 'استئناف العمل والتحقق' : 'Verify & Resume'}</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsPaused(false);
-                            setEnteredPin('');
-                          }}
-                          className="px-4 h-11 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                        >
-                          {isRtl ? 'تخطي' : 'Bypass'}
-                        </button>
-                      </div>
+                      <button
+                        onClick={handleUnlockPrimary}
+                        className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Unlock className="w-4 h-4" />
+                        <span>{isRtl ? 'استئناف العمل' : 'Resume Work'}</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -684,6 +648,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
                         </button>
                       </div>
                     </div>
+                    <ViewGuidanceBanner tab={activeTab} lang={lang} />
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                       <ErrorBoundary key={activeTab} domainName={activeTab} lang={lang}>
                         <Suspense fallback={<ViewSkeleton />}>
@@ -702,14 +667,6 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
                           <Lock className="w-8 h-8 text-amber-500 mx-auto mb-3 animate-pulse" />
                           <h4 className="text-sm font-black text-white mb-1">{isRtl ? 'الشاشة الثانية معلقة' : 'Secondary Pane Suspended'}</h4>
                           <p className="text-[11px] text-zinc-400 mb-4">{isRtl ? 'اضغط استئناف لفتح الشاشة.' : 'Click below to resume session.'}</p>
-                          <input
-                            type="password"
-                            value={enteredSecondaryPin}
-                            onChange={(e) => setEnteredSecondaryPin(e.target.value)}
-                            placeholder="1234"
-                            className="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-lg px-3 text-center text-white mb-3"
-                            onKeyDown={(e) => e.key === 'Enter' && handleUnlockSecondary()}
-                          />
                           <button
                             onClick={handleUnlockSecondary}
                             className="w-full h-9 bg-emerald-600 text-white rounded-lg text-xs font-black flex items-center justify-center gap-2 cursor-pointer"
@@ -764,12 +721,15 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
                 </div>
               ) : (
                 /* SINGLE MAIN WINDOW VIEW */
-                <div className="h-full w-full overflow-y-auto custom-scrollbar">
-                  <ErrorBoundary key={activeTab} domainName={activeTab} lang={lang}>
-                    <Suspense fallback={<ViewSkeleton />}>
-                      {renderSingleTabContent(activeTab)}
-                    </Suspense>
-                  </ErrorBoundary>
+                <div className="h-full w-full flex flex-col">
+                  <ViewGuidanceBanner tab={activeTab} lang={lang} />
+                  <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+                    <ErrorBoundary key={activeTab} domainName={activeTab} lang={lang}>
+                      <Suspense fallback={<ViewSkeleton />}>
+                        {renderSingleTabContent(activeTab)}
+                      </Suspense>
+                    </ErrorBoundary>
+                  </div>
                 </div>
               )}
 
