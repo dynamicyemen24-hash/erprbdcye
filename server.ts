@@ -96,9 +96,11 @@ const configValidation = validateEnvironmentConfig();
 if (configValidation.errors.length > 0) {
   logger.error('[CONFIG ERROR] The following configuration errors were found:', { context: 'config' });
   configValidation.errors.forEach(err => logger.error(`  - ${err}`, { context: 'config' }));
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Invalid configuration. Application cannot start.');
-  }
+  // Do not hard-crash the process in production: a misconfigured env should
+  // surface as degraded functionality (health/static still served, DB/AI routes
+  // fail gracefully) rather than taking the whole service down with a crash loop.
+  // Operators must set the missing variables (e.g. DATABASE_URL) and restart.
+  logger.error('[CONFIG ERROR] Server will continue to boot but may be partially degraded.', { context: 'config' });
 }
 
 if (configValidation.warnings.length > 0) {
