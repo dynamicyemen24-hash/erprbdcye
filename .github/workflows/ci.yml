@@ -29,9 +29,15 @@ jobs:
       - name: Build Frontend (Vite) with log capture
         run: npx vite build > build.log 2>&1 || true
 
-      - name: Upload build log
+      - name: Report build log to issue on failure
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LOG=$(cat build.log | tail -c 6000)
+          BODY="\`\`\`\n$LOG\n\`\`\`"
+          curl -s -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues \
+            -d "{\"title\":\"CI build log $(date +%s)\",\"body\":\"$BODY\"}"
