@@ -16,8 +16,12 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
       - key: GEMINI_API_KEY
         sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://erprbdcye.org,https://www.erprbdcye.org
       - key: CORS_ORIGINS
         value: https://erprbdcye.org,https://www.erprbdcye.org
     autoDeploy: true

@@ -978,8 +978,20 @@ const authenticateToken = (req: any, res: any, next: any) => {
     return next();
   }
 
+  // Allow CORS preflight to pass through unauthenticated
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   // Exclude public paths (req.path starts with '/api')
-  if (req.path.startsWith('/api/auth') || req.path.startsWith('/api/health') || req.path.startsWith('/api/exchange-rates')) {
+  if (
+    req.path.startsWith('/api/auth') ||
+    req.path.startsWith('/api/health') ||
+    req.path.startsWith('/api/exchange-rates') ||
+    req.path.startsWith('/api/v2/auth') ||
+    req.path.startsWith('/api/v2/health') ||
+    req.path.startsWith('/api/v2/exchange-rates')
+  ) {
     return next();
   }
 

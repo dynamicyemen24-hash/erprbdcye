@@ -40,7 +40,14 @@ export const authenticateToken = (
   }
 
   // Public endpoints — no token required
-  const publicPrefixes = ['/api/auth', '/api/health', '/api/exchange-rates/live'];
+  const publicPrefixes = [
+    '/api/auth',
+    '/api/health',
+    '/api/exchange-rates/live',
+    '/api/v2/auth',
+    '/api/v2/health',
+    '/api/v2/exchange-rates/live',
+  ];
   if (publicPrefixes.some(p => req.path.startsWith(p))) {
     return next();
   }
