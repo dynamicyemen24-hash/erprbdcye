@@ -15,7 +15,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "install": "npm install",
     "typecheck": "tsc --noEmit",
     "ci": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run migration:validate && npm run security:check",
     "migration:list": "node -e \"const fs=require('fs');const path=require('path');const dir=path.join(process.cwd(),'migrations');if(!fs.existsSync(dir)){console.log('No migrations directory');process.exit(0)}const files=fs.readdirSync(dir).filter(f=>f.endsWith('.sql')).sort();console.log('Pending migrations ('+files.length+'):');files.forEach(f=>{const s=fs.statSync(path.join(dir,f));console.log('- '+f+' ('+s.size+' bytes)')})\"",
@@ -62,6 +61,7 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.27.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/canvas-confetti": "^1.9.0",
     "@types/compression": "^1.8.1",
@@ -77,10 +77,17 @@
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.10",
     "esbuild": "^0.25.0",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "eslint-plugin-unused-imports": "^4.2.0",
+    "prettier": "^3.5.3",
     "supertest": "^7.2.2",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
+    "typescript-eslint": "^8.33.0",
     "vite": "^6.2.3",
     "vitest": "^3.1.1"
   }
