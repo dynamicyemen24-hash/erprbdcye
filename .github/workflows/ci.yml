@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main, master]
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,14 +27,9 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Build Frontend (Vite)
-        run: npx vite build > build.log 2>&1 || true
+        run: npx vite build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
 
-      - name: Commit build log for inspection
-        if: always()
-        run: |
-          git config user.email "ci@nexoraos.local"
-          git config user.name "NexoraOS CI"
-          cp build.log CI_BUILD_LOG.md
-          git add -f CI_BUILD_LOG.md
-          git commit -m "ci: attach build log [skip ci]" || echo "nothing to commit"
-          git push || echo "push failed"
+      - name: Build Server Bundle (esbuild)
+        run: npx esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs
