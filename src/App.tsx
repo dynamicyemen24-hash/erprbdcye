@@ -55,23 +55,24 @@ import {
 import LoginView from './components/LoginView';
 import NexoraTopProgressBar from './components/NexoraTopProgressBar';
 import NexoraMicroProgress from './components/NexoraMicroProgress';
-const DocumentationView = React.lazy(() => import('./components/DocumentationView'));
-const OperationalScenariosView = React.lazy(() => import('./components/OperationalScenariosView'));
+import { lazyWithRetry } from './lib/lazyWithRetry';
+const DocumentationView = lazyWithRetry(() => import('./components/DocumentationView'), 'DocumentationView');
+const OperationalScenariosView = lazyWithRetry(() => import('./components/OperationalScenariosView'), 'OperationalScenariosView');
 
-const AboutSystemModal = React.lazy(() => import('./components/AboutSystemModal'));
+const AboutSystemModal = lazyWithRetry(() => import('./components/AboutSystemModal'), 'AboutSystemModal');
 import UserProfilePopover from './components/UserProfilePopover';
-const FloatingMobileFAB = React.lazy(() => import('./components/FloatingMobileFAB'));
+const FloatingMobileFAB = lazyWithRetry(() => import('./components/FloatingMobileFAB'), 'FloatingMobileFAB');
 
 // Lazy-loaded modal drawers to ensure zero impact on initial App Shell rendering
-const ExportToolsModal = React.lazy(() => import('./components/ExportToolsModal'));
-const HelperToolsPanel = React.lazy(() => import('./components/helpers/HelperToolsPanel'));
-const BiometricSecurityGate = React.lazy(() => import('./components/BiometricSecurityGate'));
-const NexoraAICopilotDrawer = React.lazy(() => import('./components/NexoraAICopilotDrawer'));
-const AppMatrixLauncherModal = React.lazy(() => import('./components/AppMatrixLauncherModal'));
-const UniversalCommandCenter = React.lazy(() => import('./components/UniversalCommandCenter'));
-const CustomizableShortcutsModal = React.lazy(() => import('./components/shortcuts/CustomizableShortcutsManagerModal'));
-const FastRecordRetrievalDrawer = React.lazy(() => import('./components/records/FastRecordRetrievalDrawer'));
-const EnvironmentModeBanner = React.lazy(() => import('./components/EnvironmentModeBanner').then(m => ({ default: m.EnvironmentModeBanner })));
+const ExportToolsModal = lazyWithRetry(() => import('./components/ExportToolsModal'), 'ExportToolsModal');
+const HelperToolsPanel = lazyWithRetry(() => import('./components/helpers/HelperToolsPanel'), 'HelperToolsPanel');
+const BiometricSecurityGate = lazyWithRetry(() => import('./components/BiometricSecurityGate'), 'BiometricSecurityGate');
+const NexoraAICopilotDrawer = lazyWithRetry(() => import('./components/NexoraAICopilotDrawer'), 'NexoraAICopilotDrawer');
+const AppMatrixLauncherModal = lazyWithRetry(() => import('./components/AppMatrixLauncherModal'), 'AppMatrixLauncherModal');
+const UniversalCommandCenter = lazyWithRetry(() => import('./components/UniversalCommandCenter'), 'UniversalCommandCenter');
+const CustomizableShortcutsModal = lazyWithRetry(() => import('./components/shortcuts/CustomizableShortcutsManagerModal'), 'CustomizableShortcutsModal');
+const FastRecordRetrievalDrawer = lazyWithRetry(() => import('./components/records/FastRecordRetrievalDrawer'), 'FastRecordRetrievalDrawer');
+const EnvironmentModeBanner = lazyWithRetry(() => import('./components/EnvironmentModeBanner').then(m => ({ default: m.EnvironmentModeBanner })), 'EnvironmentModeBanner');
 
 import { 
   EnterpriseLogo,
@@ -102,7 +103,7 @@ import { updateFavicon } from './core/utils/faviconUtils';
 import { TabContentRenderer } from './app/components';
 import { SuspenseFallback } from './components/common/SuspenseFallback';
 import { STORAGE_KEYS, INTERVALS } from './lib/constants';
-const ProjectStatusOverviewWidget = React.lazy(() => import('./components/ProjectStatusOverviewWidget'));
+const ProjectStatusOverviewWidget = lazyWithRetry(() => import('./components/ProjectStatusOverviewWidget'), 'ProjectStatusOverviewWidget');
 import { ActiveTab } from './core/types';
 import { resumeIntelligenceService } from './core/services/resumeIntelligence';
 import { useAppNavigationStore } from './core/stores/useAppNavigationStore';

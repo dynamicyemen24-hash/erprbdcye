@@ -16,13 +16,14 @@ import { ActivityLogWidget } from './ActivityLogWidget';
 import { AIInsightsWidget } from './AIInsightsWidget';
 import { SmartCustomizationPanel, DashboardPreset } from './SmartCustomizationPanel';
 import { KPILayoutItem } from './types';
+import { lazyWithRetry } from '../../lib/lazyWithRetry';
 
-const PredictiveAnalyticsWidget = React.lazy(() => import('./PredictiveAnalyticsWidget').then(m => ({ default: m.PredictiveAnalyticsWidget })));
-const WhatIfSimulationWidget = React.lazy(() => import('./WhatIfSimulationWidget').then(m => ({ default: m.WhatIfSimulationWidget })));
-const DashboardCharts = React.lazy(() => import('./DashboardCharts').then(m => ({ default: m.DashboardCharts })));
-const CollaborativeCalendarWidget = React.lazy(() => import('./CollaborativeCalendarWidget').then(m => ({ default: m.CollaborativeCalendarWidget })));
-const GeographicalMapWidget = React.lazy(() => import('./GeographicalMapWidget').then(m => ({ default: m.GeographicalMapWidget })));
-const FieldEfficiencyWidget = React.lazy(() => import('./FieldEfficiencyWidget').then(m => ({ default: m.FieldEfficiencyWidget })));
+const PredictiveAnalyticsWidget = lazyWithRetry(() => import('./PredictiveAnalyticsWidget').then(m => ({ default: m.PredictiveAnalyticsWidget })), 'PredictiveAnalyticsWidget');
+const WhatIfSimulationWidget = lazyWithRetry(() => import('./WhatIfSimulationWidget').then(m => ({ default: m.WhatIfSimulationWidget })), 'WhatIfSimulationWidget');
+const DashboardCharts = lazyWithRetry(() => import('./DashboardCharts').then(m => ({ default: m.DashboardCharts })), 'DashboardCharts');
+const CollaborativeCalendarWidget = lazyWithRetry(() => import('./CollaborativeCalendarWidget').then(m => ({ default: m.CollaborativeCalendarWidget })), 'CollaborativeCalendarWidget');
+const GeographicalMapWidget = lazyWithRetry(() => import('./GeographicalMapWidget').then(m => ({ default: m.GeographicalMapWidget })), 'GeographicalMapWidget');
+const FieldEfficiencyWidget = lazyWithRetry(() => import('./FieldEfficiencyWidget').then(m => ({ default: m.FieldEfficiencyWidget })), 'FieldEfficiencyWidget');
 
 interface DashboardOverviewTabProps {
   lang: 'ar' | 'en';

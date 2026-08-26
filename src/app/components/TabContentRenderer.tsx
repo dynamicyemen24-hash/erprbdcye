@@ -1,46 +1,47 @@
-import React, { useState, useEffect, Suspense, lazy, useCallback } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { ActiveTab } from '../../core/types';
 import ViewSkeleton from '../../components/common/ViewSkeleton';
 import { ErrorBoundary } from './ErrorBoundary';
 import { RequireAuth } from '../../core/security/RequireAuth';
 import { ViewGuidanceBanner } from '../../shared/components/ViewGuidanceBanner';
+import { lazyWithRetry } from '../../lib/lazyWithRetry';
 
-// Lazy-loaded domain views for asynchronous code splitting & instant initial render
-const DashboardView = lazy(() => import('../../components/DashboardView'));
-const DomainCenterView = lazy(() => import('../../components/DomainCenterView'));
-const GeospatialDashboardView = lazy(() => import('../../components/GeospatialDashboardView'));
+// Lazy-loaded domain views with auto-retry and resilience for asynchronous code splitting & offline support
+const DashboardView = lazyWithRetry(() => import('../../components/DashboardView'), 'DashboardView');
+const DomainCenterView = lazyWithRetry(() => import('../../components/DomainCenterView'), 'DomainCenterView');
+const GeospatialDashboardView = lazyWithRetry(() => import('../../components/GeospatialDashboardView'), 'GeospatialDashboardView');
 
-const ProgramsView = lazy(() => import('../../components/ProgramsView'));
+const ProgramsView = lazyWithRetry(() => import('../../components/ProgramsView'), 'ProgramsView');
 
-const ProjectsView = lazy(() => import('../../components/ProjectsView'));
-const ActivitiesView = lazy(() => import('../../components/ActivitiesView'));
-const OperationalScenariosView = lazy(() => import('../../components/OperationalScenariosView'));
-const ResourceAllocationView = lazy(() => import('../../components/ResourceAllocationView'));
+const ProjectsView = lazyWithRetry(() => import('../../components/ProjectsView'), 'ProjectsView');
+const ActivitiesView = lazyWithRetry(() => import('../../components/ActivitiesView'), 'ActivitiesView');
+const OperationalScenariosView = lazyWithRetry(() => import('../../components/OperationalScenariosView'), 'OperationalScenariosView');
+const ResourceAllocationView = lazyWithRetry(() => import('../../components/ResourceAllocationView'), 'ResourceAllocationView');
 
-const BeneficiariesView = lazy(() => import('../../components/BeneficiariesView'));
-const SponsorshipsView = lazy(() => import('../../components/SponsorshipsView'));
-const ThirdPartyNetworkCenterView = lazy(() => import('../../components/ThirdPartyNetworkCenterView'));
+const BeneficiariesView = lazyWithRetry(() => import('../../components/BeneficiariesView'), 'BeneficiariesView');
+const SponsorshipsView = lazyWithRetry(() => import('../../components/SponsorshipsView'), 'SponsorshipsView');
+const ThirdPartyNetworkCenterView = lazyWithRetry(() => import('../../components/ThirdPartyNetworkCenterView'), 'ThirdPartyNetworkCenterView');
 
-const ContractManagementView = lazy(() => import('../../components/ContractManagementView').then(m => ({ default: m.ContractManagementView })));
-const InventoryManagementView = lazy(() => import('../../components/InventoryManagementView').then(m => ({ default: m.InventoryManagementView })));
+const ContractManagementView = lazyWithRetry(() => import('../../components/ContractManagementView').then(m => ({ default: m.ContractManagementView })), 'ContractManagementView');
+const InventoryManagementView = lazyWithRetry(() => import('../../components/InventoryManagementView').then(m => ({ default: m.InventoryManagementView })), 'InventoryManagementView');
 
-const FinanceView = lazy(() => import('../../components/FinanceView'));
-const CurrenciesView = lazy(() => import('../../components/CurrenciesView'));
-const ApprovalWorkflowView = lazy(() => import('../../components/ApprovalWorkflowView'));
+const FinanceView = lazyWithRetry(() => import('../../components/FinanceView'), 'FinanceView');
+const CurrenciesView = lazyWithRetry(() => import('../../components/CurrenciesView'), 'CurrenciesView');
+const ApprovalWorkflowView = lazyWithRetry(() => import('../../components/ApprovalWorkflowView'), 'ApprovalWorkflowView');
 
-const ReportsView = lazy(() => import('../../components/ReportsView'));
-const DocumentationView = lazy(() => import('../../components/DocumentationView'));
+const ReportsView = lazyWithRetry(() => import('../../components/ReportsView'), 'ReportsView');
+const DocumentationView = lazyWithRetry(() => import('../../components/DocumentationView'), 'DocumentationView');
 
-const ControlPanelView = lazy(() => import('../../components/ControlPanelView'));
-const AuditLogsView = lazy(() => import('../../components/AuditLogsView'));
-const BackupView = lazy(() => import('../../components/BackupView'));
-const SettingsView = lazy(() => import('../../components/SettingsView'));
-const UsersView = lazy(() => import('../../components/UsersView'));
-const HRManagementWorkspace = lazy(() => import('../../features/administration/HRManagementWorkspace'));
+const ControlPanelView = lazyWithRetry(() => import('../../components/ControlPanelView'), 'ControlPanelView');
+const AuditLogsView = lazyWithRetry(() => import('../../components/AuditLogsView'), 'AuditLogsView');
+const BackupView = lazyWithRetry(() => import('../../components/BackupView'), 'BackupView');
+const SettingsView = lazyWithRetry(() => import('../../components/SettingsView'), 'SettingsView');
+const UsersView = lazyWithRetry(() => import('../../components/UsersView'), 'UsersView');
+const HRManagementWorkspace = lazyWithRetry(() => import('../../features/administration/HRManagementWorkspace'), 'HRManagementWorkspace');
 
-const StrategicPlanningView = lazy(() => import('../../components/StrategicPlanningView').then(m => ({ default: m.StrategicPlanningView })));
-const InvestmentProjectsView = lazy(() => import('../../components/InvestmentProjectsView').then(m => ({ default: m.InvestmentProjectsView })));
-const SalesRevenueView = lazy(() => import('../../components/SalesRevenueView'));
+const StrategicPlanningView = lazyWithRetry(() => import('../../components/StrategicPlanningView').then(m => ({ default: m.StrategicPlanningView })), 'StrategicPlanningView');
+const InvestmentProjectsView = lazyWithRetry(() => import('../../components/InvestmentProjectsView').then(m => ({ default: m.InvestmentProjectsView })), 'InvestmentProjectsView');
+const SalesRevenueView = lazyWithRetry(() => import('../../components/SalesRevenueView'), 'SalesRevenueView');
 
 // Lucide Icons for Premium Window Chrome
 import { 

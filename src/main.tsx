@@ -11,9 +11,13 @@ if (typeof performance !== 'undefined' && performance.mark) {
   performance.mark('app-start');
 }
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then((registration) => {
+      console.log('[UAMEX ServiceWorker] Registered successfully with scope:', registration.scope);
+    }).catch(() => {
+      navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    });
   });
 }
 
