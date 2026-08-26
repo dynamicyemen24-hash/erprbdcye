@@ -235,7 +235,7 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder={isRtl ? `تحويل ${currentConfig.title_ar}...` : `Filter ${currentConfig.title_en}...`}
+              placeholder={isRtl ? `تصفية ${currentConfig.title_ar}...` : `Filter ${currentConfig.title_en}...`}
               className={`text-xs py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-emerald-500 w-36 sm:w-48 transition-all font-medium ${
                 isRtl ? 'pr-8 pl-6' : 'pl-8 pr-6'
               }`}
