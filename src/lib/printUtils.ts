@@ -59,7 +59,7 @@ export function getCustomFooterHTML(lang?: 'ar' | 'en'): string {
 export function getBrandingHTML(isPrint: boolean = false) {
   const currentLang = document.documentElement?.dir === 'ltr' ? 'en' : 'ar';
   const date = new Date().toLocaleDateString(currentLang === 'ar' ? 'ar-SA' : 'en-US');
-  let activeLogo = '/LogoRohamaab.png';
+  let activeLogo = '/UAMEX_ERPLOGO.png';
 
   try {
     const savedLogo = localStorage.getItem('rbd_logo_url');
@@ -70,8 +70,8 @@ export function getBrandingHTML(isPrint: boolean = false) {
 
   const titleAr = localStorage.getItem('rbd_report_header_title_ar') || getActiveOrgName('ar');
   const titleEn = localStorage.getItem('rbd_report_header_title_en') || getActiveOrgName('en');
-  const subtitleAr = localStorage.getItem('rbd_report_header_subtitle_ar') || 'نظام التشغيل المؤسسي الذكي - NexoraOS™';
-  const subtitleEn = localStorage.getItem('rbd_report_header_subtitle_en') || 'Intelligent Enterprise Operating System';
+  const subtitleAr = localStorage.getItem('rbd_report_header_subtitle_ar') || 'نظام التشغيل المؤسسي الشامل - UAMEX ERP™';
+  const subtitleEn = localStorage.getItem('rbd_report_header_subtitle_en') || 'UAMEX ERP™ Intelligent Enterprise Operating System';
   const layout = localStorage.getItem('rbd_report_header_layout') || 'classic'; // 'classic', 'centered', 'split'
   const accentColor = localStorage.getItem('rbd_report_accent_color') || '#059669';
   const showDate = localStorage.getItem('rbd_report_show_date') !== 'false';

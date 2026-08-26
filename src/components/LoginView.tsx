@@ -476,13 +476,13 @@ export default function LoginView({
       <header className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-6 flex items-center justify-between z-10">
         {/* Brand Standard Logo & Title */}
         <div className="flex items-center gap-3.5">
-          <div className="relative group cursor-pointer">
+          <div className="relative group cursor-pointer flex items-center gap-2">
             <img 
-              src="/LogoRohamaab.png" 
-              alt="جمعية رُحماء بينهم" 
-              className="w-11 h-11 sm:w-13 sm:h-13 object-contain drop-shadow-md rounded-2xl p-1 bg-white/80 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800 shadow-sm"
+              src="/UAMEX_ERPLOGO.png" 
+              alt="UAMEX ERP™" 
+              className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow-md rounded-2xl p-1 bg-white/90 dark:bg-zinc-900/90 border border-slate-200/80 dark:border-zinc-800 shadow-sm"
               onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
+                (e.target as HTMLImageElement).src = '/LogoRohamaab.png';
               }}
             />
             <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-zinc-900" />
@@ -499,7 +499,7 @@ export default function LoginView({
             </div>
             <span className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-zinc-400 flex items-center gap-1.5 mt-0.5 font-mono">
               <Sparkles className="w-3 h-3 text-amber-500" />
-              <span>NexoraOS™ Intelligent Enterprise Operating System</span>
+              <span>UAMEX ERP™ Intelligent Enterprise Operating System</span>
             </span>
           </div>
         </div>
@@ -1052,7 +1052,7 @@ export default function LoginView({
                 </div>
                 <div>
                   <h3 className="text-base font-black text-slate-900 dark:text-white">
-                    {isRtl ? 'المعمارية المؤسسية لنظام NexoraOS™' : 'NexoraOS™ Enterprise Architecture'}
+                    {isRtl ? 'المعمارية المؤسسية لنظام UAMEX ERP™' : 'UAMEX ERP™ Enterprise Architecture'}
                   </h3>
                   <span className="text-xs text-zinc-400 font-medium">
                     {isRtl ? '15 مجالاً مؤسسياً مترابطاً (NEB-01 إلى NEB-15)' : '15 Integrated Enterprise Domains'}
@@ -1070,8 +1070,8 @@ export default function LoginView({
             <div className="space-y-4 text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-medium">
               <p className="font-bold text-slate-900 dark:text-white">
                 {isRtl 
-                  ? 'تم تصميم نظام NexoraOS خصيصاً لتلبية أعلى المعايير الدولية المعمول بها في كبرى المؤسسات والمنظمات، مستنداً إلى 15 قطاعاً متكاملاً:' 
-                  : 'NexoraOS is architected around 15 core enterprise domains uniting all strategic, operational, and financial functions:'}
+                  ? 'تم تصميم نظام UAMEX ERP خصيصاً لتلبية أعلى المعايير الدولية المعمول بها في كبرى المؤسسات والمنظمات، مستنداً إلى 15 قطاعاً متكاملاً:' 
+                  : 'UAMEX ERP is architected around 15 core enterprise domains uniting all strategic, operational, and financial functions:'}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
@@ -1230,6 +1230,24 @@ export default function LoginView({
           </div>
         </div>
       )}
+
+      {/* Institutional Global Footer */}
+      <footer className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-6 text-center text-[11px] sm:text-xs text-slate-500 dark:text-zinc-500 font-medium border-t border-slate-200/60 dark:border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-2 pb-safe">
+        <div className="flex items-center gap-2">
+          <span>
+            © {new Date().getFullYear()} {isRtl ? 'جمعية رُحماء بينهم للعمل الإنساني والتنمية' : 'Rohamā\'a Baynahum Charity Foundation'}
+          </span>
+          <span className="hidden sm:inline text-zinc-400">•</span>
+          <span className="hidden sm:inline text-[10px] text-zinc-400">
+            {isRtl ? 'ترخيص رقم: YE-NGO-2024-8891' : 'Licence: YE-NGO-2024-8891'}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+          <span>UAMEX ERP™ v2.6.0-Enterprise</span>
+          <span>•</span>
+          <span className="text-zinc-400">TLS 1.3 / ISO 27001</span>
+        </div>
+      </footer>
     </div>
   );
 }

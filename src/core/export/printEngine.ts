@@ -302,9 +302,9 @@ ${classBanner}
 <!-- HEADER -->
 <div class="report-header">
   <div class="brand">
-    <img src="/LogoRohamaab.png" alt="NexoraOS" onerror="this.style.display='none'">
+    <img src="/UAMEX_ERPLOGO.png" alt="UAMEX ERP" onerror="this.src='/LogoRohamaab.png'">
     <div class="brand-text">
-      <h1>NexoraOS™ Enterprise Report</h1>
+      <h1>UAMEX ERP™ Enterprise Report</h1>
       <div class="org">${config.header.organization || (isRtl ? 'جمعية رُحماء بينهم للعمل الإنساني والتنمية' : 'Rohamā\'a Baynahum Charity Foundation')}</div>
       ${config.header.reportId ? `<div class="report-id">RPT-${config.header.reportId}</div>` : ''}
     </div>

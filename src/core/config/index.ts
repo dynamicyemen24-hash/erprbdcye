@@ -1,6 +1,6 @@
 // ============================================================
-// Rohamā'a Baynahum — NexoraOS™
-// Intelligent Humanitarian & Development Operating System
+// Rohamā'a Baynahum — UAMEX ERP™
+// Intelligent Humanitarian & Development Enterprise System
 // ============================================================
 
 export const ORGANIZATION_CONFIG = {
@@ -13,15 +13,16 @@ export const ORGANIZATION_CONFIG = {
   // ==========================================================
   // PLATFORM
   // ==========================================================
-  systemName: 'NexoraOS™',
-  systemFullName: 'NexoraOS™ Intelligent Humanitarian & Development Operating System',
+  systemName: 'UAMEX ERP™',
+  systemFullName: 'UAMEX ERP™ Intelligent Humanitarian & Development Operating System',
   tagline: 'One Platform. One Organization. One Vision.',
 
   // ==========================================================
   // BRAND
   // ==========================================================
-  logoUrl: '/LogoRohamaab.png',
-  altLogoUrl: '/src/assets/LogoRohamaab.png',
+  logoUrl: '/UAMEX_ERPLOGO.png',
+  altLogoUrl: '/src/assets/UAMEX_ERPLOGO.png',
+  orgEmblemUrl: '/LogoRohamaab.png',
 
   brandColors: {
     primary: '#059669', // Emerald Green
@@ -34,8 +35,8 @@ export const ORGANIZATION_CONFIG = {
   // SYSTEM IDENTITY & EMBLEM ICON SPECIFICATIONS
   // ==========================================================
   systemIdentity: {
-    systemCode: 'NEXORA-OS-2026',
-    systemName: 'NexoraOS™',
+    systemCode: 'UAMEX-ERP-2026',
+    systemName: 'UAMEX ERP™',
     version: 'v2.6.0-Enterprise',
     edition: 'Global Enterprise & Humanitarian Operating Suite',
     releaseDate: '2026-08-01',

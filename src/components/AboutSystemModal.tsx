@@ -135,13 +135,20 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
           
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 border border-emerald-400/40 flex items-center justify-center text-white shadow-lg">
-              <Cpu className="w-6 h-6 animate-pulse" />
+            <div className="w-12 h-12 rounded-2xl bg-white/10 dark:bg-zinc-900/90 border border-white/20 flex items-center justify-center p-1 shadow-lg">
+              <img 
+                src="/UAMEX_ERPLOGO.png" 
+                alt="UAMEX ERP™" 
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/LogoRohamaab.png';
+                }}
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-black tracking-tight text-white">
-                  Nexora<span className="text-amber-400">OS</span>™ Enterprise
+                  UAMEX<span className="text-amber-400"> ERP</span>™ Enterprise
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   v2.6 Production
@@ -501,7 +508,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
         {/* Modal Footer */}
         <div className="p-4 bg-slate-50 dark:bg-zinc-950 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
           <span className="text-[10px] text-slate-400">
-            NexoraOS? ? ????? ?????? ????? ????? ???????? ???????? ? 2026
+            © {new Date().getFullYear()} UAMEX ERP™ • {isRtl ? 'جمعية رُحماء بينهم للعمل الإنساني والتنمية' : 'Rohamā\'a Baynahum Charity Foundation'}
           </span>
           <button
             onClick={onClose}

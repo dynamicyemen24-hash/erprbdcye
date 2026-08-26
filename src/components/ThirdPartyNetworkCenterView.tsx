@@ -250,10 +250,10 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
       </head>
       <body>
         <div class="header">
-          <img src="/LogoRohamaab.png" class="logo" alt="Rohamaab Logo" />
+          <img src="/UAMEX_ERPLOGO.png" class="logo" alt="UAMEX ERP Logo" onerror="this.src='/LogoRohamaab.png'" />
           <div class="title-box">
             <h2>${tenantContext.organizationNameAr}</h2>
-            <p>NexoraOS™ Third-Party Network - محضر مطابقة وتسوية قسائم التجار والموردين</p>
+            <p>UAMEX ERP™ Third-Party Network - محضر مطابقة وتسوية قسائم التجار والموردين</p>
           </div>
           <div style="text-align: left; font-size: 10px; font-family: monospace;">
             <div><strong>رقم المطالبة:</strong> ${claim.claim_number}</div>

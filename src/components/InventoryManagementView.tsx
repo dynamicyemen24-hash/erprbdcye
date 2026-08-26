@@ -479,7 +479,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     // 1. Dispatch Web Browser Push Notification
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       try {
-        const logoIcon = localStorage.getItem('rbd_logo_url') || '/LogoRohamaab.png';
+        const logoIcon = localStorage.getItem('rbd_logo_url') || '/UAMEX_ERPLOGO.png';
         new Notification(title, {
           body: body,
           icon: logoIcon,
@@ -1019,10 +1019,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           <!-- Official Letterhead Header -->
           <div class="flex justify-between items-center pb-4 border-b-2 border-emerald-600 mb-6">
             <div class="flex items-center gap-4">
-              <img src="/LogoRohamaab.png" alt="Rohamaab Logo" class="h-16 w-auto object-contain" />
+              <img src="/UAMEX_ERPLOGO.png" alt="UAMEX ERP Logo" class="h-16 w-auto object-contain" onerror="this.src='/LogoRohamaab.png'" />
               <div>
                 <h1 class="text-lg font-black text-emerald-800">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
-                <p class="text-xs text-slate-500 font-bold">نظام التشغيل المؤسسي الذكي (NexoraOS™) - القطاع الإغاثي واللوجستي</p>
+                <p class="text-xs text-slate-500 font-bold">نظام التشغيل المؤسسي الشامل (UAMEX ERP™) - القطاع الإغاثي واللوجستي</p>
                 <p class="text-[10px] text-amber-600 font-bold">One Platform. One Organization. One Vision.</p>
               </div>
             </div>

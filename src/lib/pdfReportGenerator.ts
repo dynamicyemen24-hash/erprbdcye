@@ -31,8 +31,8 @@ export function getPDFHeaderHTML(options: PDFReportHeaderOptions): string {
   const orgName = isRtl
     ? (options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية')
     : (options.orgNameEn || 'Rohamā\'a Baynahum Charity Foundation');
-  const logo = options.logoUrl || '/LogoRohamaab.png';
-  const docNo = options.docNumber || `NEX-${generateNumericCode(100000, 999999)}`;
+  const logo = options.logoUrl || '/UAMEX_ERPLOGO.png';
+  const docNo = options.docNumber || `UAM-${generateNumericCode(100000, 999999)}`;
   const today = options.date || new Date().toLocaleDateString(isRtl ? 'ar-YE' : 'en-US', {
     year: 'numeric',
     month: 'long',

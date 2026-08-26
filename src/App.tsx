@@ -529,9 +529,8 @@ export default function App() {
   // Handle document direction and platform title
   useEffect(() => {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = lang;
-    const currentOrg = enterprise.orgName || (lang === 'ar' ? 'المؤسسة المشتركة' : 'Subscriber Enterprise');
-    document.title = `NexoraOS? | ${currentOrg}`;
+    const currentOrg = enterprise.orgName || (lang === 'ar' ? 'جمعية رُحماء بينهم للعمل الإنساني والتنمية' : "Rohamā'a Baynahum Charity Foundation");
+    document.title = `UAMEX ERP™ | ${currentOrg}`;
   }, [lang, enterprise.orgName]);
 
   // Handle document theme mode

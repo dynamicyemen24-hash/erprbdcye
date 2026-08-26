@@ -93,9 +93,12 @@ export const CockpitHeaderStrip: React.FC<CockpitHeaderStripProps> = ({
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-zinc-800/80 border border-slate-200/80 dark:border-zinc-700/80 p-1.5 flex items-center justify-center shrink-0 shadow-2xs">
             <img 
-              src={logoUrl || '/LogoRohamaab.png'} 
-              alt="Organization Logo" 
+              src={logoUrl || '/UAMEX_ERPLOGO.png'} 
+              alt="UAMEX ERP Logo" 
               className="max-h-full max-w-full object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/LogoRohamaab.png';
+              }}
             />
           </div>
 

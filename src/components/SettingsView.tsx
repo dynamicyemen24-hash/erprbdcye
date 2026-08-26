@@ -136,7 +136,7 @@ export default function SettingsView({
   const [retentionYears, setRetentionYears] = useState<number>(10);
 
   // Logo & Report Customization States
-  const [logoUrl, setLogoUrl] = useState<string>(() => localStorage.getItem('rbd_logo_url') || '/LogoRohamaab.png');
+  const [logoUrl, setLogoUrl] = useState<string>(() => localStorage.getItem('rbd_logo_url') || '/UAMEX_ERPLOGO.png');
   const [reportHeaderTitleAr, setReportHeaderTitleAr] = useState<string>(() => localStorage.getItem('rbd_report_header_title_ar') || '');
   const [reportHeaderTitleEn, setReportHeaderTitleEn] = useState<string>(() => localStorage.getItem('rbd_report_header_title_en') || '');
   const [reportHeaderSubtitleAr, setReportHeaderSubtitleAr] = useState<string>(() => localStorage.getItem('rbd_report_header_subtitle_ar') || '');
@@ -1338,7 +1338,8 @@ export default function SettingsView({
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-[9px] text-zinc-400 font-bold">{lang === 'ar' ? 'نماذج جاهزة:' : 'Presets:'}</span>
                             {[
-                              { label: lang === 'ar' ? 'رئيسي (جمعية رُحماء)' : 'Official', url: '/LogoRohamaab.png' },
+                              { label: lang === 'ar' ? 'شعار UAMEX ERP™' : 'UAMEX ERP', url: '/UAMEX_ERPLOGO.png' },
+                              { label: lang === 'ar' ? 'ختم جمعية رُحماء' : 'Rohamā\'a Emblem', url: '/LogoRohamaab.png' },
                               { label: lang === 'ar' ? 'درع الأوقاف' : 'Endowment', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80' },
                               { label: lang === 'ar' ? 'درع تنموي' : 'Developmental', url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=120&q=80' }
                             ].map((preset, idx) => (

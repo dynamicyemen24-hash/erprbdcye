@@ -133,7 +133,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, [activeOrg, lang]);
 
   const logoUrl = useMemo(() => {
-    return activeOrg?.logo_url || '/LogoRohamaab.png';
+    return activeOrg?.logo_url || '/UAMEX_ERPLOGO.png';
   }, [activeOrg]);
 
   const licenseText = useMemo(() => {

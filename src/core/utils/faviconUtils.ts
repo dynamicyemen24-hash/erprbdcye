@@ -6,7 +6,7 @@
 export function updateFavicon(logoUrl?: string) {
   if (typeof window === 'undefined') return;
 
-  const url = logoUrl || '/LogoRohamaab.png';
+  const url = logoUrl || '/UAMEX_ERPLOGO.png';
 
   // Find or create the shortcut icon link
   let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");

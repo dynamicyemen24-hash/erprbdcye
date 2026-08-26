@@ -1661,12 +1661,15 @@ This draft shows your prompt only. It will be replaced with real analysis once t
               <div className="space-y-1">
                 <div className="text-xs font-bold text-slate-500">الجمهورية اليمنية</div>
                 <h2 className="text-lg font-black text-emerald-600">{orgName}</h2>
-                <div className="text-[10px] font-bold text-slate-500">نظام التشغيل المؤسسي الموحد NexoraOS™</div>
+                <div className="text-[10px] font-bold text-slate-500">نظام التشغيل المؤسسي الشامل UAMEX ERP™</div>
               </div>
               <img 
-                src="/LogoRohamaab.png" 
-                alt="Logo" 
-                className="h-16 w-16 object-contain" 
+                src="/UAMEX_ERPLOGO.png" 
+                alt="UAMEX ERP Logo" 
+                className="h-16 w-16 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/LogoRohamaab.png';
+                }}
               />
             </div>
 

@@ -122,10 +122,10 @@ export default function SponsorshipsView({
       </head>
       <body>
         <div class="header">
-          <img src="/LogoRohamaab.png" class="logo" alt="Rohamaab Logo" />
+          <img src="/UAMEX_ERPLOGO.png" class="logo" alt="UAMEX ERP Logo" onerror="this.src='/LogoRohamaab.png'" />
           <div class="title-box">
             <h2>جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
-            <p>NexoraOS™ Sponsorships Management - سند استلام كفالة يتيم / أسرة معتمدة</p>
+            <p>UAMEX ERP™ Sponsorships Management - سند استلام كفالة يتيم / أسرة معتمدة</p>
           </div>
           <div style="text-align: left; font-size: 10px; font-family: monospace;">
             <div><strong>رقم الكفالة:</strong> ${sponsorship.id}</div>
