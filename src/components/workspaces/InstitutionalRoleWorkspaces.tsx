@@ -85,10 +85,85 @@ interface WorkspaceDefinition {
   }[];
 }
 
+
+const FIELD_LABELS_AR: Record<string, string> = {
+  code: 'رمز السجل',
+  beneficiary_code: 'رقم ملف المستفيد',
+  sponsorship_code: 'رقم ملف الكفالة',
+  activity_code: 'رمز النشاط الميداني',
+  account_code: 'رقم الحساب المالي',
+  item_code: 'رمز الصنف المخزني',
+  name_ar: 'الاسم بالعربية',
+  name_en: 'الاسم بالإنجليزية',
+  full_name_ar: 'الاسم الكامل',
+  title: 'عنوان النشاط',
+  description: 'الوصف المؤسسي',
+  category_code: 'الفئة المستفيدة',
+  category: 'التصنيف',
+  status_code: 'الحالة الإدارية',
+  status: 'الحالة التشغيلية',
+  budget: 'الموازنة المعتمدة (ريال يمني)',
+  progress_percent: 'نسبة الإنجاز',
+  target_beneficiaries: 'المستهدفون',
+  actual_beneficiaries: 'المنجز الفعلي',
+  governorate: 'المحافظة',
+  district: 'المديرية',
+  location_name: 'موقع النشاط الميداني',
+  location: 'الموقع الميداني',
+  phone_primary: 'رقم الهاتف',
+  sponsor_name: 'اسم الكافل الكريم',
+  monthly_stipend: 'مبلغ الكفالة الشهري',
+  amount: 'المبلغ المعتمد',
+  account_type: 'نوع الحساب في الدليل',
+  opening_balance: 'الرصيد الافتتاحي',
+  currency_code: 'العملة',
+  currency: 'العملة',
+  unit: 'وحدة القياس',
+  capacity: 'الطاقة الاستيعابية',
+  email: 'البريد الإلكتروني',
+  role_code: 'المسمى والصلاحية',
+  security_level: 'مستوى الصلاحية',
+  start_date: 'تاريخ البدء',
+  end_date: 'تاريخ الانتهاء',
+  created_at: 'تاريخ التسجيل',
+  target_value: 'القيمة المستهدفة',
+  actual_value: 'القيمة المحققة'
+};
+
+const VALUE_TRANSLATIONS_AR: Record<string, string> = {
+  active: 'نشط ومعتمد',
+  ACTIVE: 'كفالة جارية ومستمرة',
+  completed: 'مكتمل وموثق',
+  pending: 'قيد المراجعة',
+  cancelled: 'ملغي',
+  draft: 'مسودة',
+  YER: 'ريال يمني',
+  USD: 'دولار أمريكي',
+  SAR: 'ريال سعودي',
+  ORPHAN: 'رعاية الأيتام',
+  POOR_FAMILY: 'أسر متعففة',
+  PATIENT: 'رعاية صحية ومرضى',
+  WIDOW: 'رعاية الأرامل',
+  DISABILITY: 'ذوو الاحتياجات الخاصة',
+  Asset: 'أصول',
+  Liability: 'التزامات',
+  Equity: 'صافي الأصول',
+  Revenue: 'إيرادات',
+  Expense: 'مصروفات',
+  ADMIN: 'مدير النظام',
+  DIRECTOR: 'إدارة عليا وتنفيذية',
+  FINANCE: 'مسئول مالي ومحاسب',
+  PROGRAMS: 'إدارة البرامج والمشاريع',
+  OPERATIONS: 'تنفيذ ميداني',
+  WELFARE: 'رعاية اجتماعية',
+  LOGISTICS: 'مشتريات ومخازن',
+  MEAL: 'رقابة وتقييم الجودة'
+};
+
 export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition> = {
   leadership: {
     id: 'leadership',
-    code: 'ROLE-EXEC',
+    code: 'إدارة عليا',
     titleAr: 'مساحة عمل القيادة التنفيذية والحوكمة',
     titleEn: 'Executive Leadership & Governance Workspace',
     subtitleAr: 'الرؤية الاستراتيجية الشاملة، متابعة الأداء المؤسسي، واعتماد القرارات الكبرى',
@@ -117,8 +192,8 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
   },
   finance: {
     id: 'finance',
-    code: 'ROLE-CFO',
-    titleAr: 'مساحة عمل الإدارة المالية والمحاسبة IPSAS',
+    code: 'شؤون مالية',
+    titleAr: 'مساحة عمل الإدارة المالية والمحاسبة',
     titleEn: 'Financial Management & IPSAS Ledger Workspace',
     subtitleAr: 'دليل الحسابات، قيود اليومية، سندات الصرف والقبض، ومطابقة الصناديق والبنوك',
     subtitleEn: 'IPSAS chart of accounts, vouchers, bank reconciliation, and multi-currency',
@@ -138,16 +213,16 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
       { id: 'act-reports', titleAr: 'القوائم والتقارير المالية', titleEn: 'Financial Statements', targetTab: 'reports', icon: TrendingUp, descriptionAr: 'الميزانية العمومية وقائمة الإيرادات والمصروفات', descriptionEn: 'Balance sheet and revenue-expense statements' }
     ],
     kpiStats: [
-      { labelAr: 'حسابات الدليل المحاسبي', labelEn: 'Chart Accounts', value: (REAL_ENTERPRISE_DATA.chart_of_accounts || []).length || 246, sublabelAr: 'حسابات متوافقة مع معايير IPSAS', sublabelEn: 'IPSAS compliant accounts' },
-      { labelAr: 'العملات المعتمدة', labelEn: 'Currencies', value: 3, sublabelAr: 'YER, USD, SAR', sublabelEn: 'Active ledger currencies' },
+      { labelAr: 'حسابات الدليل المحاسبي', labelEn: 'Chart Accounts', value: (REAL_ENTERPRISE_DATA.chart_of_accounts || []).length || 246, sublabelAr: 'حسابات معتمدة وفق المعايير المالية الرسمية', sublabelEn: 'IPSAS compliant accounts' },
+      { labelAr: 'العملات المعتمدة', labelEn: 'Currencies', value: 3, sublabelAr: 'ريال يمني، دولار، ريال سعودي', sublabelEn: 'Active ledger currencies' },
       { labelAr: 'الموازنة التقديرية المعتمدة', labelEn: 'Approved Budget', value: '28,450,000', sublabelAr: 'ريال يمني مخصص للبرامج', sublabelEn: 'YER allocated to programs' },
       { labelAr: 'بنود الموازنة التشغيلية', labelEn: 'Budget Lines', value: 45, sublabelAr: 'موزعة على كافة المشاريع', sublabelEn: 'Active project budget lines' }
     ]
   },
   programs: {
     id: 'programs',
-    code: 'ROLE-PMO',
-    titleAr: 'مساحة عمل إدارة البرامج والمشاريع PMO',
+    code: 'برامج ومشاريع',
+    titleAr: 'مساحة عمل إدارة البرامج والمشاريع',
     titleEn: 'Programs & Project Portfolio Workspace',
     subtitleAr: 'تخطيط المحافظ الإنسانية، متابعة المشاريع، معالم الإنجاز، وتقارير المانحين',
     subtitleEn: 'Humanitarian program design, project WBS, milestones, and donor deliverables',
@@ -162,23 +237,23 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
     primaryTabs: ['programs', 'projects', 'activities', 'allocations', 'geospatial'],
     quickActions: [
       { id: 'act-prog', titleAr: 'سجل البرامج المؤسسية', titleEn: 'Programs Registry', targetTab: 'programs', icon: Briefcase, descriptionAr: 'إدارة وتتبع البرامج الاستراتيجية العشرة', descriptionEn: 'Track 10 core institutional programs' },
-      { id: 'act-proj', titleAr: 'المشاريع التنفيذية (19 مشروعاً)', titleEn: 'Projects Workspace', targetTab: 'projects', icon: Layers, descriptionAr: 'هياكل العمل WBS ومراحل الإنجاز الزمني', descriptionEn: 'Project breakdown and milestone progress' },
+      { id: 'act-proj', titleAr: 'المشاريع التنفيذية (19 مشروعاً)', titleEn: 'Projects Workspace', targetTab: 'projects', icon: Layers, descriptionAr: 'مراحل العمل التنفيذية وجداول الإنجاز الزمني', descriptionEn: 'Project breakdown and milestone progress' },
       { id: 'act-alloc', titleAr: 'تخصيص الموارد والميزانيات', titleEn: 'Resource Allocations', targetTab: 'allocations', icon: Calendar, descriptionAr: 'توزيع المنح والموارد على الأنشطة الميدانية', descriptionEn: 'Grant commitments and field resource mapping' },
       { id: 'act-geo', titleAr: 'الخريطة المكانية للمشاريع', titleEn: 'Geospatial Projects', targetTab: 'geospatial', icon: Globe, descriptionAr: 'التوزيع الجغرافي للمشاريع في المحافظات', descriptionEn: 'Interactive geographical distribution' }
     ],
     kpiStats: [
       { labelAr: 'البرامج التنموية والإغاثية', labelEn: 'Programs', value: (REAL_ENTERPRISE_DATA.programs || []).length || 10, sublabelAr: 'تعليمية، صحية، إغاثية، ورعاية', sublabelEn: 'Core operational sectors' },
       { labelAr: 'المشاريع التنفيذية', labelEn: 'Projects', value: (REAL_ENTERPRISE_DATA.projects || []).length || 19, sublabelAr: 'مشاريع جارية قيد التنفيذ', sublabelEn: 'Under active execution' },
-      { labelAr: 'معالم الإنجاز (Milestones)', labelEn: 'Milestones', value: 45, sublabelAr: 'محطات تسليم وتقييم ميداني', sublabelEn: 'Key project delivery milestones' },
+      { labelAr: 'مراحل الإنجاز الميداني', labelEn: 'Milestones', value: 45, sublabelAr: 'محطات تسليم وتقييم ميداني', sublabelEn: 'Key project delivery milestones' },
       { labelAr: 'مناطق التغطية الميدانية', labelEn: 'Geographic Areas', value: 40, sublabelAr: 'مديريات ومراكز تنفيذية', sublabelEn: 'Districts and field nodes' }
     ]
   },
   operations: {
     id: 'operations',
-    code: 'ROLE-OPS',
+    code: 'عمليات وتنفيذ',
     titleAr: 'مساحة عمل العمليات والتنفيذ الميداني',
     titleEn: 'Field Operations & Execution Workspace',
-    subtitleAr: 'توجيه الفرق الميدانية، تنفيذ الأنشطة (269 نشاطاً)، وتوثيق الشواهد الميدانية',
+    subtitleAr: 'توجيه الفرق الميدانية، تنفيذ الأنشطة الميدانية المعتمدة، وتوثيق الشواهد الميدانية',
     subtitleEn: 'Field coordination, 269 operational activities, attendance, and evidence collection',
     departmentAr: 'إدارة العمليات والتنفيذ الميداني',
     departmentEn: 'Field Operations Department',
@@ -197,16 +272,16 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
     kpiStats: [
       { labelAr: 'الأنشطة الميدانية المسجلة', labelEn: 'Field Activities', value: (REAL_ENTERPRISE_DATA.activities || []).length || 269, sublabelAr: 'أنشطة قرآنية وإغاثية وصحية', sublabelEn: 'Documented field activities' },
       { labelAr: 'المناطق والمديريات النشطة', labelEn: 'Active Districts', value: 40, sublabelAr: 'صنعاء، ذمار، تعز، إب', sublabelEn: 'Operational Governorates' },
-      { labelAr: 'نمط التشغيل دون اتصال', labelEn: 'Offline Field Mode', value: '100%', sublabelAr: 'جاهزية التسجيل والمزامنة الميدانية', sublabelEn: 'Offline-First operational readiness' },
+      { labelAr: 'نمط التشغيل دون اتصال', labelEn: 'Offline Field Mode', value: '100%', sublabelAr: 'جاهزية كاملة للعمل والتسجيل الميداني', sublabelEn: 'Offline-First operational readiness' },
       { labelAr: 'المراكز والحلقات الميدانية', labelEn: 'Field Centers', value: '120+', sublabelAr: 'مراكز تعليمية وإغاثية ميدانية', sublabelEn: 'Educational and aid centers' }
     ]
   },
   beneficiaries: {
     id: 'beneficiaries',
-    code: 'ROLE-WELFARE',
-    titleAr: 'مساحة عمل الرعاية المجتمعية والكفالات',
+    code: 'رعاية مجتمعية',
+    titleAr: 'مساحة عمل الرعاية المجتمعية وشؤون الأيتام',
     titleEn: 'Community Welfare & Beneficiary Services Workspace',
-    subtitleAr: 'إدارة 418 مستفيداً و 595 كفالة يتيم، خطط الصرف الدورية، وتقييم الاحتياج',
+    subtitleAr: 'إدارة سجلات المستفيدين وكفالات الأيتام المعتمدة، خطط الصرف الدورية، وتقييم الاحتياج',
     subtitleEn: 'Registry of 418 beneficiaries and 595 orphan sponsorships, aid quotas and welfare',
     departmentAr: 'إدارة الرعاية الاجتماعية وشؤون الأيتام',
     departmentEn: 'Social Welfare & Orphan Care Directorate',
@@ -231,10 +306,10 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
   },
   procurement: {
     id: 'procurement',
-    code: 'ROLE-LOGISTICS',
+    code: 'مشتريات ومخازن',
     titleAr: 'مساحة عمل المشتريات والمخازن وسلاسل الإمداد',
     titleEn: 'Procurement, Inventory & Supply Chain Workspace',
-    subtitleAr: 'المخازن المركزية (5 مخازن)، إدارة المخزون، عقود الموردين، والمناقصات الإغاثية',
+    subtitleAr: 'المستودعات والمخازن المركزية، إدارة المخزون، عقود الموردين، والمناقصات الإغاثية',
     subtitleEn: '5 central warehouses, inventory tracking, vendor contracts, and tenders',
     departmentAr: 'إدارة المشتريات واللوجستيات والمخازن',
     departmentEn: 'Procurement & Logistics Department',
@@ -254,15 +329,15 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
       { labelAr: 'المخازن والمستودعات', labelEn: 'Warehouses', value: (REAL_ENTERPRISE_DATA.warehouses || []).length || 5, sublabelAr: 'صنعاء، ذمار، تعز، إب', sublabelEn: 'Central and field depots' },
       { labelAr: 'أصناف المواد المخزنية', labelEn: 'Inventory Items', value: (REAL_ENTERPRISE_DATA.inventory_items || []).length || 11, sublabelAr: 'سلال، حقائب مدرسية، وأدوية', sublabelEn: 'Relief and educational stock' },
       { labelAr: 'عقود التوريد النشطة', labelEn: 'Active Contracts', value: (REAL_ENTERPRISE_DATA.contracts || []).length || 2, sublabelAr: 'اتفاقيات موثقة مع الموردين', sublabelEn: 'Audited procurement agreements' },
-      { labelAr: 'مطابقة التوريد (3-Way)', labelEn: 'Matching Gate', value: '100%', sublabelAr: 'أمر الشراء، سند الاستلام، الفاتورة', sublabelEn: 'PO, Goods Receipt, and Invoice' }
+      { labelAr: 'مطابقة التوريد المعتمدة', labelEn: 'Matching Gate', value: '100%', sublabelAr: 'مطابقة أمر الشراء، وسند الاستلام، والفاتورة الرسمية', sublabelEn: 'PO, Goods Receipt, and Invoice' }
     ]
   },
   meal: {
     id: 'meal',
-    code: 'ROLE-MEAL',
-    titleAr: 'مساحة عمل الرقابة والتقييم والمساءلة والجودة MEAL',
+    code: 'رقابة وجودة',
+    titleAr: 'مساحة عمل الرقابة وتقييم الجودة والمساءلة',
     titleEn: 'MEAL, Quality & Humanitarian Standards Workspace',
-    subtitleAr: 'مؤشرات الأثر المؤسسي، معايير إسفير وCHS، سجل المخاطر، والتحقق المستقل',
+    subtitleAr: 'مؤشرات الأثر المؤسسي، معايير العمل الإنساني الدولية، سجل المخاطر، والتحقق المستقل',
     subtitleEn: 'Impact measurement, Sphere/CHS compliance, risk register, and quality assurance',
     departmentAr: 'إدارة الرقابة والجودة والمساءلة',
     departmentEn: 'MEAL & Accountability Directorate',
@@ -270,7 +345,7 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
     color: 'indigo',
     accentBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
     borderClass: 'border-indigo-500/30',
-    badgeAr: 'الرقابة والجودة MEAL',
+    badgeAr: 'الرقابة وضمان الجودة',
     badgeEn: 'MEAL & Standards',
     primaryTabs: ['reports', 'audit', 'strategic_planning', 'scenarios'],
     quickActions: [
@@ -279,18 +354,18 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
       { id: 'act-sop', titleAr: 'دليل الإجراءات المعيارية واللوائح', titleEn: 'Master SOP & Policies', targetTab: 'scenarios', icon: Compass, descriptionAr: 'لوائح الحوكمة، مدونة السلوك، والأدلة التشغيلية', descriptionEn: 'Institutional bylaws, code of conduct and SOPs' }
     ],
     kpiStats: [
-      { labelAr: 'مؤشرات الأثر المقاسة (KPIs)', labelEn: 'KPI Indicators', value: (REAL_ENTERPRISE_DATA.kpi_indicators || []).length || 10, sublabelAr: 'مؤشرات أداء كمية ونوعية', sublabelEn: 'Quantified impact metrics' },
-      { labelAr: 'المعايير الإنسانية المطبقة', labelEn: 'Humanitarian Standards', value: 'CHS / Sphere', sublabelAr: 'المعيار الإنساني الأساسي للجودة', sublabelEn: 'Core Humanitarian Standard' },
+      { labelAr: 'مؤشرات الأثر المؤسسي', labelEn: 'KPI Indicators', value: (REAL_ENTERPRISE_DATA.kpi_indicators || []).length || 10, sublabelAr: 'مؤشرات أداء كمية ونوعية', sublabelEn: 'Quantified impact metrics' },
+      { labelAr: 'المعايير الإنسانية المطبقة', labelEn: 'Humanitarian Standards', value: 'معايير معتمدة', sublabelAr: 'المعيار الإنساني الأساسي للجودة', sublabelEn: 'Core Humanitarian Standard' },
       { labelAr: 'سجلات التدقيق المحفوظة', labelEn: 'Audit Logs', value: '3,400+', sublabelAr: 'توثيق كامل للعمليات', sublabelEn: 'Immutable system audit logs' },
       { labelAr: 'نسبة الاستجابة للشكاوى', labelEn: 'Feedback Resolution', value: '98.5%', sublabelAr: 'قنوات المساءلة المجتمعية', sublabelEn: 'Beneficiary feedback closed loop' }
     ]
   },
   admin: {
     id: 'admin',
-    code: 'ROLE-SYSADMIN',
-    titleAr: 'مساحة عمل إدارة النظام والأمان التقني',
+    code: 'أمان وصلاحيات',
+    titleAr: 'مساحة عمل إدارة النظام ومستويات الصلاحيات',
     titleEn: 'Enterprise System & Security Administration Workspace',
-    subtitleAr: 'إدارة 12 مستخدماً و 16 دوراً، صحة قاعدة بيانات نيون (349 جدولاً)، والنسخ الاحتياطي',
+    subtitleAr: 'إدارة حسابات المستخدمين، مصفوفة الصلاحيات، ومتابعة قاعدة البيانات المركزية، والنسخ الاحتياطي',
     subtitleEn: 'User accounts, 16 roles, Neon PostgreSQL 349 tables health, and security enclave',
     departmentAr: 'الإدارة العامة لتقنية المعلومات والأمن السيبراني',
     departmentEn: 'IT & Cybersecurity Directorate',
@@ -308,8 +383,8 @@ export const WORKSPACE_DEFINITIONS: Record<WorkspaceRoleKey, WorkspaceDefinition
     ],
     kpiStats: [
       { labelAr: 'المستخدمون المعتمدون', labelEn: 'Authorized Users', value: (REAL_ENTERPRISE_DATA.users || []).length || 12, sublabelAr: 'حسابات قيادية وتنفيذية مفعلة', sublabelEn: 'Active institutional accounts' },
-      { labelAr: 'الأدوار الوظيفية (RBAC)', labelEn: 'System Roles', value: (REAL_ENTERPRISE_DATA.roles || []).length || 16, sublabelAr: 'مصفوفة صلاحيات دقيقة', sublabelEn: 'Role-based access matrix' },
-      { labelAr: 'جداول قاعدة بيانات نيون', labelEn: 'Neon DB Tables', value: 349, sublabelAr: 'قاعدة بيانات PostgreSQL 17', sublabelEn: 'Neon PostgreSQL 17 enterprise schema' },
+      { labelAr: 'مستويات الصلاحيات المعتمدة', labelEn: 'System Roles', value: (REAL_ENTERPRISE_DATA.roles || []).length || 16, sublabelAr: 'مصفوفة صلاحيات دقيقة', sublabelEn: 'Role-based access matrix' },
+      { labelAr: 'قاعدة البيانات المركزية', labelEn: 'Neon DB Tables', value: 'متصلة ومؤمنة', sublabelAr: 'قاعدة بيانات مشفرة ومحمية', sublabelEn: 'Neon PostgreSQL 17 enterprise schema' },
       { labelAr: 'المؤسسات والفروع', labelEn: 'Organizations', value: (REAL_ENTERPRISE_DATA.organizations || []).length || 3, sublabelAr: 'رُحماء بينهم والمؤسسات الشريكة', sublabelEn: 'Registered institutional entities' }
     ]
   }
@@ -470,42 +545,42 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
       switch (selectedWorkspace) {
         case 'leadership':
           insight = isRtl
-            ? 'تشخيص الذكاء المؤسسي UAMEX™: نسبة المواءمة الاستراتيجية بين الأهداف ومشاريع الميدان 98.4%. سلامة التدفق المالي 100%، ولا توجد انحرافات حرجة في موازنة 2026.'
+            ? 'التقرير الاستراتيجي: مواءمة استراتيجية متميزة بين الأهداف والأنشطة الميدانية، مع استقرار تام في التدفقات المالية وسلامة الموازنة التشغيلية دون أي انحرافات مسجلة.'
             : 'Strategic AI Diagnostic: 98.4% alignment between goals and field projects. Financial solvency 100%, zero critical budget variances.';
           break;
         case 'finance':
           insight = isRtl
-            ? 'التدقيق المحاسبي الذكي IPSAS: دليل الحسابات الـ 246 مطابق بنسبة 100% لمعايير المحاسبة الدولية للقطاع العام. القيود المتوازنة وسندات الصرف مؤمنة.'
+            ? 'التدقيق المالي: دليل الحسابات متوافق بالكامل مع المعايير المحاسبية المعتمدة، وتوازن قيود اليومية وسندات الصرف والقبض موثقة ومحمية بدقة.'
             : 'IPSAS Audit AI: All 246 accounts fully compliant with public sector accounting standards. Balanced journals and payment vouchers verified.';
           break;
         case 'programs':
           insight = isRtl
-            ? 'كفاءة محفظة البرامج PMO: 10 برامج و 19 مشروعاً تعمل وفق مسار WBS المعتمد. وتيرة تنفيذ المعالم متقدمة بنسبة 4.2% عن المخطط الزمني.'
+            ? 'متابعة البرامج والمشاريع: البرامج والمشاريع المعتمدة تسير وفق الجداول الزمنية والخطط التنفيذية، ومراحل العمل تسجل وتيرة إنجاز متقدمة.'
             : 'PMO Intelligence: 10 programs and 19 projects executing on scheduled WBS tracks. Milestone velocity ahead by 4.2%.';
           break;
         case 'operations':
           insight = isRtl
-            ? 'المسح الميداني اللحظي: 269 نشاطاً ميدانياً موثقاً في 5 محافظات و 40 مديرية. نسبة التغطية الجغرافية 94% وسرعة الاستجابة الميدانية قياسية.'
+            ? 'المتابعة الميدانية: الأنشطة الميدانية موثقة في كافة المحافظات والمديريات المستهدفة، وسرعة الاستجابة والتنفيذ الميداني تحقق المعايير المطلوبة.'
             : 'Field Ops Telemetry: 269 verified activities across 5 governorates and 40 districts. Geographic reach 94%, rapid response index optimal.';
           break;
         case 'beneficiaries':
           insight = isRtl
-            ? 'فحص النزاهة والحماية المجتمعية: 418 مستفيداً و 595 كفالة يتيم موثقة. نسبة تكرار السجلات 0.0% ومطابقة لقواعد الحماية ومنع الازدواجية.'
+            ? 'الحماية المجتمعية: سجلات المستفيدين وكفالات الأيتام موثقة ومدققة لمنع أي تكرار أو ازدواجية، مع الالتزام الكامل بضوابط الرعاية والأمان الاجتماعي.'
             : 'Social Protection Audit: 418 beneficiaries and 595 orphan sponsorships. 0.0% record duplication, full compliance with humanitarian protection.';
           break;
         case 'procurement':
           insight = isRtl
-            ? 'جاهزية الإمداد والمخازن: 5 مستودعات مركزية ومخزون استراتيجي آمن للأصناف الإغاثية. أوامر الشراء وسندات الاستلام متطابقة تماماً.'
+            ? 'المخازن وسلاسل الإمداد: المستودعات المركزية تحافظ على مخزون آمن للمواد الإغاثية، مع تطابق معتمد بين أوامر الشراء وسندات الاستلام والمخازن.'
             : 'Supply Chain AI: 5 central warehouses maintain safe humanitarian buffer inventory. Purchase orders and GRN match 100%.';
           break;
         case 'meal':
           insight = isRtl
-            ? 'معايير المساءلة والجودة CHS/Sphere: مؤشرات الجودة ومسارات التحقق مستوفاة بنسبة 100%، وتفعيل قنوات التغذية الراجعة والشكاوى الميدانية.'
+            ? 'الجودة والمساءلة: التزام تام بالمعايير الإنسانية الدولية وضمان الجودة، مع فاعلية قنوات استقبال الملاحظات والمساءلة المجتمعية الميدانية.'
             : 'MEAL Compliance: 100% satisfaction of SPHERE and CHS core standards with verified community accountability mechanisms.';
           break;
         case 'admin':
           insight = isRtl
-            ? 'الأمن السيبراني وقواعد البيانات: 12 مستخدماً مؤمناً بنظام الصلاحيات متعدد المستويات RBAC. قاعدة بيانات نيون 349 جدولاً مشفرة بالكامل.'
+            ? 'الأمان المؤسسي: حسابات المستخدمين مؤمنة بنظام الصلاحيات متعدد المستويات، وقاعدة البيانات المركزية مشفرة ومحمية بالكامل.'
             : 'Cybersecurity & Telemetry: 12 users secured via RBAC clearance. Neon PostgreSQL 349-table schema TLS 1.3 encrypted.';
           break;
       }
@@ -564,8 +639,8 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                  {currentDef.code}
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                  {isRtl ? currentDef.departmentAr : currentDef.departmentEn}
                 </span>
                 <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${currentDef.accentBg} ${currentDef.borderClass}`}>
                   {isRtl ? currentDef.badgeAr : currentDef.badgeEn}
@@ -638,10 +713,10 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                {isRtl ? 'رادار الذكاء المؤسسي UAMEX AI-Engine™' : 'UAMEX AI-Engine™ Telemetry'}
+                {isRtl ? 'المستشار الذكي للأداء المؤسسي' : 'UAMEX AI-Engine™ Telemetry'}
               </span>
               <span className="text-xs text-zinc-400">
-                {isRtl ? 'تحليل لحظي متصل بقاعدة نيون 349 جدولاً' : 'Real-time Telemetry on 349 Tables'}
+                {isRtl ? 'تدقيق ومتابعة لحظية شاملة لكافة العمليات المؤسسية' : 'Real-time Telemetry on 349 Tables'}
               </span>
             </div>
             <p className="text-xs md:text-sm text-zinc-200 leading-relaxed font-medium">
@@ -736,11 +811,11 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
           <div>
             <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              {isRtl ? 'سجلات قاعدة البيانات الحقيقية المخصصة لهذا الدور (Neon PostgreSQL)' : 'Live Database Records for this Role (Neon PostgreSQL)'}
+              {isRtl ? 'السجلات المعتمدة الخاصة بهذا الدور الإداري' : 'Live Database Records for this Role (Neon PostgreSQL)'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
               {isRtl 
-                ? 'بيانات فعلية موثقة ومربوطة مباشرة بقاعدة البيانات المركزية لجمعية رُحماء بينهم' 
+                ? 'سجلات تشغيلية موثقة ومربوطة مباشرة بالنظام المركزي لجمعية رُحماء بينهم' 
                 : 'Verified operational records linked directly to the central database'}
             </p>
           </div>
@@ -757,7 +832,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                       : 'text-slate-600 dark:text-zinc-400'
                   }`}
                 >
-                  {isRtl ? 'المستفيدون (418)' : 'Beneficiaries (418)'}
+                  {isRtl ? 'سجل المستفيدين' : 'Beneficiaries (418)'}
                 </button>
                 <button
                   onClick={() => setBeneficiarySubTab('sponsorships')}
@@ -767,7 +842,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                       : 'text-slate-600 dark:text-zinc-400'
                   }`}
                 >
-                  {isRtl ? 'كفالات الأيتام (595)' : 'Sponsorships (595)'}
+                  {isRtl ? 'سجل كفالات الأيتام' : 'Sponsorships (595)'}
                 </button>
               </div>
             )}
@@ -783,7 +858,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                       : 'text-slate-600 dark:text-zinc-400'
                   }`}
                 >
-                  {isRtl ? 'المستودعات (5)' : 'Warehouses (5)'}
+                  {isRtl ? 'المستودعات المركزية' : 'Warehouses (5)'}
                 </button>
                 <button
                   onClick={() => setProcurementSubTab('inventory')}
@@ -793,7 +868,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                       : 'text-slate-600 dark:text-zinc-400'
                   }`}
                 >
-                  {isRtl ? 'الأصناف المخزنية' : 'Inventory Items'}
+                  {isRtl ? 'أصناف المخزون الإغاثي' : 'Inventory Items'}
                 </button>
               </div>
             )}
@@ -815,7 +890,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               title={isRtl ? 'طباعة كشف معتمد مع التوقيعات' : 'Print certified record sheet'}
             >
               <Printer className="w-3.5 h-3.5 text-amber-500" />
-              <span>{isRtl ? 'طباعة كشف' : 'Print'}</span>
+              <span>{isRtl ? 'طباعة كشف معتمد' : 'Print Official'}</span>
             </button>
 
             <button
@@ -824,12 +899,12 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               title={isRtl ? 'تصدير السجلات الحالية إلى ملف CSV' : 'Export current records to CSV'}
             >
               <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>{isRtl ? 'تصدير CSV' : 'Export CSV'}</span>
+              <span>{isRtl ? 'تصدير إكسل' : 'Export'}</span>
             </button>
 
             <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-500/30 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              {isRtl ? '349 جدولاً نشطاً' : '349 Active Tables'}
+              {isRtl ? 'سجلات مركزية موثقة' : '349 Active Tables'}
             </span>
           </div>
         </div>
@@ -843,7 +918,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 <tr>
                   <th className="py-2.5 px-3">رمز البرنامج</th>
                   <th className="py-2.5 px-3">اسم البرنامج المؤسسي</th>
-                  <th className="py-2.5 px-3">الموازنة (YER)</th>
+                  <th className="py-2.5 px-3">الموازنة المعتمدة (ريال يمني)</th>
                   <th className="py-2.5 px-3">المستفيدون المستهدفون</th>
                   <th className="py-2.5 px-3">نسبة الإنجاز</th>
                   <th className="py-2.5 px-3">الحالة</th>
@@ -867,7 +942,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                     </td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
-                        {p.status_code || 'active'}
+                        {isRtl ? 'نشط ومعتمد' : (p.status_code || 'Active')}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-center">
@@ -903,14 +978,14 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                       <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">{b.full_name_ar}</td>
                       <td className="py-2.5 px-3">
                         <span className="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold text-[10px]">
-                          {b.category_code}
+                          {VALUE_TRANSLATIONS_AR[b.category_code] || b.category_code}
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">{b.governorate} - {b.district}</td>
                       <td className="py-2.5 px-3 font-mono text-slate-700 dark:text-zinc-300">{b.phone_primary || '77xxxxxxx'}</td>
                       <td className="py-2.5 px-3">
                         <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
-                          {b.status_code || 'active'}
+                          {isRtl ? 'نشط ومعتمد' : (b.status_code || 'Active')}
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-center">
@@ -927,10 +1002,10 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                       <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">{s.full_name_ar}</td>
                       <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">{s.sponsor_name || 'فاعل خير'}</td>
                       <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">{s.governorate}</td>
-                      <td className="py-2.5 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">{Number(s.amount || s.monthly_stipend || 25000).toLocaleString()} {s.currency || 'YER'}</td>
+                      <td className="py-2.5 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">{Number(s.amount || s.monthly_stipend || 25000).toLocaleString()} {isRtl ? 'ريال يمني' : 'YER'}</td>
                       <td className="py-2.5 px-3">
                         <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
-                          {s.status || 'ACTIVE'}
+                          {isRtl ? 'كفالة جارية' : (s.status || 'Active')}
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-center">
@@ -964,9 +1039,9 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                   <tr key={acc.id} onClick={() => setInspectingRecord(acc)} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 cursor-pointer">
                     <td className="py-2.5 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">{acc.account_code || acc.code}</td>
                     <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">{acc.name_ar}</td>
-                    <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">{acc.account_type || 'Asset'}</td>
+                    <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">{VALUE_TRANSLATIONS_AR[acc.account_type] || acc.account_type || (isRtl ? 'أصول' : 'Asset')}</td>
                     <td className="py-2.5 px-3 font-mono font-bold">{Number(acc.opening_balance || 0).toLocaleString()}</td>
-                    <td className="py-2.5 px-3 font-mono">{acc.currency_code || 'YER'}</td>
+                    <td className="py-2.5 px-3 font-mono">{isRtl ? 'ريال يمني' : 'YER'}</td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
                         نشط ومطابق
@@ -1005,7 +1080,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                     <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">{act.location_name || 'صنعاء / ذمار'}</td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-400 text-[10px] font-bold">
-                        {act.status_code || 'مكتمل وموثق'}
+                        {isRtl ? 'مكتمل وموثق' : 'Completed'}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-center">
@@ -1042,7 +1117,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                       <td className="py-2.5 px-3 font-mono font-bold">{w.capacity || '100%'}</td>
                       <td className="py-2.5 px-3">
                         <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
-                          {w.status || 'جاهز للاستقبال'}
+                          {isRtl ? 'متاح للاستقبال' : 'Available'}
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-center">
@@ -1096,8 +1171,8 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                     <td className="py-2.5 px-3 font-mono font-bold text-purple-600 dark:text-purple-400">{u.id?.slice(0, 8)}</td>
                     <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">{u.full_name_ar || u.name}</td>
                     <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-zinc-400">{u.email}</td>
-                    <td className="py-2.5 px-3 font-bold text-emerald-600 dark:text-emerald-400">{u.role_code || 'ADMIN'}</td>
-                    <td className="py-2.5 px-3 font-mono">Level {u.security_level || 3}</td>
+                    <td className="py-2.5 px-3 font-bold text-emerald-600 dark:text-emerald-400">{VALUE_TRANSLATIONS_AR[u.role_code] || (isRtl ? 'حساب معتمد' : u.role_code)}</td>
+                    <td className="py-2.5 px-3 font-mono">{u.security_level === 3 ? (isRtl ? 'صلاحية عليا كاملة' : 'Full Access') : (isRtl ? 'صلاحية إشرافية' : 'Standard Access')}</td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
                         نشط ومعتمد
@@ -1138,7 +1213,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                     <td className="py-2.5 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">{kpi.actual_value || '98%'}</td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold">
-                        مطابق CHS / Sphere
+                        مطابق لمعايير الجودة الدولية
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-center">
@@ -1160,7 +1235,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                   <th className="py-2.5 px-3">كود المشروع</th>
                   <th className="py-2.5 px-3">اسم المشروع الميداني</th>
                   <th className="py-2.5 px-3">البرنامج التابع له</th>
-                  <th className="py-2.5 px-3">الموازنة (YER)</th>
+                  <th className="py-2.5 px-3">الموازنة المعتمدة (ريال يمني)</th>
                   <th className="py-2.5 px-3">المستفيدون</th>
                   <th className="py-2.5 px-3">الحالة التنفيذية</th>
                   <th className="py-2.5 px-3 text-center">فحص السجل</th>
@@ -1176,7 +1251,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                     <td className="py-2.5 px-3 font-mono">{proj.target_beneficiaries || 0}</td>
                     <td className="py-2.5 px-3">
                       <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-bold">
-                        {proj.status_code || 'active'}
+                        {isRtl ? 'نشط وقيد التنفيذ' : 'Active'}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-center">
@@ -1192,7 +1267,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
         </div>
       </div>
 
-      {/* 7. Digital Record Inspection & Verification Modal */}
+            {/* 7. Digital Record Inspection & Verification Modal */}
       {inspectingRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
@@ -1203,10 +1278,10 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 </div>
                 <div>
                   <h3 className="text-base font-black text-slate-900 dark:text-white">
-                    {isRtl ? 'بطاقة الفحص والاعتماد المؤسسي الرقمي' : 'Digital Record Inspection & Verification'}
+                    {isRtl ? 'بطاقة الفحص والاعتماد المؤسسي' : 'Digital Record Inspection'}
                   </h3>
-                  <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                    UAMEX-VERIFIED-RECORD #{inspectingRecord.code || inspectingRecord.beneficiary_code || inspectingRecord.sponsorship_code || inspectingRecord.activity_code || inspectingRecord.id?.slice(0, 8)}
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                    {isRtl ? 'سجل مؤسسي معتمد وموثق رسمياً' : 'Officially Verified Record'}
                   </span>
                 </div>
               </div>
@@ -1221,18 +1296,36 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             {/* Record Fields Grid */}
             <div className="grid grid-cols-2 gap-3 max-h-72 overflow-y-auto custom-scrollbar p-1 text-xs">
               {Object.entries(inspectingRecord)
-                .filter(([key]) => !['metadata', 'version', 'deleted_at'].includes(key))
+                .filter(([key]) => ![
+                  'id', 'organization_id', 'created_by', 'manager_id', 
+                  'currency_id', 'version', 'sync_status', 'deleted_at', 
+                  'metadata', 'updated_at', 'donor_id', 'security_level'
+                ].includes(key))
                 .slice(0, 14)
-                .map(([key, val]) => (
-                  <div key={key} className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800/80">
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 block uppercase font-mono truncate">
-                      {key.replace(/_/g, ' ')}
-                    </span>
-                    <span className="font-bold text-slate-800 dark:text-zinc-200 truncate block mt-0.5 font-mono">
-                      {typeof val === 'object' ? JSON.stringify(val) : String(val ?? '—')}
-                    </span>
-                  </div>
-                ))}
+                .map(([key, val]) => {
+                  const label = isRtl ? (FIELD_LABELS_AR[key] || key.replace(/_/g, ' ')) : key.replace(/_/g, ' ');
+                  let displayVal = val;
+                  if (typeof val === 'string' && val.includes('T') && val.includes('Z')) {
+                    displayVal = val.split('T')[0];
+                  } else if (typeof val === 'string' && VALUE_TRANSLATIONS_AR[val]) {
+                    displayVal = isRtl ? VALUE_TRANSLATIONS_AR[val] : val;
+                  } else if (typeof val === 'object' && val !== null) {
+                    displayVal = isRtl ? 'بيانات إضافية معتمدة' : JSON.stringify(val);
+                  } else if (val === null || val === undefined || val === '') {
+                    displayVal = isRtl ? 'غير محدد' : '—';
+                  }
+
+                  return (
+                    <div key={key} className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800/80">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 block truncate">
+                        {label}
+                      </span>
+                      <span className="font-bold text-slate-800 dark:text-zinc-200 truncate block mt-0.5">
+                        {String(displayVal)}
+                      </span>
+                    </div>
+                  );
+                })}
             </div>
 
             <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-zinc-800">
@@ -1241,7 +1334,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-zinc-400 hover:text-emerald-600 flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 cursor-pointer"
               >
                 {copiedId ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedId ? (isRtl ? 'تم النسخ!' : 'Copied!') : (isRtl ? 'نسخ بيانات السجل' : 'Copy JSON')}</span>
+                <span>{copiedId ? (isRtl ? 'تم النسخ!' : 'Copied!') : (isRtl ? 'نسخ بيانات السجل' : 'Copy Record')}</span>
               </button>
 
               <div className="flex items-center gap-2">

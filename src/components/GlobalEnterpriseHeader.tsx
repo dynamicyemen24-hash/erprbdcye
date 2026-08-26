@@ -184,15 +184,13 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
             <span className="hidden lg:inline">{isRtl ? currentConfig.labelAr : currentConfig.labelEn}</span>
           </button>
 
-          {/* High-Tech Cloud DB Telemetry Chip */}
+          {/* Institutional Cloud Status Indicator */}
           <div 
-            className="hidden 2xl:flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-400 select-none shadow-2xs"
-            title="Neon PostgreSQL 17 Cloud Data Warehouse - TLS 1.3"
+            className="hidden 2xl:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900/90 border border-zinc-800 text-[11px] text-zinc-300 select-none font-bold"
+            title={isRtl ? 'اتصال سحابي آمن ومحدث' : 'Secure Cloud Connection'}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-            <span className="text-cyan-400 font-bold">Neon 14ms</span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-zinc-400">pg17</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>{isRtl ? 'سحابي متصل' : 'Cloud Connected'}</span>
           </div>
 
           {/* Offline Sync Status */}

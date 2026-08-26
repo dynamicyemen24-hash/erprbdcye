@@ -116,14 +116,14 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
   const [activeSection, setActiveSection] = useState<'operations' | 'analytics' | 'geospatial' | 'forecasting'>('operations');
 
   const roleWorkspacesList = [
-    { key: 'leadership', titleAr: 'القيادة والحوكمة', titleEn: 'Leadership', code: 'ROLE-EXEC', count: '100%', subAr: 'حسابات ومؤشرات عليا', icon: ShieldCheck, color: 'text-amber-500' },
-    { key: 'finance', titleAr: 'المالية IPSAS', titleEn: 'Finance', code: 'ROLE-CFO', count: '246', subAr: 'دليل الحسابات', icon: Coins, color: 'text-emerald-500' },
-    { key: 'programs', titleAr: 'البرامج والمشاريع', titleEn: 'PMO', code: 'ROLE-PMO', count: `${programs?.length || 10} برامج`, subAr: '19 مشروعاً', icon: Briefcase, color: 'text-blue-500' },
-    { key: 'operations', titleAr: 'العمليات الميدانية', titleEn: 'Field Ops', code: 'ROLE-OPS', count: '269', subAr: 'نشاط ميداني', icon: Activity, color: 'text-cyan-500' },
-    { key: 'beneficiaries', titleAr: 'الرعاية والأيتام', titleEn: 'Welfare', code: 'ROLE-WELFARE', count: '418 / 595', subAr: 'مستفيد وكفالة', icon: Heart, color: 'text-rose-500' },
-    { key: 'procurement', titleAr: 'المشتريات والمخازن', titleEn: 'Logistics', code: 'ROLE-LOGISTICS', count: '5', subAr: 'مستودعات مركزية', icon: Box, color: 'text-orange-500' },
-    { key: 'meal', titleAr: 'الرقابة والجودة MEAL', titleEn: 'MEAL', code: 'ROLE-MEAL', count: 'CHS/Sphere', subAr: 'معايير الجودة', icon: TrendingUp, color: 'text-indigo-500' },
-    { key: 'admin', titleAr: 'إدارة النظام والأمان', titleEn: 'SysAdmin', code: 'ROLE-SYSADMIN', count: '12', subAr: 'مستخدم معتمد', icon: ShieldCheck, color: 'text-purple-500' }
+    { key: 'leadership', titleAr: 'القيادة والحوكمة', titleEn: 'Leadership', count: 'معتمد', subAr: 'مؤشرات الإدارة العليا', icon: ShieldCheck, color: 'text-amber-500' },
+    { key: 'finance', titleAr: 'الإدارة المالية والمحاسبة', titleEn: 'Finance', count: 'محدث', subAr: 'دليل الحسابات والقيود', icon: Coins, color: 'text-emerald-500' },
+    { key: 'programs', titleAr: 'إدارة البرامج والمشاريع', titleEn: 'Programs', count: 'جارية', subAr: 'المشاريع والخطط الميدانية', icon: Briefcase, color: 'text-blue-500' },
+    { key: 'operations', titleAr: 'العمليات الميدانية', titleEn: 'Field Ops', count: 'ميداني', subAr: 'الأنشطة الميدانية الموثقة', icon: Activity, color: 'text-cyan-500' },
+    { key: 'beneficiaries', titleAr: 'الرعاية وكفالات الأيتام', titleEn: 'Welfare', count: 'شامل', subAr: 'المستفيدون والأيتام المكفولون', icon: Heart, color: 'text-rose-500' },
+    { key: 'procurement', titleAr: 'المشتريات وإدارة المخازن', titleEn: 'Logistics', count: 'مركزي', subAr: 'المستودعات وسلاسل الإمداد', icon: Box, color: 'text-orange-500' },
+    { key: 'meal', titleAr: 'الرقابة وتقييم الجودة', titleEn: 'Quality Assurance', count: 'مطابق', subAr: 'معايير الجودة والمساءلة', icon: TrendingUp, color: 'text-indigo-500' },
+    { key: 'admin', titleAr: 'إدارة النظام والأمان', titleEn: 'SysAdmin', count: 'مؤمن', subAr: 'المستخدمون والصلاحيات', icon: ShieldCheck, color: 'text-purple-500' }
   ];
 
   return (
@@ -327,7 +327,7 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
                       {isRtl ? r.titleAr : r.titleEn}
                     </div>
                     <div className="text-[10px] text-slate-400 dark:text-zinc-500 truncate mt-0.5">
-                      {isRtl ? r.subAr : r.code}
+                      {isRtl ? r.subAr : r.titleEn}
                     </div>
                   </button>
                 );
@@ -336,11 +336,11 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
           </div>
 
           <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-500">
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {isRtl ? 'بيانات حية موثقة - قاعدة بيانات نيون 349 جدولاً' : 'Live Neon PostgreSQL Data - 349 Tables'}
+              {isRtl ? 'سجلات تشغيلية موثقة ومتصلة بقاعدة البيانات المركزية' : 'Live Verified Central Database Records'}
             </span>
-            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">UAMEX Enterprise™</span>
+            <span className="font-bold text-emerald-600 dark:text-emerald-400">{isRtl ? 'نظام يو امكس المؤسسي' : 'UAMEX Enterprise™'}</span>
           </div>
         </div>
 
