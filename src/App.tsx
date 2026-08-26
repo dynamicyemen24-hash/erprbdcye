@@ -105,48 +105,49 @@ import { STORAGE_KEYS, INTERVALS } from './lib/constants';
 const ProjectStatusOverviewWidget = React.lazy(() => import('./components/ProjectStatusOverviewWidget'));
 import { ActiveTab } from './core/types';
 import { resumeIntelligenceService } from './core/services/resumeIntelligence';
+import { useAppNavigationStore } from './core/stores/useAppNavigationStore';
+import { useAppUIStore } from './core/stores/useAppUIStore';
 
 export default function App() {
   const { isTrainingMode, environmentMode } = useEnvironmentMode();
-  const [lang, setLang] = useState<'ar' | 'en'>('ar');
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.THEME);
-      if (saved === 'dark' || saved === 'light') return saved;
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    } catch (e) {
-      return 'light';
-    }
-  });
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [openTabs, setOpenTabs] = useState<ActiveTab[]>(['dashboard']);
-  const [authenticatedModules, setAuthenticatedModules] = useState<ActiveTab[]>([]);
-  const [isNavigating, setIsNavigating] = useState(false);
+  
+  // Use Deconstructed Dedicated Hook Stores for Optimal UX & Zero Unnecessary Re-renders
+  const navStore = useAppNavigationStore();
+  const uiStore = useAppUIStore();
+
+  const {
+    activeTab, openTabs, authenticatedModules, isNavigating,
+    pendingSecureTab, drillDownFilters, setActiveTab, setOpenTabs,
+    setAuthenticatedModules, setIsNavigating, setPendingSecureTab,
+    setDrillDownFilters, handleSelectTab, handleDrillDown, handleCloseTab
+  } = navStore;
+
+  const {
+    lang, theme, layoutDensity, showDocsModal, showExportModal,
+    showScenariosModal, showHelpersModal, showCopilotDrawer,
+    showAppLauncherModal, isCommandCenterOpen, isShortcutsModalOpen,
+    showAboutSystemModal, showUserProfilePopover, isSystemsDockPinned,
+    isMobileMenuOpen, isRecordRetrievalOpen, globalToolStripSearch,
+    activeRolePerspective, organizationId, fiscalYear, setLang, setTheme,
+    setLayoutDensity, setShowDocsModal, setShowExportModal, setShowScenariosModal,
+    setShowHelpersModal, setShowCopilotDrawer, setShowAppLauncherModal,
+    setIsCommandCenterOpen, setIsShortcutsModalOpen, setShowAboutSystemModal,
+    setShowUserProfilePopover, setIsSystemsDockPinned, setIsMobileMenuOpen,
+    setIsRecordRetrievalOpen, setGlobalToolStripSearch, setActiveRolePerspective,
+    setOrganizationId, setFiscalYear, closeAllModals
+  } = uiStore;
 
   useEffect(() => {
     if (typeof performance !== 'undefined' && performance.mark) {
       performance.mark('app-shell-render');
       try {
         performance.measure('app-startup-to-shell', 'app-start', 'app-shell-render');
-        const measure = performance.getEntriesByName('app-startup-to-shell')[0];
-
       } catch (e) { console.error('[StartupPerf] Failed to measure app startup performance:', e); }
     }
   }, []);
 
-
-
   // Enterprise Feature: Telemetry
   useTelemetry('NexoraOS_AppRoot', true);
-  const [pendingSecureTab, setPendingSecureTab] = useState<ActiveTab | null>(null);
-
-  const [drillDownFilters, setDrillDownFilters] = useState<{
-    programsStatus?: string;
-    projectsStatus?: string;
-    approvalsStatus?: 'all' | 'pending' | 'approved' | 'rejected';
-    beneficiariesStatus?: string;
-    beneficiariesCategory?: string;
-  }>({});
 
   // Use Core Nexora Enterprise Data Hook
   const {
@@ -331,88 +332,6 @@ export default function App() {
     };
   }, [activeTab]);
 
-  const handleSelectTab = useCallback((tab: ActiveTab) => {
-    setIsNavigating(true);
-    setDrillDownFilters({});
-    setOpenTabs(prev => prev.includes(tab) ? prev : [...prev, tab]);
-    setActiveTab(tab);
-    
-    // Resume Intelligence Tracking
-    const tabNames: Record<string, { ar: string; en: string }> = {
-      dashboard: { ar: 'اللوحة القيادية الاستراتيجية', en: 'Strategic Dashboard' },
-      programs: { ar: 'البرامج التنموية', en: 'Development Programs' },
-      projects: { ar: 'المشاريع الميدانية', en: 'Field Projects' },
-      activities: { ar: 'الأنشطة والمهام الميدانية WBS', en: 'WBS Activities' },
-      beneficiaries: { ar: 'سجل المستفيدين والخدمات', en: 'Beneficiaries Registry' },
-      sponsorships: { ar: 'كفالات الأيتام والرعاية', en: 'Orphan Sponsorships' },
-      finance: { ar: 'النظام المالي والحسابات IPSAS', en: 'Financial Ledger' },
-      reports: { ar: 'التقارير ومؤشرات الأثر', en: 'Impact Reports' },
-      users: { ar: 'الموارد البشرية والكادر', en: 'Human Resources' },
-      contracts: { ar: 'العقود والمشتريات', en: 'Contracts & Procurement' },
-      currencies: { ar: 'العملات وأسعار الصرف', en: 'Currencies & Rates' },
-      settings: { ar: 'إعدادات النظام', en: 'System Settings' },
-      geospatial: { ar: 'خريطة الأثر الجغرافي', en: 'Geospatial Map' }
-    };
-    const info = tabNames[tab] || { ar: tab, en: tab };
-    resumeIntelligenceService.recordActivity({
-      lastActiveTab: tab,
-      viewTitleAr: info.ar,
-      viewTitleEn: info.en
-    });
-  }, []);
-
-  const handleDrillDown = useCallback((tab: ActiveTab, filters: typeof drillDownFilters) => {
-    setIsNavigating(true);
-    setDrillDownFilters(filters);
-    setOpenTabs(prev => prev.includes(tab) ? prev : [...prev, tab]);
-    setActiveTab(tab);
-  }, []);
-
-  const handleCloseTab = useCallback((tabToClose: ActiveTab, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setOpenTabs(prev => {
-      if (prev.length <= 1) return prev;
-      const updated = prev.filter(t => t !== tabToClose);
-      setActiveTab(currentActive => (currentActive === tabToClose ? updated[updated.length - 1] : currentActive));
-      return updated;
-    });
-  }, []);
-
-  const [showDocsModal, setShowDocsModal] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [globalToolStripSearch, setGlobalToolStripSearch] = useState('');
-  const [showScenariosModal, setShowScenariosModal] = useState(false);
-  const [showHelpersModal, setShowHelpersModal] = useState(false);
-  const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
-  const [showAppLauncherModal, setShowAppLauncherModal] = useState(false);
-  const [isCommandCenterOpen, setIsCommandCenterOpen] = useState(false);
-  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
-  const [showAboutSystemModal, setShowAboutSystemModal] = useState(false);
-  const [showUserProfilePopover, setShowUserProfilePopover] = useState(false);
-  const [layoutDensity, setLayoutDensity] = useState<'compact' | 'comfortable' | 'spacious'>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.DENSITY);
-      if (saved === 'compact' || saved === 'comfortable' || saved === 'spacious') return saved;
-    } catch (e) { console.error('[LayoutDensity] Failed to read layout density from localStorage:', e); }
-    return 'comfortable';
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.DENSITY, layoutDensity);
-      document.documentElement.setAttribute('data-density', layoutDensity);
-    } catch (e) { console.error('[LayoutDensity] Failed to save layout density to localStorage:', e); }
-  }, [layoutDensity]);
-
-  const [isSystemsDockPinned, setIsSystemsDockPinned] = useState<boolean>(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-  const [isRecordRetrievalOpen, setIsRecordRetrievalOpen] = useState<boolean>(false);
-  
-  // NexoraOS Context Controls
-  const [activeRolePerspective, setActiveRolePerspective] = useState<'executive' | 'manager' | 'field'>('executive');
-  const [organizationId, setOrganizationId] = useState<string>('hq');
-  const [fiscalYear, setFiscalYear] = useState<string>('FY2026');
-
   // Global Keyboard Shortcuts (Ctrl+K, Ctrl+Shift+F for Record Finder, F1 for Docs, ?, Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -432,18 +351,12 @@ export default function App() {
         e.preventDefault();
         setShowDocsModal(prev => !prev);
       } else if (e.key === 'Escape') {
-        setShowDocsModal(false);
-        setShowScenariosModal(false);
-        setShowAppLauncherModal(false);
-        setIsCommandCenterOpen(false);
-        setIsShortcutsModalOpen(false);
-        setIsRecordRetrievalOpen(false);
-        setIsMobileMenuOpen(false);
+        closeAllModals();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [closeAllModals, setIsCommandCenterOpen, setIsRecordRetrievalOpen, setIsShortcutsModalOpen, setShowDocsModal]);
   
   // User Authentication State
   const enterprise = useEnterprise();
@@ -709,7 +622,7 @@ export default function App() {
     audit: { icon: Database, title_ar: 'سجل التدقيق', title_en: 'Audit Logs', category_ar: 'الأمان', category_en: 'Security' },
     backup: { icon: Database, title_ar: 'النسخ الاحتياطي', title_en: 'Backup', category_ar: 'البيانات', category_en: 'Data' },
     docs: { icon: BookOpen, title_ar: 'الدليل', title_en: 'Docs', category_ar: 'الدليل', category_en: 'Docs' },
-    scenarios: { icon: PlayCircle, title_ar: 'السيناريوهات', title_en: 'Scenarios', category_ar: 'السيناريوهات', category_en: 'Playbooks' },
+    scenarios: { icon: Compass, title_ar: 'دليل الإجراءات والتدشين واللوائح والتوصيف', title_en: 'Master SOP, Bylaws & Job Taxonomy', category_ar: 'التشغيل المؤسسي', category_en: 'Enterprise Core' },
     allocations: { icon: Calendar, title_ar: 'تخصيص الموارد', title_en: 'Resource Allocation', category_ar: 'الموارد', category_en: 'Resources' },
     geospatial: { icon: Globe, title_ar: 'الخريطة المكانية', title_en: 'Geospatial Map', category_ar: 'الخريطة التفاعلية', category_en: 'GIS Map' },
     strategic_planning: { icon: Target, title_ar: 'التخطيط الاستراتيجي', title_en: 'Strategic Planning', category_ar: 'التخطيط الاستراتيجي', category_en: 'Strategy' },
@@ -1043,12 +956,12 @@ export default function App() {
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-xl overflow-hidden">
             <div className="h-14 px-6 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg">
-                  <PlayCircle className="w-5 h-5" />
+                <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg">
+                  <Compass className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-white flex items-center gap-2">
-                    <span>{lang === 'ar' ? 'دليل السيناريوهات التشغيلية مع أدوار المستخدمين' : 'Operational Playbooks & Role Scenarios'}</span>
+                    <span>{lang === 'ar' ? 'دليل الإجراءات والتدشين المؤسسي واللوائح والتوصيف الوظيفي' : 'Master SOP, Governance Bylaws & Job Taxonomy Engine'}</span>
                   </h3>
                 </div>
               </div>
@@ -1058,7 +971,11 @@ export default function App() {
             </div>
             <div className="flex-1 overflow-y-auto p-6 bg-zinc-900">
               <React.Suspense fallback={<div className="p-6 text-center text-slate-400">...</div>}>
-                <OperationalScenariosView lang={lang} onNavigate={(tab) => { setShowScenariosModal(false); handleSelectTab(tab as ActiveTab); }} />
+                <OperationalScenariosView 
+                  lang={lang} 
+                  orgName={orgName}
+                  onNavigate={(tab) => { setShowScenariosModal(false); handleSelectTab(tab as ActiveTab); }} 
+                />
               </React.Suspense>
             </div>
           </div>

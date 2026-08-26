@@ -14,7 +14,8 @@ import {
   CheckCircle2, 
   TrendingUp, 
   Printer,
-  Heart
+  Heart,
+  Compass
 } from 'lucide-react';
 import { 
   EmployeeContributionView, 
@@ -143,6 +144,14 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
             <Printer className="w-3.5 h-3.5" />
             <span>{isRtl ? 'طباعة العقود والوثائق' : 'Generate Contracts'}</span>
           </PolicyButton>
+
+          <button
+            onClick={() => onNavigate?.('scenarios')}
+            className="px-3.5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Compass className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{isRtl ? 'دليل الإجراءات والتوصيف واللوائح' : 'Master SOP & Bylaws'}</span>
+          </button>
 
           <button
             onClick={fetchHRData}

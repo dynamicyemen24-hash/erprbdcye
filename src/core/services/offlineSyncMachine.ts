@@ -170,6 +170,37 @@ class NexoraOfflineSyncMachine {
   public getPendingCount(): number {
     return this.queue.filter(tx => tx.status !== 'synced').length;
   }
+
+  /**
+   * Manually resolves a version conflict by force-resubmitting or dropping
+   */
+  public async resolveConflict(idempotencyKey: string, resolution: 'force_overwrite' | 'discard'): Promise<void> {
+    const tx = this.queue.find(item => item.idempotencyKey === idempotencyKey);
+    if (!tx) return;
+
+    if (resolution === 'discard') {
+      this.queue = this.queue.filter(item => item.idempotencyKey !== idempotencyKey);
+      await this.persistQueue();
+    } else {
+      tx.status = 'saved_locally';
+      tx.retryCount = 0;
+      await this.persistQueue();
+      this.triggerSync();
+    }
+  }
+
+  /**
+   * Resets failed transaction for retry
+   */
+  public async retryFailedTransaction(idempotencyKey: string): Promise<void> {
+    const tx = this.queue.find(item => item.idempotencyKey === idempotencyKey);
+    if (tx && tx.status === 'failed') {
+      tx.status = 'saved_locally';
+      tx.retryCount = 0;
+      await this.persistQueue();
+      this.triggerSync();
+    }
+  }
 }
 
 export const offlineSyncMachine = new NexoraOfflineSyncMachine();

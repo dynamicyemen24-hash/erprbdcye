@@ -97,7 +97,7 @@ export default function FinancialClosingsTab({ accounts, lang, onRefresh }: Fina
             line_number: lineNum++,
             account_id: exp.id,
             account_code: exp.account_code,
-            description: `${lang === 'ar' ? 'فصيلة الدم' : 'Closing account'} ${exp.name_ar}`,
+            description: `${lang === 'ar' ? 'إقفال حساب مصروف' : 'Closing expense account'} ${exp.name_ar}`,
             debit_amount: 0,
             credit_amount: bal,
             currency_code: 'YER'

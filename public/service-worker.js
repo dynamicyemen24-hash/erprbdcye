@@ -8,14 +8,20 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/LogoRohamaab.png',
-  '/LogoRohamaab.png',
-  '/manifest.json',
-  '/favicon.ico'
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(STATIC_CACHE).then(async (cache) => {
+      await Promise.allSettled(
+        STATIC_ASSETS.map(url =>
+          cache.add(url).catch(err => {
+            console.warn(`[Service Worker] Failed to cache static asset: ${url}`, err);
+          })
+        )
+      );
+    })
   );
   self.skipWaiting();
 });

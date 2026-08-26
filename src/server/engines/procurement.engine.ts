@@ -10,7 +10,7 @@ import {
 } from '../core/types';
 import {
   paginatedQuery, requireField, optionalString, optionalNumber,
-  generateCode, auditLog, AuthContext
+  generateCode, generateTxNumber, auditLog, AuthContext
 } from '../core/helpers';
 import logger from '../core/logger';
 
@@ -294,6 +294,22 @@ export class PurchaseOrderEngine {
     );
     if (!po) throw new Error('Purchase order not found or already approved');
 
+    // Budget Hard-Lock Verification (NEB-10 / NEB-14 Compliance)
+    if (po.project_id) {
+      const proj = await queryOne(
+        'SELECT budget, COALESCE(spent_amount, 0) as spent FROM projects WHERE id = $1',
+        [po.project_id]
+      );
+      if (proj && proj.budget) {
+        const available = Number(proj.budget) - Number(proj.spent);
+        if (Number(po.total_amount) > available) {
+          throw new Error(
+            `Budget Violation: Purchase Order amount (${po.total_amount}) exceeds available project budget (${available})`
+          );
+        }
+      }
+    }
+
     return queryOne(
       `UPDATE purchase_orders
        SET status = 'APPROVED', approved_by = $1, approved_at = NOW()
@@ -434,6 +450,75 @@ export class ThreeWayMatchEngine {
       ).catch((err) => {
         logger.error('Three-way match insert failed', { context: 'procurement', error: err.message });
       });
+
+      // Automatically post double-entry transaction to IPSAS Ledger when 3-way match succeeds
+      if (isFullyMatched) {
+        try {
+          const txNumber = generateTxNumber('PUR');
+          const txRes = await client.query(
+            `INSERT INTO transactions
+             (organization_id, transaction_number, transaction_date, posting_date,
+              transaction_type, description, reference_no, total_debit, total_credit, status, created_by_id)
+             VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE, 'PURCHASE', $3, $4, $5, $5, 'POSTED', $6)
+             RETURNING id`,
+            [
+              purchaseOrder.organization_id,
+              txNumber,
+              `Procurement Auto-Ledger Post: PO #${purchaseOrder.po_number || poId} - Invoice #${data.invoiceNumber}`,
+              data.invoiceNumber,
+              data.invoiceAmount,
+              auth.userId,
+            ]
+          );
+
+          if (txRes && txRes.rows && txRes.rows.length > 0) {
+            const txId = txRes.rows[0].id;
+            const expAccount = await client.query(
+              "SELECT id FROM chart_of_accounts WHERE account_type = 'EXPENSE' OR account_code LIKE '5%' LIMIT 1"
+            );
+            const apAccount = await client.query(
+              "SELECT id FROM chart_of_accounts WHERE account_type = 'LIABILITY' OR account_code LIKE '2%' LIMIT 1"
+            );
+
+            const expAccId = expAccount?.rows?.[0]?.id || null;
+            const apAccId = apAccount?.rows?.[0]?.id || null;
+
+            if (expAccId && apAccId) {
+              await client.query(
+                `INSERT INTO transaction_lines
+                 (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description, project_id)
+                 VALUES ($1, $2, 1, $3, $4, 0, $5, $6, $7)`,
+                [
+                  txId,
+                  purchaseOrder.organization_id,
+                  expAccId,
+                  data.invoiceAmount,
+                  purchaseOrder.currency_code || 'USD',
+                  `Procurement Expense - PO #${purchaseOrder.po_number || poId}`,
+                  purchaseOrder.project_id || null,
+                ]
+              );
+
+              await client.query(
+                `INSERT INTO transaction_lines
+                 (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description, project_id)
+                 VALUES ($1, $2, 2, $3, 0, $4, $5, $6, $7)`,
+                [
+                  txId,
+                  purchaseOrder.organization_id,
+                  apAccId,
+                  data.invoiceAmount,
+                  purchaseOrder.currency_code || 'USD',
+                  `Accounts Payable Vendor - PO #${purchaseOrder.po_number || poId}`,
+                  purchaseOrder.project_id || null,
+                ]
+              );
+            }
+          }
+        } catch (err: any) {
+          logger.error('Auto ledger insert failed for procurement match', { context: 'procurement', error: err?.message });
+        }
+      }
 
       return {
         purchaseOrderId: poId,

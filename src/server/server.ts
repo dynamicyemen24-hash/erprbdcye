@@ -121,20 +121,20 @@ app.use(securityMiddleware());
 
 // Security headers
 app.use(helmet({
-  contentSecurityPolicy: {
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://unpkg.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org", "https://maps.googleapis.com"],
-      connectSrc: ["'self'", "https://*.neon.tech", "https://maps.googleapis.com", "https://*.googleapis.com"],
+      connectSrc: ["'self'", "ws:", "wss:", "http://localhost:*", "ws://localhost:*", "https://*.neon.tech", "https://maps.googleapis.com", "https://*.googleapis.com"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
     },
-  },
+  } : false,
   crossOriginEmbedderPolicy: false,
   frameguard: { action: 'sameorigin' },
   crossOriginOpenerPolicy: { policy: 'same-origin' },

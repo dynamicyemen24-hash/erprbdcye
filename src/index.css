@@ -122,6 +122,15 @@ html {
   font-variant-numeric: tabular-nums;
 }
 
+/* WCAG 2.1 AA Enhanced Contrast Utilities for Dark Mode */
+.dark th {
+  color: #f4f4f5 !important;
+  font-weight: 600;
+}
+.dark .text-slate-400, .dark .text-zinc-400 {
+  color: #a1a1aa;
+}
+
 /* Skeleton Shimmer Wave Effect Keyframes */
 @keyframes shimmerWave {
   0% {

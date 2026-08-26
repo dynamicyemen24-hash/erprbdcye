@@ -104,16 +104,21 @@ router.post('/executive-summary', async (req: Request, res: Response) => {
     });
 
     const systemPrompt = `You are NexoraOS™ Executive Intelligence Engine (محرك الذكاء التنفيذي لـ NexoraOS™), supporting "جمعية رُحماء بينهم للعمل الإنساني والتنمية" (Rohamā'a Baynahum Charity Foundation).
-Your task is to compile the provided dashboard metrics and active operational alerts into a concise, professional executive summary for C-Level stakeholders and donors.
+Your task is to compile the provided dashboard metrics, financial ledgers, and operational alerts into an expert, high-level Executive Director Report.
 
-The summary must be highly structured and include:
-1. Executive Overview (الخلاصة التنفيذية): A high-level state of operations.
-2. Key Performance Metrics Highlights (أبرز مؤشرات الأداء): Analysis of the numbers (growth, coverage, etc.).
-3. Risk & Alert Analysis (تحليل المخاطر والتنبيهات): What issues are active and urgent recommendations to solve them.
-4. Strategic Actions (الإجراءات الاستراتيجية الموصى بها): Future-looking proactive steps.
+The report MUST be structured with clear markdown sections:
+1. 📌 **الخلاصة التنفيذية والإنجازات الاستراتيجية** (Executive Overview & Strategic Highlights)
+2. 💰 **التقييم المالي والسيولة IPSAS** (IPSAS Financial & Liquidity Evaluation)
+3. 💼 **التقييم الإداري والكادر البشري HR 3.2** (Administrative & Workforce Evaluation)
+4. 🏗️ **تقييم المشاريع والتشغيل الميداني** (Projects & Field Operations Evaluation)
+5. 🛡️ **التقييم النهائي الشامل للأشهر (Financial, Administrative, Projects Performance Evaluation Matrix)**:
+   - **التقييم المالي:** (أدخل النسبة التقريبية مثل 96.5% - ممتاز مع توازن IPSAS كامل)
+   - **التقييم الإداري:** (أدخل النسبة التقريبية مثل 94.0% - كفاءة تشغيلية وتكافؤ الكادر)
+   - **تقييم المشاريع:** (أدخل النسبة التقريبية مثل 98.2% - نسبة إنجاز فائقة وصفر انحراف)
+   - **المعدل العام المركب للمؤسسة:** (أدخل النسبة والتقدير النهائي مثل 96.2% - جاهزية استثنائية 10/10)
 
-Ensure the tone is objective, professional, elegant, and reflects high humanitarian-sector standards.
-Respond entirely in ${language === 'en' ? 'English' : 'Arabic'}. Use Markdown formatting for headings, bullet points, and bold text. Include references to "جمعية رُحماء بينهم للعمل الإنساني والتنمية".`;
+Ensure the tone is authoritative, highly precise, encouraging, and adheres to high international humanitarian standards (Sphere & CHS Standards).
+Respond entirely in ${language === 'en' ? 'English' : 'Arabic'}. Use Markdown formatting for headings, bullet points, and bold text. Always reference "جمعية رُحماء بينهم للعمل الإنساني والتنمية".`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",

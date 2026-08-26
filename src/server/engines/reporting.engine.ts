@@ -520,4 +520,54 @@ export class ReportExportEngine {
       byType,
     };
   }
+
+  /**
+   * Generates IATI Standard v2.03 Compliant Humanitarian Activity Export
+   */
+  static async generateIATIStandardReport(orgId: string, projectId?: string) {
+    const projects = await queryMany(
+      `SELECT p.*, o.name_ar as org_name
+       FROM projects p
+       LEFT JOIN organizations o ON o.id = p.organization_id
+       WHERE (p.organization_id = $1 OR $1 IS NULL)
+         AND ($2::text IS NULL OR p.id = $2::text)`,
+      [orgId, projectId || null]
+    );
+
+    const iatiActivities = projects.map(proj => ({
+      iatiIdentifier: `ROH-YEM-${proj.id}`,
+      title: {
+        narrativeAr: proj.name_ar,
+        narrativeEn: proj.name_en || proj.name_ar,
+      },
+      description: proj.description_ar || 'Humanitarian Development Intervention',
+      activityStatus: proj.status_code === 'COMPLETED' ? '3' : '2',
+      participatingOrganizations: [
+        {
+          ref: 'ROHAMAAB-FOUNDATION',
+          role: '4', // Implementing
+          type: '22', // National NGO
+          name: 'Rohamā\'a Baynahum Charity Foundation (جمعية رُحماء بينهم)',
+        },
+      ],
+      recipientCountry: { code: 'YE', name: 'Yemen' },
+      budget: {
+        valueUSD: proj.budget || 0,
+        currency: 'USD',
+        periodStart: proj.start_date,
+        periodEnd: proj.end_date,
+      },
+      spentAmountUSD: proj.spent_amount || 0,
+      complianceStandard: 'IATI Standard v2.03 / CHS Sphere Standard',
+    }));
+
+    return {
+      publisher: 'Rohamā\'a Baynahum Charity Foundation (جمعية رُحماء بينهم للعمل الإنساني والتنمية)',
+      iatiVersion: '2.03',
+      generatedAt: new Date().toISOString(),
+      activityCount: iatiActivities.length,
+      activities: iatiActivities,
+    };
+  }
 }
+

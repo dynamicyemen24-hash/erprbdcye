@@ -71,6 +71,7 @@ import { useEnterprise } from '../core/context/EnterpriseContext';
 import { printHTML } from '../lib/printUtils';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
+import { MasterUnifiedExecutiveReport } from './dashboard/MasterUnifiedExecutiveReport';
 
 interface ReportsViewProps {
   programs: Program[];
@@ -1125,6 +1126,16 @@ export default function ReportsView({
         {/* TAB 15-PART EXECUTIVE INTEGRATED INTELLIGENCE REPORT */}
         {activeTab === 'executive_report' && (
           <div className="space-y-6 animate-fade-in print:p-0 print:space-y-4">
+            <MasterUnifiedExecutiveReport
+              lang={lang}
+              orgName={orgName}
+              projects={projects}
+              programs={programs}
+              beneficiaries={beneficiaries}
+              sponsorships={sponsorships}
+              activities={activities}
+              users={users}
+            />
             
             {/* INTERACTIVE PRODUCTION FILTER TOOLBAR */}
             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4 print:hidden">

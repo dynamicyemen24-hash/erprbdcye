@@ -132,6 +132,12 @@ export class IPSASFinanceService {
       throw new Error(`IPSAS Ledger Validation Failed: Total Debit (${totalDebit}) does not equal Total Credit (${totalCredit})`);
     }
 
+    // Mandatory Budget Availability Check (NEB-10 / NEB-14 Compliance)
+    const targetProjectId = voucher.projectId || voucher.lines.find(l => l.projectId)?.projectId;
+    if (targetProjectId) {
+      await IPSASFinanceService.checkBudgetAvailability(voucher.organizationId, targetProjectId, totalDebit);
+    }
+
     return await withTransaction(async (client) => {
       const txRes = await client.query(`
         INSERT INTO transactions (
@@ -180,5 +186,91 @@ export class IPSASFinanceService {
         status: 'POSTED'
       };
     });
+  }
+
+  /**
+   * IPSAS 4 Foreign Exchange Variance Revaluation Engine
+   * Calculates unrealized gain/loss for multi-currency asset/liability balances
+   */
+  static async calculateFXVariance(orgId: string = serverConfig.defaultOrgId, targetCurrency: string = 'USD') {
+    const pool = getDatabasePool();
+    const query = `
+      SELECT 
+        tl.currency_code,
+        COALESCE(SUM(tl.debit_amount - tl.credit_amount), 0) as foreign_balance
+      FROM transaction_lines tl
+      WHERE (tl.organization_id = $1 OR $1 IS NULL)
+        AND tl.currency_code IS NOT NULL
+        AND tl.currency_code != $2
+      GROUP BY tl.currency_code;
+    `;
+    const result = await pool.query(query, [orgId, targetCurrency]);
+
+    // Benchmark IPSAS FX rates
+    const defaultRates: Record<string, number> = {
+      YER: 0.004, // 1 YER = 0.004 USD approx (or vice versa)
+      SAR: 0.2667, // 1 SAR = 0.2667 USD
+      EUR: 1.0850  // 1 EUR = 1.085 USD
+    };
+
+    const revaluations = result.rows.map((row: any) => {
+      const foreignBalance = Number(row.foreign_balance);
+      const rate = defaultRates[row.currency_code] || 1.0;
+      const convertedValue = foreignBalance * rate;
+
+      return {
+        currencyCode: row.currency_code,
+        foreignBalance,
+        exchangeRate: rate,
+        convertedValueUSD: Math.round(convertedValue * 100) / 100
+      };
+    });
+
+    const totalUnrealizedUSD = revaluations.reduce((sum: number, r: any) => sum + r.convertedValueUSD, 0);
+
+    return {
+      status: 'success',
+      standard: 'IPSAS 4 - The Effects of Changes in Foreign Exchange Rates',
+      organizationId: orgId,
+      baseCurrency: targetCurrency,
+      revaluations,
+      totalUnrealizedUSD,
+      calculatedAt: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Hard-Lock Budget Verification (checkBudgetAvailability)
+   * Throws an error if amount exceeds available budget for a purchase or custody/expense voucher
+   */
+  static async checkBudgetAvailability(orgId: string, projectId: string, requestedAmount: number) {
+    if (!projectId) return;
+
+    const pool = getDatabasePool();
+    const res = await pool.query(
+      `SELECT budget, COALESCE(spent_amount, 0) as spent, name_ar FROM projects WHERE id = $1 AND (organization_id = $2 OR organization_id IS NULL)`,
+      [projectId, orgId]
+    );
+
+    if (res.rows.length > 0) {
+      const proj = res.rows[0];
+      const budget = Number(proj.budget || 0);
+      const spent = Number(proj.spent || 0);
+      if (budget > 0) {
+        const available = budget - spent;
+        if (requestedAmount > available) {
+          throw new Error(
+            `IPSAS Budget Hard-Lock Violation: Requested amount (${requestedAmount}) exceeds available project budget (${available}) for '${proj.name_ar || projectId}'`
+          );
+        }
+      }
+    }
+  }
+
+  /**
+   * Alias for checkBudgetAvailability
+   */
+  static async assertBudgetNotExceeded(orgId: string, projectId: string, requestedAmount: number) {
+    return this.checkBudgetAvailability(orgId, projectId, requestedAmount);
   }
 }

@@ -266,6 +266,42 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
       badge: 'CACHE',
       badgeColor: 'bg-blue-500/10 text-blue-600',
       action: () => { onRefreshData?.(); onClose(); }
+    },
+    {
+      id: 'act-master-sop',
+      category: 'ACTIONS',
+      titleAr: 'دليل الإجراءات المعيارية وخطة التدشين (9 مراحل)',
+      titleEn: 'Master SOP & Departmental Rollout Matrix',
+      subAr: 'دليل تشغيل الأقسام وقوالب البيانات والتنفيذ المباشر',
+      subEn: 'Standard operating procedures and 9-phase rollout matrix',
+      icon: Compass,
+      badge: 'SOP',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600',
+      action: () => { onNavigate('scenarios' as TabId); onClose(); }
+    },
+    {
+      id: 'act-bylaws-gov',
+      category: 'ACTIONS',
+      titleAr: 'اللائحة الداخلية والتنظيمية للمؤسسة (10 أبواب)',
+      titleEn: 'Institutional Governance & Internal Bylaws',
+      subAr: 'الضوابط الحوكمية والقيد المزدوج الإلزامي وسلاسل الصلاحيات',
+      subEn: 'Organizational bylaws, double-entry rules and authority limits',
+      icon: FileCheck,
+      badge: 'BYLAWS',
+      badgeColor: 'bg-purple-500/10 text-purple-600',
+      action: () => { onNavigate('scenarios' as TabId); onClose(); }
+    },
+    {
+      id: 'act-job-taxonomy',
+      category: 'ACTIONS',
+      titleAr: 'التوصيف الوظيفي للكوادر وجدول المهام الدورية',
+      titleEn: 'Job Descriptions & Employee Duty Rosters',
+      subAr: 'بطاقات الوصف الوظيفي لـ 10 كوادر والمهام اليومية والأسبوعية',
+      subEn: '10 Job descriptions and periodic execution checklists',
+      icon: Users,
+      badge: 'ROLES',
+      badgeColor: 'bg-blue-500/10 text-blue-600',
+      action: () => { onNavigate('scenarios' as TabId); onClose(); }
     }
   ], [onNavigate, onRefreshData, onClose]);
 

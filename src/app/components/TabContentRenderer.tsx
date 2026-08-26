@@ -196,7 +196,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     audit: { icon: Database, title_ar: 'سجل التدقيق المؤسسي', title_en: 'Audit Logs OS', domainCode: 'NEB-11', desc_ar: 'مراقبة وتوثيق كافة العمليات الإدارية والمالية لضمان أعلى معايير الشفافية.', desc_en: 'Chronological audit logs tracking administrative and financial events.' },
     backup: { icon: Database, title_ar: 'نظام النسخ الاحتياطي السحابي', title_en: 'Cloud Backup OS', domainCode: 'NEB-12', desc_ar: 'سجل النسخ الاحتياطية المؤتمتة لبيانات المؤسسة لضمان أمان واستمرارية العمل.', desc_en: 'Automated data state snapshots and cloud backup recovery.' },
     docs: { icon: BookOpen, title_ar: 'الدليل التشغيلي والوثائق', title_en: 'System Manual & Docs', domainCode: 'NEB-11', desc_ar: 'الدليل التشغيلي الموحد، المرجعية الإجرائية، واللوائح المؤسسية.', desc_en: 'Operational guidelines, user manual, and organizational standard policies.' },
-    scenarios: { icon: PlayCircle, title_ar: 'سيناريوهات العمليات المعتمدة', title_en: 'Operational Playbooks', domainCode: 'NEB-05', desc_ar: 'سيناريوهات الاستجابة الإنسانية الطارئة وكتيبات الإجراءات القياسية الميدانية.', desc_en: 'Humanitarian emergency response frameworks and standard operating procedures.' },
+    scenarios: { icon: Compass, title_ar: 'دليل الإجراءات والتدشين واللوائح والتوصيف', title_en: 'Master SOP, Bylaws & Job Taxonomy', domainCode: 'NEB-01..15', desc_ar: 'النواة التنظيمية الموحدة: 9 مراحل تدشين، اللائحة الداخلية، التوصيف الوظيفي، والمهام الدورية.', desc_en: 'Standard operating procedures, governance bylaws, 10 job descriptions, and duty rosters.' },
     allocations: { icon: Calendar, title_ar: 'نظام تخطيط الموارد البشرية', title_en: 'Personnel Resource Allocation', domainCode: 'NEB-09', desc_ar: 'إسناد الموظفين للمشاريع الميدانية، قياس ساعات العمل المعتمدة والأثر التشغيلي.', desc_en: 'Staffing schedules mapped dynamically to active humanitarian project sites.' },
     geospatial: { icon: Globe, title_ar: 'خريطة الأثر الجغرافي التفاعلية', title_en: 'GIS Impact & Spatial Map', domainCode: 'NEB-13', desc_ar: 'تتبع المستفيدين، مستودعات التموين، ومواقع حفر الآبار في عموم المحافظات.', desc_en: 'Interactive map plotting direct aid locations, water boreholes, and stock warehouses.' },
     strategic_planning: { icon: Activity, title_ar: 'التخطيط الاستراتيجي والأداء', title_en: 'Strategic Planning & Performance', domainCode: 'NEB-01', desc_ar: 'الخطة الاستراتيجية لمؤسسة رُحماء بينهم، الأهداف ومؤشرات الأداء.', desc_en: 'Strategic objectives, performance indicators, and organizational alignment.' },
@@ -328,6 +328,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           <OperationalScenariosView 
             lang={lang}
             onNavigate={safeNavigate}
+            orgName={orgName}
           />
         );
       case 'allocations':

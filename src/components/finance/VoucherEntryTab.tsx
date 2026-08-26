@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, X, RefreshCw, CheckCircle, AlertCircle, Coins, Building } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Plus, X, RefreshCw, CheckCircle, AlertCircle, Coins, Building, Zap, Scale, Calculator, Sparkles, BookOpen } from 'lucide-react';
 import { Account, Project, Program } from './FinanceTypes';
 import { handleApiResponse, PolicyViolationError, type PolicyViolation } from '../../core/utils/apiHelpers';
 import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
@@ -561,9 +561,9 @@ export default function VoucherEntryTab({
     }
   }, [initialData]);
 
-  const handleAddLine = () => {
+  const handleAddLine = useCallback(() => {
     setEntryLines(prev => [...prev, { account_id: '', description: '', debit_amount: '0', credit_amount: '0', project_id: '', activity_id: '' }]);
-  };
+  }, []);
 
   const handleRemoveLine = (idx: number) => {
     setEntryLines(prev => prev.filter((_, i) => i !== idx));
@@ -587,6 +587,130 @@ export default function VoucherEntryTab({
   const totalDebitSum = entryLines.reduce((sum, line) => sum + (parseFloat(line.debit_amount) || 0), 0);
   const totalCreditSum = entryLines.reduce((sum, line) => sum + (parseFloat(line.credit_amount) || 0), 0);
   const isBalanced = Math.abs(totalDebitSum - totalCreditSum) < 0.01 && totalDebitSum > 0;
+
+  // CPA Auto-Balance Calculation
+  const handleAutoBalance = useCallback(() => {
+    const diff = totalDebitSum - totalCreditSum;
+    if (Math.abs(diff) < 0.01) return;
+
+    if (diff > 0) {
+      // Debit > Credit: balance with credit
+      const lastLine = entryLines[entryLines.length - 1];
+      if (lastLine && (!lastLine.account_id || (parseFloat(lastLine.debit_amount) === 0 && parseFloat(lastLine.credit_amount) === 0))) {
+        setEntryLines(prev => prev.map((l, i) => i === prev.length - 1 ? { ...l, credit_amount: diff.toFixed(2), debit_amount: '0' } : l));
+      } else {
+        setEntryLines(prev => [...prev, { account_id: '', description: lastLine?.description || entryForm.description || '', debit_amount: '0', credit_amount: diff.toFixed(2), project_id: lastLine?.project_id || '', activity_id: lastLine?.activity_id || '' }]);
+      }
+    } else {
+      // Credit > Debit: balance with debit
+      const absDiff = Math.abs(diff);
+      const lastLine = entryLines[entryLines.length - 1];
+      if (lastLine && (!lastLine.account_id || (parseFloat(lastLine.debit_amount) === 0 && parseFloat(lastLine.credit_amount) === 0))) {
+        setEntryLines(prev => prev.map((l, i) => i === prev.length - 1 ? { ...l, debit_amount: absDiff.toFixed(2), credit_amount: '0' } : l));
+      } else {
+        setEntryLines(prev => [...prev, { account_id: '', description: lastLine?.description || entryForm.description || '', debit_amount: absDiff.toFixed(2), credit_amount: '0', project_id: lastLine?.project_id || '', activity_id: lastLine?.activity_id || '' }]);
+      }
+    }
+  }, [totalDebitSum, totalCreditSum, entryLines, entryForm.description]);
+
+  // CPA Quick Journal Presets
+  const JOURNAL_PRESETS = useMemo(() => [
+    {
+      id: 'cash_replenish',
+      nameAr: 'تغذية صندوق من البنك',
+      nameEn: 'Cash Replenishment',
+      type: 'JOURNAL_ENTRY',
+      descAr: 'تحويل سيولة نقدية من الحساب الجاري بالبنك لتغذية الصندوق',
+      descEn: 'Transfer liquidity from bank current account to petty cash',
+      debitPrefix: '111',
+      creditPrefix: '112'
+    },
+    {
+      id: 'staff_advance',
+      nameAr: 'صرف عهدة نقدية لموظف',
+      nameEn: 'Staff Field Advance',
+      type: 'PAYMENT',
+      descAr: 'صرف عهدة نقدية مؤقتة لتنفيذ أنشطة ومشاريع ميدانية',
+      descEn: 'Issue temporary cash advance for field activities',
+      debitPrefix: '113',
+      creditPrefix: '111'
+    },
+    {
+      id: 'advance_settlement',
+      nameAr: 'تسوية عهدة بمصروفات مشاريع',
+      nameEn: 'Advance Settlement',
+      type: 'JOURNAL_ENTRY',
+      descAr: 'إقفال العهدة وتحميل تكاليف التنفيذ المباشر على حساب المشاريع',
+      descEn: 'Close advance and allocate direct costs to project accounts',
+      debitPrefix: '5',
+      creditPrefix: '113'
+    },
+    {
+      id: 'payroll_accrual',
+      nameAr: 'استحقاق مسير الرواتب',
+      nameEn: 'Payroll Accrual',
+      type: 'JOURNAL_ENTRY',
+      descAr: 'إثبات استحقاق رواتب وأجور الموظفين والالتزامات التأمينية',
+      descEn: 'Accrue monthly staff salaries and payroll payables',
+      debitPrefix: '511',
+      creditPrefix: '212'
+    },
+    {
+      id: 'donation_receipt',
+      nameAr: 'توريد تبرع نقدي / كفالات',
+      nameEn: 'Donation Receipt',
+      type: 'RECEIPT',
+      descAr: 'قبض وتوريد مساهمة نقدية أو كفالة أيتام لحساب الجمعية',
+      descEn: 'Record general donation or orphan sponsorship received',
+      debitPrefix: '111',
+      creditPrefix: '411'
+    }
+  ], []);
+
+  const applyPreset = useCallback((preset: typeof JOURNAL_PRESETS[0]) => {
+    setEntryForm(prev => ({
+      ...prev,
+      transaction_type: preset.type,
+      description: lang === 'ar' ? preset.descAr : preset.descEn
+    }));
+
+    const debitAcc = accounts.find(a => a.account_code.startsWith(preset.debitPrefix)) || accounts[0];
+    const creditAcc = accounts.find(a => a.account_code.startsWith(preset.creditPrefix) && a.id !== debitAcc?.id) || accounts[1] || accounts[0];
+
+    setEntryLines([
+      {
+        account_id: debitAcc ? debitAcc.id : '',
+        description: lang === 'ar' ? preset.descAr : preset.descEn,
+        debit_amount: '0',
+        credit_amount: '0',
+        project_id: '',
+        activity_id: ''
+      },
+      {
+        account_id: creditAcc ? creditAcc.id : '',
+        description: lang === 'ar' ? preset.descAr : preset.descEn,
+        debit_amount: '0',
+        credit_amount: '0',
+        project_id: '',
+        activity_id: ''
+      }
+    ]);
+  }, [accounts, lang]);
+
+  // Global CPA Keyboard Hotkeys
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F2' || (e.altKey && e.key.toLowerCase() === 'n')) {
+        e.preventDefault();
+        handleAddLine();
+      } else if (e.key === 'F4' || (e.altKey && e.key.toLowerCase() === 'b')) {
+        e.preventDefault();
+        handleAutoBalance();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleAddLine, handleAutoBalance]);
 
   // Build Project-Activity hierarchical options
   const getActivityOptions = () => {
@@ -877,6 +1001,48 @@ export default function VoucherEntryTab({
           onDismiss={() => setPolicyViolations(null)}
         />
       )}
+
+      {/* CPA HOTKEYS & AUTO-BALANCE RIBBON */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-[11px] font-bold text-emerald-800 dark:text-emerald-300 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-black flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+            <Calculator className="w-4 h-4 text-emerald-600" />
+            {lang === 'ar' ? 'مفاتيح الاختصار للمحاسب القانوني (CPA Hotkeys):' : 'CPA Hotkeys:'}
+          </span>
+          <span className="bg-white dark:bg-zinc-800 px-2 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-800 font-mono text-[10px] font-bold">F2 / Alt+N: {lang === 'ar' ? 'سطر جديد' : 'Add Row'}</span>
+          <span className="bg-white dark:bg-zinc-800 px-2 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-800 font-mono text-[10px] font-bold">F4 / Alt+B: {lang === 'ar' ? 'موازنة فورية' : 'Auto-Balance'}</span>
+        </div>
+        {!isBalanced && totalDebitSum > 0 && (
+          <button
+            type="button"
+            onClick={handleAutoBalance}
+            className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md shadow-amber-950/20 cursor-pointer animate-pulse"
+          >
+            <Scale className="w-3.5 h-3.5" />
+            <span>{lang === 'ar' ? `موازنة القيد آلياً (الفارق: ${Math.abs(totalDebitSum - totalCreditSum).toLocaleString()})` : `Auto-Balance (Diff: ${Math.abs(totalDebitSum - totalCreditSum).toLocaleString()})`}</span>
+          </button>
+        )}
+      </div>
+
+      {/* CPA QUICK JOURNAL PRESETS BAR */}
+      <div className="flex flex-wrap items-center gap-2 p-3 bg-slate-100 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-2xl">
+        <div className="text-[11px] font-black text-slate-600 dark:text-zinc-400 flex items-center gap-1.5 shrink-0">
+          <Zap className="w-3.5 h-3.5 text-amber-500" />
+          <span>{lang === 'ar' ? 'قوالب القيود النموذجية:' : 'CPA Journal Presets:'}</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {JOURNAL_PRESETS.map(preset => (
+            <button
+              key={preset.id}
+              type="button"
+              onClick={() => applyPreset(preset)}
+              className="px-2.5 py-1 bg-white dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 rounded-xl text-[10px] font-extrabold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer shadow-xs"
+            >
+              {lang === 'ar' ? preset.nameAr : preset.nameEn}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 text-xs font-bold text-slate-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

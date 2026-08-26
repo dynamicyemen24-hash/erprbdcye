@@ -20,7 +20,8 @@ export type ReportTemplateId =
   | 'approvals'
   | 'sponsorships'
   | 'sales'
-  | 'strategy_kpi';
+  | 'strategy_kpi'
+  | 'master_sop';
 
 export interface ReportTemplate {
   id: ReportTemplateId;
@@ -345,6 +346,28 @@ export const REPORT_TEMPLATES: Record<ReportTemplateId, ReportTemplate> = {
       { key: 'responsible', label: 'Owner', labelAr: 'المسؤول', format: 'text', width: 130 },
     ],
   },
+
+  master_sop: {
+    id: 'master_sop',
+    nameAr: 'دليل الإجراءات والتوصيف واللوائح',
+    nameEn: 'Master SOP, Bylaws & Job Taxonomy',
+    descriptionAr: 'دليل تشغيل الأقسام الـ 9 واللائحة الداخلية وبطاقات التوصيف والمهام',
+    descriptionEn: '9-Phase rollout SOP, 10 internal bylaws, and job taxonomy',
+    icon: 'Compass',
+    orientation: 'landscape',
+    density: 'compact',
+    classification: 'internal',
+    complianceStandard: 'NEB-01..15, Sphere CHS & IPSAS',
+    columns: [
+      { key: 'phase', label: 'Phase / Chapter', labelAr: 'المرحلة / الباب', format: 'text', width: 150 },
+      { key: 'code', label: 'NEB Code', labelAr: 'النطاق', format: 'text', width: 90 },
+      { key: 'title', label: 'Title / Role', labelAr: 'العنوان / الوظيفة', format: 'text', width: 200 },
+      { key: 'priority', label: 'Priority / Level', labelAr: 'الأولوية / المستوى', format: 'status', width: 100 },
+      { key: 'sla', label: 'SLA Duration', labelAr: 'المدة المقدرة', format: 'text', width: 100 },
+      { key: 'responsible', label: 'Responsible Role', labelAr: 'المسؤول الرئيسي', format: 'text', width: 140 },
+      { key: 'status', label: 'Readiness', labelAr: 'الجاهزية', format: 'status', width: 90 },
+    ],
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -389,6 +412,7 @@ export function templateToPrintConfig(template: ReportTemplate, lang: 'ar' | 'en
 // Auto-detect template from tab name or data keys
 export function detectTemplate(tabName: string, data?: any[]): ReportTemplateId {
   const tab = tabName.toLowerCase();
+  if (tab.includes('scenario') || tab.includes('sop') || tab.includes('bylaw') || tab.includes('playbook')) return 'master_sop';
   if (tab.includes('finance') || tab.includes('account') || tab.includes('ledger')) return 'finance_ledger';
   if (tab.includes('trial') || tab.includes('balance')) return 'finance_trial_balance';
   if (tab.includes('project')) return 'projects';

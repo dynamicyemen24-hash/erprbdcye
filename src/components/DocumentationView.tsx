@@ -52,13 +52,13 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
   };
 
   const docTitles = {
-    scenarios: lang === 'ar' ? 'السيناريوهات والعمليات التشغيلية' : 'Operational Scenarios & Playbooks',
+    scenarios: lang === 'ar' ? 'دليل الإجراءات وخطة التدشين واللوائح والتوصيف الوظيفي' : 'Master SOP, Bylaws, Job Descriptions & Rollout Matrix',
     specifications: lang === 'ar' ? 'وثيقة المواصفات الفنية والنظام' : 'System Specifications Document',
     manual: lang === 'ar' ? 'دليل المستخدم الشامل' : 'Comprehensive User Manual'
   };
 
   const docDescriptions = {
-    scenarios: lang === 'ar' ? 'سيناريوهات تشغيلية تفاعلية ودليل خطوة بخطوة للعمليات الميدانية، والمالية، والرعاية والحوكمة' : 'Interactive operational playbooks for field, financial, welfare, and governance scenarios.',
+    scenarios: lang === 'ar' ? 'النواة التنظيمية الموحدة: 9 مراحل تدشين، 10 أبواب للائحة الداخلية، التوصيف الوظيفي لـ 10 كوادر، والمهام الدورية وتقييم الأداء MEAL' : 'Unified enterprise engine: 9 rollout phases, 10 bylaws chapters, 10 job profiles, duty rosters and MEAL appraisal scorecards.',
     specifications: lang === 'ar' ? 'الهيكلية المؤسسية، الوحدات التشغيلية، وقواعد معالجة البيانات وإدارة السجلات المركزية' : 'Enterprise architecture, operational suites, data governance & central records.',
     manual: lang === 'ar' ? 'إرشادات الاستخدام خطوة بخطوة للمدراء الماليين، منسقي المشاريع الميدانية، والمدققين' : 'Step-by-step guidance for financial managers, field coordinators, and auditors.'
   };
@@ -842,7 +842,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
           </div>
         </div>
 
-        {activeDoc === 'scenarios' && <OperationalScenariosView lang={lang} onNavigate={onNavigate} />}
+        {activeDoc === 'scenarios' && <OperationalScenariosView lang={lang} onNavigate={onNavigate} orgName={orgName} />}
         {searchQuery.trim() && activeDoc !== 'scenarios' ? (
           searchResults.length > 0 ? (
             <div className="space-y-2">

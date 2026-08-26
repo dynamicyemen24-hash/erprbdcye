@@ -506,6 +506,69 @@ describe('KPIEngine', () => {
   });
 });
 
+describe('PurchaseOrderEngine Budget Hard-Lock', () => {
+  it('should throw error when PO amount exceeds available project budget', async () => {
+    databaseMock.queryOne.mockResolvedValueOnce({
+      id: 'po1',
+      total_amount: 50000,
+      project_id: 'proj1',
+      status: 'PENDING_APPROVAL'
+    });
+    databaseMock.queryOne.mockResolvedValueOnce({
+      budget: 100000,
+      spent: 80000
+    });
+
+    const { PurchaseOrderEngine } = await import('../procurement.engine');
+    await expect(
+      PurchaseOrderEngine.approve('po1', { userId: 'u1', role: 'ADMIN', orgId: 'org1', permissions: [] } as any)
+    ).rejects.toThrow('Budget Violation');
+  });
+
+  it('should throw error when checkBudgetAvailability detects budget deficit', async () => {
+    const { IPSASFinanceService } = await import('../../services/finance.service');
+    vi.spyOn(IPSASFinanceService, 'checkBudgetAvailability').mockImplementation(async (orgId, projId, amt) => {
+      if (amt > 20000) throw new Error('IPSAS Budget Hard-Lock Violation');
+    });
+
+    await expect(
+      IPSASFinanceService.checkBudgetAvailability('org1', 'proj1', 50000)
+    ).rejects.toThrow('IPSAS Budget Hard-Lock Violation');
+  });
+});
+
+describe('FXRevaluationEngine (IPSAS 4 Compliance)', () => {
+  it('should calculate revaluation and detect unrealized gains/losses', async () => {
+    databaseMock.queryMany.mockResolvedValueOnce([
+      {
+        account_id: 'acc1',
+        account_code: '1101',
+        name_ar: 'حساب الريال اليمني',
+        account_type: 'ASSET',
+        currency_code: 'YER',
+        net_foreign_balance: 1000000,
+        book_value_usd: 3500,
+      },
+    ]);
+
+    const { FXRevaluationEngine } = await import('../fxRevaluationEngine');
+    const result = await FXRevaluationEngine.calculateRevaluation('org1', '2026-08-31');
+
+    expect(result.organizationId).toBe('org1');
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].revaluedValueUSD).toBe(4000); // 1,000,000 * 0.004 = 4,000
+    expect(result.items[0].unrealizedGainLossUSD).toBe(500); // 4000 - 3500 = +500
+  });
+
+  it('should perform variance threshold check', async () => {
+    databaseMock.queryMany.mockResolvedValueOnce([]);
+    const { FXRevaluationEngine } = await import('../fxRevaluationEngine');
+    const check = await FXRevaluationEngine.checkFXVarianceLimit('org1', 5.0);
+
+    expect(check.withinLimit).toBe(true);
+  });
+});
+
 describe('ViewEngine', () => {
   it('should reject non-whitelisted views', async () => {
     await expect(

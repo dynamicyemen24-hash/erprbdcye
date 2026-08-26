@@ -137,14 +137,29 @@ Password: Nexora@2024!
 ⚠️ Change this password immediately after first login!
 
 ## ═══════════════════════════════════════════════════════════════
-## SSL/TLS Configuration
+## Troubleshooting Cloudflare Error 525 (SSL Handshake Failed)
 ## ═══════════════════════════════════════════════════════════════
 
-Cloudflare handles SSL termination. The flow is:
+If you encounter **Error 525 (SSL Handshake Failed)** on `www.erprbdcye.org` or `erprbdcye.org`:
 
-User → Cloudflare (SSL) → Render/Vercel (internal HTTP)
+### Root Cause:
+Cloudflare SSL mode is set to `Full (Strict)` while Vercel/Render origin SSL cert is either pending verification or SNI handshake is mismatched.
 
-This is secure because:
-1. Cloudflare encrypts traffic between user and CDN
-2. Render/Vercel encrypts traffic between CDN and server
-3. All sensitive data is encrypted end-to-end
+### Quick Fix Steps (2 Minutes):
+
+1. **Step 1: Set Cloudflare SSL Mode to `Full`**
+   - Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → `erprbdcye.org`
+   - Navigate to **SSL/TLS** → **Overview**
+   - Switch mode from **Full (Strict)** to **Full** (or **Flexible** if origin cert is pending).
+
+2. **Step 2: Temporary DNS Un-proxy for Vercel SSL Issuance**
+   - Go to **DNS** → **Records** in Cloudflare
+   - Locate CNAME `@` and CNAME `www`
+   - Click the **Orange Cloud** to toggle to **Grey Cloud (DNS Only)**
+   - Open Vercel Dashboard → Project Settings → **Domains** → Click **Refresh** to let Vercel issue the SSL cert
+   - Once Vercel shows **Valid Configuration** (Green check), toggle Cloudflare Proxy back to **Orange Cloud**.
+
+3. **Step 3: Enable SSL TLS 1.2 / 1.3 in Cloudflare**
+   - SSL/TLS → Edge Certificates → Minimum TLS Version = **TLS 1.2**
+   - Toggle **Always Use HTTPS** to **ON**.
+

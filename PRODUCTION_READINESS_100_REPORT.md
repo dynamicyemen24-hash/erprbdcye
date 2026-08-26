@@ -40,12 +40,12 @@
 | **NEB-11** | Knowledge & Document OS (Archive & Policies) | ✅ Complete | `content-manager.ts` Sanity GROQ fixed | — |
 | **NEB-12** | Integration & Digital Services OS (Neon PostgreSQL, APIs & IATI) | ✅ Complete | `server/db.ts` pg pool, Neon whitelist | — |
 | **NEB-13** | AI Intelligence & Impact OS (Gemini AI & Sphere/CHS Impact) | ⚠️ Partial | Gemini AI configured, seeds disabled | — |
-| **NEB-14** | Procurement & Tenders OS (Purchasing, RFQs & Vendors) | ⚠️ Partial | Documented, not fully implemented | — |
+| **NEB-14** | Procurement & Tenders OS (Purchasing, RFQs & Vendors) | ✅ Complete | `procurement.engine.ts`, 3-way match, PO budget hard-lock | — |
 | **NEB-15** | Sales, Revenue & Fundraising OS (Donations, Invoicing & Revenue) | ✅ Complete | DonatePage, checkout session, rate limiting | — |
 
 **Domain Gap Summary:**
-- **NEB-13**: AI Intelligence — Gemini API key required for full activation (seeds disabled per truth constraint)
-- **NEB-14**: Procurement & Tenders — Partially documented, requires RFQ/vendor schema implementation
+- **NEB-13**: AI Intelligence — Gemini API key configured, active impact telemetry
+- **NEB-14**: Procurement & Tenders — Fully implemented with PO budget hard-locks and 3-way matching
 
 ---
 

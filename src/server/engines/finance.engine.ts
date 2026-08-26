@@ -167,6 +167,27 @@ export class LedgerEngine {
     }
 
     return await transaction(async (client) => {
+      // Mandatory Budget Availability Check (NEB-10 / NEB-14 Compliance)
+      const targetProjectId = entry.lines.find(l => l.projectId)?.projectId;
+      if (targetProjectId) {
+        const projRes = await client.query(
+          'SELECT budget, COALESCE(spent_amount, 0) as spent, name_ar FROM projects WHERE id = $1 AND (organization_id = $2 OR organization_id IS NULL)',
+          [targetProjectId, entry.organizationId]
+        );
+        if (projRes.rows && projRes.rows.length > 0) {
+          const budget = Number(projRes.rows[0].budget || 0);
+          const spent = Number(projRes.rows[0].spent || 0);
+          if (budget > 0) {
+            const available = budget - spent;
+            if (totalDebit > available) {
+              throw new Error(
+                `IPSAS Budget Hard-Lock Violation: Requested amount (${totalDebit}) exceeds available project budget (${available}) for '${projRes.rows[0].name_ar || targetProjectId}'`
+              );
+            }
+          }
+        }
+      }
+
       // Get or verify fiscal year
       const fy = await client.query(
         `SELECT id, status FROM fiscal_years
