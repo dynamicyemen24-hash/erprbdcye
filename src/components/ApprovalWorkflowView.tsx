@@ -104,6 +104,16 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
 
+  const safeParseJson = (val: any, fallback: any = {}) => {
+    if (!val) return fallback;
+    if (typeof val !== 'string') return val;
+    try {
+      return JSON.parse(val);
+    } catch {
+      return fallback;
+    }
+  };
+
   // Load everything safely
   const loadData = async () => {
     setLoading(true);
@@ -158,8 +168,8 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
             code = matchedTx.transaction_number || 'TX-ID';
           }
         } else if (req.entity_type === 'procurement_requisition' || req.approval_type === 'procurement') {
-          const meta = typeof req.metadata === 'string' ? JSON.parse(req.metadata) : (req.metadata || {});
-          const newVal = typeof req.new_value === 'string' ? JSON.parse(req.new_value) : (req.new_value || {});
+          const meta = safeParseJson(req.metadata);
+          const newVal = safeParseJson(req.new_value);
           name = lang === 'ar' 
             ? `طلب شراء مواد: ${newVal?.name_ar || meta?.item_name_ar || 'مادة إغاثية'}` 
             : `Procurement Order: ${newVal?.name_en || meta?.item_name_en || 'Relief Item'}`;
@@ -1621,8 +1631,8 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
               {/* Procurement Requisition Card (If Procurement Type) */}
               {(selectedRequest.entity_type === 'procurement_requisition' || selectedRequest.approval_type === 'procurement') && (() => {
-                const newVal = typeof selectedRequest.new_value === 'string' ? JSON.parse(selectedRequest.new_value) : (selectedRequest.new_value || {});
-                const meta = typeof selectedRequest.metadata === 'string' ? JSON.parse(selectedRequest.metadata) : (selectedRequest.metadata || {});
+                const newVal = safeParseJson(selectedRequest.new_value);
+                const meta = safeParseJson(selectedRequest.metadata);
                 
                 const currentQty = newVal.current_qty ?? meta.current_qty ?? 0;
                 const reorderLimit = newVal.reorder_level ?? meta.reorder_level ?? 0;
@@ -1659,7 +1669,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
                       <div className="bg-white dark:bg-zinc-900 p-2 rounded-lg border border-amber-200/50">
                         <span className="text-zinc-400 text-[9px] block mb-0.5">{lang === 'ar' ? 'التكلفة الإجمالية' : 'Total Estimated'}</span>
                         <span className="text-emerald-600 font-mono font-black text-[11px]">{estimatedTotalYer.toLocaleString()} YER</span>
-                        <span className="text-[8px] text-zinc-400 block font-normal">(? ${estimatedTotalUsd.toLocaleString()} USD)</span>
+                        <span className="text-[8px] text-zinc-400 block font-normal">(≈ ${estimatedTotalUsd.toLocaleString()} USD)</span>
                       </div>
                     </div>
                   </div>
@@ -1668,8 +1678,8 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
               {/* Material Issue Request Card (If Material Issue Type) */}
               {(selectedRequest.entity_type === 'material_issue_request' || selectedRequest.approval_type === 'material_issue') && (() => {
-                const newVal = typeof selectedRequest.new_value === 'string' ? JSON.parse(selectedRequest.new_value) : (selectedRequest.new_value || {});
-                const meta = typeof selectedRequest.metadata === 'string' ? JSON.parse(selectedRequest.metadata) : (selectedRequest.metadata || {});
+                const newVal = safeParseJson(selectedRequest.new_value);
+                const meta = safeParseJson(selectedRequest.metadata);
                 
                 const projName = newVal.project_name_ar || meta.project_name_ar || 'المشروع الميداني';
                 const projCode = newVal.project_code || meta.project_code || 'PRJ-2026';
