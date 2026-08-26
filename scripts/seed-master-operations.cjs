@@ -157,7 +157,7 @@ async function runMasterActivation() {
     const accBank_A = await getAcc(orgA_id, '110101', 'حساب البنك - بنك التضامن', 'asset');
     const accAR_A   = await getAcc(orgA_id, '120101', 'ذمم مدينين وحسابات عملاء', 'asset');
     const accInv_A  = await getAcc(orgA_id, '130101', 'مخزون مواد إغاثية', 'asset');
-    const accAP_A   = await getAcc(orgA_id, '210101', 'حسابات دائنة ומستحقات موردين', 'liability');
+    const accAP_A   = await getAcc(orgA_id, '210101', 'حسابات دائنة ومستحقات موردين', 'liability');
     const accSalAP_A= await getAcc(orgA_id, '212001', 'رواتب وأجور مستحقة الدفع', 'liability');
     const accRev_A  = await getAcc(orgA_id, '410101', 'إيرادات تبرعات ومنح إغاثية', 'revenue');
     const accExp_A  = await getAcc(orgA_id, '510101', 'مصاريف المشاريع الميدانية', 'expense');

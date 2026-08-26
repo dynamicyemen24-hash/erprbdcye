@@ -716,7 +716,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
             <h4 className="font-black text-slate-800 dark:text-white">{lang === 'ar' ? 'حوكمة مخرجات الصرف وتوثيق الفوارق' : 'Exchange Governance Policy Statement'}</h4>
             <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
               {lang === 'ar' 
-                ? 'تلتزم جمعية رحماء الخيرية بالشفافية الكاملة وتطبيق معايير العمل الإنساني السامية (CHS & Sphere Standard). كافة فوارق الصرف الناتجة عن فروقات الأسعار يدوية كانت أو عالمية يتم تسجيلها آلياً في دفتر الأستاذ العام وتوجيهها لدعم مخصصات الطوارئ للأسر الأكثر ضعفاً.' 
+                ? 'تلتزم جمعية رُحماء بينهم للعمل الإنساني والتنمية بالشفافية الكاملة وتطبيق معايير العمل الإنساني السامية (CHS & Sphere Standard). كافة فوارق الصرف الناتجة عن فروقات الأسعار يدوية كانت أو عالمية يتم تسجيلها آلياً في دفتر الأستاذ العام وتوجيهها لدعم مخصصات الطوارئ للأسر الأكثر ضعفاً.' 
                 : 'Rohama Charity Foundation adheres to strict CHS standards. All local exchange rate surpluses arising from differences between global spot and manual locked payouts are audited and routed to emergency orphan fund allocations.'}
             </p>
           </div>

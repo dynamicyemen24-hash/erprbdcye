@@ -764,7 +764,7 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
               <span>{isRtl ? 'الجلسات النشطة وسجل الأمان' : 'Active Sessions & Security Telemetry'}</span>
             </h3>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg">
-              {isRtl ? 'تشفير كامل TLS 1.3 / Bcrypt' : 'TLS 1.3 / Bcrypt Protected'}
+              {isRtl ? 'حماية وتشفير أمني مؤسسي معتمد' : 'Enterprise Cryptographic Security Active'}
             </span>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -1328,7 +1328,7 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
             </div>
 
             <div className="text-xs text-zinc-500 space-y-1">
-              <p>{isRtl ? 'سيتم تشفير كلمة المرور بـ Bcrypt وحفظها مباشرة للمستخدم:' : 'Password will be bcrypt-hashed for user:'}</p>
+              <p>{isRtl ? 'سيتم حفظ وتأمين كلمة المرور بتشفير قياسي معتمد للمستخدم:' : 'Password will be securely encrypted and saved for user:'}</p>
               <p className="font-bold font-mono text-slate-900 dark:text-white">{selectedUser.email}</p>
             </div>
 

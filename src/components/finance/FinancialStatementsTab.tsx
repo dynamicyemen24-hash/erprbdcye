@@ -24,15 +24,19 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
   const liabilityAndEquityAndProfit = totalLiabilities + totalEquity + netIncome;
   const isBalanceSheetBalanced = Math.abs(totalAssets - liabilityAndEquityAndProfit) < 0.1;
 
+  const [dimensionProgram, setDimensionProgram] = useState('ALL');
+  const [dimensionProject, setDimensionProject] = useState('ALL');
+  const [dimensionFundType, setDimensionFundType] = useState('ALL');
+
   return (
     <div className="space-y-6">
       {/* Selector Subtabs & Print Action */}
-      <div className="flex flex-wrap justify-between items-center gap-3 border-b border-slate-200 pb-3">
-        <div className="flex gap-2">
+      <div className="flex flex-wrap justify-between items-center gap-3 border-b border-slate-200 dark:border-zinc-800 pb-3">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setStatementType('trial')}
             className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-              statementType === 'trial' ? 'bg-zinc-900 text-amber-400' : 'text-slate-500 hover:bg-slate-50'
+              statementType === 'trial' ? 'bg-zinc-900 text-amber-400 shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800'
             }`}
           >
             <Scale className="w-4 h-4" />
@@ -42,17 +46,17 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
           <button
             onClick={() => setStatementType('income')}
             className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-              statementType === 'income' ? 'bg-zinc-900 text-amber-400' : 'text-slate-500 hover:bg-slate-50'
+              statementType === 'income' ? 'bg-zinc-900 text-amber-400 shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800'
             }`}
           >
             <TrendingUp className="w-4 h-4" />
-            <span>{lang === 'ar' ? 'قائمة الدخل (Income Statement)' : 'Income Statement'}</span>
+            <span>{lang === 'ar' ? 'قائمة الأداء والأنشطة (Income Statement)' : 'Income Statement'}</span>
           </button>
 
           <button
             onClick={() => setStatementType('balance_sheet')}
             className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-              statementType === 'balance_sheet' ? 'bg-zinc-900 text-amber-400' : 'text-slate-500 hover:bg-slate-50'
+              statementType === 'balance_sheet' ? 'bg-zinc-900 text-amber-400 shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800'
             }`}
           >
             <Building className="w-4 h-4" />
@@ -67,6 +71,55 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
           <Printer className="w-4 h-4 text-amber-300" />
           <span>{lang === 'ar' ? 'طباعة وتصدير القائمة المالية (PDF)' : 'Print / Export PDF Statement'}</span>
         </button>
+      </div>
+
+      {/* MULTI-DIMENSIONAL SLICE RIBBON */}
+      <div className="p-3.5 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+            <Scale className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{lang === 'ar' ? 'أبعاد التحليل المالي المعياري:' : 'Multi-Dimension Analysis:'}</span>
+          </span>
+
+          <select
+            value={dimensionProgram}
+            onChange={(e) => setDimensionProgram(e.target.value)}
+            className="px-3 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold text-slate-800 dark:text-zinc-200 outline-none cursor-pointer"
+          >
+            <option value="ALL">{lang === 'ar' ? '🌐 كافة البرامج الإنسانية' : 'All Programs'}</option>
+            <option value="WASH">{lang === 'ar' ? '🚰 برنامج المياه والإصحاح البيئي (WASH)' : 'WASH Program'}</option>
+            <option value="FOOD">{lang === 'ar' ? '🍞 برنامج الأمن الغذائي والإغاثة' : 'Food Security Program'}</option>
+            <option value="ORPHAN">{lang === 'ar' ? '🤍 برنامج رعاية وكفالة الأيتام' : 'Orphan Care Program'}</option>
+          </select>
+
+          <select
+            value={dimensionProject}
+            onChange={(e) => setDimensionProject(e.target.value)}
+            className="px-3 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold text-slate-800 dark:text-zinc-200 outline-none cursor-pointer"
+          >
+            <option value="ALL">{lang === 'ar' ? '📁 كافة المشاريع التنفيذية' : 'All Projects'}</option>
+            <option value="PRJ-WASH-2026">{lang === 'ar' ? 'مشروع حفر وتأهيل الآبار (PRJ-WASH-2026)' : 'Boreholes Project'}</option>
+            <option value="PRJ-FOOD-2026">{lang === 'ar' ? 'مشروع السلال الرمضانية (PRJ-FOOD-2026)' : 'Food Baskets Project'}</option>
+          </select>
+
+          <select
+            value={dimensionFundType}
+            onChange={(e) => setDimensionFundType(e.target.value)}
+            className="px-3 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold text-slate-800 dark:text-zinc-200 outline-none cursor-pointer"
+          >
+            <option value="ALL">{lang === 'ar' ? '⚖️ كافة الصناديق والقيود (IPSAS Funds)' : 'All IPSAS Funds'}</option>
+            <option value="UNRESTRICTED">{lang === 'ar' ? 'الأموال العامة غير المقيدة' : 'Unrestricted Funds'}</option>
+            <option value="RESTRICTED">{lang === 'ar' ? 'أموال المشاريع المقيدة والمشروطة' : 'Restricted Project Funds'}</option>
+            <option value="ENDOWMENT">{lang === 'ar' ? 'أصول وريع الأوقاف (Endowment Waqf)' : 'Endowment Waqf Funds'}</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold rounded-lg flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>{lang === 'ar' ? 'معايير IPSAS للمحاسبة الدولية' : 'IPSAS Compliant'}</span>
+          </span>
+        </div>
       </div>
 
       {/* RENDER STATEMENTS */}

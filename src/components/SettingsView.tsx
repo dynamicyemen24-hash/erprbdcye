@@ -1700,7 +1700,7 @@ export default function SettingsView({
                 <span className="text-[10px] text-zinc-400 font-mono">ID: SUB-NEXORA-2026-X99</span>
               </div>
               <h3 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
-                <span>{mainOrg?.name_ar || mainOrg?.name_en || 'جمعية رحماء الخيرية'}</span>
+                <span>{mainOrg?.name_ar || mainOrg?.name_en || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية'}</span>
                 <span className="text-amber-400 font-mono text-sm">({selectedPlan.toUpperCase()})</span>
               </h3>
               <p className="text-xs text-zinc-400 max-w-2xl">

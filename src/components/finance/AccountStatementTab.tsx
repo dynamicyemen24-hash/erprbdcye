@@ -146,7 +146,7 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
         <div class="max-w-4xl mx-auto bg-white border border-slate-300 rounded-xl p-10 shadow-lg min-h-[297mm] relative">
           <div class="flex justify-between items-start pb-6 border-b-2 border-slate-950">
             <div class="text-right space-y-1">
-              <h1 class="font-black text-base text-slate-900">جمعية رحماء الخيرية للتنمية</h1>
+              <h1 class="font-black text-base text-slate-900">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
               <p class="text-xs font-bold text-slate-500">إدارة الشؤون المالية</p>
             </div>
             <div class="text-center font-black border border-slate-900 px-3 py-1 rounded bg-slate-50">NexoraOS™</div>

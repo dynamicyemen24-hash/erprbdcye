@@ -266,7 +266,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
             <div>
               <div class="flex justify-between items-center pb-6 border-b-2 border-slate-950">
                 <div class="text-right">
-                  <h1 class="font-black text-sm text-slate-900">جمعية رحماء الخيرية للتنمية</h1>
+                  <h1 class="font-black text-sm text-slate-900">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
                   <p class="text-[10px] font-bold text-slate-500">نظام NexoraOS™ المؤسسي</p>
                 </div>
                 <span class="text-xs font-black border-2 border-slate-950 px-4 py-1.5 bg-slate-50 rounded">
