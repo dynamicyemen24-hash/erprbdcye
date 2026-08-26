@@ -1,8 +1,7 @@
 import pg from 'pg';
-import { REAL_ENTERPRISE_DATA } from '../../src/core/data/realEnterpriseData';
 
 const { Pool } = pg;
-let pool: pg.Pool | null = null;
+let pool: any = null;
 
 function getPool() {
   if (!pool && process.env.DATABASE_URL) {
@@ -11,7 +10,7 @@ function getPool() {
       ssl: { rejectUnauthorized: false },
       max: 2,
       idleTimeoutMillis: 10000,
-      connectionTimeoutMillis: 3000
+      connectionTimeoutMillis: 4000
     });
   }
   return pool;
@@ -33,21 +32,14 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Invalid table name' });
   }
 
-  // First try Neon PostgreSQL live query
-  const dbPool = getPool();
-  if (dbPool) {
-    try {
+  try {
+    const dbPool = getPool();
+    if (dbPool) {
       const dbRes = await dbPool.query(`SELECT * FROM "${tableName}" LIMIT 500`);
       return res.status(200).json(dbRes.rows);
-    } catch (err: any) {
-      console.warn('[API] Neon live query fallback:', err.message);
     }
-  }
-
-  // Graceful fallback to verified institutional snapshot
-  const snapshotData = (REAL_ENTERPRISE_DATA as any)[tableName];
-  if (snapshotData && Array.isArray(snapshotData)) {
-    return res.status(200).json(snapshotData);
+  } catch (err: any) {
+    console.warn(`[API] Neon query failed for ${tableName}:`, err.message);
   }
 
   return res.status(200).json([]);
