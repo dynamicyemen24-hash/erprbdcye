@@ -36,7 +36,8 @@ import {
   History,
   Star,
   CheckCircle2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Activity
 } from 'lucide-react';
 
 import { Project, User as UserType, TabId } from '../types';
@@ -53,6 +54,9 @@ interface UniversalCommandCenterProps {
   projects?: Project[];
   beneficiaries?: any[];
   programs?: any[];
+  sponsorships?: any[];
+  financialAccounts?: any[];
+  activities?: any[];
   users?: UserType[];
   density?: 'compact' | 'comfortable' | 'spacious';
   setDensity?: (density: 'compact' | 'comfortable' | 'spacious') => void;
@@ -88,6 +92,9 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
   projects = [],
   beneficiaries = [],
   programs = [],
+  sponsorships = [],
+  financialAccounts = [],
+  activities = [],
   users = [],
   density = 'comfortable',
   setDensity,
@@ -409,7 +416,7 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
       action: () => { onNavigate('projects'); onClose(); }
     }));
 
-    const benCmds: CommandItem[] = (beneficiaries || []).slice(0, 20).map(b => ({
+    const benCmds: CommandItem[] = (beneficiaries || []).slice(0, 50).map(b => ({
       id: `ben-${b.id}`,
       category: 'RECORDS',
       titleAr: `مستفيد: ${b.full_name_ar || b.full_name || b.name || 'مستفيد'}`,
@@ -422,8 +429,47 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
       action: () => { onNavigate('beneficiaries'); onClose(); }
     }));
 
-    return [...progCmds, ...projCmds, ...benCmds];
-  }, [programs, projects, beneficiaries, onNavigate, onClose]);
+    const sponCmds: CommandItem[] = (sponsorships || []).slice(0, 50).map(s => ({
+      id: `spon-${s.id}`,
+      category: 'RECORDS',
+      titleAr: `كفالة يتيم: ${s.full_name_ar || s.orphan_name || s.name || s.sponsorship_code || 'يتيم مكفول'}`,
+      titleEn: `Orphan: ${s.full_name_ar || s.orphan_name || s.name || s.sponsorship_code || 'Orphan Care'}`,
+      subAr: `الكود: ${s.sponsorship_code || s.code || 'SPON'} • الكافل: ${s.sponsor_name || 'فاعل خير'} • ${Number(s.amount || s.monthly_amount || 0).toLocaleString()} ${s.currency_code || 'YER'}`,
+      subEn: `Code: ${s.sponsorship_code || s.code} • Sponsor: ${s.sponsor_name || 'Donor'}`,
+      icon: Heart,
+      badge: 'ORPHAN CARE',
+      badgeColor: 'bg-rose-500/10 text-rose-600',
+      action: () => { onNavigate('sponsorships'); onClose(); }
+    }));
+
+    const coaCmds: CommandItem[] = (financialAccounts || []).slice(0, 50).map(acc => ({
+      id: `coa-${acc.id}`,
+      category: 'RECORDS',
+      titleAr: `حساب محاسبي: [${acc.code || acc.account_code}] ${acc.name_ar}`,
+      titleEn: `IPSAS Account: [${acc.code || acc.account_code}] ${acc.name_en || acc.name_ar}`,
+      subAr: `النوع: ${acc.account_type || 'أصول/خصوم'} • الرصيد: ${Number(acc.opening_balance || 0).toLocaleString()} ${acc.currency_code || 'YER'}`,
+      subEn: `Ledger: ${acc.account_type || 'Account'}`,
+      icon: Coins,
+      badge: 'IPSAS LEDGER',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600',
+      action: () => { onNavigate('finance'); onClose(); }
+    }));
+
+    const actCmds: CommandItem[] = (activities || []).slice(0, 50).map(a => ({
+      id: `act-${a.id}`,
+      category: 'RECORDS',
+      titleAr: `نشاط ميداني: ${a.name_ar || a.name_en}`,
+      titleEn: `Activity: ${a.name_en || a.name_ar}`,
+      subAr: `الموقع: ${a.location_name_ar || a.governorate || 'الميدان'} • النوع: ${a.activity_type_code || 'ميداني'}`,
+      subEn: `Field: ${a.location_name_ar || a.governorate || 'Operational Site'}`,
+      icon: Activity,
+      badge: 'FIELD ACTIVITY',
+      badgeColor: 'bg-cyan-500/10 text-cyan-600',
+      action: () => { onNavigate('activities'); onClose(); }
+    }));
+
+    return [...progCmds, ...projCmds, ...benCmds, ...sponCmds, ...coaCmds, ...actCmds];
+  }, [programs, projects, beneficiaries, sponsorships, financialAccounts, activities, onNavigate, onClose]);
 
   // 5. System UI Settings Commands
   const settingCommands: CommandItem[] = useMemo(() => [

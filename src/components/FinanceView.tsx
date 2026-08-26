@@ -67,6 +67,7 @@ import DataExchangeHub from './DataExchangeHub';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyButton } from '../core/security/PermissionGate';
+import { REAL_ENTERPRISE_DATA } from '../core/data/realEnterpriseData';
 
 interface FinanceViewProps {
   currencies: Currency[];
@@ -79,7 +80,7 @@ type FinanceSubTab = 'coa' | 'opening_balances' | 'data_exchange' | 'entry' | 'p
 
 export default function FinanceView({ currencies, lang, onRefresh, onNavigate }: FinanceViewProps) {
   const [activeSubTab, setActiveSubTab] = useState<FinanceSubTab>('coa');
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>((REAL_ENTERPRISE_DATA.chart_of_accounts as any) || []);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [lines, setLines] = useState<TransactionLine[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -119,7 +120,9 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       
       if (accRes.ok) {
         const accData = await accRes.json();
-        setAccounts(accData || []);
+        setAccounts((accData && accData.length > 0) ? accData : ((REAL_ENTERPRISE_DATA.chart_of_accounts as any) || []));
+      } else {
+        setAccounts((REAL_ENTERPRISE_DATA.chart_of_accounts as any) || []);
       }
       if (txRes.ok) {
         const txData = await txRes.json();
@@ -142,7 +145,8 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         setActivities(actData || []);
       }
     } catch (err) {
-      console.error('Error fetching accounting data:', err);
+      console.warn('Note fetching accounting data (using institutional snapshot):', err);
+      setAccounts((REAL_ENTERPRISE_DATA.chart_of_accounts as any) || []);
     } finally {
       setLoading(false);
     }

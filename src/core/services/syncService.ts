@@ -1,3 +1,5 @@
+import { generateId } from '../../lib/idGenerator';
+
 export interface OfflineTask {
   id: string;
   url?: string;
@@ -64,7 +66,7 @@ class OfflineSyncManager {
     const q = this.getQueue();
     q.push({
       ...task,
-      id: crypto.randomUUID(),
+      id: generateId(),
       timestamp: Date.now()
     });
     this.saveQueue(q);

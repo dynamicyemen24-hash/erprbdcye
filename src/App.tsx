@@ -163,6 +163,7 @@ export default function App() {
     beneficiaries,
     sponsorships,
     activities,
+    financialAccounts,
     approvalRequests,
     serverStats,
     consolidatedKpis,
@@ -1083,6 +1084,9 @@ export default function App() {
           projects={projects}
           programs={programs}
           beneficiaries={beneficiaries}
+          sponsorships={sponsorships}
+          financialAccounts={financialAccounts}
+          activities={activities}
           users={users}
           density={layoutDensity}
           setDensity={setLayoutDensity}

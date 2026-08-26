@@ -8,7 +8,17 @@
  * Uses crypto.randomUUID() which is available in all modern browsers and Node 19+.
  */
 export function generateId(prefix?: string): string {
-  const uuid = crypto.randomUUID();
+  let uuid: string;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    uuid = crypto.randomUUID();
+  } else {
+    // Universal RFC4122 v4 compliant fallback for older webviews / non-secure contexts
+    uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
   return prefix ? `${prefix}-${uuid}` : uuid;
 }
 
@@ -17,7 +27,7 @@ export function generateId(prefix?: string): string {
  * Useful for display codes where full UUID is too long.
  */
 export function generateShortId(prefix?: string): string {
-  const short = crypto.randomUUID().replace(/-/g, '').substring(0, 8);
+  const short = generateId().replace(/-/g, '').substring(0, 8);
   return prefix ? `${prefix}-${short}` : short;
 }
 

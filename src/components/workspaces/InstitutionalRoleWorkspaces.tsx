@@ -25,7 +25,8 @@ import {
   Sparkles,
   Zap,
   Sliders,
-  FileCheck
+  FileCheck,
+  Download
 } from 'lucide-react';
 import { REAL_ENTERPRISE_DATA } from '../../core/data/realEnterpriseData';
 import { ActiveTab } from '../../types';
@@ -322,8 +323,12 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
 }) => {
   const isRtl = lang === 'ar';
 
-  // Map user role string to WorkspaceRoleKey
+  // Map user role string to WorkspaceRoleKey with local persistence
   const resolveInitialWorkspace = (): WorkspaceRoleKey => {
+    try {
+      const saved = localStorage.getItem('uamex_active_workspace') as WorkspaceRoleKey;
+      if (saved && WORKSPACE_DEFINITIONS[saved]) return saved;
+    } catch {}
     const roleLower = (currentUserRole || '').toLowerCase();
     if (roleLower.includes('cfo') || roleLower.includes('finance') || roleLower.includes('مالي') || roleLower.includes('محاسب')) return 'finance';
     if (roleLower.includes('program') || roleLower.includes('برامج') || roleLower.includes('مشاريع')) return 'programs';
@@ -337,6 +342,43 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
 
   const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceRoleKey>(resolveInitialWorkspace);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const changeWorkspace = (key: WorkspaceRoleKey) => {
+    setSelectedWorkspace(key);
+    try {
+      localStorage.setItem('uamex_active_workspace', key);
+    } catch {}
+  };
+
+  const handleExportCSV = () => {
+    let dataToExport: any[] = [];
+    const filename = `uamex_${selectedWorkspace}_records.csv`;
+
+    if (selectedWorkspace === 'programs') dataToExport = REAL_ENTERPRISE_DATA.programs || [];
+    else if (selectedWorkspace === 'beneficiaries') dataToExport = REAL_ENTERPRISE_DATA.beneficiaries || [];
+    else if (selectedWorkspace === 'finance') dataToExport = REAL_ENTERPRISE_DATA.chart_of_accounts || [];
+    else dataToExport = REAL_ENTERPRISE_DATA.projects || [];
+
+    if (!dataToExport || dataToExport.length === 0) return;
+
+    const headers = Object.keys(dataToExport[0]).slice(0, 10);
+    const rows = dataToExport.map(row => 
+      headers.map(h => {
+        const val = row[h] ?? '';
+        return `"${String(val).replace(/"/g, '""')}"`;
+      }).join(',')
+    );
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const currentDef = WORKSPACE_DEFINITIONS[selectedWorkspace];
   const IconComponent = currentDef.icon;
@@ -359,6 +401,36 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
     'meal',
     'admin'
   ];
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  
+  const filteredPrograms = (REAL_ENTERPRISE_DATA.programs || []).filter((p: any) => 
+    !normalizedSearch || 
+    p.name_ar?.toLowerCase().includes(normalizedSearch) || 
+    p.code?.toLowerCase().includes(normalizedSearch)
+  );
+
+  const filteredBeneficiaries = (REAL_ENTERPRISE_DATA.beneficiaries || []).filter((b: any) => 
+    !normalizedSearch || 
+    b.full_name_ar?.toLowerCase().includes(normalizedSearch) || 
+    b.beneficiary_code?.toLowerCase().includes(normalizedSearch) || 
+    b.phone_primary?.includes(normalizedSearch) ||
+    b.district?.toLowerCase().includes(normalizedSearch)
+  );
+
+  const filteredAccounts = (REAL_ENTERPRISE_DATA.chart_of_accounts || []).filter((acc: any) => 
+    !normalizedSearch || 
+    acc.name_ar?.toLowerCase().includes(normalizedSearch) || 
+    (acc.code || acc.account_code)?.toLowerCase().includes(normalizedSearch) ||
+    acc.account_type?.toLowerCase().includes(normalizedSearch)
+  );
+
+  const filteredProjects = (REAL_ENTERPRISE_DATA.projects || []).filter((proj: any) => 
+    !normalizedSearch || 
+    proj.name_ar?.toLowerCase().includes(normalizedSearch) || 
+    proj.code?.toLowerCase().includes(normalizedSearch) ||
+    proj.program_name_ar?.toLowerCase().includes(normalizedSearch)
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -394,7 +466,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             </span>
             <select
               value={selectedWorkspace}
-              onChange={(e) => setSelectedWorkspace(e.target.value as WorkspaceRoleKey)}
+              onChange={(e) => changeWorkspace(e.target.value as WorkspaceRoleKey)}
               aria-label={isRtl ? 'اختر مساحة العمل حسب الدور' : 'Select Workspace by Role'}
               className="bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 font-bold border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs cursor-pointer shadow-xs"
             >
@@ -419,7 +491,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             return (
               <button
                 key={key}
-                onClick={() => setSelectedWorkspace(key)}
+                onClick={() => changeWorkspace(key)}
                 className={`flex flex-col items-center justify-center p-2.5 rounded-xl text-center transition-all cursor-pointer border ${
                   isSelected 
                     ? `bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 dark:border-emerald-400 text-emerald-800 dark:text-emerald-300 shadow-sm ring-1 ring-emerald-500/20`
@@ -518,7 +590,25 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 : 'Verified operational records linked directly to the central database'}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute right-3 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={isRtl ? 'بحث في سجلات هذا الدور...' : 'Search role records...'}
+                className="pr-8 pl-3 py-1.5 text-xs bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-slate-800 dark:text-zinc-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 w-44 md:w-56 transition-all"
+              />
+            </div>
+            <button
+              onClick={handleExportCSV}
+              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title={isRtl ? 'تصدير السجلات الحالية إلى ملف CSV' : 'Export current records to CSV'}
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>{isRtl ? 'تصدير CSV' : 'Export CSV'}</span>
+            </button>
             <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-500/30 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               {isRtl ? '349 جدولاً نشطاً' : '349 Active Tables'}
@@ -541,7 +631,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {(REAL_ENTERPRISE_DATA.programs || []).map((p: any) => (
+                {filteredPrograms.map((p: any) => (
                   <tr key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40">
                     <td className="py-2.5 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">{p.code}</td>
                     <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">{p.name_ar}</td>
@@ -579,7 +669,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {(REAL_ENTERPRISE_DATA.beneficiaries || []).slice(0, 8).map((b: any) => (
+                {filteredBeneficiaries.slice(0, 15).map((b: any) => (
                   <tr key={b.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40">
                     <td className="py-2.5 px-3 font-mono font-bold text-rose-600 dark:text-rose-400">{b.beneficiary_code}</td>
                     <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">{b.full_name_ar}</td>
@@ -614,7 +704,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {(REAL_ENTERPRISE_DATA.chart_of_accounts || []).slice(0, 8).map((acc: any) => (
+                {filteredAccounts.slice(0, 15).map((acc: any) => (
                   <tr key={acc.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40">
                     <td className="py-2.5 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">{acc.account_code || acc.code}</td>
                     <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">{acc.name_ar}</td>
@@ -645,7 +735,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {(REAL_ENTERPRISE_DATA.projects || []).slice(0, 8).map((proj: any) => (
+                {filteredProjects.slice(0, 15).map((proj: any) => (
                   <tr key={proj.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40">
                     <td className="py-2.5 px-3 font-mono font-bold text-blue-600 dark:text-blue-400">{proj.code}</td>
                     <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">{proj.name_ar}</td>
