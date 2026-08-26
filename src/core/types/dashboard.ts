@@ -5,6 +5,7 @@ import { Project } from './projects';
 
 export type ActiveTab = 
   | 'dashboard' 
+  | 'workspaces'
   | 'control_panel' 
   | 'domains' 
   | 'programs' 

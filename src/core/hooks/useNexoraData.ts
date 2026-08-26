@@ -19,6 +19,7 @@ import {
   DEFAULT_BENEFICIARIES, 
   DEFAULT_DASHBOARD_STATS 
 } from '../data/defaultEnterpriseSeed';
+import { REAL_ENTERPRISE_DATA } from '../data/realEnterpriseData';
 
 export interface NexoraDataState {
   programs: Program[];
@@ -101,35 +102,45 @@ export function useNexoraData(lang: 'ar' | 'en') {
       };
     }
 
-    // Default High-Fidelity Instant Institutional State (Immediate Interactive UI)
+    // High-Fidelity Instant Institutional State from Production Database Snapshot
     return {
-      programs: DEFAULT_PROGRAMS,
-      projects: DEFAULT_PROJECTS,
-      users: [],
-      roles: [],
-      currencies: DEFAULT_CURRENCIES,
-      organizations: [DEFAULT_ORGANIZATION],
-      orgSettings: [],
-      sysSettings: [],
-      beneficiaries: DEFAULT_BENEFICIARIES,
-      sponsorships: [],
-      approvalRequests: [],
-      financialAccounts: [],
-      activities: [],
-      procurementTenders: [],
+      programs: (REAL_ENTERPRISE_DATA.programs && REAL_ENTERPRISE_DATA.programs.length > 0) ? REAL_ENTERPRISE_DATA.programs : DEFAULT_PROGRAMS,
+      projects: (REAL_ENTERPRISE_DATA.projects && REAL_ENTERPRISE_DATA.projects.length > 0) ? REAL_ENTERPRISE_DATA.projects : DEFAULT_PROJECTS,
+      users: REAL_ENTERPRISE_DATA.users || [],
+      roles: REAL_ENTERPRISE_DATA.roles || [],
+      currencies: (REAL_ENTERPRISE_DATA.currencies && REAL_ENTERPRISE_DATA.currencies.length > 0) ? REAL_ENTERPRISE_DATA.currencies : DEFAULT_CURRENCIES,
+      organizations: (REAL_ENTERPRISE_DATA.organizations && REAL_ENTERPRISE_DATA.organizations.length > 0) ? REAL_ENTERPRISE_DATA.organizations : [DEFAULT_ORGANIZATION],
+      orgSettings: REAL_ENTERPRISE_DATA.organization_settings || [],
+      sysSettings: REAL_ENTERPRISE_DATA.system_settings || [],
+      beneficiaries: (REAL_ENTERPRISE_DATA.beneficiaries && REAL_ENTERPRISE_DATA.beneficiaries.length > 0) ? REAL_ENTERPRISE_DATA.beneficiaries : DEFAULT_BENEFICIARIES,
+      sponsorships: REAL_ENTERPRISE_DATA.sponsorships || [],
+      approvalRequests: REAL_ENTERPRISE_DATA.approval_requests || [],
+      financialAccounts: REAL_ENTERPRISE_DATA.chart_of_accounts || [],
+      activities: REAL_ENTERPRISE_DATA.activities || [],
+      procurementTenders: REAL_ENTERPRISE_DATA.procurement_tenders || [],
       predictiveAnalytics: null,
       strategicPlan: null,
       investmentSummary: null,
-      serverStats: DEFAULT_DASHBOARD_STATS,
+      serverStats: REAL_ENTERPRISE_DATA.dashboardStats || DEFAULT_DASHBOARD_STATS,
       consolidatedKpis: null,
       loading: false,
       error: null,
       systemAlerts: [],
       isCacheWarmed: true,
       isPrefetching: false,
-      prefetchProgress: 0,
-      lastPrefetchedAt: null,
-      prefetchedModules: {},
+      prefetchProgress: 100,
+      lastPrefetchedAt: Date.now(),
+      prefetchedModules: {
+        programs: true,
+        projects: true,
+        beneficiaries: true,
+        sponsorships: true,
+        activities: true,
+        finance: true,
+        users: true,
+        roles: true,
+        organizations: true
+      },
     };
   });
 
@@ -221,14 +232,13 @@ export function useNexoraData(lang: 'ar' | 'en') {
       } catch (err) {
         clearTimeout(timeoutId);
         if (!fetchedResults[ep.key]) {
-          if (ep.key === 'programs' && (!dataRef.current.programs || dataRef.current.programs.length === 0)) {
-            fetchedResults[ep.key] = DEFAULT_PROGRAMS;
-          } else if (ep.key === 'projects' && (!dataRef.current.projects || dataRef.current.projects.length === 0)) {
-            fetchedResults[ep.key] = DEFAULT_PROJECTS;
-          } else if (ep.key === 'currencies' && (!dataRef.current.currencies || dataRef.current.currencies.length === 0)) {
-            fetchedResults[ep.key] = DEFAULT_CURRENCIES;
-          } else if (ep.key === 'organizations' && (!dataRef.current.organizations || dataRef.current.organizations.length === 0)) {
-            fetchedResults[ep.key] = [DEFAULT_ORGANIZATION];
+          const fallbackData = (REAL_ENTERPRISE_DATA as any)[ep.key] || dataRef.current[ep.key];
+          if (fallbackData && Array.isArray(fallbackData) && fallbackData.length > 0) {
+            fetchedResults[ep.key] = fallbackData;
+          } else if (ep.key === 'financialAccounts' && REAL_ENTERPRISE_DATA.chart_of_accounts) {
+            fetchedResults[ep.key] = REAL_ENTERPRISE_DATA.chart_of_accounts;
+          } else if (ep.key === 'serverStats' && REAL_ENTERPRISE_DATA.dashboardStats) {
+            fetchedResults[ep.key] = REAL_ENTERPRISE_DATA.dashboardStats;
           } else {
             fetchedResults[ep.key] = dataRef.current[ep.key] || [];
           }

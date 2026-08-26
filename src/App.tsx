@@ -577,6 +577,7 @@ export default function App() {
 
   const TAB_CONFIG: Record<ActiveTab, { icon: any; title_ar: string; title_en: string; category_ar: string; category_en: string }> = {
     dashboard: { icon: LayoutDashboard, title_ar: 'لوحة القيادة الاستراتيجية', title_en: 'Strategy Dashboard', category_ar: 'الرئيسية', category_en: 'Core' },
+    workspaces: { icon: Briefcase, title_ar: 'مساحات العمل التخصصية للأدوار', title_en: 'Role Workspaces Hub', category_ar: 'الرئيسية', category_en: 'Core' },
     control_panel: { icon: Sliders, title_ar: 'لوحة التحكم والعمليات', title_en: 'Control Panel', category_ar: 'الإدارة', category_en: 'Admin' },
     domains: { icon: Compass, title_ar: 'الأنظمة المؤسسية', title_en: 'Enterprise Systems', category_ar: 'الأنظمة الـ13', category_en: 'Domains' },
     programs: { icon: Briefcase, title_ar: 'البرامج', title_en: 'Programs', category_ar: 'البرامج', category_en: 'Programs' },

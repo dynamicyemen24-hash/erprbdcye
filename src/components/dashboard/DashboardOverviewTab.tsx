@@ -1,6 +1,7 @@
 import React from 'react';
 import { 
-  Building2, AlertTriangle, Users, Target, Sliders, Calculator, Sparkles 
+  Building2, AlertTriangle, Users, Target, Sliders, Calculator, Sparkles,
+  Briefcase, ArrowLeft, ArrowRight
 } from 'lucide-react';
 import { ExecutiveCommandStrip } from './ExecutiveCommandStrip';
 import { ExecutiveDecisionQueue } from './ExecutiveDecisionQueue';
@@ -192,6 +193,41 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
 
       {/* Institutional Performance Linkage Banner */}
       <PerformanceLinkageBanner lang={lang} stats={stats} />
+
+      {/* Dedicated Institutional Role Workspace Gateway Banner */}
+      <div 
+        onClick={() => onNavigate('workspaces')}
+        className="w-full bg-gradient-to-r from-emerald-950/80 via-zinc-900 to-amber-950/70 border border-emerald-500/40 rounded-2xl p-4 md:p-5 text-white shadow-lg cursor-pointer hover:border-emerald-400/70 transition-all flex flex-col md:flex-row items-center justify-between gap-4 group"
+      >
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 group-hover:scale-105 transition-transform">
+            <Briefcase className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                {lang === 'ar' ? 'توزيع العمليات والوظائف' : 'Role-Based Workspaces'}
+              </span>
+              <span className="text-xs text-zinc-400">
+                {currentUser?.role ? `${lang === 'ar' ? 'الدور النشط:' : 'Active Role:'} ${currentUser.role}` : (lang === 'ar' ? '8 مساحات عمل متكاملة' : '8 Dedicated Workspaces')}
+              </span>
+            </div>
+            <h3 className="text-base md:text-lg font-black text-white group-hover:text-emerald-300 transition-colors">
+              {lang === 'ar' ? 'مساحات العمل التخصصية المستقلة للأدوار القيادية والتنفيذية' : 'Dedicated Independent Institutional Workspaces'}
+            </h3>
+            <p className="text-xs text-zinc-300/80 mt-0.5">
+              {lang === 'ar' 
+                ? 'مساحات عمل مخصصة (القيادة، المالية IPSAS، البرامج PMO، العمليات الميدانية، المستفيدين والكفالات، المشتريات، والجودة MEAL)'
+                : 'Role-tailored operation centers for Leadership, Finance, PMO, Field Operations, Beneficiaries, Procurement & MEAL'}
+            </p>
+          </div>
+        </div>
+
+        <button className="self-end md:self-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md flex items-center gap-2 group-hover:shadow-emerald-500/20 transition-all shrink-0">
+          <span>{lang === 'ar' ? 'دخول مساحة العمل' : 'Enter Workspace'}</span>
+          {lang === 'ar' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+        </button>
+      </div>
 
       {/* KPI Bento Grid with custom layouts */}
       {currentPreset.visibleWidgets.kpiCards && (

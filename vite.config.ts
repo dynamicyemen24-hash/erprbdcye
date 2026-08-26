@@ -36,6 +36,9 @@ export default defineConfig(() => {
         output: {
           manualChunks(id) {
             const normalizedId = id.replace(/\\/g, '/');
+            if (normalizedId.includes('realEnterpriseData')) {
+              return 'enterprise-data-snapshot';
+            }
             if (normalizedId.includes('/node_modules/')) {
               if (
                 normalizedId.includes('/node_modules/react/') ||

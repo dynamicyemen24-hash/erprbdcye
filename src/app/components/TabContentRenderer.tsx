@@ -42,6 +42,7 @@ const HRManagementWorkspace = lazyWithRetry(() => import('../../features/adminis
 const StrategicPlanningView = lazyWithRetry(() => import('../../components/StrategicPlanningView').then(m => ({ default: m.StrategicPlanningView })), 'StrategicPlanningView');
 const InvestmentProjectsView = lazyWithRetry(() => import('../../components/InvestmentProjectsView').then(m => ({ default: m.InvestmentProjectsView })), 'InvestmentProjectsView');
 const SalesRevenueView = lazyWithRetry(() => import('../../components/SalesRevenueView'), 'SalesRevenueView');
+const InstitutionalRoleWorkspaces = lazyWithRetry(() => import('../../components/workspaces/InstitutionalRoleWorkspaces'), 'InstitutionalRoleWorkspaces');
 
 // Lucide Icons for Premium Window Chrome
 import { 
@@ -179,6 +180,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   // Enterprise Domain Mapping & Meta data
   const TAB_CONFIG: Record<ActiveTab, { icon: any; title_ar: string; title_en: string; domainCode: string; desc_ar: string; desc_en: string }> = {
     dashboard: { icon: Layout, title_ar: 'لوحة القيادة الاستراتيجية', title_en: 'Strategy Dashboard', domainCode: 'NEB-01', desc_ar: 'قياس الأداء والمؤشرات العامة والأثر الإنساني والميداني لمشاريع الجمعية.', desc_en: 'General impact KPI mapping, C-Level monitoring indices, and field project outcomes.' },
+    workspaces: { icon: Briefcase, title_ar: 'مساحات العمل التخصصية للأدوار', title_en: 'Role Workspaces Hub', domainCode: 'NEB-01..15', desc_ar: 'مساحات عمل مؤسسية مستقلة متخصصة لكل دور وظيفي بالمهام والمؤشرات وسجلات قاعدة البيانات.', desc_en: 'Dedicated independent workspaces tailored for each institutional role with live records and cockpits.' },
     control_panel: { icon: Sliders, title_ar: 'لوحة التحكم والعمليات', title_en: 'Control Panel', domainCode: 'NEB-05', desc_ar: 'إدارة وتفويض لوحات العمل، صلاحيات الفرق، وتكامل الخدمات المؤسسية.', desc_en: 'Operational workspace engine, access control, and automated workflow definition.' },
     domains: { icon: Compass, title_ar: 'الأنظمة والوحدات المؤسسية', title_en: 'Enterprise Systems Center', domainCode: 'NEB-12', desc_ar: 'مركز القيادة والتحكم لكافة الأنظمة والترابط الرقمي وقواعد البيانات.', desc_en: 'Command center interfacing the integrated Nexora operating systems.' },
     programs: { icon: Briefcase, title_ar: 'نظام البرامج التنموية', title_en: 'Programs Management OS', domainCode: 'NEB-03', desc_ar: 'تخطيط البرامج الاستراتيجية الكبرى للجمعية وموازناتها الإنمائية.', desc_en: 'Strategic multi-sector programs planning, funding streams, and overarching metrics.' },
@@ -209,6 +211,16 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
 
   const renderSingleTabContent = (tabKey: ActiveTab) => {
     switch (tabKey) {
+      case 'workspaces':
+        return (
+          <InstitutionalRoleWorkspaces
+            lang={lang}
+            currentUserRole={currentUser?.role}
+            activeTab={activeTab}
+            setActiveTab={safeNavigate as any}
+            onNavigateToTab={safeNavigate as any}
+          />
+        );
       case 'investments':
         return <InvestmentProjectsView lang={lang} onNavigate={safeNavigate} />;
       case 'strategic_planning':
