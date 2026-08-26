@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, Zap, CheckCircle2 } from 'lucide-react';
+import { Zap, CheckCircle2, RefreshCw } from 'lucide-react';
 
 interface NexoraTopProgressBarProps {
   isLoading: boolean;
@@ -37,7 +37,7 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
 
     if (active) {
       setVisible(true);
-      const initial = progressRef.current > 0 && progressRef.current < 90 ? progressRef.current : 15;
+      const initial = progressRef.current > 0 && progressRef.current < 90 ? progressRef.current : 28;
       progressRef.current = initial;
       setProgress(initial);
 
@@ -45,13 +45,13 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
 
       const tick = (now: number) => {
         const delta = now - lastTime;
-        if (delta >= 120) {
+        if (delta >= 60) {
           lastTime = now;
           setProgress((prev) => {
             let next = prev;
-            if (prev < 40) next = prev + Math.random() * 15 + 10;
-            else if (prev < 75) next = prev + Math.random() * 8 + 3;
-            else if (prev < 92) next = prev + Math.random() * 3 + 1;
+            if (prev < 60) next = prev + Math.random() * 8 + 6;
+            else if (prev < 85) next = prev + Math.random() * 4 + 2;
+            else if (prev < 96) next = prev + Math.random() * 1.5 + 0.5;
             progressRef.current = next;
             return next;
           });
@@ -63,20 +63,20 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
 
       setStatusMessage(
         isNavigating
-          ? (lang === 'ar' ? `جاري تحميل ${activeTabLabel || 'القسم'}...` : `Loading ${activeTabLabel || 'module'}...`)
-          : (lang === 'ar' ? 'جاري مزامنة المحرك المؤسسي والبيانات...' : 'Syncing enterprise engine & data...')
+          ? (lang === 'ar' ? 'جاري الانتقال إلى ' + (activeTabLabel || 'النطاق') + '...' : 'Navigating to ' + (activeTabLabel || 'Domain') + '...')
+          : (lang === 'ar' ? 'مزامنة المحرك المؤسسي UAMEX ERP™...' : 'Syncing UAMEX ERP™ Enterprise Engine...')
       );
 
     } else {
       setProgress(100);
       progressRef.current = 100;
-      setStatusMessage(lang === 'ar' ? 'تمت المزامنة بنجاح' : 'Sync completed');
+      setStatusMessage(lang === 'ar' ? 'اكتملت المزامنة بنجاح' : 'Sync completed');
 
       timeoutRef.current = setTimeout(() => {
         setVisible(false);
         setProgress(0);
         progressRef.current = 0;
-      }, 400);
+      }, 300);
     }
 
     return () => {
@@ -89,26 +89,26 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
 
   return (
     <>
-      {/* Top Fixed High-Performance Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 z-[100000] pointer-events-none h-1 bg-slate-200/20 dark:bg-zinc-900/30 overflow-hidden">
+      {/* Top Fixed High-Performance Luminous Gradient Bar */}
+      <div className="fixed top-0 left-0 right-0 z-[100000] pointer-events-none h-1 bg-emerald-950/20 dark:bg-zinc-950/40 overflow-hidden backdrop-blur-xs">
         <motion.div
           role="progressbar"
           aria-valuenow={progress}
           aria-valuemin={0}
           aria-valuemax={100}
-          className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 via-amber-400 to-emerald-400 dark:from-emerald-400 dark:via-cyan-300 dark:to-amber-300 relative shadow-[0_0_15px_rgba(16,185,129,0.9),0_0_6px_rgba(217,119,6,0.8)]"
+          className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 via-amber-400 to-emerald-400 dark:from-emerald-400 dark:via-cyan-300 dark:to-amber-300 relative shadow-[0_0_16px_rgba(16,185,129,0.9),0_0_8px_rgba(217,119,6,0.8)]"
           initial={{ width: '0%', opacity: 1 }}
           animate={{
-            width: `${progress}%`,
+            width: progress + '%',
             opacity: progress === 100 ? [1, 0] : 1
           }}
           transition={{
-            width: { ease: 'easeOut', duration: progress === 100 ? 0.2 : 0.3 },
-            opacity: { duration: 0.4, delay: progress === 100 ? 0.2 : 0 }
+            width: { ease: 'easeOut', duration: progress === 100 ? 0.15 : 0.25 },
+            opacity: { duration: 0.3, delay: progress === 100 ? 0.15 : 0 }
           }}
         >
-          {/* Animated Particle Head */}
-          <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-r from-transparent to-white/90 dark:to-emerald-200/90 rounded-full animate-pulse shadow-[0_0_12px_#34d399]" />
+          {/* Animated Particle Spark Head */}
+          <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-r from-transparent to-white/90 dark:to-emerald-200/90 rounded-full animate-pulse shadow-[0_0_14px_#34d399]" />
         </motion.div>
       </div>
 
@@ -116,20 +116,20 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
       <AnimatePresence>
         {visible && progress < 100 && (
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            initial={{ opacity: 0, y: -15, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -15, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-16 ltr:right-4 rtl:left-4 z-[99999] pointer-events-none flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-zinc-950/90 text-white text-[11px] font-medium border border-emerald-500/40 shadow-2xl backdrop-blur-md"
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.18 }}
+            className="fixed top-3 ltr:right-4 rtl:left-4 z-[99999] pointer-events-none flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-zinc-950/85 dark:bg-black/90 text-white text-xs font-semibold border border-emerald-500/40 shadow-2xl backdrop-blur-xl"
           >
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
             
-            <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span className="font-sans text-slate-200 tracking-wide">{statusMessage}</span>
-            <span className="font-mono text-emerald-400 font-bold ltr:ml-1 rtl:mr-1">{Math.round(progress)}%</span>
+            <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+            <span className="font-sans text-zinc-200 text-[11px] tracking-wide">{statusMessage}</span>
+            <span className="font-mono text-emerald-400 font-black text-[11px] ltr:ml-1 rtl:mr-1">{Math.round(progress)}%</span>
           </motion.div>
         )}
       </AnimatePresence>

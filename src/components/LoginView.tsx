@@ -503,13 +503,15 @@ export default function LoginView({
         // Generate robust verifiable client JWT session with 30-day validity
         const validJwt = generateClientSessionJwt(userSession);
         localStorage.setItem('rbd_token', validJwt);
+        sessionStorage.setItem('rbd_token', validJwt);
         localStorage.setItem('rbd_refresh_token', validJwt);
+        sessionStorage.setItem('rbd_refresh_token', validJwt);
       }
 
-      // 3. Save active user session
-      if (rememberMe) {
-        localStorage.setItem('rbd_user', JSON.stringify(userSession));
-      }
+      // 3. Save active user session reliably across storage tiers
+      localStorage.setItem('rbd_user', JSON.stringify(userSession));
+      sessionStorage.setItem('rbd_user', JSON.stringify(userSession));
+      localStorage.setItem('roh_user', JSON.stringify(userSession));
 
       triggerHaptic('success');
       onLoginSuccess(userSession);
@@ -546,10 +548,13 @@ export default function LoginView({
 
       const validJwt = generateClientSessionJwt(fallbackSession);
       localStorage.setItem('rbd_token', validJwt);
+      sessionStorage.setItem('rbd_token', validJwt);
+      localStorage.setItem('rbd_refresh_token', validJwt);
+      sessionStorage.setItem('rbd_refresh_token', validJwt);
 
-      if (rememberMe) {
-        localStorage.setItem('rbd_user', JSON.stringify(fallbackSession));
-      }
+      localStorage.setItem('rbd_user', JSON.stringify(fallbackSession));
+      sessionStorage.setItem('rbd_user', JSON.stringify(fallbackSession));
+      localStorage.setItem('roh_user', JSON.stringify(fallbackSession));
 
       triggerHaptic('success');
       onLoginSuccess(fallbackSession);

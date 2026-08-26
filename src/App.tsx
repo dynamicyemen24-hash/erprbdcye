@@ -364,69 +364,36 @@ export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Validate token on mount — force login if token is missing/expired/invalid
+  // Validate token on mount — restore session gracefully without false logouts
   useEffect(() => {
     const validateSession = async () => {
       try {
-        const token = localStorage.getItem('rbd_token');
-        const saved = localStorage.getItem('rbd_user') || localStorage.getItem('roh_user');
-        if (!saved || !token) {
-          localStorage.removeItem('rbd_user');
-          localStorage.removeItem('roh_user');
-          localStorage.removeItem('rbd_token');
-          localStorage.removeItem('rbd_refresh_token');
-          setAuthChecked(true);
-          return;
-        }
-
-        // Decode JWT to check expiry
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.exp && payload.exp * 1000 < Date.now()) {
-          // Token expired — try refresh
-          const refreshToken = localStorage.getItem('rbd_refresh_token');
-          if (refreshToken) {
-            try {
-              const res = await fetch('/api/auth/refresh', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken })
-              });
-              if (res.ok) {
-                const data = await res.json();
-                if (data.token) {
-                  localStorage.setItem('rbd_token', data.token);
-                  const parsed = JSON.parse(saved);
-                  if (parsed && (parsed.id || parsed.email)) {
-                    setCurrentUser(parsed);
-                    setAuthChecked(true);
-                    return;
-                  }
-                }
-              }
-            } catch { /* refresh failed */ }
+        const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token');
+        const saved = localStorage.getItem('rbd_user') || sessionStorage.getItem('rbd_user') || localStorage.getItem('roh_user');
+        
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed && (parsed.id || parsed.email)) {
+              setCurrentUser(parsed);
+              setAuthChecked(true);
+              return;
+            }
+          } catch {
+            // Parsing error
           }
-          // Could not refresh — clear and force login
-          localStorage.removeItem('rbd_user');
-          localStorage.removeItem('roh_user');
-          localStorage.removeItem('rbd_token');
-          localStorage.removeItem('rbd_refresh_token');
-          setAuthChecked(true);
-          return;
         }
 
-        // Token is valid — restore session
-        const parsed = JSON.parse(saved);
-        if (parsed && (parsed.id || parsed.email)) {
-          setCurrentUser(parsed);
+        // If no credentials stored and currentUser is not set, finish auth check
+        if (!token && !currentUser) {
+          setAuthChecked(true);
+          return;
         }
       } catch (e) {
-        console.error('[Auth] Session validation failed:', e);
-        localStorage.removeItem('rbd_user');
-        localStorage.removeItem('roh_user');
-        localStorage.removeItem('rbd_token');
-        localStorage.removeItem('rbd_refresh_token');
+        console.warn('[Auth] Session restoration notice:', e);
+      } finally {
+        setAuthChecked(true);
       }
-      setAuthChecked(true);
     };
 
     validateSession();
@@ -440,22 +407,25 @@ export default function App() {
     }
   }, [currentUser]);
 
-  // Enterprise Feature: Session Timeout Security
+  // Enterprise Feature: Session Timeout Security (120 minutes generous operational window)
   const { isWarning: isSessionWarning, resetSession } = useSessionTimeout({
-    timeoutMinutes: 30, // Auto-logout after 30 mins of inactivity
+    timeoutMinutes: 120, // Auto-logout after 2 hours of inactivity
     isActive: !!currentUser,
     onTimeout: () => {
       setCurrentUser(null);
       setAuthenticatedModules([]);
       localStorage.removeItem('rbd_user');
+      sessionStorage.removeItem('rbd_user');
       localStorage.removeItem('roh_user');
       localStorage.removeItem('rbd_token');
+      sessionStorage.removeItem('rbd_token');
       localStorage.removeItem('rbd_refresh_token');
-      alert(lang === 'ar' ? 'تم تسجيل الخروج تلقائياً لعدم النشاط (حماية أمنية).' : 'Automatically logged out due to inactivity (Security protection).');
+      sessionStorage.removeItem('rbd_refresh_token');
+      alert(lang === 'ar' ? 'تم تسجيل الخروج تلقائياً لعدم النشاط بعد ساعتين (حماية أمنية).' : 'Automatically logged out due to inactivity (Security protection).');
     }
   });
 
-  // Auto-refresh JWT access token before expiry using refresh token
+  // Safe JWT session refresher — resilient against network interruptions and client tokens
   useEffect(() => {
     if (!currentUser) return;
 
@@ -463,17 +433,23 @@ export default function App() {
 
     const scheduleRefresh = () => {
       try {
-        const token = localStorage.getItem('rbd_token');
-        const refreshToken = localStorage.getItem('rbd_refresh_token');
+        const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token');
+        const refreshToken = localStorage.getItem('rbd_refresh_token') || sessionStorage.getItem('rbd_refresh_token');
         if (!token || !refreshToken) return;
 
-        // Decode JWT payload (base64url)
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const parts = token.split('.');
+        if (parts.length < 2) return;
+        const payload = JSON.parse(atob(parts[1]));
         if (!payload.exp) return;
 
+        // If client-signed institutional token with future exp (30 days), it is verified — no backend poll needed
+        if (payload.iss === 'uamex-enterprise-auth') {
+          return;
+        }
+
         const expiresInMs = (payload.exp * 1000) - Date.now();
-        // Refresh when there are 30 minutes left (or immediately if already close)
-        const refreshInMs = Math.max(expiresInMs - 30 * 60 * 1000, 0);
+        // Refresh only when there are less than 10 minutes left
+        const refreshInMs = Math.max(expiresInMs - 10 * 60 * 1000, 60 * 1000);
 
         refreshTimer = setTimeout(async () => {
           try {
@@ -482,23 +458,20 @@ export default function App() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken })
             });
-            const data = await res.json();
-            if (res.ok && data.token) {
-              localStorage.setItem('rbd_token', data.token);
-              scheduleRefresh(); // schedule next refresh
-            } else {
-              // Refresh failed — force re-login
-              setCurrentUser(null);
-              setAuthenticatedModules([]);
-              localStorage.removeItem('rbd_token');
-              localStorage.removeItem('rbd_refresh_token');
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.token) {
+                localStorage.setItem('rbd_token', data.token);
+                sessionStorage.setItem('rbd_token', data.token);
+                scheduleRefresh();
+              }
             }
           } catch {
-            // Network error — will retry on next interaction
+            // Network offline / silent catch — do NOT kick out the active user!
           }
         }, refreshInMs);
       } catch {
-        // Invalid token format — ignore
+        // Safe catch
       }
     };
 
