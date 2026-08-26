@@ -21,7 +21,7 @@ export default function YoYPerformanceView({ lang }: { lang: 'ar' | 'en' }) {
     fetch('/api/tables/transactions')
       .then(res => res.json())
       .then((rows: Transaction[]) => {
-        if (!rows || rows.length === 0) {
+        if (!Array.isArray(rows) || rows.length === 0) {
           setData([]);
           setLoading(false);
           return;

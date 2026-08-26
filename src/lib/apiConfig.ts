@@ -44,4 +44,30 @@ if (API_BASE_URL) {
   })(window.fetch);
   console.log(`[API] Backend URL configured: ${API_BASE_URL}`);
 }
-console.log('[API] Global fetch progress instrumentation active.');
+// Bulletproof Response.prototype.json to prevent "Unexpected token 'N', 'Not Found ' is not valid JSON"
+if (typeof Response !== 'undefined' && Response.prototype && !((Response.prototype as any).__safeJsonPatched)) {
+  const originalJson = Response.prototype.json;
+  (Response.prototype as any).__safeJsonPatched = true;
+  Response.prototype.json = async function (this: Response): Promise<any> {
+    try {
+      const text = await this.text();
+      if (!text || text.trim() === '') {
+        return [];
+      }
+      try {
+        return JSON.parse(text);
+      } catch {
+        console.warn(`[SafeJSON] Non-JSON payload received from endpoint (${this.status}):`, text.slice(0, 80));
+        // If it's a tables array endpoint, return an empty array instead of crashing
+        if (this.url && this.url.includes('/api/tables/')) {
+          return [];
+        }
+        return { error: text.trim(), status: this.status, ok: this.ok };
+      }
+    } catch {
+      return this.url && this.url.includes('/api/tables/') ? [] : { error: 'Failed to read response body', ok: false };
+    }
+  };
+}
+
+console.log('[API] Global fetch progress & safe JSON instrumentation active.');

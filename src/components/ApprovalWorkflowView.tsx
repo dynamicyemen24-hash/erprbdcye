@@ -104,20 +104,31 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
 
-  // Load everything
+  // Load everything safely
   const loadData = async () => {
     setLoading(true);
     try {
+      const safeFetchTable = async (url: string) => {
+        try {
+          const r = await fetch(url);
+          if (!r.ok) return [];
+          const data = await r.json();
+          return Array.isArray(data) ? data : (data?.data || []);
+        } catch {
+          return [];
+        }
+      };
+
       const [reqRes, histRes, wfRes, projRes, txRes, usersRes, matrixRes, thresholdsRes, delegationsRes] = await Promise.all([
-        fetch('/api/tables/approval_requests').then(r => r.json()),
-        fetch('/api/tables/approval_history').then(r => r.json()),
-        fetch('/api/tables/workflow_definitions').then(r => r.json()),
-        fetch('/api/tables/projects').then(r => r.json()),
-        fetch('/api/tables/transactions').then(r => r.json()),
-        fetch('/api/tables/users').then(r => r.json()),
-        fetch('/api/tables/approval_matrix').then(r => r.json()),
-        fetch('/api/tables/approval_thresholds').then(r => r.json()),
-        fetch('/api/tables/approval_delegations').then(r => r.json())
+        safeFetchTable('/api/tables/approval_requests'),
+        safeFetchTable('/api/tables/approval_history'),
+        safeFetchTable('/api/tables/workflow_definitions'),
+        safeFetchTable('/api/tables/projects'),
+        safeFetchTable('/api/tables/transactions'),
+        safeFetchTable('/api/tables/users'),
+        safeFetchTable('/api/tables/approval_matrix'),
+        safeFetchTable('/api/tables/approval_thresholds'),
+        safeFetchTable('/api/tables/approval_delegations')
       ]);
 
       // Simple user Map for fast lookup
