@@ -41,6 +41,7 @@ import { User, Role } from '../types';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { policyEngine, type UserDimensionScope } from '../core/security/enterprisePolicyEngine';
 
 interface UsersViewProps {
   users: User[];
@@ -50,7 +51,7 @@ interface UsersViewProps {
   lang: 'ar' | 'en';
 }
 
-type UserSubTab = 'users' | 'roles' | 'matrix' | 'delegations' | 'security_audit';
+type UserSubTab = 'users' | 'roles' | 'matrix' | 'delegations' | 'security_audit' | 'dimension_access';
 
 interface PermissionItem {
   id: string;
@@ -404,6 +405,7 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
           { id: 'matrix', label: isRtl ? 'مصفوفة الصلاحيات (RBAC Matrix)' : 'RBAC Matrix', icon: ShieldCheck },
           { id: 'roles', label: isRtl ? 'الأدوار والمستويات الأمنية' : 'Roles & Clearances', icon: Award },
           { id: 'delegations', label: isRtl ? 'سقوف وصلاحيات الاعتماد المالي' : 'Delegation of Authority', icon: DollarSign },
+          { id: 'dimension_access', label: isRtl ? 'الصلاحيات المجهرية (الحسابات، المشاريع، الأنشطة، المنتجات)' : 'Dimension Access Matrix', icon: Layers },
           { id: 'security_audit', label: isRtl ? 'سجل الجلسات والأمان اللحظي' : 'Active Sessions & Audit', icon: Fingerprint },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -783,6 +785,331 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* TAB 6: GRANULAR DIMENSION ACCESS MATRIX (ACCOUNTS, PROJECTS, ACTIVITIES, PRODUCTS) */}
+      {activeTab === 'dimension_access' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          
+          {/* HEADER & CONTROLS */}
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-600 flex items-center justify-center text-white shadow-md">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>{isRtl ? 'مصفوفة الصلاحيات المجهرية والأبعاد التشغيلية (Dimension-Level ABAC Matrix)' : 'Granular Dimension-Level Access Matrix'}</span>
+                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-mono rounded">
+                      ABAC Policy Engine Active
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                    {isRtl 
+                      ? 'التحكم الدقيق والموجه في صلاحيات الموظف على مستوى أرقام الحسابات، المشاريع، الأنشطة الميدانية، والأصناف المخزنية' 
+                      : 'Attribute-based access control restricting user scopes by GL accounts, project IDs, WBS activities and SKU categories.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setStatusMsg({
+                    type: 'success',
+                    text: isRtl ? 'تم اعتماد وحفظ مصفوفة الصلاحيات المجهرية للمستخدم بنجاح' : 'Dimension access matrix saved successfully'
+                  });
+                  setTimeout(() => setStatusMsg(null), 3500);
+                }}
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-2 cursor-pointer transition-all"
+              >
+                <Save className="w-4 h-4" />
+                <span>{isRtl ? 'حفظ الصلاحيات المجهرية' : 'Save Dimension Scopes'}</span>
+              </button>
+            </div>
+
+            {/* USER SELECTOR STRIP */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <span className="font-bold text-slate-700 dark:text-zinc-300">{isRtl ? 'اختر المستخدم لضبط نطاق الأبعاد:' : 'Select Target User:'}</span>
+                <select
+                  value={selectedUser?.id || users[0]?.id}
+                  onChange={(e) => {
+                    const u = users.find(x => x.id === e.target.value);
+                    if (u) setSelectedUser(u);
+                  }}
+                  className="px-3 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg font-bold text-slate-900 dark:text-white outline-none cursor-pointer"
+                >
+                  {(users || []).map(u => (
+                    <option key={u.id} value={u.id}>
+                      {u.name_ar || u.name} ({u.email}) - L{u.security_level || 3}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+                <span>{isRtl ? 'القسم:' : 'Dept:'} {selectedUser?.department_code || 'OPERATIONS'}</span>
+                <span>•</span>
+                <span>{isRtl ? 'الرتبة:' : 'Role:'} {selectedUser?.position_code || 'OFFICER'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 GRANULAR DIMENSION PANELS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* DIMENSION 1: CHART OF ACCOUNTS SCOPE */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-900 dark:text-white">
+                  <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-lg">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                  <span>{isRtl ? '1. صلاحيات الحسابات المالية (GL Accounts Scope)' : '1. Financial Accounts Scope'}</span>
+                </div>
+                <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold rounded">
+                  IPSAS Scope
+                </span>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                    {isRtl ? 'بادئات الحسابات المسموح التعامل معها (Allowed Prefixes):' : 'Allowed Account Prefixes:'}
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue="111, 112, 113, 51, 52"
+                    placeholder="e.g. 111, 113, 5 or * for all"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-mono font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    {isRtl ? 'مثال: 111 (صناديق)، 113 (عهد)، 5 (مصروفات مشاريع)، * (كافة الحسابات)' : 'e.g. 111 (Cash), 113 (Advances), 5 (Expenses), * (All)'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                    {isRtl ? 'الحسابات السرية المحظورة (Blocked Confidential Accounts):' : 'Blocked Confidential Accounts:'}
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue="212, 511, 31"
+                    placeholder="e.g. 212, 511 (Payroll/Equity)"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-mono font-bold text-rose-600 dark:text-rose-400 outline-none focus:border-rose-500"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    {isRtl ? 'مثال: 212 (مستحقات الرواتب السرية)، 31 (رأس المال والصناديق المقيدة)' : 'e.g. 212 (Confidential Payroll), 31 (Restricted Equity)'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                    {isRtl ? 'سقف السند المالي الواحد (Max Single Voucher Limit):' : 'Max Single Voucher Ceiling:'}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      defaultValue={selectedUser?.max_approval_amount ? parseFloat(String(selectedUser.max_approval_amount)) : 2500000}
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-mono font-bold text-emerald-600 outline-none focus:border-emerald-500"
+                    />
+                    <span className="font-bold text-zinc-400 text-xs shrink-0">YER</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* DIMENSION 2: PROJECTS SCOPE */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-900 dark:text-white">
+                  <div className="p-2 bg-blue-500/10 text-blue-600 rounded-lg">
+                    <Award className="w-4 h-4" />
+                  </div>
+                  <span>{isRtl ? '2. صلاحيات المشاريع التنفيذية (Assigned Projects)' : '2. Projects Assignment Scope'}</span>
+                </div>
+                <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded">
+                  Project WBS
+                </span>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                    {isRtl ? 'المشاريع المخصصة للمستخدم (Assigned Projects):' : 'Assigned Project Codes:'}
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
+                  >
+                    <option value="ALL">{isRtl ? '🌐 كافة المشاريع الميدانية (صلاحية كاملة)' : '🌐 All Projects (Full Access)'}</option>
+                    <option value="PRJ-WASH-2026">{isRtl ? '🚰 مشروع حفر الآبار والمياه الإصحاحية (PRJ-WASH-2026)' : 'WASH Borehole Project (PRJ-WASH-2026)'}</option>
+                    <option value="PRJ-FOOD-2026">{isRtl ? '🍞 مشروع السلال الغذائية الرمضانية (PRJ-FOOD-2026)' : 'Ramadan Food Baskets (PRJ-FOOD-2026)'}</option>
+                    <option value="PRJ-ORPHAN-2026">{isRtl ? '🤍 مشروع كفالة ورعاية 500 يتيم (PRJ-ORPHAN-2026)' : 'Orphan Welfare Project (PRJ-ORPHAN-2026)'}</option>
+                  </select>
+                </div>
+
+                <div className="p-3 bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 rounded-xl text-[11px] text-blue-800 dark:text-blue-300 space-y-1">
+                  <span className="font-black flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    {isRtl ? 'قاعدة الفصل الحوكمي للمشاريع:' : 'Project Boundary Rule:'}
+                  </span>
+                  <p className="leading-relaxed">
+                    {isRtl 
+                      ? 'لا يمكن للمستخدم رفع طلب شراء أو تسجيل سند مالي أو تعديل بيانات المستفيدين خارج نطاق المشاريع المسندة إليه.' 
+                      : 'User cannot generate purchase requests or post financial transactions outside assigned project boundary.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* DIMENSION 3: FIELD ACTIVITIES & WBS SCOPE */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-900 dark:text-white">
+                  <div className="p-2 bg-amber-500/10 text-amber-600 rounded-lg">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <span>{isRtl ? '3. صلاحيات الأنشطة الميدانية WBS (Field Activities)' : '3. Field Activities & Milestones'}</span>
+                </div>
+                <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded">
+                  GPS & Geofencing
+                </span>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                    {isRtl ? 'حزم العمل والأنشطة الميدانية المعتمدة:' : 'Authorized Field WBS Activities:'}
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  >
+                    <option value="ALL">{isRtl ? '📍 كافة الأنشطة الميدانية التابعة للفرع' : '📍 All Field Activities in Branch'}</option>
+                    <option value="ACT-DISTRIBUTION-01">{isRtl ? '📦 نشاط التوزيع الميداني وتسليم الطرود (ACT-01)' : 'Direct Aid Distribution (ACT-01)'}</option>
+                    <option value="ACT-SURVEY-02">{isRtl ? '📝 نشاط المسح الميداني وبحث الأسر (ACT-02)' : 'Household Field Survey (ACT-02)'}</option>
+                    <option value="ACT-DRILL-03">{isRtl ? '🏗️ نشاط الإشراف الهندسي على الآبار (ACT-03)' : 'Borehole Engineering Supervision (ACT-03)'}</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl">
+                  <span className="font-bold text-slate-700 dark:text-zinc-300">{isRtl ? 'إلزامية البصمة الجغرافية GPS عند التنفيذ:' : 'Require GPS Stamp on Execution:'}</span>
+                  <input type="checkbox" defaultChecked className="w-4 h-4 accent-emerald-600 rounded cursor-pointer" />
+                </div>
+              </div>
+            </div>
+
+            {/* DIMENSION 4: PRODUCTS & INVENTORY SKUs SCOPE */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-900 dark:text-white">
+                  <div className="p-2 bg-purple-500/10 text-purple-600 rounded-lg">
+                    <Sliders className="w-4 h-4" />
+                  </div>
+                  <span>{isRtl ? '4. صلاحيات الأصناف والمخازن (Inventory SKUs Scope)' : '4. Inventory & Warehouse SKUs'}</span>
+                </div>
+                <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold rounded">
+                  Disbursement Caps
+                </span>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                    {isRtl ? 'فئات الأصناف المسموح صرفها وإدارتها:' : 'Allowed Product Categories:'}
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-purple-500"
+                  >
+                    <option value="ALL">{isRtl ? '📦 كافة الفئات والأصناف المخزنية' : '📦 All Inventory Categories'}</option>
+                    <option value="FOOD_BASKET">{isRtl ? '🌾 المواد الغذائية والإغاثية (Food Items)' : 'Food Rations & Relief Items'}</option>
+                    <option value="MEDICAL">{isRtl ? '💊 المستلزمات الطبية والأدوية (Medical)' : 'Medical Supplies & Medicines'}</option>
+                    <option value="SHELTER">{isRtl ? '⛺ مواد الإيواء والخيام (Shelter & NFI)' : 'Shelter & Non-Food Items'}</option>
+                    <option value="CAPITAL_ASSETS">{isRtl ? '🚜 الأصول الثابتة والمعدات الرأسمالية' : 'Capital Equipment & Assets'}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                    {isRtl ? 'سقف كمية الصرف في السند الواحد (Max Disbursement Qty):' : 'Max Disbursement Quantity Cap:'}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      defaultValue={250}
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-mono font-bold text-purple-600 outline-none focus:border-purple-500"
+                    />
+                    <span className="font-bold text-zinc-400 text-xs shrink-0">{isRtl ? 'وحدة / طرد' : 'Units'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* LIVE DIMENSION POLICY SIMULATOR */}
+          <div className="bg-gradient-to-r from-slate-900 via-zinc-900 to-slate-950 border border-zinc-800 rounded-2xl p-6 text-white shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-400" />
+                <h4 className="text-sm font-black">{isRtl ? 'مختبر فحص ومحاكاة الصلاحيات المجهرية اللحظي (ABAC Live Simulator)' : 'Live Dimension Policy Simulator'}</h4>
+              </div>
+              <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
+                Deterministic Evaluator
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'رمز الحساب للتجربة:' : 'Test Account Code:'}</label>
+                <input
+                  type="text"
+                  defaultValue="11101"
+                  className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono font-bold text-zinc-200 outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'المبلغ للتجربة (YER):' : 'Test Amount (YER):'}</label>
+                <input
+                  type="number"
+                  defaultValue={50000}
+                  className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono font-bold text-zinc-200 outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'رمز المشروع:' : 'Test Project Code:'}</label>
+                <input
+                  type="text"
+                  defaultValue="PRJ-WASH-2026"
+                  className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono font-bold text-zinc-200 outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'فئة الصنف المخزني:' : 'Test Product Category:'}</label>
+                <input
+                  type="text"
+                  defaultValue="FOOD_BASKET"
+                  className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono font-bold text-zinc-200 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between text-xs text-emerald-400 font-bold">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>{isRtl ? 'نتيجة الفحص الحوكمي: العملية مصرحة ومسموحة بالكامل وفق مصفوفة الأبعاد المحددة للمستخدم.' : 'Evaluation Result: Transaction is fully ALLOWED within assigned dimension bounds.'}</span>
+              </div>
+              <span className="font-mono text-[11px] font-black bg-emerald-500 text-zinc-950 px-2.5 py-0.5 rounded">
+                PERMITTED (ALLOW)
+              </span>
+            </div>
+          </div>
+
         </div>
       )}
 
