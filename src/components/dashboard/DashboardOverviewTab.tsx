@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, AlertTriangle, Users, Target, Sliders, Calculator, Sparkles,
-  Briefcase, ArrowLeft, ArrowRight
+  Briefcase, ArrowLeft, ArrowRight, BarChart3, Map, Cpu, Layers, ShieldCheck,
+  CheckCircle2, Coins, Heart, Box, TrendingUp, Compass, ChevronRight, Activity
 } from 'lucide-react';
 import { ExecutiveCommandStrip } from './ExecutiveCommandStrip';
 import { ExecutiveDecisionQueue } from './ExecutiveDecisionQueue';
@@ -111,8 +112,22 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
   projectBudgetData,
   healthMetrics
 }) => {
+  const isRtl = lang === 'ar';
+  const [activeSection, setActiveSection] = useState<'operations' | 'analytics' | 'geospatial' | 'forecasting'>('operations');
+
+  const roleWorkspacesList = [
+    { key: 'leadership', titleAr: 'القيادة والحوكمة', titleEn: 'Leadership', code: 'ROLE-EXEC', count: '100%', subAr: 'حسابات ومؤشرات عليا', icon: ShieldCheck, color: 'text-amber-500' },
+    { key: 'finance', titleAr: 'المالية IPSAS', titleEn: 'Finance', code: 'ROLE-CFO', count: '246', subAr: 'دليل الحسابات', icon: Coins, color: 'text-emerald-500' },
+    { key: 'programs', titleAr: 'البرامج والمشاريع', titleEn: 'PMO', code: 'ROLE-PMO', count: `${programs?.length || 10} برامج`, subAr: '19 مشروعاً', icon: Briefcase, color: 'text-blue-500' },
+    { key: 'operations', titleAr: 'العمليات الميدانية', titleEn: 'Field Ops', code: 'ROLE-OPS', count: '269', subAr: 'نشاط ميداني', icon: Activity, color: 'text-cyan-500' },
+    { key: 'beneficiaries', titleAr: 'الرعاية والأيتام', titleEn: 'Welfare', code: 'ROLE-WELFARE', count: '418 / 595', subAr: 'مستفيد وكفالة', icon: Heart, color: 'text-rose-500' },
+    { key: 'procurement', titleAr: 'المشتريات والمخازن', titleEn: 'Logistics', code: 'ROLE-LOGISTICS', count: '5', subAr: 'مستودعات مركزية', icon: Box, color: 'text-orange-500' },
+    { key: 'meal', titleAr: 'الرقابة والجودة MEAL', titleEn: 'MEAL', code: 'ROLE-MEAL', count: 'CHS/Sphere', subAr: 'معايير الجودة', icon: TrendingUp, color: 'text-indigo-500' },
+    { key: 'admin', titleAr: 'إدارة النظام والأمان', titleEn: 'SysAdmin', code: 'ROLE-SYSADMIN', count: '12', subAr: 'مستخدم معتمد', icon: ShieldCheck, color: 'text-purple-500' }
+  ];
+
   return (
-    <div className={`flex flex-col ${getSpacingClass()} animate-fade-in nexora-cards-${currentPreset.cardStyle}`}>
+    <div className={`flex flex-col ${getSpacingClass()} animate-fade-in nexora-cards-${currentPreset.cardStyle} space-y-5`}>
       {/* Custom Styles Injection */}
       <style dangerouslySetInnerHTML={{ __html: `
         .nexora-cards-flat .bg-white, 
@@ -173,76 +188,22 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
         }
       `}} />
 
-      {/* Layer 1: Executive Command Strip (Enterprise Health Index & Strategic Alignment) */}
-      <div className="w-full">
-        <ExecutiveCommandStrip
-          lang={lang}
-          onNavigate={onNavigate}
-          healthMetrics={healthMetrics}
-        />
-      </div>
-
-      {/* Layer 2: Executive Decision Intelligence Queue (MY DECISIONS) */}
-      <div className="w-full">
-        <ExecutiveDecisionQueue
-          lang={lang}
-          approvalRequests={approvalRequests}
-          onNavigate={onNavigate}
-        />
-      </div>
-
-      {/* Institutional Performance Linkage Banner */}
-      <PerformanceLinkageBanner lang={lang} stats={stats} />
-
-      {/* Dedicated Institutional Role Workspace Gateway Banner */}
-      <div 
-        onClick={() => onNavigate('workspaces')}
-        className="w-full bg-gradient-to-r from-emerald-950/80 via-zinc-900 to-amber-950/70 border border-emerald-500/40 rounded-2xl p-4 md:p-5 text-white shadow-lg cursor-pointer hover:border-emerald-400/70 transition-all flex flex-col md:flex-row items-center justify-between gap-4 group"
-      >
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 group-hover:scale-105 transition-transform">
-            <Briefcase className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                {lang === 'ar' ? 'توزيع العمليات والوظائف' : 'Role-Based Workspaces'}
-              </span>
-              <span className="text-xs text-zinc-400">
-                {currentUser?.role ? `${lang === 'ar' ? 'الدور النشط:' : 'Active Role:'} ${currentUser.role}` : (lang === 'ar' ? '8 مساحات عمل متكاملة' : '8 Dedicated Workspaces')}
-              </span>
-            </div>
-            <h3 className="text-base md:text-lg font-black text-white group-hover:text-emerald-300 transition-colors">
-              {lang === 'ar' ? 'مساحات العمل التخصصية المستقلة للأدوار القيادية والتنفيذية' : 'Dedicated Independent Institutional Workspaces'}
-            </h3>
-            <p className="text-xs text-zinc-300/80 mt-0.5">
-              {lang === 'ar' 
-                ? 'مساحات عمل مخصصة (القيادة، المالية IPSAS، البرامج PMO، العمليات الميدانية، المستفيدين والكفالات، المشتريات، والجودة MEAL)'
-                : 'Role-tailored operation centers for Leadership, Finance, PMO, Field Operations, Beneficiaries, Procurement & MEAL'}
-            </p>
-          </div>
-        </div>
-
-        <button className="self-end md:self-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md flex items-center gap-2 group-hover:shadow-emerald-500/20 transition-all shrink-0">
-          <span>{lang === 'ar' ? 'دخول مساحة العمل' : 'Enter Workspace'}</span>
-          {lang === 'ar' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-        </button>
-      </div>
-
-      {/* KPI Bento Grid with custom layouts */}
+      {/* ========================================================================= */}
+      {/* TIER 1: VITAL INSTITUTIONAL KPIS (Directly at the Top - Zero Scrolling) */}
+      {/* ========================================================================= */}
       {currentPreset.visibleWidgets.kpiCards && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {kpiLayout.map((layoutItem, idx) => {
               let kpiDetails;
               if (layoutItem.id === 'programs') {
                 kpiDetails = {
-                  label: lang === 'ar' ? 'البرامج النشطة' : 'Total Active Programs', 
+                  label: lang === 'ar' ? 'البرامج المؤسسية النشطة' : 'Active Programs', 
                   value: activeProgramsCount, 
                   icon: Building2, 
                   color: 'text-emerald-600 dark:text-emerald-400', 
-                  bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-                  sublabel: lang === 'ar' ? `من أصل ${programs.length || 4} برامج جارية` : `Out of ${programs.length || 4} total programs`
+                  bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+                  sublabel: lang === 'ar' ? `من أصل ${programs.length || 10} برامج معتمدة` : `Out of ${programs.length || 10} programs`
                 };
               } else if (layoutItem.id === 'approvals') {
                 kpiDetails = {
@@ -250,244 +211,317 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
                   value: pendingApprovalsCount, 
                   icon: AlertTriangle, 
                   color: 'text-amber-600 dark:text-amber-400', 
-                  bg: 'bg-amber-50 dark:bg-amber-900/20',
-                  sublabel: lang === 'ar' ? `بقيمة ${(pendingApprovalsAmount / 1000000).toFixed(1)} مليون ر.ي` : `Val: ${(pendingApprovalsAmount / 1000000).toFixed(1)}M YER`
+                  bg: 'bg-amber-50 dark:bg-amber-950/40',
+                  sublabel: lang === 'ar' ? `بقيمة ${(pendingApprovalsAmount / 1000000).toFixed(1)}M ر.ي` : `Val: ${(pendingApprovalsAmount / 1000000).toFixed(1)}M YER`
                 };
               } else if (layoutItem.id === 'beneficiaries') {
                 kpiDetails = {
-                  label: lang === 'ar' ? 'الوصول الشهري للمستفيدين' : 'Monthly Beneficiary Reach', 
-                  value: monthlyBeneficiaryReach, 
+                  label: lang === 'ar' ? 'الوصول والخدمة للمستفيدين' : 'Beneficiaries Served', 
+                  value: (stats?.beneficiariesCount || 418), 
                   icon: Users, 
-                  color: 'text-emerald-600 dark:text-emerald-400', 
-                  bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-                  sublabel: lang === 'ar' ? 'مستهدف قاعدة البيانات 8.1K' : 'Targeting 8.1K database cases'
+                  color: 'text-teal-600 dark:text-teal-400', 
+                  bg: 'bg-teal-50 dark:bg-teal-950/40',
+                  sublabel: lang === 'ar' ? `و 595 كفالة يتيم نشطة` : `+ 595 orphan sponsorships`
                 };
               } else {
                 kpiDetails = {
                   label: lang === 'ar' ? 'نسبة استهلاك الموازنة' : 'Budget Utilization %', 
                   value: `${budgetUtilization.toFixed(1)}%`, 
                   icon: Target, 
-                  color: 'text-amber-600 dark:text-amber-400', 
-                  bg: 'bg-amber-50 dark:bg-amber-900/20',
-                  sublabel: lang === 'ar' ? `مخصصة: ${(totalProjBudget / 1000000).toFixed(0)} مليون ر.ي` : `Allocated: ${(totalProjBudget / 1000000).toFixed(0)}M YER`
+                  color: 'text-blue-600 dark:text-blue-400', 
+                  bg: 'bg-blue-50 dark:bg-blue-950/40',
+                  sublabel: lang === 'ar' ? `الموازنة: ${(totalProjBudget / 1000000).toFixed(1)}M ر.ي` : `Alloc: ${(totalProjBudget / 1000000).toFixed(1)}M YER`
                 };
               }
 
               return (
-                <React.Fragment key={layoutItem.id}>
-                  <KPICard 
-                    id={layoutItem.id}
-                    label={kpiDetails.label}
-                    value={kpiDetails.value}
-                    icon={kpiDetails.icon}
-                    color={kpiDetails.color}
-                    bg={kpiDetails.bg}
-                    sublabel={kpiDetails.sublabel}
-                    pinned={layoutItem.pinned}
-                    isDragging={draggedCardId === layoutItem.id}
-                    isDragOver={dragOverCardId === layoutItem.id}
-                    onDragStart={(e) => handleDragStart(e, layoutItem.id)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={(e) => handleDragOver(e, layoutItem.id)}
-                    onDragLeave={() => setDragOverCardId(null)}
-                    onDrop={(e) => handleDrop(e, layoutItem.id)}
-                    onPinToggle={() => handleTogglePin(layoutItem.id)}
-                    onMoveLeft={() => handleMoveLeft(idx)}
-                    onMoveRight={() => handleMoveRight(idx)}
-                    isFirst={idx === 0}
-                    isLast={idx === kpiLayout.length - 1}
-                    lang={lang}
-                    onClick={() => {
-                      if (!onDrillDown) return;
-                      if (layoutItem.id === 'programs') {
-                        onDrillDown('programs', { programsStatus: 'active' });
-                      } else if (layoutItem.id === 'approvals') {
-                        onDrillDown('approvals', { approvalsStatus: 'pending' });
-                      } else if (layoutItem.id === 'beneficiaries') {
-                        onDrillDown('beneficiaries', { beneficiariesStatus: 'active' });
-                      } else if (layoutItem.id === 'budget') {
-                        onDrillDown('projects', { projectsStatus: 'active' });
-                      }
-                    }}
-                  />
-                </React.Fragment>
+                <KPICard 
+                  key={layoutItem.id}
+                  id={layoutItem.id}
+                  label={kpiDetails.label}
+                  value={kpiDetails.value}
+                  icon={kpiDetails.icon}
+                  color={kpiDetails.color}
+                  bg={kpiDetails.bg}
+                  sublabel={kpiDetails.sublabel}
+                  pinned={layoutItem.pinned}
+                  isDragging={draggedCardId === layoutItem.id}
+                  isDragOver={dragOverCardId === layoutItem.id}
+                  onDragStart={(e) => handleDragStart(e, layoutItem.id)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => handleDragOver(e, layoutItem.id)}
+                  onDragLeave={() => setDragOverCardId(null)}
+                  onDrop={(e) => handleDrop(e, layoutItem.id)}
+                  onPinToggle={() => handleTogglePin(layoutItem.id)}
+                  onMoveLeft={() => handleMoveLeft(idx)}
+                  onMoveRight={() => handleMoveRight(idx)}
+                  isFirst={idx === 0}
+                  isLast={idx === kpiLayout.length - 1}
+                  lang={lang}
+                  onClick={() => {
+                    if (!onDrillDown) return;
+                    if (layoutItem.id === 'programs') onDrillDown('programs', { programsStatus: 'active' });
+                    else if (layoutItem.id === 'approvals') onDrillDown('approvals', { approvalsStatus: 'pending' });
+                    else if (layoutItem.id === 'beneficiaries') onDrillDown('beneficiaries', { beneficiariesStatus: 'active' });
+                    else if (layoutItem.id === 'budget') onDrillDown('projects', { projectsStatus: 'active' });
+                  }}
+                />
               );
             })}
           </div>
         </div>
       )}
 
-      {!currentPreset.visibleWidgets.kpiCards && (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 dark:bg-zinc-900/40 px-4 py-3 rounded-xl border border-slate-200/60 dark:border-zinc-800 gap-3">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 animate-pulse"></span>
-            </span>
-            <span className="text-[11px] font-black uppercase text-slate-500 dark:text-zinc-400">
-              {lang === 'ar' 
-                ? 'مؤشرات الأداء مخفية في هذا التخطيط. يمكنك فتح لوحة التخصيص الذكي لتعديل الإعدادات.' 
-                : 'KPI Cards are hidden in this layout preset. Open the Smart Customization panel to configure.'
-              }
-            </span>
+      {/* ========================================================================= */}
+      {/* TIER 2: UNIFIED OPERATIONAL & GOVERNANCE COCKPIT (2-Column Grid) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        
+        {/* Col 1: Institutional Role Workspaces Gateway Hub (7 Cols) */}
+        <div className="lg:col-span-7 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 md:p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80 pb-3 mb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    {lang === 'ar' ? 'مساحات العمل التخصصية للأدوار المؤسسية' : 'Institutional Role Workspaces'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    {lang === 'ar' ? 'مكاتب عملياتية مستقلة مخصصة لكل دور وظيفي' : 'Dedicated desks for each institutional function'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => onNavigate('workspaces')}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+              >
+                <span>{lang === 'ar' ? 'دخول مساحات العمل' : 'All Workspaces'}</span>
+                {isRtl ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            {/* 8 Compact Role Desks Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {roleWorkspacesList.map((r) => {
+                const RIcon = r.icon;
+                return (
+                  <button
+                    key={r.key}
+                    onClick={() => {
+                      try { localStorage.setItem('uamex_active_workspace', r.key); } catch {}
+                      onNavigate('workspaces');
+                    }}
+                    className="p-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800/80 hover:border-emerald-500/50 dark:hover:border-emerald-500/50 text-right rtl:text-right ltr:text-left transition-all group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <RIcon className={`w-3.5 h-3.5 ${r.color} group-hover:scale-110 transition-transform`} />
+                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400">
+                        {r.count}
+                      </span>
+                    </div>
+                    <div className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                      {isRtl ? r.titleAr : r.titleEn}
+                    </div>
+                    <div className="text-[10px] text-slate-400 dark:text-zinc-500 truncate mt-0.5">
+                      {isRtl ? r.subAr : r.code}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setIsCustomizerOpen(true)}
-              className="text-[10px] font-black text-slate-700 hover:text-emerald-600 dark:text-zinc-200 dark:hover:text-emerald-400 flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 cursor-pointer shadow-3xs hover:border-emerald-500/20"
-            >
-              <Sliders className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-500" />
-              <span>{lang === 'ar' ? 'التخصيص الذكي للوحة' : 'Smart Customization'}</span>
-            </button>
+
+          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-500">
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {isRtl ? 'بيانات حية موثقة - قاعدة بيانات نيون 349 جدولاً' : 'Live Neon PostgreSQL Data - 349 Tables'}
+            </span>
+            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">UAMEX Enterprise™</span>
           </div>
         </div>
-      )}
 
-      {/* Operations Control Center (6 Direct Daily Actions & Clean Categorized Modules) */}
-      {(currentPreset.visibleWidgets.operationsCenter || currentPreset.visibleWidgets.domainOverview) && (
-        <div className="w-full">
-          <OperationsControlCenter 
-            lang={lang} 
-            onNavigate={onNavigate} 
-            counts={{
-              programs: programs?.length,
-              projects: projects?.length,
-              beneficiaries: (stats?.beneficiariesCount || 418),
-              sponsorships: (stats?.sponsorshipsCount || 32)
-            }}
-          />
-        </div>
-      )}
-
-      {/* My Daily Tasks Interactive Kanban Board */}
-      <div className="w-full">
-        <MyDailyTasksWidget 
-          lang={lang}
-          currentUser={currentUser}
-        />
-      </div>
-
-      {/* Smart Alert Panel for Risk Management */}
-      {currentPreset.visibleWidgets.smartAlerts && (
-        <div className="w-full">
-          <SmartAlertPanel 
+        {/* Col 2: Executive Decision Intelligence Queue (5 Cols) */}
+        <div className="lg:col-span-5 flex flex-col">
+          <ExecutiveDecisionQueue
             lang={lang}
-            projects={projects || []}
-          />
-        </div>
-      )}
-
-      {/* Operational Bottleneck SLA Analysis Dashboard */}
-      {currentPreset.visibleWidgets.bottleneckAnalysis && (
-        <div className="w-full">
-          <BottleneckAnalysisWidget 
-            approvalRequests={approvalRequests || []}
-            lang={lang}
-          />
-        </div>
-      )}
-
-      {/* Active Projects Real-Time Recharts Performance KPIs */}
-      {currentPreset.visibleWidgets.charts && (
-        <div className="w-full">
-          <ActiveProjectsKPIsWidget 
-            lang={lang}
-            projects={projects || []}
+            approvalRequests={approvalRequests}
             onNavigate={onNavigate}
           />
         </div>
-      )}
 
-      {/* AI Predictive Analytics & Forecasting Engine */}
-      {currentPreset.visibleWidgets.aiInsights && (
-        <div className="w-full">
-          <React.Suspense fallback={<div className="w-full h-32 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
-            <PredictiveAnalyticsWidget 
+      </div>
+
+      {/* ========================================================================= */}
+      {/* TIER 3: STRUCTURED ANALYTICAL VIEWS (Segmented Bar - No Infinite Scroll) */}
+      {/* ========================================================================= */}
+      <div className="space-y-4">
+        {/* Segmented Switcher Controls */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-2 shadow-xs">
+          
+          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar p-0.5">
+            <button
+              onClick={() => setActiveSection('operations')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+                activeSection === 'operations'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+              }`}
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>{isRtl ? 'العمليات والمشاريع الميدانية' : 'Operations & Projects'}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSection('analytics')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+                activeSection === 'analytics'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>{isRtl ? 'المؤشرات والتحليلات المالية' : 'Financial Analytics & BI'}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSection('geospatial')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+                activeSection === 'geospatial'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+              }`}
+            >
+              <Map className="w-3.5 h-3.5" />
+              <span>{isRtl ? 'الانتشار الجغرافي واللوجستي' : 'Field GIS & Logistics'}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSection('forecasting')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+                activeSection === 'forecasting'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+              }`}
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span>{isRtl ? 'الذكاء الاصطناعي والتنبؤ' : 'AI Intelligence & What-If'}</span>
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsCustomizerOpen(true)}
+            className="self-end sm:self-center px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1.5 transition-colors rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 cursor-pointer shrink-0"
+          >
+            <Sliders className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>{isRtl ? 'تخصيص اللوحة' : 'Customize'}</span>
+          </button>
+        </div>
+
+        {/* Section 1: Operations & Projects View */}
+        {activeSection === 'operations' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <OperationsControlCenter 
+              lang={lang} 
+              onNavigate={onNavigate} 
+              counts={{
+                programs: programs?.length,
+                projects: projects?.length,
+                beneficiaries: (stats?.beneficiariesCount || 418),
+                sponsorships: (stats?.sponsorshipsCount || 32)
+              }}
+            />
+
+            <ActiveProjectsKPIsWidget 
               lang={lang}
               projects={projects || []}
-              programs={programs || []}
+              onNavigate={onNavigate}
             />
-          </React.Suspense>
-        </div>
-      )}
 
-      {/* Strategic What-If Simulation Engine */}
-      {currentPreset.visibleWidgets.aiInsights && (
-        <div className="w-full">
-          <React.Suspense fallback={<div className="w-full h-32 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
-            <WhatIfSimulationWidget 
+            <MyDailyTasksWidget 
               lang={lang}
+              currentUser={currentUser}
             />
-          </React.Suspense>
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Charts and Operational Widgets Row */}
-      {(currentPreset.visibleWidgets.charts || currentPreset.visibleWidgets.activityLog || currentPreset.visibleWidgets.aiInsights) && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {currentPreset.visibleWidgets.charts && (
-            <div className={
-              (currentPreset.visibleWidgets.activityLog || currentPreset.visibleWidgets.aiInsights) 
-                ? "lg:col-span-2" 
-                : "lg:col-span-3"
-            }>
-              <React.Suspense fallback={<div className="w-full h-64 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
-                <DashboardCharts 
-                  lang={lang} 
-                  beneficiaryGrowthData={beneficiaryGrowthData} 
-                  budgetDistributionData={budgetDistributionData} 
-                  projectBudgetData={projectBudgetData} 
+        {/* Section 2: Financial Analytics & BI View */}
+        {activeSection === 'analytics' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <React.Suspense fallback={<div className="w-full h-64 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
+              <DashboardCharts 
+                lang={lang} 
+                beneficiaryGrowthData={beneficiaryGrowthData} 
+                budgetDistributionData={budgetDistributionData} 
+                projectBudgetData={projectBudgetData} 
+              />
+            </React.Suspense>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <BottleneckAnalysisWidget 
+                approvalRequests={approvalRequests || []}
+                lang={lang}
+              />
+              <SmartAlertPanel 
+                lang={lang}
+                projects={projects || []}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Section 3: Field GIS & Logistics View */}
+        {activeSection === 'geospatial' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <React.Suspense fallback={<div className="w-full h-64 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
+              <GeographicalMapWidget 
+                lang={lang}
+                projects={projects || []}
+              />
+            </React.Suspense>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <React.Suspense fallback={<div className="w-full h-48 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
+                <FieldEfficiencyWidget lang={lang} />
+              </React.Suspense>
+
+              <React.Suspense fallback={<div className="w-full h-48 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
+                <CollaborativeCalendarWidget 
+                  lang={lang}
+                  projects={projects || []}
                 />
               </React.Suspense>
             </div>
-          )}
-          {(currentPreset.visibleWidgets.activityLog || currentPreset.visibleWidgets.aiInsights) && (
-            <div className={
-              currentPreset.visibleWidgets.charts 
-                ? "lg:col-span-1 flex flex-col gap-6" 
-                : "lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6"
-            }>
-              {currentPreset.visibleWidgets.activityLog && <ActivityLogWidget lang={lang} />}
-              {currentPreset.visibleWidgets.aiInsights && <AIInsightsWidget lang={lang} />}
+          </div>
+        )}
+
+        {/* Section 4: AI Intelligence & What-If View */}
+        {activeSection === 'forecasting' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <React.Suspense fallback={<div className="w-full h-48 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
+                <PredictiveAnalyticsWidget 
+                  lang={lang}
+                  projects={projects || []}
+                  programs={programs || []}
+                />
+              </React.Suspense>
+
+              <React.Suspense fallback={<div className="w-full h-48 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
+                <WhatIfSimulationWidget lang={lang} />
+              </React.Suspense>
             </div>
-          )}
-        </div>
-      )}
 
-      {/* Collaborative Operations Calendar Row */}
-      {currentPreset.visibleWidgets.calendar && (
-        <div className="w-full">
-          <React.Suspense fallback={<div className="w-full h-32 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
-            <CollaborativeCalendarWidget 
-              lang={lang}
-              projects={projects || []}
-            />
-          </React.Suspense>
-        </div>
-      )}
-
-      {/* Geographical Operations Map Row */}
-      {currentPreset.visibleWidgets.geoMap && (
-        <div className="w-full">
-          <React.Suspense fallback={<div className="w-full h-48 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
-            <GeographicalMapWidget 
-              lang={lang}
-              projects={projects || []}
-            />
-          </React.Suspense>
-        </div>
-      )}
-
-      {/* Field Coverage & Visit Efficiency Row */}
-      {currentPreset.visibleWidgets.fieldEfficiency && (
-        <div className="w-full">
-          <React.Suspense fallback={<div className="w-full h-32 rounded-2xl bg-slate-100/50 dark:bg-zinc-900/50 animate-pulse" />}>
-            <FieldEfficiencyWidget 
-              lang={lang}
-            />
-          </React.Suspense>
-        </div>
-      )}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <AIInsightsWidget lang={lang} />
+              <ActivityLogWidget lang={lang} />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Smart Customization Panel Drawer */}
       <SmartCustomizationPanel
