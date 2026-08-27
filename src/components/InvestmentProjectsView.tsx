@@ -1574,7 +1574,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Coins className="w-5 h-5 text-emerald-500" />
-                {isAr ? 'سجل توزيع الأرباح وحساب العوائد التنموية' : 'Yield Distribution Ledger & IPSAS Audit Trail'}
+                {isAr ? 'سجل توزيع الأرباح وحساب العوائد التنموية' : 'Yield Distribution Ledger & Certified Audit Trail'}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {isAr ? 'ترحيل العوائد المالية، خصم المصروفات التشغيلية، وقيد القيد المزدوج لتغذية الإغاثة وإعادة الاستثمار.' : 'Ingesting fiscal revenues, auditing OpEx, and posting double-entry splits to relief and reinvestment accounts.'}

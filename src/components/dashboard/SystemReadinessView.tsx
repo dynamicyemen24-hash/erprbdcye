@@ -316,10 +316,10 @@ export function SystemReadinessView({ lang, orgName }: SystemReadinessViewProps)
         </div>
       </div>
 
-      {/* Accordion List of 13 Operational Areas */}
+      {/* Accordion List of 15 Operational Domains */}
       <div className="space-y-3">
         <h3 className="text-xs font-black uppercase text-zinc-500 dark:text-zinc-400 tracking-wider mb-2">
-          {isRtl ? 'القطاعات التشغيلية الـ13 وتفاصيل كل قطاع' : '13 Operational Areas ? Detailed Overview'}
+          {isRtl ? 'القطاعات المؤسسية الـ15 وتفاصيل كل قطاع' : '15 Operational Domains ? Detailed Overview'}
         </h3>
         {domainsReadiness.map((d) => {
           const isOpen = openDomain === d.code;

@@ -218,7 +218,7 @@ export const HeaderQuickMenu: React.FC<HeaderQuickMenuProps> = ({
             >
               <div className="flex items-center gap-2.5">
                 <Calculator className="w-4 h-4 text-emerald-500" />
-                <span>{isRtl ? 'أدوات الإغاثة والترميز' : 'Relief & Math Tools'}</span>
+                <span>{isRtl ? 'أدوات ومقاييس العمل الإنساني' : 'Relief & Operational Tools'}</span>
               </div>
             </button>
 

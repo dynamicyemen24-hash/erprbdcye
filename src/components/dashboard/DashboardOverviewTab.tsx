@@ -280,16 +280,16 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
         {/* Col 1: Institutional Role Workspaces Gateway Hub (7 Cols) */}
         <div className="lg:col-span-7 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 md:p-5 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80 pb-3 mb-3.5">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 dark:border-zinc-800 pb-3.5 mb-3.5">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <Briefcase className="w-4 h-4" />
+                <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-2xs">
+                  <Briefcase className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  <h3 className="text-sm md:text-base font-black text-slate-900 dark:text-white">
                     {lang === 'ar' ? 'مساحات العمل التخصصية للأدوار المؤسسية' : 'Institutional Role Workspaces'}
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs font-medium text-slate-600 dark:text-zinc-300 mt-0.5">
                     {lang === 'ar' ? 'مكاتب عملياتية مستقلة مخصصة لكل دور وظيفي' : 'Dedicated desks for each institutional function'}
                   </p>
                 </div>
@@ -297,7 +297,7 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
 
               <button
                 onClick={() => onNavigate('workspaces')}
-                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md border border-emerald-500/40 flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95"
               >
                 <span>{lang === 'ar' ? 'دخول مساحات العمل' : 'All Workspaces'}</span>
                 {isRtl ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
@@ -315,18 +315,18 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
                       try { localStorage.setItem('uamex_active_workspace', r.key); } catch {}
                       onNavigate('workspaces');
                     }}
-                    className="p-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800/80 hover:border-emerald-500/50 dark:hover:border-emerald-500/50 text-right rtl:text-right ltr:text-left transition-all group cursor-pointer"
+                    className="p-2.5 rounded-xl bg-slate-100/80 dark:bg-zinc-950/70 border border-slate-300/80 dark:border-zinc-700/80 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-white dark:hover:bg-zinc-850 text-right rtl:text-right ltr:text-left transition-all group cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <RIcon className={`w-3.5 h-3.5 ${r.color} group-hover:scale-110 transition-transform`} />
-                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400">
+                      <RIcon className={`w-4 h-4 ${r.color} group-hover:scale-110 transition-transform`} />
+                      <span className="text-[10px] font-mono font-black px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-zinc-300">
                         {r.count}
                       </span>
                     </div>
-                    <div className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                    <div className="text-xs font-black text-slate-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
                       {isRtl ? r.titleAr : r.titleEn}
                     </div>
-                    <div className="text-[10px] text-slate-400 dark:text-zinc-500 truncate mt-0.5">
+                    <div className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 truncate mt-0.5">
                       {isRtl ? r.subAr : r.titleEn}
                     </div>
                   </button>

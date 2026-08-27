@@ -48,7 +48,8 @@ import {
   Keyboard,
   Box,
   Warehouse,
-  FileCheck
+  FileCheck,
+  ShoppingCart
 } from 'lucide-react';
 
 // Enterprise Domain Features & Shared Component Imports
@@ -72,7 +73,8 @@ const AppMatrixLauncherModal = lazyWithRetry(() => import('./components/AppMatri
 const UniversalCommandCenter = lazyWithRetry(() => import('./components/UniversalCommandCenter'), 'UniversalCommandCenter');
 const CustomizableShortcutsModal = lazyWithRetry(() => import('./components/shortcuts/CustomizableShortcutsManagerModal'), 'CustomizableShortcutsModal');
 const FastRecordRetrievalDrawer = lazyWithRetry(() => import('./components/records/FastRecordRetrievalDrawer'), 'FastRecordRetrievalDrawer');
-const EnvironmentModeBanner = lazyWithRetry(() => import('./components/EnvironmentModeBanner').then(m => ({ default: m.EnvironmentModeBanner })), 'EnvironmentModeBanner');
+import { EnvironmentModeBanner } from './components/EnvironmentModeBanner';
+import { EnterpriseToastContainer, showToast } from './components/enterprise/EnterpriseToastContainer';
 
 import { 
   EnterpriseLogo,
@@ -422,7 +424,7 @@ export default function App() {
       sessionStorage.removeItem('rbd_token');
       localStorage.removeItem('rbd_refresh_token');
       sessionStorage.removeItem('rbd_refresh_token');
-      alert(lang === 'ar' ? 'تم تسجيل الخروج تلقائياً لعدم النشاط بعد ساعتين (حماية أمنية).' : 'Automatically logged out due to inactivity (Security protection).');
+      showToast({ type: 'warning', title: lang === 'ar' ? 'أمان الجلسة' : 'Session Security', message: lang === 'ar' ? 'تم تسجيل الخروج تلقائياً لعدم النشاط بعد ساعتين لحماية البيانات.' : 'Automatically logged out due to inactivity (2 hours).' });
     }
   });
 
@@ -580,7 +582,7 @@ export default function App() {
     dashboard: { icon: LayoutDashboard, title_ar: 'لوحة القيادة الاستراتيجية', title_en: 'Strategy Dashboard', category_ar: 'الرئيسية', category_en: 'Core' },
     workspaces: { icon: Briefcase, title_ar: 'مساحات العمل التخصصية للأدوار', title_en: 'Role Workspaces Hub', category_ar: 'الرئيسية', category_en: 'Core' },
     control_panel: { icon: Sliders, title_ar: 'لوحة التحكم والعمليات', title_en: 'Control Panel', category_ar: 'الإدارة', category_en: 'Admin' },
-    domains: { icon: Compass, title_ar: 'الأنظمة المؤسسية', title_en: 'Enterprise Systems', category_ar: 'الأنظمة الـ13', category_en: 'Domains' },
+    domains: { icon: Compass, title_ar: 'الأنظمة المؤسسية', title_en: 'Enterprise Systems', category_ar: 'الأنظمة الـ15', category_en: 'Domains' },
     programs: { icon: Briefcase, title_ar: 'البرامج', title_en: 'Programs', category_ar: 'البرامج', category_en: 'Programs' },
     projects: { icon: Layers, title_ar: 'المشاريع', title_en: 'Projects', category_ar: 'المشاريع', category_en: 'Projects' },
     activities: { icon: Activity, title_ar: 'الأنشطة', title_en: 'Activities', category_ar: 'العمليات الميدانية', category_en: 'Operations' },
@@ -604,7 +606,8 @@ export default function App() {
     investments: { icon: TrendingUp, title_ar: 'المشاريع الاستثمارية والأوقاف', title_en: 'Investment & Endowment OS', category_ar: 'الأوقاف والاستثمار', category_en: 'Investments' },
     hr_dashboard: { icon: Users, title_ar: 'لوحة إدارة الموارد البشرية', title_en: 'HR Management Dashboard', category_ar: 'الموارد البشرية', category_en: 'HR OS' },
     'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', category_ar: 'التزويد والمطالبات', category_en: 'Third-Party OS' },
-    sales: { icon: Coins, title_ar: 'المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', category_ar: 'تنمية الموارد', category_en: 'Fundraising' }
+    sales: { icon: Coins, title_ar: 'المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', category_ar: 'تنمية الموارد', category_en: 'Fundraising' },
+    procurement: { icon: ShoppingCart, title_ar: 'المشتريات والمناقصات (P2P)', title_en: 'Procurement & Tenders OS', category_ar: 'المشتريات والعقود', category_en: 'Procurement OS' }
   };
 
   const dbConnected = !!serverStats;
@@ -646,6 +649,9 @@ export default function App() {
   return (
     <div className="h-screen max-h-screen bg-slate-50 dark:bg-zinc-950 font-sans flex flex-col antialiased selection:bg-amber-100 selection:text-amber-900 text-slate-800 dark:text-zinc-100 transition-colors duration-200 overflow-hidden">
       
+      {/* GLOBAL ENTERPRISE TOAST SYSTEM */}
+      <EnterpriseToastContainer lang={lang} />
+
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-emerald-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
@@ -777,20 +783,8 @@ export default function App() {
             </div>
           )}
 
-          {/* Training vs Production Environment Mode Banner */}
-          <React.Suspense fallback={
-            <div className="flex items-center justify-center min-h-[200px]">
-              <div className="animate-pulse space-y-4 w-full max-w-md">
-                <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
-                <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
-                <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
-              </div>
-            </div>
-          }>
-            <div className="px-4 pt-3">
-              <EnvironmentModeBanner lang={lang} variant="compact" showToggle={true} />
-            </div>
-          </React.Suspense>
+          {/* Training Sandbox Alert Banner - Only displays when actively in Training Mode */}
+          <EnvironmentModeBanner lang={lang} />
 
           {/* Main Module Content View */}
           <div className={`flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar w-full ${
@@ -909,7 +903,7 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2">
-                    <span>{lang === 'ar' ? 'أدوات ومقاييس الإغاثة الذكية' : 'Smart Relief & Engineering Calculators'}</span>
+                    <span>{lang === 'ar' ? 'أدوات ومقاييس العمل الإنساني والتشغيل' : 'Relief & Humanitarian Engineering Calculators'}</span>
                   </h3>
                 </div>
               </div>

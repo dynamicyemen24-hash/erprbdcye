@@ -1,3 +1,4 @@
+import { showToast } from './enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
@@ -179,7 +180,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
       }
       onRefresh();
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast({ type: 'error', title: lang === 'ar' ? 'خطأ في العملية' : 'Operation Error', message: err.message });
     }
   };
 
@@ -221,7 +222,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
     <ModuleShell
       titleAr="البرامج التنموية والإنسانية"
       titleEn="Development Programs OS"
-      descAr="建档立卡 Programs records, plans, budgets and beneficiary goals"
+      descAr="سجلات البرامج الاستراتيجية، خطط التنفيذ، الموازنات، ومؤشرات الأثر"
       descEn="Strategic multi-sector programs planning, funding streams, and overarching metrics"
       domainCode="NEB-03"
       icon={Briefcase}
@@ -258,7 +259,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
       </div>
 
       {/* Filters Board */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4">
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col md:flex-row gap-4">
         {/* Search Input */}
         <div className="relative flex-1">
           <Search className="absolute right-3 top-2.5 w-4 h-4 text-zinc-400" style={lang === 'en' ? { right: 'auto', left: '12px' } : {}} />
@@ -267,7 +268,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
             placeholder={lang === 'ar' ? 'ابحث باسم البرنامج، الرمز أو الوصف...' : 'Search programs name, code...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:ring-1 focus:ring-amber-500 transition-all outline-none"
+            className="w-full pl-10 pr-10 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:ring-1 focus:ring-amber-500 transition-all outline-none"
             style={lang === 'en' ? { paddingLeft: '36px', paddingRight: '12px' } : {}}
           />
         </div>
@@ -278,7 +279,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
           <select 
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none font-medium"
+            className="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-xl py-2 px-3 text-xs outline-none font-medium"
           >
             <option value="all">{lang === 'ar' ? 'كل الفئات' : 'All Categories'}</option>
             {categories.map(cat => (
@@ -294,7 +295,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none font-medium"
+            className="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-xl py-2 px-3 text-xs outline-none font-medium"
           >
             <option value="all">{lang === 'ar' ? 'كل الحالات' : 'All Statuses'}</option>
             <option value="active">{lang === 'ar' ? 'نشط' : 'Active'}</option>
@@ -322,7 +323,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
             return (
               <div 
                 key={prog.id}
-                className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between overflow-hidden hover:shadow-md transition-all duration-200"
+                className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between overflow-hidden hover:shadow-md hover:border-emerald-500/50 transition-all duration-200"
               >
                 {/* Card Header Banner */}
                 <div className="p-5 border-b border-slate-100 flex-1 space-y-4">
@@ -417,7 +418,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
           })}
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 p-12 rounded-xl text-center shadow-sm space-y-4">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-12 rounded-2xl text-center shadow-xs space-y-4">
           <Layers className="w-12 h-12 text-zinc-300 mx-auto" />
           <div className="space-y-1">
             <h3 className="text-sm font-extrabold text-slate-700">{lang === 'ar' ? 'لا توجد برامج مطابقة للبحث' : 'No matching programs found'}</h3>
@@ -437,7 +438,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
       {/* Program Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
               <div>

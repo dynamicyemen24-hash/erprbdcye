@@ -100,19 +100,19 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
   const getPrimaryActionDetails = () => {
     switch (activeTab) {
       case 'programs':
-        return { labelAr: 'تسجيل مستفيد جديد', labelEn: 'Add Program', tagAr: 'الجنس' };
+        return { labelAr: 'إضافة برنامج تنموي', labelEn: 'Add Program', tagAr: 'برامج' };
       case 'projects':
-        return { labelAr: 'منطقة عالية الأمان', labelEn: 'Add Project', tagAr: 'فبراير' };
+        return { labelAr: 'إضافة مشروع ميداني', labelEn: 'Add Project', tagAr: 'مشاريع' };
       case 'activities':
-        return { labelAr: 'إضافة نشاط WBS', labelEn: 'Add Activity', tagAr: 'تشغيل' };
+        return { labelAr: 'إضافة نشاط تنفيذي', labelEn: 'Add Activity', tagAr: 'أنشطة' };
       case 'beneficiaries':
         return { labelAr: 'تسجيل مستفيد جديد', labelEn: 'Register Beneficiary', tagAr: 'خدمات' };
       case 'sponsorships':
-        return { labelAr: 'إصدار كفالة جديدة', labelEn: 'New Sponsorship', tagAr: 'رعاية' };
+        return { labelAr: 'إصدار كفالة جديدة', labelEn: 'New Sponsorship', tagAr: 'كفالات' };
       case 'finance':
-        return { labelAr: 'إضافة قيد محاسبي IPSAS', labelEn: 'Add Ledger Entry', tagAr: 'مالية' };
+        return { labelAr: 'إضافة قيد محاسبي', labelEn: 'Add Ledger Entry', tagAr: 'مالية' };
       case 'allocations':
-        return { labelAr: 'تخصيص موظف جديد', labelEn: 'Allocate Resource', tagAr: 'موارد' };
+        return { labelAr: 'تخصيص مورد جديد', labelEn: 'Allocate Resource', tagAr: 'موارد' };
       case 'currencies':
         return { labelAr: 'إضافة سعر صرف عملة', labelEn: 'Add Currency Rate', tagAr: 'عملات' };
       default:
@@ -158,8 +158,8 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
       default:
         return [
           { labelAr: 'مركز الأنظمة المؤسسية', labelEn: 'Enterprise Systems Center', tab: 'domains' as ActiveTab, icon: Layers },
-          { labelAr: 'تخصيص الكوادر', labelEn: 'Resource Allocations', tab: 'allocations' as ActiveTab, icon: Calendar },
-          { labelAr: 'أمين المستودع المعتمد', labelEn: 'BI Reports Board', tab: 'reports' as ActiveTab, icon: FileText },
+          { labelAr: 'تخصيص الكوادر والموارد', labelEn: 'Resource Allocations', tab: 'allocations' as ActiveTab, icon: Calendar },
+          { labelAr: 'لوحة التقارير والمؤشرات', labelEn: 'BI Reports Board', tab: 'reports' as ActiveTab, icon: FileText },
         ];
     }
   };

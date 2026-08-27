@@ -25,6 +25,7 @@ import {
 import OperationalScenariosView from './OperationalScenariosView';
 import { EnterpriseLogo } from './EnterpriseLogo';
 import { ModuleShell } from './enterprise/ModuleShell';
+import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 
 interface DocumentationViewProps {
   lang: 'ar' | 'en';
@@ -38,6 +39,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
   const [activeDoc, setActiveDoc] = useState<DocTab>('scenarios');
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     philosophy: true,
     domains: true,
@@ -70,21 +72,25 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
   };
 
   const handlePrint = () => {
+    setIsPrintModalOpen(true);
+  };
+
+  const handleDirectBrowserPrint = () => {
     window.print();
   };
 
   // Searchable documentation index — wired to real in-app doc content
   const DOC_SEARCH_INDEX: { id: string; tab: DocTab; section?: string; titleAr: string; titleEn: string; snippetAr: string; snippetEn: string }[] = [
     { id: 'philosophy', tab: 'specifications', section: 'philosophy', titleAr: 'فلسفة المنتج وسلسلة القيمة والأثر', titleEn: 'Product Philosophy & Value Pipeline', snippetAr: 'خط الرؤية والأثر: رؤية ➔ استراتيجية ➔ محفظة ➔ برامج ➔ مشاريع ➔ عمليات ➔ موارد ➔ نتائج ➔ أثر', snippetEn: 'Vision → Strategy → Portfolio → Programs → Projects → Operations → Resources → Impact' },
-    { id: 'domains', tab: 'specifications', section: 'domains', titleAr: 'النطاقات المؤسسية NEB-01 إلى NEB-15', titleEn: 'Nexora Enterprise Domains NEB-01–NEB-15', snippetAr: 'الاستراتيجية، المحافظ، البرامج، المشاريع، العمليات، المستفيدون، المجتمع، الشراكات، الموارد، المالية IPSAS، المعرفة، التكامل، الذكاء الاصطناعي، المشتريات، المبيعات', snippetEn: 'Strategy, Portfolio, Programs, Projects, Operations, Beneficiaries, Community, Partnerships, Resources, Finance IPSAS, Knowledge, Integration, AI, Procurement, Sales' },
+    { id: 'domains', tab: 'specifications', section: 'domains', titleAr: 'النطاقات المؤسسية NEB-01 إلى NEB-15', titleEn: 'Nexora Enterprise Domains NEB-01–NEB-15', snippetAr: 'الاستراتيجية، المحافظ، البرامج، المشاريع، العمليات، المستفيدون، المجتمع، الشراكات، الموارد، المالية والمحاسبة، المعرفة، التكامل، الذكاء الاصطناعي، المشتريات، المبيعات', snippetEn: 'Strategy, Portfolio, Programs, Projects, Operations, Beneficiaries, Community, Partnerships, Resources, Finance, Knowledge, Integration, AI, Procurement, Sales' },
     { id: 'lifecycle', tab: 'specifications', section: 'lifecycle', titleAr: 'دورة حياة المشروع والصرف والتعليم والمشتريات', titleEn: 'Project Lifecycle & Cycles', snippetAr: 'مراحل المشروع من الفكرة إلى الإغلاق ودوائر الصرف والتعليم والتوريد', snippetEn: 'Project stages from initiation to closure plus disbursement, education and procurement cycles' },
-    { id: 'data', tab: 'specifications', section: 'data', titleAr: 'قواعد البيانات والحوكمة المركزية', titleEn: 'Central Data Governance', snippetAr: 'Neon PostgreSQL، تجزئة البيانات بالمؤسسة organization_id، النسخ الاحتياطي وسجل التدقيق', snippetEn: 'Neon PostgreSQL, tenant isolation via organization_id, backups and audit trail' },
-    { id: 'm01', tab: 'manual', titleAr: 'الدخول والبحث الشامل', titleEn: 'Login & Universal Search', snippetAr: 'الدخول بالبريد المعتمد واستخدام بحث ERP الشامل للوصول لأي مشروع أو مستفيد أو قيد فوراً', snippetEn: 'Log in with assigned credentials; use universal search to locate any record instantly' },
-    { id: 'm02', tab: 'manual', titleAr: 'البرامج والمشاريع وحزم WBS', titleEn: 'Programs, Projects & WBS', snippetAr: 'إنشاء البرامج أولاً ثم المشاريع وحزم العمل WBS لتأطير الميزانيات وحجز الاعتمادات', snippetEn: 'Create programs first, then projects and WBS work packages for budget control' },
-    { id: 'm03', tab: 'manual', titleAr: 'المالية بـ IPSAS والماسح الذكي AI', titleEn: 'IPSAS Finance & Gemini OCR', snippetAr: 'رفع صور الفواتير للماسح الذكي لإنشاء القيد المحاسبي المزدوج آلياً', snippetEn: 'Upload invoice photos; Gemini AI constructs double-entry journal vouchers automatically' },
-    { id: 'm04', tab: 'manual', titleAr: 'المشتريات ومصفوفة العروض الثلاثية', titleEn: 'Procurement & 3-Way Quote Matrix', snippetAr: 'إصدار طلبات الشراء PR وطرح المناقصات RFQ وتحليل العروض عبر مصفوفة المقارنة', snippetEn: 'Issue PRs, launch RFQs and analyze vendor quotes via the standard matrix' },
-    { id: 'm05', tab: 'manual', titleAr: 'بوابات التبرع الإلكترونية والإيصالات QR', titleEn: 'Multi-Gateway E-Donations & Webhooks', snippetAr: 'استقبال التبرعات عبر الكريمي وجوال بي وStripe وPayPal مع توليد إيصالات QR فورية', snippetEn: 'Process donations via Kuraimi, Jawali, Stripe, PayPal with instant QR receipts' },
-    { id: 'm06', tab: 'manual', titleAr: 'التنبؤ المالي واستدامة التمويل', titleEn: 'AI Predictive BI & Sustainability', snippetAr: 'توقع التدفقات 12 شهراً وحساب فترة أمان السيولة وتحوط مخاطر التضخم YER', snippetEn: '12-month cashflow forecasting, liquidity runway and YER inflation hedging' }
+    { id: 'data', tab: 'specifications', section: 'data', titleAr: 'قواعد البيانات والحوكمة المركزية', titleEn: 'Central Data Governance', snippetAr: 'قواعد البيانات السحابية المركزية، تجزئة البيانات بالمؤسسة، النسخ الاحتياطي وسجل التدقيق', snippetEn: 'Central Database, tenant isolation, backups and audit trail' },
+    { id: 'm01', tab: 'manual', titleAr: 'الدخول والبحث الشامل', titleEn: 'Login & Universal Search', snippetAr: 'الدخول بالبريد المعتمد واستخدام بحث النظام الشامل للوصول لأي مشروع أو مستفيد أو قيد فوراً', snippetEn: 'Log in with assigned credentials; use universal search to locate any record instantly' },
+    { id: 'm02', tab: 'manual', titleAr: 'البرامج والمشاريع وحزم العمل التنفيذية', titleEn: 'Programs, Projects & Work Packages', snippetAr: 'إنشاء البرامج أولاً ثم المشاريع وحزم العمل التنفيذية لتأطير الميزانيات وحجز الاعتمادات', snippetEn: 'Create programs first, then projects and execution work packages for budget control' },
+    { id: 'm03', tab: 'manual', titleAr: 'المالية والمحاسبة مع الماسح الذكي', titleEn: 'Finance & Smart OCR', snippetAr: 'رفع صور الفواتير للماسح الذكي لإنشاء القيد المحاسبي المزدوج آلياً', snippetEn: 'Upload invoice photos; Smart AI constructs double-entry journal vouchers automatically' },
+    { id: 'm04', tab: 'manual', titleAr: 'المشتريات ومصفوفة العروض الثلاثية', titleEn: 'Procurement & 3-Way Quote Matrix', snippetAr: 'إصدار طلبات الشراء وطرح المناقصات وتحليل العروض عبر مصفوفة المقارنة', snippetEn: 'Issue PRs, launch RFQs and analyze vendor quotes via the standard matrix' },
+    { id: 'm05', tab: 'manual', titleAr: 'بوابات التبرع الإلكترونية والإيصالات الرقمية', titleEn: 'Multi-Gateway E-Donations & Webhooks', snippetAr: 'استقبال التبرعات عبر القنوات المعتمدة مع توليد إيصالات رقمية فورية', snippetEn: 'Process donations via verified gateways with instant digital receipts' },
+    { id: 'm06', tab: 'manual', titleAr: 'التنبؤ المالي واستدامة التمويل', titleEn: 'AI Predictive BI & Sustainability', snippetAr: 'توقع التدفقات 12 شهراً وحساب فترة أمان السيولة وتحوط مخاطر تذبذب العملات', snippetEn: '12-month cashflow forecasting, liquidity runway and currency hedging' }
   ];
 
   const searchResults = useMemo(() => {
@@ -116,7 +122,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
           <EnterpriseLogo className="h-16 w-auto object-contain bg-white p-2 rounded-xl shadow-lg border border-emerald-400" />
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl font-black text-emerald-300">NexoraOS™</span>
+              <span className="text-xl font-black text-emerald-300">UAMEX ERP™</span>
               <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-md text-xs font-bold">
                 Intelligent Enterprise Operating System
               </span>
@@ -145,7 +151,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
         >
           {expandedSections.philosophy ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
           <Sparkles className="w-5 h-5 text-emerald-600" />
-          {lang === 'ar' ? 'أولاً: فلسفة المنتج وسلسلة القيمة والأثر (Nexora Product Philosophy™)' : '1. Product Philosophy & Value Pipeline'}
+          {lang === 'ar' ? 'أولاً: فلسفة منظومة UAMEX ERP™ وسلسلة القيمة والأثر المؤسسي' : '1. UAMEX ERP™ Product Philosophy & Value Pipeline'}
         </button>
         
         {expandedSections.philosophy && (
@@ -153,8 +159,8 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
         <div className="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-xl space-y-3">
           <p className="text-xs text-zinc-300 leading-relaxed font-semibold">
             {lang === 'ar' 
-              ? 'نظام NexoraOS™ لا يدير معاملات منفصلة، بل يدير خط الرؤية والأثر المؤسسي المتكامل في منصة موحدة واحدة:' 
-              : 'NexoraOS™ manages the end-to-end vision to impact pipeline in one unified intelligent operating system:'}
+              ? 'منظومة UAMEX ERP™ لا تدير معاملات منفصلة، بل يدير خط الرؤية والأثر المؤسسي المتكامل في منصة موحدة واحدة:' 
+              : 'UAMEX ERP™ manages the end-to-end vision to impact pipeline in one unified intelligent operating system:'}
           </p>
           <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl font-mono text-[10px] text-slate-700 dark:text-zinc-200 font-extrabold">
             <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">Vision</span>
@@ -241,7 +247,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
               <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Operations OS</span>
             </div>
             <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام التشغيل الميداني: يدير الأنشطة الميدانية تفصيلياً (WBS) والحملات والفعاليات.' : 'Operations OS: Field operations, detailed activities, WBS, campaigns.'}
+              {lang === 'ar' ? 'نظام التشغيل الميداني: يدير الأنشطة الميدانية تفصيلياً، خطط التنفيذ، الحملات والفعاليات.' : 'Operations OS: Field operations, detailed activities, WBS, campaigns.'}
             </p>
           </div>
 
@@ -291,7 +297,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
               <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Finance & Compliance OS</span>
             </div>
             <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'النظام المالي والامتثال: المحاسبة IPSAS، القيود، الحوكمة والتدقيق.' : 'Finance & Compliance OS: IPSAS double-entry, auditing, governance.'}
+              {lang === 'ar' ? 'النظام المالي والامتثال: المحاسبة المعتمدة، القيود المزدوجة، الحوكمة والتدقيق.' : 'Finance & Compliance OS: double-entry accounting, auditing, governance.'}
             </p>
           </div>
 
@@ -311,7 +317,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
               <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Integration & Digital Services OS</span>
             </div>
             <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'الخدمات الرقمية والتكامل: يدير Neon PostgreSQL وAPIs ومعايير IATI.' : 'Integration & Digital Services OS: Neon PostgreSQL, APIs, IATI standards.'}
+              {lang === 'ar' ? 'الخدمات الرقمية والتكامل: يدير قواعد البيانات المركزية، واجهات الربط APIs ومعايير الشفافية الدولية.' : 'Integration & Digital Services OS: Central database, APIs, transparency standards.'}
             </p>
           </div>
 
@@ -712,7 +718,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
     >
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors print:hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-amber-500 p-0.5 shadow-md shrink-0">
@@ -749,10 +755,20 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
 
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition-all cursor-pointer"
+              title={lang === 'ar' ? 'توليد وطباعة وثيقة PDF رسمية معتمدة' : 'Generate Certified Official PDF'}
             >
-              <Printer className="w-4 h-4" />
-              <span>{lang === 'ar' ? 'طباعة / تصدير PDF' : 'Print / Export PDF'}</span>
+              <FileText className="w-4 h-4" />
+              <span>{lang === 'ar' ? 'وثيقة PDF معتمدة' : 'Official PDF Document'}</span>
+            </button>
+
+            <button
+              onClick={handleDirectBrowserPrint}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              title={lang === 'ar' ? 'طباعة فورية عبر المتصفح' : 'Quick Browser Print'}
+            >
+              <Printer className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>{lang === 'ar' ? 'طباعة سريعة' : 'Quick Print'}</span>
             </button>
           </div>
         </div>
@@ -822,7 +838,26 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
       </div>
 
       {/* Document Content Box */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors print:border-none print:shadow-none print:p-0">
+        
+        {/* Printable Official Letterhead Header (visible ONLY during print) */}
+        <div className="hidden print:block mb-8 pb-4 border-b-2 border-emerald-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src="/UAMEX_ERPLOGO.png" alt="UAMEX ERP" className="h-16 w-auto object-contain" />
+              <img src="/LogoRohamaab.png" alt="Logo Rohamaab" className="h-16 w-auto object-contain" />
+              <div>
+                <h2 className="text-lg font-black text-slate-900">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
+                <p className="text-xs text-emerald-700 font-bold">نظام يو امكس المؤسسي الشامل - UAMEX ERP™</p>
+              </div>
+            </div>
+            <div className="text-left text-xs text-slate-600">
+              <p className="font-bold">وثيقة تشغيلية رسمية معتمدة</p>
+              <p className="text-[10px] text-slate-500 font-mono">الإصدار 2026.1 • {new Date().toLocaleDateString('ar-YE')}</p>
+              <span className="inline-block px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded">IPSAS / Sphere / CHS</span>
+            </div>
+          </div>
+        </div>
         <div className="mb-4 pb-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-zinc-100">
@@ -885,8 +920,41 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
             {activeDoc === 'manual' && renderManual()}
           </>
         )}
+
+        {/* Printable Official Signatures & Seal Block (visible ONLY during print) */}
+        <div className="hidden print:block mt-12 pt-6 border-t-2 border-slate-300 break-inside-avoid">
+          <div className="grid grid-cols-3 gap-6 text-center text-xs">
+            <div className="p-3 border border-dashed border-slate-300 rounded-lg">
+              <p className="font-bold text-slate-700">{lang === 'ar' ? 'إعداد مسؤول التوثيق المؤسسي' : 'Prepared By'}</p>
+              <div className="mt-8 border-b border-slate-400 w-3/4 mx-auto"></div>
+              <p className="text-[10px] text-slate-500 mt-1">{lang === 'ar' ? 'التوقيع والختم' : 'Signature & Stamp'}</p>
+            </div>
+            <div className="p-3 border border-dashed border-slate-300 rounded-lg">
+              <p className="font-bold text-slate-700">{lang === 'ar' ? 'مراجعة إدارة الحوكمة والامتثال' : 'Reviewed By'}</p>
+              <div className="mt-8 border-b border-slate-400 w-3/4 mx-auto"></div>
+              <p className="text-[10px] text-slate-500 mt-1">{lang === 'ar' ? 'التوقيع والختم' : 'Signature & Stamp'}</p>
+            </div>
+            <div className="p-3 border border-dashed border-slate-300 rounded-lg">
+              <p className="font-bold text-slate-700">{lang === 'ar' ? 'اعتماد المدير التنفيذي' : 'Authorized Approval'}</p>
+              <div className="mt-8 border-b border-slate-400 w-3/4 mx-auto"></div>
+              <p className="text-[10px] text-slate-500 mt-1">{lang === 'ar' ? 'التوقيع والختم' : 'Signature & Stamp'}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    {/* Dedicated Certified PDF Print Modal */}
+    <PrintPDFTemplateModal
+      isOpen={isPrintModalOpen}
+      onClose={() => setIsPrintModalOpen(false)}
+      lang={lang}
+      type={activeDoc === 'manual' ? 'user_manual' : 'operational_manual'}
+      data={{
+        title: docTitles[activeDoc],
+        subtitle: docDescriptions[activeDoc]
+      }}
+    />
     </ModuleShell>
   );
 }

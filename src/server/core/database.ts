@@ -43,9 +43,9 @@ export function getPool(): pg.Pool {
       query_timeout: 30000,
       keepAlive: true,
       keepAliveInitialDelayMillis: 10000,
-      ssl: process.env.NODE_ENV === 'production'
+      ssl: process.env.DB_SSL_CA
         ? { rejectUnauthorized: true, ca: process.env.DB_SSL_CA }
-        : { rejectUnauthorized: false },
+        : { rejectUnauthorized: process.env.DB_SSL_STRICT === 'true' },
     });
 
     _pool.on('connect', () => {
@@ -68,21 +68,32 @@ export function getPool(): pg.Pool {
 
 export async function query<T extends pg.QueryResultRow = any>(
   text: string,
-  params?: any[]
+  params?: any[],
+  retries = 3
 ): Promise<pg.QueryResult<T>> {
   const pool = getPool();
   const start = Date.now();
-  try {
-    const result = await pool.query<T>(text, params);
-    const duration = Date.now() - start;
-    if (duration > 1000) {
-      logger.warn(`[DB] Slow query (${duration}ms): ${text.substring(0, 100)}`, { context: 'db' });
+  let lastError: any = null;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const result = await pool.query<T>(text, params);
+      const duration = Date.now() - start;
+      if (duration > 1000) {
+        logger.warn(`[DB] Slow query (${duration}ms): ${text.substring(0, 100)}`, { context: 'db' });
+      }
+      return result;
+    } catch (err: any) {
+      lastError = err;
+      if (!isConnectionError(err) || attempt === retries - 1) {
+        logger.error(`[DB] Query error: ${err.message} | SQL: ${text.substring(0, 200)}`, { context: 'db' });
+        throw err;
+      }
+      logger.warn(`[DB] Transient connection error on attempt ${attempt + 1}/${retries}: ${err.message}. Retrying...`, { context: 'db' });
+      await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 150));
     }
-    return result;
-  } catch (err: any) {
-    logger.error(`[DB] Query error: ${err.message} | SQL: ${text.substring(0, 200)}`, { context: 'db' });
-    throw err;
   }
+  throw lastError;
 }
 
 export async function queryOne<T extends pg.QueryResultRow = any>(
@@ -112,7 +123,11 @@ export async function transaction<T>(
     await client.query('COMMIT');
     return result;
   } catch (err) {
-    await client.query('ROLLBACK');
+    try {
+      await client.query('ROLLBACK');
+    } catch (rollbackErr: any) {
+      logger.warn(`[DB] Rollback failed (connection likely terminated): ${rollbackErr?.message || rollbackErr}`, { context: 'db' });
+    }
     throw err;
   } finally {
     client.release();

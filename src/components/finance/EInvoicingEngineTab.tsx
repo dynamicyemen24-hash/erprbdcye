@@ -1,3 +1,4 @@
+import { showToast } from '../enterprise/EnterpriseToastContainer';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   Receipt,
@@ -316,7 +317,7 @@ export default function EInvoicingEngineTab({
       savedId = saved?.id || saved?.data?.id || null;
     } catch (err) {
       console.error('[EInvoicing] Failed to persist e-invoice:', err);
-      alert(isRtl ? 'تعذر حفظ الفاتورة الإلكترونية في قاعدة البيانات.' : 'Failed to persist the e-invoice to the database.');
+      showToast({ type: 'error', title: isRtl ? 'الفاتورة الإلكترونية' : 'E-Invoicing', message: isRtl ? 'تعذر حفظ الفاتورة الإلكترونية في قاعدة البيانات.' : 'Failed to persist the e-invoice to the database.' });
       setFormSubmitting(false);
       return;
     }

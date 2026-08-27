@@ -176,6 +176,18 @@ export class IPSASFinanceService {
           line.description || voucher.description,
           line.projectId || voucher.projectId || null
         ]);
+
+        // Update account balance (Debit normal for Asset/Expense, Credit normal for Liability/Equity/Revenue)
+        await client.query(`
+          UPDATE chart_of_accounts
+          SET current_balance = current_balance + (
+            CASE 
+              WHEN UPPER(account_type) IN ('ASSET', 'EXPENSE') THEN ($1 - $2)
+              ELSE ($2 - $1)
+            END
+          )
+          WHERE id = $3;
+        `, [line.debit || 0, line.credit || 0, line.accountId]);
       }
 
       return {

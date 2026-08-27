@@ -2,7 +2,7 @@ import { sanitizeHtml } from './htmlSanitizer';
 
 const DEFAULT_ORG_NAME_AR = "جمعية رُحماء بينهم للعمل الإنساني والتنمية";
 const DEFAULT_ORG_NAME_EN = "Rohama'a Baynahum Charity Foundation";
-const SYSTEM_NAME = "NexoraOS™";
+const SYSTEM_NAME = "UAMEX ERP™";
 
 function getActiveOrgName(lang: 'ar' | 'en' = 'ar'): string {
   try {
@@ -16,8 +16,8 @@ function getActiveOrgName(lang: 'ar' | 'en' = 'ar'): string {
 
 export function getCustomFooterHTML(lang?: 'ar' | 'en'): string {
   const currentLang = lang || (document.documentElement?.dir === 'ltr' ? 'en' : 'ar');
-  const footerAr = localStorage.getItem('rbd_report_footer_text_ar') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية - نظام التشغيل المؤسسي الذكي NexoraOS™';
-  const footerEn = localStorage.getItem('rbd_report_footer_text_en') || 'Rohamaa Baynahum Charity Foundation - NexoraOS™ Enterprise Intelligent System';
+  const footerAr = localStorage.getItem('rbd_report_footer_text_ar') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية - نظام يو امكس المؤسسي الشامل UAMEX ERP™';
+  const footerEn = localStorage.getItem('rbd_report_footer_text_en') || 'Rohamaa Baynahum Charity Foundation - UAMEX ERP™ Intelligent Enterprise Operating System';
   const showSignatures = localStorage.getItem('rbd_report_signature_blocks') === 'true';
   const footerText = currentLang === 'ar' ? footerAr : footerEn;
   const accentColor = localStorage.getItem('rbd_report_accent_color') || '#059669';
@@ -120,7 +120,10 @@ export function getBrandingHTML(isPrint: boolean = false) {
     headerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid ${accentColor}; margin-bottom: 20px; font-family: sans-serif; direction: ${isRtl ? 'rtl' : 'ltr'}; width: 100%;">
         <div style="display: flex; align-items: center; gap: 14px;">
-          ${showLogo ? `<img src="${activeLogo}" style="width: 55px; height: 55px; object-fit: contain;" />` : ''}
+          ${showLogo ? `
+            <img src="/UAMEX_ERPLOGO.png" style="height: 52px; max-width: 75px; object-fit: contain;" alt="UAMEX ERP" />
+            <img src="/LogoRohamaab.png" style="height: 52px; max-width: 75px; object-fit: contain;" alt="Logo Rohamaab" />
+          ` : ''}
           <div style="text-align: ${textDirection};">
             <h2 style="color: ${accentColor}; margin: 0 0 3px 0; font-size: 18px; font-weight: 800;">${title}</h2>
             <p style="color: #64748b; margin: 0; font-size: 12px; font-weight: 500;">${subtitle}</p>
@@ -277,8 +280,8 @@ export function exportToExcel(
   let csvContent = "\uFEFF"; // UTF-8 BOM for Excel Arabic support
 
   const title = lang === 'ar' 
-    ? "تقرير الأداء المالي والإحصائي الموحد - NexoraOS™"
-    : "Unified Financial and Statistical Performance Report - NexoraOS™";
+    ? "تقرير الأداء المالي والإحصائي الموحد - UAMEX ERP™"
+    : "Unified Financial and Statistical Performance Report - UAMEX ERP™";
   const org = getActiveOrgName(lang);
   const dateStr = new Date().toLocaleString(lang === 'ar' ? 'ar-YE' : 'en-US');
 
@@ -340,7 +343,7 @@ export function exportToExcel(
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", `NexoraOS_Report_${new Date().toISOString().slice(0,10)}.csv`);
+  link.setAttribute("download", `UAMEX_ERP_Report_${new Date().toISOString().slice(0,10)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

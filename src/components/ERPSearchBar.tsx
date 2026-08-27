@@ -372,7 +372,7 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
         <div
           onClick={() => setIsOpen(true)}
           className="w-full flex items-center justify-between px-3 py-1.5 bg-zinc-900/60 hover:bg-zinc-900 border border-emerald-800/60 hover:border-emerald-500/50 rounded-xl text-zinc-400 text-xs transition-all shadow-inner group text-right cursor-pointer select-none"
-          title={lang === 'ar' ? 'بحث موحد ومتطور عبر كافة مجالات وبيانات NexoraOS™ المؤسسية (Ctrl+K)' : 'Advanced Unified Search across all NexoraOS? Enterprise Domains (Ctrl+K)'}
+          title={lang === 'ar' ? 'بحث موحد ومتطور عبر كافة مجالات وبيانات UAMEX ERP™ المؤسسية (Ctrl+K)' : 'Advanced Unified Search across all UAMEX ERP™ Enterprise Domains (Ctrl+K)'}
         >
           <div className="flex items-center gap-2">
             <Search className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
@@ -578,7 +578,7 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
                   <div className="p-4 space-y-6">
                     <div className="text-center space-y-1 mb-6">
                       <p className="text-sm font-black text-slate-800 dark:text-zinc-200">
-                        {lang === 'ar' ? 'محرك البحث والتنقل السريع - NexoraOS™' : 'NexoraOS? Unified Quick Search & Navigation'}
+                        {lang === 'ar' ? 'محرك البحث والتنقل السريع - UAMEX ERP™' : 'UAMEX ERP™ Unified Quick Search & Navigation'}
                       </p>
                       <p className="text-[11px] text-slate-500 font-medium">
                         {lang === 'ar' ? 'اكتب للبحث السريع أو اختر مجالاً من القائمة أدناه' : 'Type to search or select a domain below'}
@@ -1039,7 +1039,7 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
               </div>
               <div className="flex items-center gap-1 text-zinc-400">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>{lang === 'ar' ? 'محرك البحث والربط الشامل لـ NexoraOS™ Enterprise OS' : 'NexoraOS? Unified Enterprise Search Engine'}</span>
+                <span>{lang === 'ar' ? 'محرك البحث والربط الشامل لمنظومة UAMEX ERP™ المؤسسية' : 'UAMEX ERP™ Unified Enterprise Search Engine'}</span>
               </div>
             </div>
 

@@ -1,3 +1,4 @@
+import { showToast } from '../enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import { designTokens } from '../../lib/designTokens';
 import { 
@@ -482,10 +483,7 @@ function BottleneckAnalysisWidgetInner({ approvalRequests = [], lang }: Bottlene
                   <button 
                     onClick={() => {
                       // Trigger routing configuration
-                      alert(lang === 'ar' 
-                        ? 'تم تطبيق بروتوكول التفويض المالي البديل بنجاح لتخفيف الضغط!' 
-                        : 'Proxy Delegated Cleared! Backup sign-off routing has been temporarily engaged.'
-                      );
+                      showToast({ type: 'success', title: lang === 'ar' ? 'التفويض المالي البديل' : 'Proxy Routing', message: lang === 'ar' ? 'تم تطبيق بروتوكول التفويض المالي البديل بنجاح لتخفيف الضغط ✓' : 'Proxy Delegated Cleared! Backup sign-off routing engaged ✓' });
                     }}
                     className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[9px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
                   >

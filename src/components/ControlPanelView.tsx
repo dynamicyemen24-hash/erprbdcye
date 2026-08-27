@@ -158,7 +158,7 @@ export default function ControlPanelView({
     } else if (cmd === 'db' || cmd === 'neon') {
       addLog('INFO', isRtl ? 'قاعدة البيانات المركزية: مجمع الاتصالات متزن ومستقر' : 'Central Database: Connection pool healthy and stable');
     } else if (cmd === 'sysinfo') {
-      addLog('INFO', isRtl ? 'نظام تشغيل NexoraOS™ | بيئة إنتاجية متكاملة' : 'NexoraOS™ Operating System | Integrated Enterprise Production Environment');
+      addLog('INFO', isRtl ? 'منظومة UAMEX ERP™ | بيئة إنتاجية مؤسسية متكاملة' : 'UAMEX ERP™ Operating System | Integrated Enterprise Production Environment');
     } else if (cmd === 'backup') {
       handleAction('backup_now', 'النسخ الاحتياطي اللحظي', 'Backup Snapshot');
     } else if (cmd === 'clear') {
@@ -212,7 +212,7 @@ export default function ControlPanelView({
 
     setTimeout(() => {
       recordApiLatency('/api/v1/iati/registry-export', Math.random() * 120 + 80, 200, 'GET');
-      addLog('SUCCESS', isRtl ? 'تشخيص تكامل IATI الرقمي: جاهز (زمن استجابة 94ms)' : 'IATI Digital Integration Diagnostic: Ready (latency 94ms)');
+      addLog('SUCCESS', isRtl ? 'تشخيص الربط والتكامل الرقمي: جاهز (زمن استجابة 94ms)' : 'IATI Digital Integration Diagnostic: Ready (latency 94ms)');
       setIsSimulatingLoad(false);
       showToast(isRtl ? 'اكتمل فحص قياس الأداء العام بنجاح' : 'Full system benchmark completed successfully');
     }, 1200);
@@ -283,7 +283,7 @@ export default function ControlPanelView({
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-bold text-white tracking-wide">
-                    {isRtl ? 'نواة الإدارة السحابية والتحكم' : 'NexoraOS™ Cloud Control Center'}
+                    {isRtl ? 'نواة الإدارة السحابية والتحكم UAMEX ERP™' : 'UAMEX ERP™ Cloud Control Center'}
                   </h2>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
@@ -292,7 +292,7 @@ export default function ControlPanelView({
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {isRtl 
-                    ? 'رُحماء بينهم - نظام التشغيل المؤسسي الموحد (البيئة السحابية للتحكم بالأنظمة الـ13)'
+                    ? 'رُحماء بينهم - نظام التشغيل المؤسسي الموحد (البيئة السحابية للتحكم بالأنظمة المؤسسية الـ15)'
                     : 'Rohamaa Baynahum - Enterprise OS Cloud Management Console (13 Integrated Systems)'}
                 </p>
               </div>
@@ -340,7 +340,7 @@ export default function ControlPanelView({
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              {isRtl ? 'نظرة عامة والأنظمة الـ13' : 'Overview & 13 Systems'}
+              {isRtl ? 'نظرة عامة والأنظمة الـ15' : 'Overview & 15 Systems'}
             </button>
 
             <button
@@ -490,7 +490,7 @@ export default function ControlPanelView({
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Layers className="w-5 h-5 text-emerald-500" />
-                    {isRtl ? 'مصفوفة التحكم التشغيلي للأنظمة المؤسسية الـ 13' : 'The 13 Enterprise Systems Operational Matrix'}
+                    {isRtl ? 'مصفوفة التحكم التشغيلي للأنظمة المؤسسية الـ 15' : 'The 15 Enterprise Systems Operational Matrix'}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {isRtl 
@@ -624,7 +624,7 @@ export default function ControlPanelView({
                 </div>
                 <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
                   <span className="text-slate-500">{isRtl ? 'إصدار البيئة (Build Standard):' : 'Engine Build:'}</span>
-                  <span className="font-bold text-indigo-500">NexoraOS v5.4-prod</span>
+                  <span className="font-bold text-indigo-500">UAMEX ERP v2.6-prod</span>
                 </div>
               </div>
             </div>
@@ -979,7 +979,7 @@ export default function ControlPanelView({
                       {isRtl ? 'مدير النظام الفائق (Super Admin)' : 'Super Admin'}
                     </td>
                     <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
-                      {isRtl ? 'وصول شامل لجميع الأنظمة الـ 13 وإعدادات السيرفر' : 'Full system & server control'}
+                      {isRtl ? 'وصول شامل لجميع الأنظمة المؤسسية الـ 15 وإعدادات السيرفر' : 'Full 15-domain & server control'}
                     </td>
                     <td className="py-3 px-4 text-emerald-500 font-bold">Hardware Passkey + Biometrics</td>
                     <td className="py-3 px-4"><span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[10px] font-bold">Active</span></td>
@@ -998,7 +998,7 @@ export default function ControlPanelView({
                   <tr>
                     <td className="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-indigo-500" />
-                      {isRtl ? 'المحاسب المالي (IPSAS Auditor)' : 'IPSAS Financial Auditor'}
+                      {isRtl ? 'المحاسب المالي والمدقق القانوني' : 'Financial Auditor'}
                     </td>
                     <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
                       {isRtl ? 'الدفاتر المحاسبية والسندات وإغلاق الحسابات' : 'Ledger, Vouchers & Audits'}
@@ -1018,7 +1018,7 @@ export default function ControlPanelView({
             <div className="flex items-center justify-between pb-3 border-b border-slate-800 text-slate-400 mb-4">
               <div className="flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-emerald-400" />
-                <span className="font-bold text-white tracking-wide">NexoraOS™ Realtime Infrastructure Event Terminal</span>
+                <span className="font-bold text-white tracking-wide">UAMEX ERP™ Realtime Infrastructure Event Terminal</span>
               </div>
               <button
                 onClick={() => setTerminalLogs([])}

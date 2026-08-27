@@ -1,3 +1,4 @@
+import { showToast } from '../../components/enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
@@ -167,7 +168,7 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
             domain="hr"
             securityLevel={securityLevel}
             userRole={userRole}
-            onClick={() => alert(isRtl ? 'فتح نافذة تعيين موظف جديد' : 'New Employee Onboarding Modal')}
+            onClick={() => showToast({ type: 'info', title: isRtl ? 'تعيين الكوادر' : 'Workforce Onboarding', message: isRtl ? 'جاري فتح نافذة استكمال بيانات الموظف والمتطوع الجديد...' : 'Opening Employee Onboarding Gateway...' })}
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -210,11 +211,11 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
       {/* ENTERPRISE 8-DOMAIN CAPABILITY TABS */}
       <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-800/80 p-1.5 rounded-2xl overflow-x-auto custom-scrollbar text-xs font-bold select-none">
         {[
-          { id: 'bi_dashboard', icon: BarChart3, ar: 'لوحة القيادة BI', en: 'HR BI Dashboard' },
+          { id: 'bi_dashboard', icon: BarChart3, ar: 'لوحة التحليلات والمؤشرات', en: 'HR BI Dashboard' },
           { id: 'org_positions', icon: Building2, ar: 'الهيكل والوظائف', en: 'Org Architecture' },
           { id: 'employee_360', icon: Users, ar: 'سجل الموظف 360', en: 'Employee 360' },
           { id: 'attendance_leaves', icon: Clock, ar: 'الدوام والإجازات', en: 'Time & Leave' },
-          { id: 'payroll_ipsas', icon: Coins, ar: 'المرتبات IPSAS', en: 'IPSAS Payroll' },
+          { id: 'payroll_ipsas', icon: Coins, ar: 'مسير المرتبات والأجور', en: 'Compensation & Payroll' },
           { id: 'performance_360', icon: Award, ar: 'تقييم الأداء 360', en: 'Performance 360' },
           { id: 'learning_talent', icon: BookOpen, ar: 'التدريب والموهبة', en: 'L&D & Talent' },
           { id: 'documents_compliance', icon: ShieldCheck, ar: 'الأرشيف والامتثال', en: 'Docs & Compliance' },
@@ -298,7 +299,7 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
                 </div>
                 <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3" />
-                  <span>{isRtl ? 'قيد متزن IPSAS' : 'IPSAS Double-Entry Posted'}</span>
+                  <span>{isRtl ? 'قيد محاسبي مزدوج متزن' : 'Balanced Double-Entry Posted'}</span>
                 </div>
               </div>
 

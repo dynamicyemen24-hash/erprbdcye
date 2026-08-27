@@ -89,7 +89,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
         <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
           <div className="mb-4">
             <span className="text-[10px] font-black uppercase text-emerald-600 tracking-wider block mb-2 px-1">
-              {lang === 'ar' ? 'الأنظمة والعمليات الـ13' : '13 Enterprise Systems'}
+              {lang === 'ar' ? 'الأنظمة والعمليات الـ15' : '15 Enterprise Systems'}
             </span>
             <SystemsDockPanel
               lang={lang}

@@ -57,6 +57,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { ModuleShell } from './enterprise/ModuleShell';
+import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 
 interface OperationalScenariosViewProps {
   lang: 'ar' | 'en';
@@ -205,6 +206,9 @@ export interface QuickTemplatePack {
 
 function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScenariosViewProps) {
   const isRtl = lang === 'ar';
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+  const [pdfReportTitle, setPdfReportTitle] = useState('');
+  const [pdfReportSubtitle, setPdfReportSubtitle] = useState('');
 
   // Navigation State
   const [activeMainTab, setActiveMainTab] = useState<'rollout' | 'bylaws' | 'playbook' | 'job_descriptions' | 'duty_roster' | 'meal_appraisal' | 'documents'>('rollout');
@@ -311,7 +315,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
           linkedScreen: 'strategic_planning',
           linkedDocTitleAr: 'وثيقة الخطة الاستراتيجية وبطاقات الأداء (BSC)',
           linkedDocTitleEn: 'Strategic Plan Charter & Balanced Scorecard',
-          aiGuidanceAr: 'استخدم الذكاء الاصطناعي لفحص توافق أهدافك مع المعايير الإنسانية الدولية Sphere ومعايير التنمية المستدامة SDGs.',
+          aiGuidanceAr: 'استخدم الذكاء الاصطناعي لفحص توافق أهدافك مع المعايير الإنسانية الدولية المعتمدة وأهداف التنمية المستدامة.',
           aiGuidanceEn: 'Leverage AI to audit goal alignment against Sphere Standards and SDGs.'
         },
         {
@@ -482,7 +486,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       id: 'PHASE-04',
       phaseNumber: 4,
       code: 'NEB-10',
-      titleAr: 'المرحلة 4: التأسيس المالي والمحاسبة المزدوجة IPSAS وسندات القبض والصرف',
+      titleAr: 'المرحلة 4: التأسيس المالي والمحاسبة المزدوجة وسندات القبض والصرف',
       titleEn: 'Phase 4: Financial Foundation, IPSAS Double-Entry & Vouchers OS',
       category: 'finance',
       nebDomain: 'NEB-10 Finance & Compliance OS',
@@ -496,7 +500,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       responsibleRolesEn: ['Chief Financial Officer (CFO)', 'General Ledger Accountant', 'Treasury & Cashier'],
       descriptionAr: 'تأسيس الدليل المحاسبي الموحد (Chart of Accounts)، مراكز التكلفة، ضبط قيد التوازن المحاسبي الإلزامي (Debit = Credit)، وتفعيل سندات القبض والصرف الرسمية.',
       descriptionEn: 'Establish unified Chart of Accounts, cost centers, bank/cash ledgers, enforce double-entry constraint (debit = credit), and activate voucher workflows.',
-      strategicObjectiveAr: 'حوكمة مالية صارمة وشفافية محاسبية متوافقة مع المعايير الدولية IPSAS.',
+      strategicObjectiveAr: 'حوكمة مالية صارمة وشفافية محاسبية متوافقة مع المعايير المعتمدة.',
       strategicObjectiveEn: 'Zero financial leak, full IPSAS compliance, and complete ledger transparency.',
       kpiMetricsAr: [
         'توازن القيود المحاسبية 100% (Zero Unbalanced Vouchers)',
@@ -508,14 +512,14 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
         '100% On-time Advance Clearances',
         '100% General Ledger Posting Integrity'
       ],
-      linkedDocsAr: ['دليل الحسابات المعتمد (COA)', 'سندات القبض والصرف الرسمية', 'ميزان المراجعة والقوائم المالية IPSAS'],
+      linkedDocsAr: ['دليل الحسابات المعتمد (COA)', 'سندات القبض والصرف الرسمية', 'ميزان المراجعة والقوائم المالية المعتمدة'],
       linkedDocsEn: ['Approved Chart of Accounts (COA)', 'Official Receipt & Payment Vouchers', 'IPSAS Trial Balance & Financial Statements'],
       steps: [
         {
           stepNumber: 1,
           titleAr: 'تهيئة شجرة الحسابات ومراكز التكلفة والصناديق',
           titleEn: 'Initialize Chart of Accounts, Cost Centers & Bank Ledgers',
-          descriptionAr: 'إعداد شجرة الحسابات المتوافقة مع IPSAS (أصول، خصوم، إيرادات، مصروفات)، حسابات البنوك، الصناديق، وحسابات المنح المقيدة.',
+          descriptionAr: 'إعداد شجرة الحسابات والدليل المحاسبي المعتمد (أصول، خصوم، إيرادات، مصروفات)، حسابات البنوك، الصناديق، وحسابات المنح المقيدة.',
           descriptionEn: 'Configure IPSAS-compliant Chart of Accounts, set up bank accounts, cash vaults, and restricted grant ledgers.',
           roleAr: 'المدير المالي العام',
           roleEn: 'CFO / Lead Accountant',
@@ -899,13 +903,13 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       estimatedDurationEn: 'Monthly / Quarterly / Annual',
       responsibleRolesAr: ['مسؤول المتابعة والتقييم MEAL', 'المدير المالي', 'المدير التنفيذي العام'],
       responsibleRolesEn: ['MEAL Officer', 'Finance Director', 'CEO'],
-      descriptionAr: 'إغلاق المشاريع، مطابقة الحسابات الختامية، قياس مؤشرات الأثر الإنساني والمعايير الدولية (Sphere / CHS)، أرشفة الدروس المستفادة، وتوليد التقارير التنفيذية.',
+      descriptionAr: 'إغلاق المشاريع، مطابقة الحسابات الختامية، قياس مؤشرات الأثر الإنساني والمعايير الدولية المعتمدة، أرشفة الدروس المستفادة، وتوليد التقارير التنفيذية.',
       descriptionEn: 'Close out completed projects, reconcile final accounts, quantify Sphere/CHS impact metrics, archive lessons learned, and generate executive reports for leadership and donors.',
       strategicObjectiveAr: 'ترسيخ الشفافية المطلقة، استدامة الأثر الإنساني، والتحسين المستمر للأداء المؤسسي.',
       strategicObjectiveEn: 'Ensure absolute institutional transparency and measure sustainable impact.',
       kpiMetricsAr: [
         'إصدار التقارير الختامية للمشاريع بنسبة 100%',
-        'مطابقة مؤشرات المعايير الإنسانية الدولية Sphere/CHS',
+        'مطابقة مؤشرات المعايير الإنسانية الدولية المعتمدة',
         'أرشفة كافة المستندات وسجلات التدقيق بنسبة 100%'
       ],
       kpiMetricsEn: [
@@ -913,12 +917,12 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
         'Full Compliance with Sphere & CHS Humanitarian Standards',
         '100% Document & Audit Trail Archival'
       ],
-      linkedDocsAr: ['تقرير قياس الأثر الإنساني الشامل (Sphere / CHS)', 'التقرير المالي الختامي المدقق', 'محضر إغلاق المشروع وأرشفة الدروس المستفادة'],
+      linkedDocsAr: ['تقرير قياس الأثر الإنساني الشامل', 'التقرير المالي الختامي المدقق', 'محضر إغلاق المشروع وأرشفة الدروس المستفادة'],
       linkedDocsEn: ['Comprehensive Sphere/CHS Impact Report', 'Audited Final Financial Statement', 'Project Closeout & Lessons Learned Dossier'],
       steps: [
         {
           stepNumber: 1,
-          titleAr: 'التقييم الختامي وقياس الأثر الإنساني ومعايير Sphere / CHS',
+          titleAr: 'التقييم الختامي وقياس الأثر الإنساني والمعايير المعتمدة',
           titleEn: 'Final Evaluation, Impact Measurement & Sphere/CHS Audit',
           descriptionAr: 'حصر المخرجات النهائية، قياس رضا المستفيدين، مقارنة المنجز الفعلي بالمستهدف، واحتساب مؤشرات المعايير الإنسانية الدولية.',
           descriptionEn: 'Consolidate final outputs, measure beneficiary satisfaction, compare actuals vs plan, and evaluate international humanitarian compliance scores.',
@@ -934,7 +938,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
           auditRuleAr: 'تثبيت مؤشرات الأثر وقفل ملف تقييم المشروع.',
           auditRuleEn: 'Freeze impact metrics and lock project evaluation file.',
           linkedScreen: 'reports',
-          linkedDocTitleAr: 'تقرير قياس الأثر الإنساني ومعايير Sphere المعتمد',
+          linkedDocTitleAr: 'تقرير قياس الأثر الإنساني المعتمد',
           linkedDocTitleEn: 'Sphere/CHS Humanitarian Impact & Compliance Dossier',
           aiGuidanceAr: 'الذكاء الاصطناعي يحلل بيانات التوزيع والرضا لتوليد الدروس المستفادة وتوصيات تحسين المشاريع القادمة.',
           aiGuidanceEn: 'Gemini AI synthesizes distribution data and beneficiary feedback into actionable lessons learned.'
@@ -1006,7 +1010,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
     {
       id: 'BYLAW-CH2',
       chapterNumber: 2,
-      chapterTitleAr: 'الباب الثاني: اللائحة المالية الموحدة، المحاسبة المزدوجة IPSAS، وإدارة الصناديق',
+      chapterTitleAr: 'الباب الثاني: اللائحة المالية الموحدة، المحاسبة المزدوجة، وإدارة الصناديق',
       chapterTitleEn: 'Chapter 2: Financial Regulations, IPSAS Ledger & Treasury Controls',
       articles: [
         {
@@ -1142,7 +1146,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       ],
       kpiMetricsAr: [
         'نسبة تحقيق الأهداف الاستراتيجية العامة ≥ 90%',
-        'معدل الامتثال لمعايير الحوكمة و IPSAS بنسبة 100%',
+        'معدل الامتثال لمعايير الحوكمة والرقابة المالية بنسبة 100%',
         'الاستدامة المالية وتغطية نفقات البرامج بنسبة 100%'
       ],
       kpiMetricsEn: [
@@ -1164,7 +1168,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       reportsToEn: 'Executive Director (CEO)',
       supervisesAr: ['محاسب المشاريع', 'محاسب الخزينة والصرف', 'مدقق الحسابات'],
       supervisesEn: ['Projects Accountant', 'Treasury Accountant', 'Internal Auditor'],
-      purposeAr: 'إدارة وتوجيه كافة العمليات المالية والمحاسبية للمؤسسة، ضبط التوازن المحاسبي المزدوج IPSAS، إدارة السيولة والموازنات، وإعداد القوائم المالية المدققة.',
+      purposeAr: 'إدارة وتوجيه كافة العمليات المالية والمحاسبية للمؤسسة، ضبط التوازن المحاسبي المزدوج المعتمد، إدارة السيولة والموازنات، وإعداد القوائم المالية المدققة.',
       purposeEn: 'Direct all institutional accounting & financial operations, enforce IPSAS double-entry integrity, manage liquidity, and prepare audited statements.',
       targetTab: 'finance',
       dailyTasksAr: [
@@ -1298,7 +1302,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       reportsToEn: 'CEO & Governance Committee',
       supervisesAr: ['باحثو تقييم الأثر', 'مسؤول الشكاوى والمقترحات', 'مدققو الجودة الميدانية'],
       supervisesEn: ['Impact Researchers', 'Accountability/CRM Officer', 'Field Quality Auditors'],
-      purposeAr: 'التحقق المستقل من جودة المخرجات، قياس مؤشرات الأثر الإنساني ومعايير Sphere / CHS، وإدارة آلية الشكاوى والمساءلة المجتمعية.',
+      purposeAr: 'التحقق المستقل من جودة المخرجات، قياس مؤشرات الأثر الإنساني ومعايير الجودة والمساءلة، وإدارة آلية الشكاوى المجتمعية.',
       purposeEn: 'Independent verification of project outputs, Sphere/CHS compliance monitoring, beneficiary accountability, and organizational learning.',
       targetTab: 'reports',
       dailyTasksAr: [
@@ -1322,7 +1326,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
         'Audit social assessment sample dossiers for vulnerability scoring fidelity.'
       ],
       monthlyTasksAr: [
-        'حساب مؤشرات الامتثال للمعايير الإنسانية الدولية (Sphere & CHS).',
+        'حساب مؤشرات الامتثال للمعايير الإنسانية الدولية المعتمدة.',
         'إعداد التقرير الشهري للرقابة والتقييم ومشاركة الدروس المستفادة مع مدراء المشاريع.',
         'تقييم معدل رضا المستفيدين الإجمالي ورفع التوصيات التطويرية للإدارة العليا.'
       ],
@@ -1344,7 +1348,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       kpiMetricsAr: [
         'معالجة وإغلاق 100% من شكاوى المستفيدين خلال المدة المحددة',
         'معدل رضا المستفيدين الإجمالي ≥ 90%',
-        'توثيق الأثر والامتثال لمعايير Sphere بنسبة 100%'
+        'توثيق الأثر والامتثال للمعايير الإنسانية بنسبة 100%'
       ],
       kpiMetricsEn: [
         '100% Grievance Redressal within SLA',
@@ -1783,7 +1787,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
           'الرؤية: الريادة في العمل الإنساني والتنموي المستدام.',
           'الهدف 1: تحسين سبل العيش وتوفير الحماية لـ 50,000 أسرة.',
           'الهدف 2: كفالة ورعاية 2,500 يتيم وفق معايير الرعاية المتكاملة.',
-          'الهدف 3: حوكمة مالية وإدارية بنسبة التزام 100% بمعايير IPSAS و Sphere.'
+          'الهدف 3: حوكمة مالية وإدارية بنسبة التزام 100% بالمعايير المحاسبية والإنسانية المعتمدة.'
         ],
         detailsEn: [
           'Vision: Excellence in sustainable humanitarian and developmental impact.',
@@ -1997,7 +2001,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       id: 'DOC-08',
       code: 'DOC-IMPACT-08',
       phaseId: 'PHASE-09',
-      titleAr: 'تقرير قياس الأثر الإنساني ومعايير Sphere / CHS ومحضر الإغلاق',
+      titleAr: 'تقرير قياس الأثر الإنساني المعتمد ومحضر الإغلاق',
       titleEn: 'Sphere / CHS Humanitarian Impact Dossier & Project Closeout Protocol',
       typeAr: 'تقرير حوكمة وقياس أثر',
       typeEn: 'Impact Audit & Closeout Dossier',
@@ -2128,11 +2132,25 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       actions={
         <div className="flex items-center gap-2">
           <button
+            onClick={() => {
+              setPdfReportTitle(lang === 'ar' ? 'الدليل التشغيلي المؤسسي واللوائح والتوصيف الوظيفي' : 'Enterprise SOP, Governance Bylaws & Job Taxonomy');
+              setPdfReportSubtitle(lang === 'ar' ? 'النواة التنظيمية المعتمدة لجمعية رُحماء بينهم للعمل الإنساني والتنمية' : 'Official Operating Core & Standard Procedures');
+              setIsPDFModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors shadow-sm cursor-pointer"
+            title={lang === 'ar' ? 'إصدار وطباعة الدليل المؤسسي كوثيقة PDF معتمدة' : 'Export Certified PDF SOP'}
+          >
+            <FileText className="w-4 h-4" />
+            <span>{lang === 'ar' ? 'وثيقة PDF معتمدة' : 'Official PDF Manual'}</span>
+          </button>
+
+          <button
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-lg text-xs font-bold transition-colors border border-slate-300 dark:border-zinc-700"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-lg text-xs font-bold transition-colors border border-slate-300 dark:border-zinc-700 cursor-pointer"
+            title={lang === 'ar' ? 'طباعة عبر المتصفح' : 'Quick Browser Print'}
           >
             <Printer className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>{lang === 'ar' ? 'طباعة الدليل المؤسسي' : 'Print SOP Manual'}</span>
+            <span>{lang === 'ar' ? 'طباعة سريعة' : 'Quick Print'}</span>
           </button>
         </div>
       }
@@ -2993,11 +3011,15 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                 <p className="text-[11px] text-emerald-800/80">متوافق 100% مع متطلبات المعايير الإنسانية الدولية CHS ومعايير IPSAS للمحاسبة الدولية.</p>
               </div>
               <button
-                onClick={() => window.print()}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black flex items-center gap-1.5 transition-colors"
+                onClick={() => {
+                  setPdfReportTitle(lang === 'ar' ? 'بطاقة تقييم الأداء والمتابعة والامتثال الإنساني MEAL' : 'Official MEAL Compliance & Performance Scorecard');
+                  setPdfReportSubtitle(lang === 'ar' ? 'مستوى الامتثال البلاتيني المتقدم 97.2% - معايير CHS وإسفير وIPSAS' : '97.2% Platinum Compliance - CHS, Sphere & IPSAS Standards');
+                  setIsPDFModalOpen(true);
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
               >
-                <Printer className="w-4 h-4" />
-                <span>طباعة بطاقة تقييم الأداء المعتمدة</span>
+                <FileText className="w-4 h-4" />
+                <span>{lang === 'ar' ? 'طباعة بطاقة تقييم الأداء المعتمدة (PDF)' : 'Print Certified MEAL Scorecard'}</span>
               </button>
             </div>
           </div>
@@ -3226,6 +3248,17 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
         )}
 
       </div>
+      {/* Certified PDF Template Modal */}
+      <PrintPDFTemplateModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        lang={lang}
+        type="operational_manual"
+        data={{
+          title: pdfReportTitle || (lang === 'ar' ? 'الدليل التشغيلي المؤسسي واللوائح والتوصيف الوظيفي' : 'Enterprise SOP & Governance Bylaws'),
+          subtitle: pdfReportSubtitle || (lang === 'ar' ? 'النواة التنظيمية المعتمدة لجمعية رُحماء بينهم' : 'Official Operating Core')
+        }}
+      />
     </ModuleShell>
   );
 }

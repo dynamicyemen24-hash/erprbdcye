@@ -20,7 +20,7 @@ const GlobalOperationalFooterInner: React.FC<GlobalOperationalFooterProps> = ({
           <div className={`w-2 h-2 rounded-full ${dbConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
           <span className={dbConnected ? 'text-emerald-400' : 'text-rose-400'}>
             {dbConnected 
-              ? (lang === 'ar' ? 'الرابطة التشغيلية الموحدة: نشطة وآمنة 🛡️' : 'Unified Operating System: Active & Secure 🛡️') 
+              ? (lang === 'ar' ? 'منظومة UAMEX ERP™: نشطة ومؤمنة 🛡️' : 'UAMEX ERP™ Enterprise System: Active & Secure 🛡️') 
               : (lang === 'ar' ? 'نمط الاتصال المستقل' : 'Standby Mode Active')}
           </span>
         </div>

@@ -112,7 +112,7 @@ export const ExecutiveQuantumCockpit: React.FC<ExecutiveQuantumCockpitProps> = (
         {/* IPSAS Balance Card */}
         <div className="p-4 rounded-xl bg-slate-800/40 dark:bg-zinc-900/50 border border-slate-700/50 hover:border-emerald-500/40 transition-all">
           <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-            <span>{lang === 'ar' ? 'توازن القيود المزدوجة IPSAS' : 'IPSAS Ledger Balance'}</span>
+            <span>{lang === 'ar' ? 'توازن القيود المحاسبية المزدوجة' : 'IPSAS Ledger Balance'}</span>
             <Coins className="w-4 h-4 text-amber-500" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -143,7 +143,7 @@ export const ExecutiveQuantumCockpit: React.FC<ExecutiveQuantumCockpitProps> = (
         {/* Humanitarian CHS Compliance Card */}
         <div className="p-4 rounded-xl bg-slate-800/40 dark:bg-zinc-900/50 border border-slate-700/50 hover:border-emerald-500/40 transition-all">
           <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-            <span>{lang === 'ar' ? 'معايير CHS / Sphere الإنسانية' : 'Sphere/CHS Impact'}</span>
+            <span>{lang === 'ar' ? 'معايير الجودة والمساءلة الإنسانية' : 'Humanitarian Standards & Quality'}</span>
             <Globe className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -151,7 +151,7 @@ export const ExecutiveQuantumCockpit: React.FC<ExecutiveQuantumCockpitProps> = (
             <span className="text-xs text-teal-300 font-semibold">ISO Grade</span>
           </div>
           <div className="text-[11px] text-slate-400 mt-2">
-            {lang === 'ar' ? 'مطابقة معايير الشفافية والمساءلة' : 'Fully aligned with Sphere Standards'}
+            {lang === 'ar' ? 'مطابقة تامة لمعايير الشفافية والمساءلة الإنسانية' : 'Fully aligned with Humanitarian Quality Standards'}
           </div>
         </div>
       </div>
@@ -206,7 +206,7 @@ export const ExecutiveQuantumCockpit: React.FC<ExecutiveQuantumCockpitProps> = (
                   onClick={() => onNavigateTab('finance')}
                   className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition-all"
                 >
-                  {lang === 'ar' ? 'عرض دفتر المالية IPSAS' : 'View IPSAS Ledger'}
+                  {lang === 'ar' ? 'عرض دفتر الحسابات المالية' : 'View IPSAS Ledger'}
                 </button>
                 <button
                   onClick={() => onNavigateTab('procurement')}
@@ -227,7 +227,7 @@ export const ExecutiveQuantumCockpit: React.FC<ExecutiveQuantumCockpitProps> = (
               { id: 'NEB-05', title: lang === 'ar' ? 'العمليات الميدانية' : 'Operations OS', status: 'Optimal' },
               { id: 'NEB-06', title: lang === 'ar' ? 'خدمات المستفيدين' : 'Services OS', status: 'Optimal' },
               { id: 'NEB-08', title: lang === 'ar' ? 'التمويل والكفالات' : 'Funding OS', status: 'Optimal' },
-              { id: 'NEB-10', title: lang === 'ar' ? 'المالية و IPSAS' : 'Finance OS', status: 'Optimal' },
+              { id: 'NEB-10', title: lang === 'ar' ? 'الإدارة المالية والمحاسبة' : 'Finance OS', status: 'Optimal' },
               { id: 'NEB-13', title: lang === 'ar' ? 'الذكاء الاصطناعي الأثر' : 'AI Impact OS', status: 'Optimal' },
               { id: 'NEB-14', title: lang === 'ar' ? 'المشتريات والمناقصات' : 'Procurement OS', status: 'Optimal' },
               { id: 'NEB-15', title: lang === 'ar' ? 'الإيرادات والتبرعات' : 'Sales OS', status: 'Optimal' },

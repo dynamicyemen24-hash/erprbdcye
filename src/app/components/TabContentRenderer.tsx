@@ -22,6 +22,7 @@ const BeneficiariesView = lazyWithRetry(() => import('../../components/Beneficia
 const SponsorshipsView = lazyWithRetry(() => import('../../components/SponsorshipsView'), 'SponsorshipsView');
 const ThirdPartyNetworkCenterView = lazyWithRetry(() => import('../../components/ThirdPartyNetworkCenterView'), 'ThirdPartyNetworkCenterView');
 
+const ProcurementWorkspaceView = lazyWithRetry(() => import('../../components/ProcurementWorkspaceView'), 'ProcurementWorkspaceView');
 const ContractManagementView = lazyWithRetry(() => import('../../components/ContractManagementView').then(m => ({ default: m.ContractManagementView })), 'ContractManagementView');
 const InventoryManagementView = lazyWithRetry(() => import('../../components/InventoryManagementView').then(m => ({ default: m.InventoryManagementView })), 'InventoryManagementView');
 
@@ -46,6 +47,7 @@ const InstitutionalRoleWorkspaces = lazyWithRetry(() => import('../../components
 
 // Lucide Icons for Premium Window Chrome
 import { 
+  ShoppingCart,
   Maximize2, Minimize2, Save, Pause, Play, ExternalLink, X, Layout, 
   ShieldAlert, CheckCircle2, Lock, Unlock, Database, Eye, RefreshCw,
   Columns, ChevronDown, Clock, ArrowRightLeft, Sparkles, BookOpen, 
@@ -193,7 +195,8 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     reports: { icon: TrendingUp, title_ar: 'مركز التقارير والتحليلات', title_en: 'Reports & Analytics Center', domainCode: 'NEB-11', desc_ar: 'تحليل الأثر الميداني الذكي، وتصدير التقارير المعمدة الرسمية بجودة عالية.', desc_en: 'Advanced impact statistics and certified PDF/Excel reports exporter.' },
     users: { icon: User, title_ar: 'نظام الكادر والملفات المهنية', title_en: 'Resource & Personnel OS', domainCode: 'NEB-09', desc_ar: 'السجلات الوظيفية للفرق الإنسانية، تخطيط المهام الميدانية وتتبع الحضور الرقمي.', desc_en: 'Staff profiles, humanitarian field logs, skills mapping, and active team locations.' },
     inventory: { icon: Box, title_ar: 'نظام الإمداد والمخزون الإغاثي', title_en: 'Supply Chain & Inventory OS', domainCode: 'NEB-09', desc_ar: 'مستودعات المواد الإغاثية والطبية، مستويات إعادة الطلب الآمن، وإذن التوريد والصرف.', desc_en: 'Humanitarian inventory warehouses, logistics pipelines, stock movements, and asset registers.' },
-    contracts: { icon: FileCheck, title_ar: 'نظام العقود والمناقصات والمشتريات', title_en: 'Contracts & Procurement OS', domainCode: 'NEB-08', desc_ar: 'مناقصات تأمين السلال الغذائية والمعدات، تصنيف الموردين، والدفعات التعاقدية.', desc_en: 'Supplier tenders, equipment logistics procurement, and contractual compliance.' },
+    procurement: { icon: ShoppingCart, title_ar: 'نظام المشتريات والمناقصات (P2P)', title_en: 'Procurement & Tenders OS', domainCode: 'NEB-14', desc_ar: 'دورة المشتريات المتكاملة، استدراج العروض، أوامر الشراء، وفحص واستلام المواد والمطابقة الثلاثية.', desc_en: 'End-to-end P2P cycle, RFQs, purchase orders, warehouse intake & 3-way matching.' },
+    contracts: { icon: FileCheck, title_ar: 'نظام العقود والاتفاقيات', title_en: 'Contracts & Procurement OS', domainCode: 'NEB-08', desc_ar: 'مناقصات تأمين السلال الغذائية والمعدات، تصنيف الموردين، والدفعات التعاقدية.', desc_en: 'Supplier tenders, equipment logistics procurement, and contractual compliance.' },
     currencies: { icon: Coins, title_ar: 'نظام العملات والصرف الأجنبي', title_en: 'Foreign Exchange OS', domainCode: 'NEB-10', desc_ar: 'تحديث أسعار صرف الريال اليمني والدولار والريال السعودي في الوقت الفعلي.', desc_en: 'Live multi-currency rate tracking, forex conversion logs, and treasury operations.' },
     settings: { icon: Settings, title_ar: 'إعدادات النظام والمنظمة', title_en: 'System Configurations OS', domainCode: 'NEB-12', desc_ar: 'تهيئة معايير الأمان، وبيانات المنظمة ونطاقات العمل.', desc_en: 'General software system configurations and organizational preferences.' },
     audit: { icon: Database, title_ar: 'سجل التدقيق المؤسسي', title_en: 'Audit Logs OS', domainCode: 'NEB-11', desc_ar: 'مراقبة وتوثيق كافة العمليات الإدارية والمالية لضمان أعلى معايير الشفافية.', desc_en: 'Chronological audit logs tracking administrative and financial events.' },
@@ -302,6 +305,17 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <UsersView users={users} roles={roles} loading={loading} onRefresh={onRefreshData} lang={lang} />;
       case 'inventory':
         return <InventoryManagementView lang={lang} currentUser={currentUser} beneficiaries={beneficiaries} onNavigate={safeNavigate} />;
+      case 'procurement':
+        return (
+          <ProcurementWorkspaceView
+            lang={lang}
+            projects={projects}
+            currencies={currencies}
+            organizations={organizations}
+            onRefresh={onRefreshData}
+            onNavigate={safeNavigate}
+          />
+        );
       case 'contracts':
         return (
           <ContractManagementView 

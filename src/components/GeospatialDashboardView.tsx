@@ -241,7 +241,7 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
   return (
     <ErrorBoundary domainName="Geospatial Dashboard View" lang={lang}>
     <ModuleShell
-      titleAr="لوحة الخرائط الجغرافية"
+      titleAr="الخريطة المكانية وبؤر الاحتياج الميداني"
       titleEn="Geospatial Dashboard"
       domainCode="NEB-13"
       icon={Globe}
@@ -257,7 +257,7 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                 <Globe className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span>محرك التحليلات المكانية والجغرافية GIS</span>
+                <span>محرك التحليلات المكانية والجغرافية الميدانية</span>
               </span>
               <span className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 GIS REAL-TIME FIELD MAP

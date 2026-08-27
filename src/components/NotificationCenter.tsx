@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import { useEnterprise } from '../core/context/EnterpriseContext';
+import { showToast } from './enterprise/EnterpriseToastContainer';
 
 interface NotificationCenterProps {
   lang: 'ar' | 'en';
@@ -62,7 +63,11 @@ export default function NotificationCenter({
   // Request browser Notification permission
   const requestBrowserPermission = async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
-      alert(lang === 'ar' ? 'إشعارات المتصفح غير مدعومة في هذا المتصفح.' : 'Web Notifications are not supported in this browser.');
+      showToast({
+        type: 'warning',
+        title: lang === 'ar' ? 'إشعارات النظام' : 'System Notifications',
+        message: lang === 'ar' ? 'إشعارات المتصفح غير مدعومة في هذا المتصفح.' : 'Web Notifications are not supported in this browser.'
+      });
       return;
     }
     try {

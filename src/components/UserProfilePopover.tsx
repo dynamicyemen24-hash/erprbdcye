@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { User } from '../core/types/users';
+import { showToast } from './enterprise/EnterpriseToastContainer';
 
 interface UserProfilePopoverProps {
   isOpen: boolean;
@@ -187,7 +188,13 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
               <p className="text-[10px] text-blue-700 dark:text-blue-400">{isRtl ? 'حسابك مرتبط بهذه المنظمة' : 'Your account is linked to this organization'}</p>
             </div>
             <button
-              onClick={() => { alert(isRtl ? 'تم تحديث مزامنة الحساب بنجاح' : 'Account synchronization updated'); }}
+              onClick={() => { 
+                showToast({
+                  type: 'success',
+                  title: isRtl ? 'مزامنة الحساب' : 'Account Sync',
+                  message: isRtl ? 'تم تحديث مزامنة بيانات الحساب السحابية بنجاح ✓' : 'Account cloud data synchronized successfully ✓'
+                });
+              }}
               className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-extrabold text-xs transition-all cursor-pointer"
             >
               {isRtl ? 'مزامنة بيانات الحساب السحابية' : 'Sync Cloud Account'}
@@ -237,7 +244,13 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
               </div>
             </div>
             <button
-              onClick={() => { alert(isRtl ? 'تم إنهاء جميع الجلسات الأخرى بنجاح' : 'All other sessions terminated'); }}
+              onClick={() => { 
+                showToast({
+                  type: 'success',
+                  title: isRtl ? 'إنهاء الجلسات' : 'Sessions Terminated',
+                  message: isRtl ? 'تم إنهاء جميع الجلسات الأخرى بنجاح من كافة الأجهزة ✓' : 'All other sessions terminated successfully ✓'
+                });
+              }}
               className="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-extrabold text-xs transition-all cursor-pointer"
             >
               {isRtl ? 'إنهاء جميع الجلسات الأخرى' : 'Terminate Other Sessions'}

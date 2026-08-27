@@ -42,7 +42,7 @@ export const PERSPECTIVE_CONFIGS: Record<PerspectiveRole, PerspectiveConfig> = {
     id: 'executive',
     titleAr: 'منظور القيادة التنفيذية والحوكمة الاستراتيجية',
     titleEn: 'Executive Leadership & Strategic Governance Perspective',
-    subtitleAr: 'رؤية عالية المستوى (C-Suite): رأس المال الموحد، سلامة سجل IPSAS، أداء المانحين وأثر CHS',
+    subtitleAr: 'رؤية القيادة التنفيذية: رأس المال الموحد، سلامة السجلات المالية المعتمدة، أداء المانحين والأثر الإنساني',
     subtitleEn: 'High-level C-Suite view: Consolidated Capital, IPSAS Ledger Integrity, Donor Performance & CHS Impact',
     badgeAr: '👑 القيادة التنفيذية (C-Suite)',
     badgeEn: '👑 Executive C-Suite',
@@ -51,8 +51,8 @@ export const PERSPECTIVE_CONFIGS: Record<PerspectiveRole, PerspectiveConfig> = {
     gradientBg: 'from-emerald-950 via-zinc-900 to-emerald-950',
     focusMetricsAr: [
       'التفاصيل الديموغرافية والمنطقة',
-      'معدل الامتثال المحاسبي لمعايير IPSAS',
-      'مؤشر الأثر الإنساني CHS / Sphere',
+      'معدل الامتثال المحاسبي المعتمد',
+      'مؤشر معايير الجودة والمساءلة الإنسانية',
       'مجلد الموافقات التنفيذية والحوكمة'
     ],
     focusMetricsEn: [

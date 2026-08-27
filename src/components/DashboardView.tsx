@@ -157,16 +157,16 @@ export default function DashboardView({
 - **التغطية المجتمعية:** بلغت التغطية الشهرية للمستفيدين **${data.monthlyBeneficiaryReach}** مستفيداً، مع إجمالي ثبت مسجل قدره **${(beneficiaries || []).length}** حالة معتمدة.
 - **كفالات الأيتام والرعاية:** إجمالي الكفالات المسجلة والمستمرة **${(sponsorships || []).length}** كفالة جارية.
 
-### 💰 2. التقييم المالي والسيولة IPSAS
+### 💰 2. التقييم المالي والسيولة النقدية
 - **نسبة استهلاك الموازنة:** **${(data.budgetUtilization * 100).toFixed(1)}%** من الموازنة التجميعية للبرامج.
-- **توازن القيود المزدوجة:** ميزانية متوازنة 100% وفقاً لمعايير المحاسبة الدولية للقطاع العام (IPSAS Ledger Baseline).
+- **توازن القيود المزدوجة:** ميزانية متوازنة 100% وفقاً للمعايير المحاسبية المعتمدة.
 - **الاعتمادات المالية:** بلغ عدد الاعتمادات المعلقة **${data.pendingApprovalsCount}** بقيمة **${data.pendingApprovalsAmount.toLocaleString()}** USD.
 
-### 💼 3. التقييم الإداري والكادر البشري (HR Enterprise 3.2)
+### 💼 3. التقييم الإداري والكفاءة الوظيفية
 - **الكادر والموارد البشرية:** استقرار كامل للقوى العاملة الموزعة بين الكادر الدائم والفرق الميدانية والمتطوعين مع متابعة دوام ومسير الرواتب المزدوج.
 
 ### 🏗️ 4. تقييم المشاريع والتشغيل الميداني
-- **الأداء والالتزام بـ WBS:** الالتزام التام بالجداول الزمنية للمشاريع وتفعيل محرك المعالجة دون اتصال (Offline Sync Engine) لحظر أي فقدان للبيانات الميدانية.
+- **الأداء والالتزام التنفيذي:** الالتزام التام بالجداول الزمنية للمشاريع وتفعيل محرك المعالجة دون اتصال (Offline Sync Engine) لحظر أي فقدان للبيانات الميدانية.
 
 ### 🛡️ 5. التقييم النهائي الشامل للأشهر
 - **التقييم المالي:** **96.5% (ممتاز)** — توازن كامل للقيود وحظر صارم لتجاوز الموازنة (Budget Hard-Lock).
@@ -181,9 +181,9 @@ export default function DashboardView({
 - **Active Programs:** Currently operating **${data.activeProgramsCount}** active development programs across **${(projects || []).length}** approved projects.
 - **Community Reach:** Monthly beneficiary reach stands at **${data.monthlyBeneficiaryReach}** individuals out of **${(beneficiaries || []).length}** registered beneficiaries.
 
-### 💰 2. IPSAS Financial & Liquidity Evaluation
+### 💰 2. Financial & Liquidity Evaluation
 - **Budget Utilization:** **${(data.budgetUtilization * 100).toFixed(1)}%** of allocated program budget.
-- **Ledger Integrity:** 100% balanced double-entry accounting per IPSAS Standards.
+- **Ledger Integrity:** 100% balanced double-entry accounting per certified standards.
 
 ### 🛡️ 3. Final Monthly Evaluation Matrix
 - **Financial Evaluation:** **96.5% (Excellent)**

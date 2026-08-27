@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { 
+  ShoppingCart,
   X, Search, Star, ExternalLink, ShieldCheck, Sparkles, Sliders,
   Briefcase, FolderKanban, Activity, Users, Heart, Handshake,
   DollarSign, Coins, CheckCircle2, Shield, FileText, Database,
@@ -83,10 +84,10 @@ export default function AppMatrixLauncherModal({
       icon: Brain,
       color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
       badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-300',
-      title_ar: 'ذكاء الأعمال قياس الأثر CHS',
-      title_en: 'AI Impact & CHS Standards',
-      subtitle_ar: 'تحليلات AI المعيارية لمستوى الأثر',
-      subtitle_en: 'Sphere & CHS humanitarian metrics',
+      title_ar: 'ذكاء الأعمال وقياس الأثر الإنساني',
+      title_en: 'AI Impact & Humanitarian Standards',
+      subtitle_ar: 'تحليلات ذكية لقياس مستوى الأثر والمساءلة',
+      subtitle_en: 'Certified humanitarian impact metrics',
       tab: 'reports' as TabId,
       action: onOpenCopilot,
       stat: lang === 'ar' ? 'مساعد ذكي' : 'AI Assistant'
@@ -138,12 +139,26 @@ export default function AppMatrixLauncherModal({
       icon: Compass,
       color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
       badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-      title_ar: 'الخريطة المكانية GIS للميدان',
-      title_en: 'Field Geospatial GIS Map',
+      title_ar: 'الخريطة المكانية وبؤر الاحتياج الميداني',
+      title_en: 'Field Geospatial Map',
       subtitle_ar: 'رصد جغرافي لمواقع المشاريع وتكثيف المستفيدين',
       subtitle_en: 'Project mapping & beneficiary hotspots',
       tab: 'geospatial' as TabId,
       stat: lang === 'ar' ? 'خريطة تفاعلية' : 'Interactive Map'
+    },
+
+    {
+      code: 'NEB-14',
+      category: 'OPERATIONS',
+      icon: ShoppingCart,
+      color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+      title_ar: 'نظام المشتريات والمناقصات (P2P)',
+      title_en: 'Procurement & Tenders OS',
+      subtitle_ar: 'دورة المشتريات، استدراج العروض، وأوامر الشراء والمطابقة الثلاثية',
+      subtitle_en: 'Full P2P cycle, RFQs, purchase orders & 3-way matching',
+      tab: 'procurement' as TabId,
+      stat: lang === 'ar' ? 'سلسلة P2P' : 'P2P Pipeline'
     },
 
     // Suite 3: Beneficiaries & Social Care
@@ -220,8 +235,8 @@ export default function AppMatrixLauncherModal({
       icon: DollarSign,
       color: 'bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 border-emerald-600/20',
       badgeColor: 'bg-emerald-600/15 text-emerald-800 dark:text-emerald-200',
-      title_ar: 'المالية العامة والحسابات IPSAS',
-      title_en: 'Finance & IPSAS Ledger',
+      title_ar: 'المالية العامة والحسابات المعتمدة',
+      title_en: 'Finance & General Ledger',
       subtitle_ar: 'شجرة الحسابات والقيود والترحيل',
       subtitle_en: 'Double-entry audit ledger statement',
       tab: 'finance' as TabId,
@@ -481,7 +496,7 @@ export default function AppMatrixLauncherModal({
         <div className="p-4 bg-slate-50 dark:bg-zinc-900 border-t border-slate-100 dark:border-zinc-800 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500 font-bold">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span>{lang === 'ar' ? 'NexoraOS™ • جمعية رُحماء بينهم للعمل الإنساني والتنمية' : 'NexoraOS™ • Rohamaab Charity Foundation'}</span>
+            <span>{lang === 'ar' ? 'UAMEX ERP™ • جمعية رُحماء بينهم للعمل الإنساني والتنمية' : 'UAMEX ERP™ • Rohamaab Charity Foundation'}</span>
           </div>
 
           <div className="flex items-center gap-2">

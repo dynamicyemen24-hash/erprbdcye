@@ -104,9 +104,9 @@ export default function SettingsView({
   const [aiSettingsKey, setAiSettingsKey] = useState<string>(() => localStorage.getItem('nexora_gemini_api_key') || '');
   const [customModels, setCustomModels] = useState<string[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem('nexora_custom_models') || '["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.6-flash", "gemini-1.5-pro"]');
+      return JSON.parse(localStorage.getItem('nexora_custom_models') || '["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash", "gemini-1.5-pro"]');
     } catch {
-      return ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.6-flash", "gemini-1.5-pro"];
+      return ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash", "gemini-1.5-pro"];
     }
   });
   const [newCustomModel, setNewCustomModel] = useState<string>('');
@@ -908,205 +908,208 @@ export default function SettingsView({
       )}
 
       {/* Sub Tabs navigation - Standard Deep Engineering Tabulation */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-slate-100/50 dark:bg-zinc-900/40 p-2 rounded-xl border border-slate-200/60 dark:border-zinc-800/80">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3 bg-slate-100/70 dark:bg-zinc-900/50 p-2.5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs">
         <button 
           onClick={() => { setActiveSubTab('profile'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
             activeSubTab === 'profile' 
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white' 
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20' 
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'profile' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'profile' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <Building className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'نوع الحركة المباشرة' : 'Identity & Licensing'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'تعريف المؤسسة، التراخيص والسجل' : 'Official records, certificates & logos'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'هوية المؤسسة والبيانات الأساسية' : 'Identity & Licensing'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'تعريف المؤسسة، التراخيص والسجل الرسمي' : 'Official records, certificates & logos'}</p>
           </div>
         </button>
 
         <button 
           onClick={() => { setActiveSubTab('domainPolicies'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
             activeSubTab === 'domainPolicies' 
-              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-xs text-slate-800 dark:text-white' 
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20' 
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'domainPolicies' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'domainPolicies' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'السياسات والمعايير التشغيلية' : 'Operating Policies & Standards'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'ضوابط الوحدات الـ 15 ومعايير IPSAS/Sphere' : '15 NEB domains & compliance rules'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'سياسات النطاقات المؤسسية' : 'Operating Policies & Standards'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'ضوابط الوحدات الـ 15 ومعايير الامتثال' : '15 Enterprise domains & compliance rules'}</p>
           </div>
         </button>
 
         <button 
-          onClick={() => { setActiveSubTab('subscription'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
-            activeSubTab === 'subscription' 
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white' 
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+          onClick={() => { setActiveSubTab('policies'); setSuccessMsg(null); setErrorMsg(null); }}
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
+            activeSubTab === 'policies'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20'
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'subscription' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
-            <CreditCard className="w-4 h-4" />
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'policies' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
+            <Shield className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'الانتقال المباشر للقسم' : 'Subscription & Payments'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'الباقات، الترقية، وبوابات الدفع' : 'Plans, upgrades & payment gateways'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'حوكمة السياسات والاعتمادات' : 'Operational Policies'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'قواعد العمل والإشراف وسقوف الاعتماد' : 'Governance, approval tiers & enforcement rules'}</p>
           </div>
         </button>
 
         <button 
           onClick={() => { setActiveSubTab('system'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
             activeSubTab === 'system' 
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white' 
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20' 
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'system' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'system' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <Sliders className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'التكلفة الإجمالية' : 'Operational Controls'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'الحدود المالية ومحركات العمليات' : 'Financial thresholds & engines'}</p>
-          </div>
-        </button>
-
-        <button 
-          onClick={() => { setActiveSubTab('orgKeys'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
-            activeSubTab === 'orgKeys' 
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white' 
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
-          }`}
-        >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'orgKeys' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
-            <Key className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'تعديلات الموازنة المالية' : 'Bilingual System Variables'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'مسميات الفواتير والترجمات الميدانية' : 'Invoice headers & translation keys'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'الضوابط والمحددات التشغيلية' : 'Operational Controls'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'الحدود المالية ومحركات العمليات' : 'Financial thresholds & engines'}</p>
           </div>
         </button>
 
         <button 
           onClick={() => { setActiveSubTab('masterData'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
             activeSubTab === 'masterData' 
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white' 
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20' 
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'masterData' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'masterData' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <Database className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'الشراكات والتمويل الإنساني' : 'Master Data & Governance'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'الترميز الموحد ومستويات الأمان' : 'Unified codes, branches & security'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'الترميز الموحد والبيانات المرجعية' : 'Master Data & Governance'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'الأكواد المركزية، الفروع ومستويات الأمان' : 'Unified codes, branches & security'}</p>
           </div>
         </button>
-        <button
-          onClick={() => setActiveSubTab('biometric')}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
-            activeSubTab === 'biometric'
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white'
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+
+        <button 
+          onClick={() => { setActiveSubTab('subscription'); setSuccessMsg(null); setErrorMsg(null); }}
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
+            activeSubTab === 'subscription' 
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20' 
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'biometric' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'subscription' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
+            <CreditCard className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'الاشتراك وتراخيص المنظومة' : 'Subscription & Payments'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'باقات الاشتراك وتراخيص الاستخدام' : 'Plans, upgrades & payment gateways'}</p>
+          </div>
+        </button>
+
+        <button 
+          onClick={() => { setActiveSubTab('orgKeys'); setSuccessMsg(null); setErrorMsg(null); }}
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
+            activeSubTab === 'orgKeys' 
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20' 
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
+          }`}
+        >
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'orgKeys' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
+            <Key className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'متغيرات ومفاتيح النظام' : 'Bilingual System Variables'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'مسميات الفواتير والترجمات الميدانية' : 'Invoice headers & translation keys'}</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('biometric')}
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
+            activeSubTab === 'biometric'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20'
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
+          }`}
+        >
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'biometric' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <Fingerprint className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'صباحاً ومساءً' : 'Biometric Security'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'المجتمع والعمل التطوعي' : 'Fingerprint & recognition settings'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'أمان الدخول بالبصمة الرقمية' : 'Biometric Security'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'إعدادات التحقق بالبصمة الحيوية' : 'Fingerprint & recognition settings'}</p>
           </div>
         </button>
+
         <button
           onClick={() => setActiveSubTab('totp')}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
             activeSubTab === 'totp'
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white'
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20'
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'totp' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'totp' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <Smartphone className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'إلغاء صلاحية جهاز موثوق' : 'Time-based OTP'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'كلمات المرور لمرة واحدة' : 'Time-based OTP'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'التحقق الثنائي عبر رموز المرور' : 'Time-based OTP'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'رموز الدخول لمرة واحدة لحماية الحسابات' : 'Time-based OTP authentication'}</p>
           </div>
         </button>
+
         <button
           onClick={() => setActiveSubTab('devices')}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
             activeSubTab === 'devices'
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white'
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20'
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'devices' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'devices' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <Laptop className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'البرامج والميدان' : 'Trusted Devices'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'إدارة المعرفة والوثائق' : 'Manage sessions & devices'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'الأجهزة المعتمدة والجلسات النشطة' : 'Trusted Devices'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'إدارة الجلسات والأجهزة المصرح لها' : 'Manage sessions & devices'}</p>
           </div>
         </button>
 
         <button
           onClick={() => { setActiveSubTab('integrations'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
             activeSubTab === 'integrations'
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white'
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20'
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'integrations' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'integrations' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <Zap className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'مديرة الموارد البشرية' : 'AI & Integrations'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'الذكاء الاصطناعي، الزكاة، الرسائل والربط المباشر' : 'Copilot model keys, SMS, Zakat & webhooks'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'بوابات الربط والذكاء الاصطناعي' : 'AI & Integrations'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'الربط السحابي، الذكاء الاصطناعي والرسائل' : 'Copilot model keys, SMS, Zakat & webhooks'}</p>
           </div>
         </button>
 
         <button
           onClick={() => { setActiveSubTab('environment'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
+          className={`flex items-start gap-3 p-3 rounded-xl border text-right rtl:text-right transition-all cursor-pointer ${
             activeSubTab === 'environment'
-              ? 'bg-white dark:bg-zinc-900 border-amber-500 shadow-xs text-slate-800 dark:text-white'
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
+              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-sm text-slate-900 dark:text-white ring-2 ring-emerald-500/20'
+              : 'bg-transparent border-transparent text-slate-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-850'
           }`}
         >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'environment' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${activeSubTab === 'environment' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200/80 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'}`}>
             <GraduationCap className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'بيئة العمل' : 'Work Environment'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'التبديل بين بيئة التدريب والإنتاج' : 'Switch between Training & Production modes'}</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => { setActiveSubTab('policies'); setSuccessMsg(null); setErrorMsg(null); }}
-          className={`flex items-start gap-3 p-3 rounded-lg border text-right rtl:text-right transition-all cursor-pointer ${
-            activeSubTab === 'policies'
-              ? 'bg-white dark:bg-zinc-900 border-emerald-500 shadow-xs text-slate-800 dark:text-white'
-              : 'bg-transparent border-transparent text-zinc-500 hover:bg-white/30 dark:hover:bg-zinc-900/20'
-          }`}
-        >
-          <div className={`p-2 rounded-lg shrink-0 ${activeSubTab === 'policies' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-200/50 dark:bg-zinc-800 text-zinc-400'}`}>
-            <Shield className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'السياسات التشغيلية' : 'Operational Policies'}</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'قواعد العمل والإشراف والحوكم' : 'Governance, approval tiers & enforcement rules'}</p>
+            <h4 className="text-xs font-black truncate">{lang === 'ar' ? 'بيئة التشغيل المعتمدة' : 'Work Environment'}</h4>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5 line-clamp-1">{lang === 'ar' ? 'التبديل بين بيئة التدريب والإنتاج الفعلي' : 'Switch between Training & Production modes'}</p>
           </div>
         </button>
       </div>
@@ -1649,7 +1652,7 @@ export default function SettingsView({
                 <div className="flex items-start gap-3">
                   <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div className="text-xs space-y-1 text-slate-600">
-                    <h4 className="font-extrabold text-amber-900">{lang === 'ar' ? 'حالة اشتراك المؤسسة على بوابة الرابطة ERP' : 'Enterprise Subscription Status'}</h4>
+                    <h4 className="font-extrabold text-amber-900">{lang === 'ar' ? 'حالة اشتراك الجمعية في منظومة UAMEX ERP™' : 'UAMEX ERP™ Organization Subscription Status'}</h4>
                     <p>
                       {lang === 'ar' 
                         ? `الخطة الاشتراكية النشطة: ${mainOrg?.subscription_plan || 'Enterprise Pro'} (حد المستخدمين: ${mainOrg?.max_users || 50}، حد التخزين: ${mainOrg?.max_storage_gb || 100} جيجابايت)`

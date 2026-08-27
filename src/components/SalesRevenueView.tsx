@@ -1,3 +1,5 @@
+import { printHTML } from '../lib/printUtils';
+import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 import React, { useState, useEffect } from 'react';
 import { 
   Receipt, 
@@ -31,6 +33,89 @@ interface SalesRevenueViewProps {
 
 export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavigate }) => {
   const isRtl = lang === 'ar';
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+
+  const handlePrintSingleInvoice = (inv: any) => {
+    if (!inv) return;
+    const accentColor = '#059669';
+    const amountYer = parseFloat(String(inv.total_amount || 0));
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html dir="${isRtl ? 'rtl' : 'ltr'}">
+        <head>
+          <meta charset="utf-8" />
+          <title>${isRtl ? 'فاتورة إيراد رسمية معتمدة' : 'Official Revenue Invoice'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; color: #0f172a; background: #fff; }
+            @page { size: A4 portrait; margin: 15mm; }
+          </style>
+        </head>
+        <body>
+          <div style="max-width: 780px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double ${accentColor}; padding-bottom: 20px; margin-bottom: 25px;">
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="/UAMEX_ERPLOGO.png" style="height: 55px; object-fit: contain;" alt="UAMEX ERP" />
+                <img src="/LogoRohamaab.png" style="height: 55px; object-fit: contain;" alt="Logo Rohamaab" />
+                <div>
+                  <h2 style="margin: 0; color: #0f172a; font-size: 16px; font-weight: 900;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
+                  <p style="margin: 3px 0 0 0; color: ${accentColor}; font-size: 11px; font-weight: 700;">نظام يو امكس المؤسسي الشامل - UAMEX ERP™</p>
+                  <p style="margin: 2px 0 0 0; color: #64748b; font-size: 10px;">إدارة الموارد المالية والمشاريع الاستثمارية (NEB-15)</p>
+                </div>
+              </div>
+              <div style="text-align: ${isRtl ? 'left' : 'right'};">
+                <span style="display: inline-block; padding: 4px 12px; background: #ecfdf5; border: 1px solid #10b981; color: #065f46; font-weight: 900; border-radius: 6px; font-size: 11px;">
+                  ${inv.payment_status === 'paid' || inv.payment_status === 'PAID' ? (isRtl ? 'فاتورة مسددة ومحصلة' : 'Paid & Settled') : (isRtl ? 'فاتورة مستحقة' : 'Pending Payment')}
+                </span>
+                <p style="margin: 8px 0 0 0; font-size: 11px; font-family: monospace; font-weight: 700; color: #334155;">${inv.invoice_number || 'INV-2026-001'}</p>
+                <p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">${isRtl ? 'التاريخ:' : 'Date:'} ${inv.issued_date || new Date().toISOString().slice(0,10)}</p>
+              </div>
+            </div>
+
+            <!-- Customer Details Card -->
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 25px; font-size: 11px;">
+              <table style="width: 100%;">
+                <tr>
+                  <td style="width: 20%; font-weight: bold; color: #64748b;">${isRtl ? 'الجهة / العميل / المانح:' : 'Payer / Donor:'}</td>
+                  <td style="font-weight: 900; font-size: 13px; color: #0f172a;">${inv.customer_name || inv.donor_name || (isRtl ? 'فاعل خير - مساهمة وقفية' : 'Donor')}</td>
+                  <td style="width: 20%; font-weight: bold; color: #64748b;">${isRtl ? 'طريقة السداد:' : 'Payment Method:'}</td>
+                  <td style="font-weight: bold;">${inv.payment_method || (isRtl ? 'تحويل بنكي / نقدي' : 'Bank Transfer')}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; color: #64748b; padding-top: 8px;">${isRtl ? 'البيان والوصف:' : 'Description:'}</td>
+                  <td colspan="3" style="padding-top: 8px; color: #334155;">${inv.description || (isRtl ? 'مساهمة في دعم المشاريع التنموية وكفالات الأيتام' : 'Contribution')}</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Signatures & Stamp -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+              <div style="text-align: center; flex: 1;">
+                <div style="font-size: 10px; font-weight: bold; color: #475569;">${isRtl ? 'المحاسب المسؤول' : 'Accountant'}</div>
+                <div style="margin-top: 30px; border-top: 1px solid #94a3b8; width: 60%; margin-left: auto; margin-right: auto;"></div>
+                <div style="font-size: 9px; color: #94a3b8; margin-top: 4px;">${isRtl ? 'التوقيع' : 'Signature'}</div>
+              </div>
+              <div style="text-align: center; flex: 1;">
+                <div style="width: 70px; height: 70px; border: 2px dashed ${accentColor}; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: ${accentColor}; font-size: 8px; font-weight: 900;">
+                  ${isRtl ? 'ختم الجمعية المعتمد' : 'Official Stamp'}
+                </div>
+              </div>
+              <div style="text-align: center; flex: 1;">
+                <div style="font-size: 10px; font-weight: bold; color: #475569;">${isRtl ? 'المدير المالي والتنفيذي' : 'Financial Director'}</div>
+                <div style="margin-top: 30px; border-top: 1px solid #94a3b8; width: 60%; margin-left: auto; margin-right: auto;"></div>
+                <div style="font-size: 9px; color: #94a3b8; margin-top: 4px;">${isRtl ? 'الاعتماد' : 'Approval'}</div>
+              </div>
+            </div>
+
+          </div>
+        </body>
+      </html>
+    `;
+
+    printHTML(htmlContent);
+  };
 
   const [activeSubTab, setActiveSubTab] = useState<'invoices' | 'new_invoice' | 'service_points' | 'analytics'>('invoices');
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -184,8 +269,8 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
             </div>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
               {isRtl 
-                ? 'إدارة الفواتير، التحصيل الرقمي، نقاط الخدمة، وتوليد القيود المحاسبية الآلية وفق معايير IPSAS' 
-                : 'Digital Invoicing, Multi-Channel Collections, Service Hubs, & Automated IPSAS Accounting'}
+                ? 'إدارة الفواتير، التحصيل الرقمي، نقاط الخدمة، وتوليد القيود المحاسبية الآلية المعتمدة' 
+                : 'Digital Invoicing, Multi-Channel Collections, Service Hubs, & Automated Certified Accounting'}
             </p>
           </div>
         </div>
@@ -697,7 +782,7 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
 
             <div className="flex gap-2 pt-2">
               <button
-                onClick={() => window.print()}
+                onClick={() => handlePrintSingleInvoice(selectedInvoice)}
                 className="flex-1 h-9 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
@@ -713,6 +798,19 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
           </div>
         </div>
       )}
+
+      {/* CERTIFIED REVENUE REPORT MODAL */}
+      <PrintPDFTemplateModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        lang={lang}
+        type="revenue_investments"
+        data={{
+          invoices,
+          title: isRtl ? 'تقرير تنمية الموارد والمشاريع الاستثمارية والوقفية' : 'Resource Mobilization & Endowment Investments Report',
+          subtitle: isRtl ? 'عوائد التمويل الذاتي، الفواتير المحصلة، واستدامة المحافظ الاستثمارية التنموية' : 'Self-Financing Yields, Revenue Invoicing & Endowment Sustainability Portfolios'
+        }}
+      />
 
       {/* MODAL: PAY INVOICE (ATOMIC IPSAS SETTLEMENT) */}
       {isPayModalOpen && invoiceToPay && (

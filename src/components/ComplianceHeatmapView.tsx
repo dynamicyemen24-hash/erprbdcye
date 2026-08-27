@@ -19,7 +19,7 @@ export default function ComplianceHeatmapView({ lang }: { lang: 'ar' | 'en' }) {
     <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
       <h3 className="text-sm font-black text-slate-900 dark:text-zinc-100 flex items-center gap-2 mb-6">
         <ShieldCheck className="w-5 h-5 text-emerald-500" />
-        {lang === 'ar' ? 'خريطة الامتثال (IPSAS)' : 'Compliance Heatmap (IPSAS)'}
+        {lang === 'ar' ? 'خريطة الامتثال المؤسسي والمعايير المعتمدة' : 'Compliance & Governance Heatmap'}
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {departments.map(d => (

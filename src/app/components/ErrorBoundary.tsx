@@ -83,8 +83,8 @@ Component Stack: ${errorInfo?.componentStack || 'N/A'}
       const text = {
         title: isRtl ? 'عزل خطأ تشغيلي غير متوقع' : 'Unexpected Domain Error Isolated',
         description: isRtl 
-          ? 'تم الكشف عن خلل في هذا النطاق التشغيلي. تضمن هندسة NexoraOS™ الذكية عزل الأخطاء لضمان استمرارية عمل باقي الخدمات والأنظمة دون انقطاع.' 
-          : 'An error occurred in this operational domain. NexoraOS™ intelligent design isolates the issue to ensure other platform services run uninterrupted.',
+          ? 'تم الكشف عن خلل في هذا النطاق التشغيلي. تضمن هندسة UAMEX ERP™ الذكية عزل الأخطاء لضمان استمرارية عمل باقي الخدمات والأنظمة دون انقطاع.' 
+          : 'An error occurred in this operational domain. UAMEX ERP™ intelligent design isolates the issue to ensure other platform services run uninterrupted.',
         domain: isRtl ? 'النطاق التشغيلي الحالي:' : 'Current Operational Domain:',
         resetBtn: isRtl ? 'إعادة تشغيل النطاق' : 'Reset Domain State',
         reloadBtn: isRtl ? 'إعادة تحميل النظام' : 'Reload Full System',

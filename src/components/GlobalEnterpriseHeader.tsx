@@ -23,6 +23,7 @@ import AutoDarkModeManager from './AutoDarkModeManager';
 import UserProfilePopover from './UserProfilePopover';
 import HeaderQuickMenu from './HeaderQuickMenu';
 import OfflineSyncStatusWidget from './OfflineSyncStatusWidget';
+import { EnvironmentModeHeaderButton } from './EnvironmentModeBanner';
 import { ActiveTab, User } from '../core/types';
 import { useTenantContext } from '../core/TenantContext';
 import { useEnvironmentMode, ENVIRONMENT_MODES } from '../core/context/EnvironmentModeContext';
@@ -207,6 +208,9 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
               <span className="hidden lg:inline">{isRtl ? 'المساعد الذكي' : 'Copilot'}</span>
             </button>
           )}
+
+          {/* Environment Mode Indicator & Switcher */}
+          <EnvironmentModeHeaderButton lang={lang} />
 
           {/* Notification Center */}
           <NotificationCenter 

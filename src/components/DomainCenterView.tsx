@@ -1,3 +1,4 @@
+import { showToast } from './enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import {
   Target, Gauge, Layers, FolderKanban, Workflow, HandHeart, UsersRound,
@@ -182,7 +183,7 @@ const DOMAIN_ENRICHMENT: {
     suiteAr: 'المجموعة التشغيلية',
     suiteEn: 'Operations Suite',
     targetTab: 'activities',
-    managedEntitiesAr: ['هيكل حزم العمل WBS', 'الجدول الزمني للأنشطة', 'قوافل التوزيع الميداني', 'سندات الاستلام والترحيل'],
+    managedEntitiesAr: ['هيكل حزم العمل والأنشطة', 'الجدول الزمني للأنشطة', 'قوافل التوزيع الميداني', 'سندات الاستلام والترحيل'],
     managedEntitiesEn: ['Work Breakdown Structure', 'Field Timelines', 'Relief Distribution Convoys', 'Execution Vouchers'],
     primaryKpiAr: 'الأنشطة الميدانية المنجزة',
     primaryKpiEn: 'Completed Field Activities',
@@ -227,7 +228,7 @@ const DOMAIN_ENRICHMENT: {
     suiteAr: 'المالية والاستدامة والتمويل',
     suiteEn: 'Finance & Sustainability',
     targetTab: 'contracts',
-    managedEntitiesAr: ['اتفاقيات التمويل والمنح الإنسانية', 'شبكة الشركاء والمانحين الدوليين', 'تقييم القدرات المؤسسية PCA', 'مطابقة معايير IATI & Sphere'],
+    managedEntitiesAr: ['اتفاقيات التمويل والمنح الإنسانية', 'شبكة الشركاء والمانحين الدوليين', 'تقييم القدرات المؤسسية PCA', 'مطابقة معايير العمل الإنساني والشفافية'],
     managedEntitiesEn: ['Grant Agreements & Donor Funding', 'International Partner Network', 'Partner Capacity Assessment PCA', 'IATI & Sphere Standards Compliance'],
     primaryKpiAr: 'نسبة الالتزامات والتمويل المعمد',
     primaryKpiEn: 'Approved Funding Collection Rate',
@@ -257,7 +258,7 @@ const DOMAIN_ENRICHMENT: {
     suiteAr: 'المالية والحوكمة',
     suiteEn: 'Finance & Compliance Suite',
     targetTab: 'finance',
-    managedEntitiesAr: ['شجرة الحسابات IPSAS', 'دفتر القيود المزدوجة', 'الصناديق والمحفظة المالية', 'مراكز التكلفة والتدقيق'],
+    managedEntitiesAr: ['شجرة الحسابات والدليل المحاسبي المعتمد', 'دفتر القيود المزدوجة', 'الصناديق والمحفظة المالية', 'مراكز التكلفة والتدقيق'],
     managedEntitiesEn: ['IPSAS Chart of Accounts', 'Double-Entry General Ledger', 'Restricted Fund Accounts', 'Audit Cost Centers'],
     primaryKpiAr: 'الحسابات المقفلة والمعمدة',
     primaryKpiEn: 'Locked Ledger Vouchers',
@@ -287,7 +288,7 @@ const DOMAIN_ENRICHMENT: {
     suiteAr: 'التقنية والتكامل',
     suiteEn: 'Technology & Integration',
     targetTab: 'currencies',
-    managedEntitiesAr: ['ربط Neon PostgreSQL الحقيقي', 'أسعار الصرف المتعددة', 'واجهات APIs الخارجية', 'معيار الشفافية الدولية IATI'],
+    managedEntitiesAr: ['ربط Neon PostgreSQL الحقيقي', 'أسعار الصرف المتعددة', 'واجهات APIs الخارجية', 'معايير الشفافية والإفصاح الدولي'],
     managedEntitiesEn: ['Neon PostgreSQL Database Pool', 'Multi-Currency Exchange Pool', 'External REST API Gateways', 'IATI Transparency Standard'],
     primaryKpiAr: 'استقرار قاعدة البيانات السحابية',
     primaryKpiEn: 'Neon Cloud Database Status',
@@ -302,11 +303,11 @@ const DOMAIN_ENRICHMENT: {
     suiteAr: 'الذكاء والأثر المؤسسي',
     suiteEn: 'AI & Impact Suite',
     targetTab: 'reports',
-    managedEntitiesAr: ['مساعد Gemini AI Copilot', 'معايير Sphere الإنسانية', 'تقارير الأثر المطبوعة A4', 'التحليل التنبؤي للاحتياج'],
+    managedEntitiesAr: ['مساعد Gemini AI Copilot', 'معايير العمل الإنساني الدولية', 'تقارير الأثر المطبوعة A4', 'التحليل التنبؤي للاحتياج'],
     managedEntitiesEn: ['Gemini AI Intelligence Copilot', 'Sphere & CHS Standards Score', 'High-Fidelity A4 PDF Reports', 'Predictive Needs Analytics'],
-    primaryKpiAr: 'معيار الأثر الإنساني CHS',
+    primaryKpiAr: 'مؤشر جودة العمل والمساءلة الإنسانية',
     primaryKpiEn: 'CHS Humanitarian Impact Score',
-    kpiValue: '94 / 100 CHS',
+    kpiValue: '94 / 100',
     status: 'OPTIMIZED',
     bgGradient: 'from-fuchsia-500/10 via-fuchsia-500/5 to-transparent',
     badgeBg: 'bg-fuchsia-500/10 border-fuchsia-500/30',
@@ -316,7 +317,7 @@ const DOMAIN_ENRICHMENT: {
     suiteKey: 'operations',
     suiteAr: 'المجموعة التشغيلية والمشتريات',
     suiteEn: 'Operations & Procurement',
-    targetTab: 'programs',
+    targetTab: 'procurement',
     managedEntitiesAr: ['طلبات الشراء والموافقات', 'إدارة الموردين والمقاولين', 'طرح المناقصات والعطاءات', 'أوامر الشراء والتوريد'],
     managedEntitiesEn: ['Purchase Requisitions', 'Vendor Registry', 'Tenders & RFQs', 'Purchase Orders'],
     primaryKpiAr: 'نسبة إنجاز المشتريات',
@@ -371,7 +372,7 @@ export default function DomainCenterView({ lang, onNavigate }: DomainCenterViewP
       const saved = localStorage.getItem('nexora_sticky_notes');
       return saved ? JSON.parse(saved) : [
         { id: 1, text: isRtl ? 'اجتماع مع وفد مبعوث الأمم المتحدة للشؤون الإنسانية الساعة ١١ صباحاً' : 'Meeting with UN Humanitarian delegation at 11:00 AM', color: 'bg-amber-100 border-amber-300 dark:bg-amber-950/40 dark:border-amber-800' },
-        { id: 2, text: isRtl ? 'مراجعة معايير الكفاءة بمخطط IPSAS للربع السنوي الثاني' : 'Review IPSAS ledger compliance for Q2 audits', color: 'bg-emerald-100 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-800' }
+        { id: 2, text: isRtl ? 'مراجعة معايير الكفاءة المحاسبية للربع السنوي الثاني' : 'Review IPSAS ledger compliance for Q2 audits', color: 'bg-emerald-100 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-800' }
       ];
     } catch {
       return [];
@@ -405,7 +406,7 @@ export default function DomainCenterView({ lang, onNavigate }: DomainCenterViewP
   // Tab 4: AI Layer Stream Playground States
   // -------------------------------------------------------------
   const [selectedAiTool, setSelectedAiTool] = useState<any>(ORGANIZATION_CONFIG.intelligence[4]); // Wand sparkles (AI Report)
-  const [aiPrompt, setAiPrompt] = useState(isRtl ? 'أريد مسودة تقرير الأثر الاجتماعي لمشروع توزيع خزانات مياه صالحة للشرب في ريف تعز الغربي متوافقاً مع المعيار الإنساني CHS ومعايير Sphere' : 'Generate social impact draft for water storage distribution project in Taiz rural aligned with Sphere and Core Humanitarian Standard (CHS).');
+  const [aiPrompt, setAiPrompt] = useState(isRtl ? 'أريد مسودة تقرير الأثر الاجتماعي لمشروع توزيع خزانات مياه صالحة للشرب في ريف تعز الغربي متوافقاً مع معايير العمل الإنساني وضمان الجودة والمساءلة' : 'Generate social impact draft for water storage distribution project in Taiz rural aligned with Sphere and Core Humanitarian Standard (CHS).');
   const [aiOutput, setAiOutput] = useState('');
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
@@ -626,10 +627,10 @@ This draft shows your prompt only. It will be replaced with real analysis once t
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-3 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-500/30 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>NexoraOS™ Operating Core</span>
+                <span>UAMEX ERP™ Operating Core</span>
               </span>
               <span className="px-2.5 py-1 bg-amber-500/10 text-amber-800 dark:text-amber-400 rounded-lg border border-amber-500/30 text-xs font-mono font-black">
-                {isRtl ? 'الرابطة التشغيلية الموحدة' : 'Unified Enterprise Model'}
+                {isRtl ? 'منظومة يو امكس المؤسسية الموحدة' : 'UAMEX ERP™ Unified Enterprise Architecture'}
               </span>
               <span className="px-2.5 py-1 bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-lg border border-slate-200 dark:border-zinc-700 text-xs font-bold">
                 {ORGANIZATION_CONFIG.tagline}
@@ -637,12 +638,12 @@ This draft shows your prompt only. It will be replaced with real analysis once t
             </div>
 
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              {isRtl ? 'بوابة الرابطة التشغيلية والأنظمة الذكية' : 'NexoraOS™ System & Enterprise Launcher'}
+              {isRtl ? 'بوابة يو امكس للأنظمة المؤسسية الذكية' : 'UAMEX ERP™ System & Enterprise Launcher'}
             </h1>
 
             <p className="text-xs md:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-semibold">
               {isRtl 
-                ? `المركز العملياتي المتكامل لإدارة الأثر الإنساني وموارد ${orgName} بكفاءة حقيقية. يجمع هذا المركز بين الأنظمة المؤسسية الـ ١٣ وأدوات العمل والذكاء الاستشرافي بالتكامل مع Neon PostgreSQL.`
+                ? `المركز العملياتي المتكامل لإدارة الأثر الإنساني وموارد ${orgName} بكفاءة حقيقية. يجمع هذا المركز بين الأنظمة المؤسسية الـ 15 المتكاملة (NEB-01 إلى NEB-15) وأدوات العمل والذكاء الاستشرافي بالتكامل مع Neon PostgreSQL.`
                 : `Comprehensive command and launcher suite for ${orgName}, syncing core domains, shared toolsets, GIS telemetry, and predictive Gemini AI workflows.`}
             </p>
           </div>
@@ -738,7 +739,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={
-                activeSegmentTab === 'domains' ? (isRtl ? 'البحث في الأنظمة الـ ١٣ (مثال: الاستراتيجية، المالية، المستفيدين...)' : 'Search core 13 systems (e.g. Strategy, Finance, Welfare...)') :
+                activeSegmentTab === 'domains' ? (isRtl ? 'البحث في الأنظمة الـ 15 المؤسسية (مثال: الاستراتيجية، المالية، المشتريات، المستفيدين...)' : 'Search core 15 systems (e.g. Strategy, Finance, Welfare...)') :
                 activeSegmentTab === 'tools' ? (isRtl ? 'البحث في أدوات العمل الـ ٢٠ (مثال: الموافقات، الملاحظات، الأرشيف...)' : 'Search 20 work tools (e.g. Approvals, Sticky Notes...)') :
                 activeSegmentTab === 'field' ? (isRtl ? 'البحث في القدرات الميدانية الـ ١٠ (مثال: تتبع الموقع، الاتصال غير المباشر...)' : 'Search 10 field capacities (e.g. GIS, Offline, Geotagging...)') :
                 activeSegmentTab === 'ai' ? (isRtl ? 'البحث في طبقة ذكاء Gemini AI (مثال: توليد تقارير، استشراف، تنبؤ...)' : 'Search 11 AI modules (e.g. Report Generator, Predictive...)') :
@@ -763,13 +764,13 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                 onClick={() => setSearchTerm('التشغيل')}
                 className="px-2.5 py-1 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 rounded-lg font-bold shrink-0 cursor-pointer"
               >
-                {isRtl ? 'التشغيل WBS' : 'Field Ops'}
+                {isRtl ? 'التشغيل الميداني' : 'Field Ops'}
               </button>
               <button
                 onClick={() => setSearchTerm('المالية')}
                 className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 rounded-lg font-bold shrink-0 cursor-pointer"
               >
-                {isRtl ? 'المالية IPSAS' : 'Finance'}
+                {isRtl ? 'المالية والمحاسبة العامة' : 'Finance'}
               </button>
             </div>
           )}
@@ -797,7 +798,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
       </div>
 
       {/* -------------------------------------------------------------
-          TAB 1: Core Systems (الأنظمة الـ ١٣ المترابطة)
+          TAB 1: Core Systems (الأنظمة الـ 15 المؤسسية المتكاملة)
          ------------------------------------------------------------- */}
       {activeSegmentTab === 'domains' && (
         <div className="overflow-x-auto overflow-y-auto custom-scrollbar max-w-full rounded-xl p-1">
@@ -899,7 +900,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
           {/* Left Grid: Tools List */}
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-sm font-black uppercase text-zinc-400 tracking-wider">
-              {isRtl ? 'سجل الأدوات الـ ٢٠ المعمدة بالرابطة التشغيلية' : '20 Registered Work Tools'}
+              {isRtl ? 'سجل الأدوات التنفيذية الـ ٢٠ المعمدة في منظومة UAMEX ERP™' : '20 Registered Work Tools in UAMEX ERP™'}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {filteredWorkTools.map((tool) => {
@@ -958,7 +959,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-zinc-400">{isRtl ? 'الموافقات المعلقة (٣)' : 'Pending Approvals (3)'}</span>
-                  <span className="px-2 py-0.5 bg-amber-500/10 text-amber-600 text-[9px] font-bold rounded border border-amber-500/20">IPSAS AUDIT</span>
+                  <span className="px-2 py-0.5 bg-amber-500/10 text-amber-600 text-[9px] font-bold rounded border border-amber-500/20">تدقيق مالي معتمد</span>
                 </div>
                 <div className="space-y-2.5">
                   {approvalsList.map(app => (
@@ -974,7 +975,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                             <button
                               onClick={() => {
                                 setApprovalsList(prev => prev.map(a => a.id === app.id ? { ...a, status: 'approved' } : a));
-                                alert(isRtl ? 'تم التوقيع الإلكتروني المؤمّن والترحيل لشجرة الحسابات IPSAS!' : 'Authorized & posted to IPSAS double-entry ledger!');
+                                showToast({ type: 'success', title: isRtl ? 'اعتماد وترحيل' : 'Authorized & Posted', message: isRtl ? 'تم التوقيع الإلكتروني المؤمّن والترحيل لشجرة الحسابات والدليل المحاسبي المعتمد بنجاح ✓' : 'Authorized & posted to IPSAS double-entry ledger successfully ✓' });
                               }}
                               className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold cursor-pointer transition-colors"
                             >
@@ -1069,7 +1070,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                   <div className="opacity-60">[SYS_GATE] Awaiting dynamic trigger in workspace...</div>
                 </div>
                 <button
-                  onClick={() => alert(isRtl ? 'تم اختبار وتدشين الأداة بنجاح!' : 'Global tool launched successfully!')}
+                  onClick={() => showToast({ type: 'success', title: isRtl ? 'تدشين الأداة' : 'Tool Launch', message: isRtl ? 'تم اختبار وتدشين الأداة التشغيلية بنجاح ✓' : 'Global tool launched successfully ✓' })}
                   className="w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 font-extrabold text-xs rounded-xl transition-colors cursor-pointer text-center"
                 >
                   {isRtl ? 'اختبار تفعيل الأداة بنجاح' : 'Initiate Diagnostic Test'}
@@ -1107,7 +1108,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
               <button
                 onClick={() => {
                   setIsOfflineMode(!isOfflineMode);
-                  alert(isOfflineMode ? 'تم تفعيل الاتصال بالإنترنت ومزامنة البيانات مع Neon PostgreSQL بنجاح!' : 'تم تفعيل التشغيل دون اتصال! سيتم تخزين المدخلات محلياً.');
+                  showToast({ type: isOfflineMode ? 'success' : 'warning', title: isRtl ? 'نمط الاتصال' : 'Connectivity Mode', message: isOfflineMode ? (isRtl ? 'تم تفعيل الاتصال بالإنترنت ومزامنة البيانات مع Neon PostgreSQL بنجاح!' : 'Online mode activated and data synchronized!') : (isRtl ? 'تم تفعيل التشغيل دون اتصال! سيتم حفظ المدخلات محلياً.' : 'Offline mode activated. Entries cached locally.') });
                 }}
                 className={`px-3 py-1.5 text-[10px] font-black rounded-lg cursor-pointer transition-colors ${
                   isOfflineMode 
@@ -1230,13 +1231,13 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                   <button
                     onClick={() => {
                       if (!selectedSurveyChecklist.headOfHousehold.trim()) {
-                        alert(isRtl ? 'يرجى إدخال اسم المستفيد!' : 'Please enter beneficiary name!');
+                        showToast({ type: 'warning', title: isRtl ? 'بيانات غير مكتملة' : 'Missing Information', message: isRtl ? 'يرجى إدخال اسم المستفيد للمتابعة!' : 'Please enter beneficiary name!' });
                         return;
                       }
                       const logMsg = `[SURVEY_SUBMIT] ${new Date().toLocaleTimeString()} - Verified case for "${selectedSurveyChecklist.headOfHousehold}" in ${selectedSurveyChecklist.governorate} with GPS coordinates.`;
                       setSurveyLogs(prev => [logMsg, ...prev]);
                       setSelectedSurveyChecklist({ headOfHousehold: '', familySize: 1, governorate: 'Taiz', needsWaterAid: false, needsFoodAid: false, needsHealthAid: false, notes: '' });
-                      alert(isRtl ? 'تم تقديم التقييم بنجاح وإرسال إثبات الـ GPS للرابطة!' : 'Socioeconomic survey submitted successfully with live GPS geotagging proof!');
+                      showToast({ type: 'success', title: isRtl ? 'تقييم ميداني معتمد' : 'Field Survey Verified', message: isRtl ? 'تم تقديم التقييم بنجاح وتوثيق إحداثيات الـ GPS الميدانية ✓' : 'Socioeconomic survey submitted successfully with live GPS proof ✓' });
                     }}
                     className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-xs text-center"
                   >
@@ -1373,7 +1374,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
 
             <div className="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold pt-4 border-t border-slate-100 dark:border-zinc-800/60 mt-4 leading-normal">
               {isRtl 
-                ? 'تنبيه: يتم فحص جميع المخرجات بالذكاء الاصطناعي للتأكد من مواءمتها التامة لمعايير Sphere والمعيار الإنساني الدولي CHS قبل التصدير.'
+                ? 'تنبيه: يتم فحص جميع المخرجات بالذكاء الاصطناعي للتأكد من مواءمتها التامة لمعايير العمل الإنساني والمساءلة الدولية قبل التصدير.'
                 : 'Notice: Outgoing drafts are audited automatically to verify alignment with international Sphere & CHS guidelines before printing.'}
             </div>
           </div>
@@ -1695,7 +1696,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
 
             {/* Document Title */}
             <div className="text-center py-2 border-b border-slate-100">
-              <h1 className="text-xl font-black text-slate-950 tracking-tight">تقرير الأثر التنموي والامتثال لمعايير Sphere / CHS</h1>
+              <h1 className="text-xl font-black text-slate-950 tracking-tight">تقرير الأثر التنموي والامتثال لمعايير العمل الإنساني والمساءلة</h1>
             </div>
 
             {/* Generated Report Content */}

@@ -31,7 +31,8 @@ export type ActiveTab =
   | 'investments'
   | 'hr_dashboard'
   | 'third-party-network'
-  | 'sales';
+  | 'sales'
+  | 'procurement';
 
 export type TabId = ActiveTab;
 

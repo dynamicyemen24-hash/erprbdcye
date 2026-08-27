@@ -1,3 +1,4 @@
+import { showToast } from '../../components/enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import { 
   Wifi, 
@@ -53,7 +54,7 @@ export default function OfflineFieldAppEngine({ lang }: OfflineFieldAppEnginePro
 
   const triggerManualSync = () => {
     if (!isOnline) {
-      alert(isRtl ? 'لا يمكن المزامنة حالياً - الجهاز غير متصل بالشبكة' : 'Cannot sync - device is currently offline.');
+      showToast({ type: 'warning', title: isRtl ? 'تعذر المزامنة' : 'Sync Unavailable', message: isRtl ? 'لا يمكن المزامنة حالياً - الجهاز غير متصل بالشبكة.' : 'Cannot sync - device is currently offline.' });
       return;
     }
 

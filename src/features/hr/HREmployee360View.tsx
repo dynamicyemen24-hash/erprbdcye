@@ -1,3 +1,4 @@
+import { showToast } from '../../components/enterprise/EnterpriseToastContainer';
 import React from 'react';
 import { Users, Search, Printer } from 'lucide-react';
 
@@ -105,7 +106,7 @@ export default function HREmployee360View({
                     </button>
 
                     <button
-                      onClick={() => alert(isRtl ? `عرض ملف الموظف 360 لـ ${staff.full_name_ar || staff.name}` : `View Employee 360 Record for ${staff.name}`)}
+                      onClick={() => showToast({ type: 'info', title: isRtl ? 'الملف الوظيفي الشامل 360' : 'Employee 360 View', message: isRtl ? `عرض السجل المتكامل لـ ${staff.full_name_ar || staff.name}` : `Viewing 360 record for ${staff.name}` })}
                       className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
                     >
                       {isRtl ? '360' : '360'}

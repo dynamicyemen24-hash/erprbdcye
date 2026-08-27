@@ -1,3 +1,4 @@
+import { showToast } from './enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
@@ -20,6 +21,7 @@ import {
   Download
 } from 'lucide-react';
 import ExportToolsModal from './ExportToolsModal';
+import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 import { printHTML, createPrintDocument } from '../lib/printUtils';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
@@ -61,6 +63,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   // Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -205,7 +208,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               </div>
               <div>
                 <p class="text-slate-400 text-[10px]">${lang === 'ar' ? 'تصنيف الاستحقاق:' : 'Eligibility Category:'}</p>
-                <p class="text-amber-800 font-black mt-0.5">${b.category_code || 'OTHER'}</p>
+                <p class="text-amber-800 font-black mt-0.5">${b.category_code === 'ORPHAN' ? (lang === 'ar' ? 'يتيم مكفول' : 'Orphan') : b.category_code === 'POOR_FAMILY' ? (lang === 'ar' ? 'أسرة متعففة' : 'Poor Family') : (lang === 'ar' ? 'حالة مستفيدة' : 'Beneficiary')}</p>
               </div>
               <div>
                 <p class="text-slate-400 text-[10px]">${lang === 'ar' ? 'رقم الهاتف للتواصل:' : 'Contact Phone:'}</p>
@@ -449,7 +452,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       if (!response.ok) throw new Error('Failed to archive record.');
       onRefresh();
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast({ type: 'error', title: lang === 'ar' ? 'خطأ في العملية' : 'Operation Error', message: err.message });
     }
   };
 
@@ -515,11 +518,19 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
+            onClick={() => setIsPDFModalOpen(true)}
+            className="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            title={lang === 'ar' ? 'طباعة كشف المستفيدين المعتمد (A4 PDF)' : 'Print Certified Beneficiaries Registry'}
+          >
+            <Printer className="w-4 h-4 text-emerald-200" />
+            <span>{lang === 'ar' ? 'طباعة كشف معتمد' : 'Print Certified'}</span>
+          </button>
+          <button
             onClick={() => setIsExportModalOpen(true)}
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md hover:shadow-emerald-600/10 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
-            <span>{lang === 'ar' ? 'تصدير السجل (Excel/PDF)' : 'Export Registry'}</span>
+            <span>{lang === 'ar' ? 'تصدير السجل' : 'Export Registry'}</span>
           </button>
 
           <button
@@ -534,7 +545,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
       {/* Quick stats strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-amber-50 rounded-xl text-amber-600">
             <Users className="w-5 h-5" />
           </div>
@@ -544,7 +555,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-sky-50 rounded-xl text-sky-600">
             <Baby className="w-5 h-5" />
           </div>
@@ -554,7 +565,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-rose-50 rounded-xl text-rose-600">
             <Heart className="w-5 h-5" />
           </div>
@@ -564,7 +575,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-600">
             <UserCheck className="w-5 h-5" />
           </div>
@@ -576,7 +587,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       </div>
 
       {/* Filter and Search Card */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row gap-3">
           {/* Search box */}
           <div className="relative flex-1">
@@ -590,7 +601,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               placeholder={lang === 'ar' ? 'البحث عن طريق الاسم، رقم الهاتف، أو كود الحالة...' : 'Search by full name, code, phone primary...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-amber-500/50 rounded-xl py-2 px-4 text-xs focus:outline-none transition-all"
+              className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:border-amber-500/50 rounded-xl py-2 px-4 text-xs focus:outline-none transition-all"
               style={lang === 'ar' ? { paddingRight: '36px', paddingLeft: '16px' } : { paddingLeft: '36px', paddingRight: '16px' }}
             />
           </div>
@@ -633,7 +644,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
               >
                 <option value="ALL">{lang === 'ar' ? 'الكل' : 'All Categories'}</option>
                 {categories.map(c => (
@@ -647,7 +658,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               <select
                 value={filterGov}
                 onChange={(e) => setFilterGov(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
               >
                 <option value="ALL">{lang === 'ar' ? 'الكل' : 'All Governorates'}</option>
                 {governorates.map(g => (
@@ -661,7 +672,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               <select
                 value={filterGender}
                 onChange={(e) => setFilterGender(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
               >
                 <option value="ALL">{lang === 'ar' ? 'الكل' : 'All'}</option>
                 <option value="MALE">{lang === 'ar' ? 'ذكر' : 'Male'}</option>
@@ -674,7 +685,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
               >
                 <option value="ALL">{lang === 'ar' ? 'الكل' : 'All Statuses'}</option>
                 <option value="active">{lang === 'ar' ? 'نشط' : 'Active'}</option>
@@ -686,7 +697,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       </div>
 
       {/* Main Table Grid */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-zinc-400 font-bold text-xs space-y-3">
             <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -701,7 +712,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
-              <thead className="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider">
+              <thead className="bg-slate-50 dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 text-[10px] font-extrabold uppercase text-slate-500 dark:text-zinc-400 tracking-wider">
                 <tr>
                   <th className="px-6 py-3">{lang === 'ar' ? 'كود الحالة' : 'Code'}</th>
                   <th className="px-6 py-3">{lang === 'ar' ? 'الاسم الرباعي' : 'Full Name'}</th>
@@ -713,9 +724,9 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                   <th className="px-6 py-3 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200">
+              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
                 {filteredList.map((ben) => (
-                  <tr key={ben.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={ben.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
                         {ben.beneficiary_code || 'BEN-NEW'}
@@ -741,7 +752,10 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                         ben.category_code === 'POOR_FAMILY' ? 'bg-rose-50 text-rose-700' :
                         'bg-slate-100 text-slate-600'
                       }`}>
-                        {ben.category_code || 'OTHER'}
+                        {ben.category_code === 'ORPHAN' ? (lang === 'ar' ? 'يتيم مكفول' : 'Orphan') :
+                         ben.category_code === 'POOR_FAMILY' ? (lang === 'ar' ? 'أسرة متعففة' : 'Poor Family') :
+                         ben.category_code === 'DISPLACED' ? (lang === 'ar' ? 'نازح' : 'Displaced') :
+                         (lang === 'ar' ? 'حالة مستفيدة' : 'Beneficiary')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -810,7 +824,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       {/* Profile Detail Pop-up */}
       {viewingBeneficiary && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl border border-slate-200 max-w-2xl w-full overflow-hidden shadow-2xl animate-scale-up">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 max-w-2xl w-full overflow-hidden shadow-2xl animate-scale-up">
             <div className="px-6 py-4 bg-zinc-900 text-white flex justify-between items-center">
               <div className="flex items-center gap-2.5">
                 <span className="font-mono bg-amber-600 text-zinc-950 font-black px-2 py-0.5 rounded text-[10px]">
@@ -834,8 +848,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                 </div>
                 <div className="space-y-1">
                   <h4 className="font-extrabold text-base text-slate-900">{viewingBeneficiary.full_name_ar}</h4>
-                  <p className="text-[11px] text-zinc-400 font-bold">
-                    ID: {viewingBeneficiary.id} • {lang === 'ar' ? 'تصنيف الحالة: ' : 'Category: '} {viewingBeneficiary.category_code}
+                  <p className="text-[11px] text-slate-500 font-bold">
+                    {lang === 'ar' ? 'رقم السجل: ' : 'Record Code: '}{viewingBeneficiary.beneficiary_code || 'BEN-ROHAMAA'} • {lang === 'ar' ? 'تصنيف الحالة: ' : 'Category: '} {viewingBeneficiary.category_code === 'ORPHAN' ? (lang === 'ar' ? 'يتيم مكفول' : 'Orphan') : viewingBeneficiary.category_code === 'POOR_FAMILY' ? (lang === 'ar' ? 'أسرة متعففة' : 'Poor Family') : (lang === 'ar' ? 'حالة مستفيدة' : 'Beneficiary')}
                   </p>
                 </div>
               </div>
@@ -919,7 +933,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       {/* Form Dialog Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl border border-slate-200 max-w-xl w-full overflow-hidden shadow-2xl animate-scale-up">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 max-w-xl w-full overflow-hidden shadow-2xl animate-scale-up">
             
             {/* Header */}
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -1263,6 +1277,18 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       )}
 
       {/* Export Registry Modal */}
+      <PrintPDFTemplateModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        lang={lang}
+        type="beneficiary"
+        data={{
+          beneficiaries: filteredList,
+          title: lang === 'ar' ? 'سجل المستفيدين والحالات الاجتماعية الميدانية المعمد' : 'Official Certified Beneficiaries Registry',
+          subtitle: lang === 'ar' ? 'بيانات الأسر المستفيدة، مواقع السكن، والتصنيف الميداني' : 'Beneficiary cases, demographics & field classifications'
+        }}
+      />
+
       <ExportToolsModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}

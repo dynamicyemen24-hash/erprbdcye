@@ -1,5 +1,5 @@
 // UAMEX ERP™ High-Performance Offline-First Enterprise Service Worker
-const CACHE_NAME = 'uamex-erp-cache-v2026';
+const CACHE_NAME = 'uamex-erp-cache-v2026.2';
 const CORE_STATIC_ASSETS = [
   '/',
   '/index.html',

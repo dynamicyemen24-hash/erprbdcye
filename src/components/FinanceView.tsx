@@ -98,6 +98,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
   // Operational Control Bar State & Reverse Entry Modal
   const [showReverseModal, setShowReverseModal] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState('HQ_SANAA');
+  const [accountingPillar, setAccountingPillar] = useState<'all' | 'operations' | 'ledger' | 'statements' | 'cost_budget' | 'automation'>('all');
   const [selectedCurrency, setSelectedCurrency] = useState('YER');
 
   // AI Parser State
@@ -271,14 +272,14 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
               <div class="flex justify-between items-center pb-6 border-b-2 border-slate-950">
                 <div class="text-right">
                   <h1 class="font-black text-sm text-slate-900">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
-                  <p class="text-[10px] font-bold text-slate-500">نظام NexoraOS™ المؤسسي</p>
+                  <p class="text-[10px] font-bold text-slate-500">نظام UAMEX ERP™ المؤسسي الشامل</p>
                 </div>
                 <span class="text-xs font-black border-2 border-slate-950 px-4 py-1.5 bg-slate-50 rounded">
                   ${voucherTypeName}
                 </span>
                 <div class="text-left">
                   <h1 class="font-black text-sm text-slate-900">Rohamaa Charity Foundation</h1>
-                  <p class="text-[10px] font-bold text-slate-500">NexoraOS™ System</p>
+                  <p class="text-[10px] font-bold text-slate-500">UAMEX ERP™ System</p>
                 </div>
               </div>
 
@@ -406,7 +407,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         <div className="space-y-1.5">
           <h2 className="text-xl font-black flex items-center gap-2.5">
             <Coins className="w-6 h-6 text-amber-400 shrink-0" />
-            <span>{lang === 'ar' ? 'الرابطة التشغيلية الموحدة - الشؤون المالية' : 'Unified Operating Ledger - Accounting'}</span>
+            <span>{lang === 'ar' ? 'منظومة يو امكس - الإدارة المالية الموحدة (NEB-10)' : 'UAMEX ERP™ Financial & Accounting OS'}</span>
           </h2>
           <p className="text-[11px] font-bold text-emerald-100 max-w-2xl leading-relaxed">
             {lang === 'ar' 
@@ -425,8 +426,51 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         </div>
       </div>
 
+      
+      {/* ─── ACCOUNTING PILLARS FILTER BAR (محاور العمليات المحاسبية الأساسية) ─── */}
+      <div className="bg-slate-100 dark:bg-zinc-900/80 p-2 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-2">
+        <div className="flex items-center justify-between px-2 pt-1 pb-2 border-b border-slate-200 dark:border-zinc-800">
+          <span className="text-[11px] font-black text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+            <Scale className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{lang === 'ar' ? 'أبواب العمليات المحاسبية والرقابية المعتمدة (معايير IPSAS):' : 'Core Accounting & Audit Operational Pillars:'}</span>
+          </span>
+          <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500">
+            {lang === 'ar' ? '23 شاشة متكاملة الأثر المالي' : '23 Fully Integrated Financial Modules'}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { id: 'all', labelAr: 'كافة الأدوات (23)', labelEn: 'All Modules (23)', icon: FolderOpen },
+            { id: 'operations', labelAr: 'سندات الصرف والقبض والقيود', labelEn: 'Vouchers & JV Ops', icon: TrendingDown },
+            { id: 'ledger', labelAr: 'الدليل والأرصدة واليومية', labelEn: 'COA & Ledger', icon: FolderTree },
+            { id: 'statements', labelAr: 'الميزان والقوائم والتدقيق', labelEn: 'Statements & Audit', icon: Scale },
+            { id: 'cost_budget', labelAr: 'مراكز التكلفة والموازنات', labelEn: 'Cost & Budgets', icon: Calculator },
+            { id: 'automation', labelAr: 'الأتمتة والدورة والمشتريات', labelEn: 'Automation & P2P', icon: Zap },
+          ].map((pillar) => {
+            const Icon = pillar.icon;
+            const isSelected = accountingPillar === pillar.id;
+            return (
+              <button
+                key={pillar.id}
+                onClick={() => setAccountingPillar(pillar.id as any)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isSelected 
+                    ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30' 
+                    : 'bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{lang === 'ar' ? pillar.labelAr : pillar.labelEn}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+
       {/* Main Subtab Nav */}
-      <div className="flex flex-wrap gap-2 bg-slate-100 p-1.5 rounded-2xl overflow-x-auto">
+      <div className="flex flex-wrap gap-2 bg-slate-100 dark:bg-zinc-900/60 p-2 rounded-2xl overflow-x-auto border border-slate-200 dark:border-zinc-800">
         {[
           { id: 'coa', label: lang === 'ar' ? 'دليل الحسابات' : 'Chart of Accounts', icon: FolderTree },
           { id: 'payment_vouchers', label: lang === 'ar' ? '💸 شاشة سندات الصرف المالي' : 'Payment Vouchers Workspace', icon: TrendingDown },
@@ -451,7 +495,25 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
           { id: 'budget_variance', label: lang === 'ar' ? 'تحليل التباين ومقارنة الموازنة' : 'Budget Variance Analysis', icon: Scale },
           { id: 'currency_conversion', label: lang === 'ar' ? 'تحويل العملات وأسعار الصرف' : 'Currency Conversion & Rates', icon: ArrowRightLeft },
           { id: 'governance_settings', label: lang === 'ar' ? 'السياسات المالية وإعدادات الصرف' : 'Financial Policies & Currency Settings', icon: Settings2 },
-        ].map((tab) => {
+        ].filter((tab) => {
+          if (accountingPillar === 'all') return true;
+          if (accountingPillar === 'operations') {
+            return ['payment_vouchers', 'receipt_vouchers', 'entry', 'ledger', 'document_workflow'].includes(tab.id);
+          }
+          if (accountingPillar === 'ledger') {
+            return ['coa', 'opening_balances', 'statement_query', 'data_exchange'].includes(tab.id);
+          }
+          if (accountingPillar === 'statements') {
+            return ['statements', 'consolidated_statements', 'closings', 'cfo_audit_suite', 'bi_analytics'].includes(tab.id);
+          }
+          if (accountingPillar === 'cost_budget') {
+            return ['management_accounting', 'budget_variance', 'endowment_governance', 'currency_conversion'].includes(tab.id);
+          }
+          if (accountingPillar === 'automation') {
+            return ['e_invoicing', 'batch_automation', 'ai_parser', 'procurement', 'governance_settings'].includes(tab.id);
+          }
+          return true;
+        }).map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSubTab === tab.id;
           return (
@@ -472,7 +534,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       {/* SUBTAB 1: CHART OF ACCOUNTS TREE */}
       {activeSubTab === 'coa' && (
         <div className="space-y-4">
-          <div className="bg-white border border-slate-200/80 rounded-xl p-4 flex flex-col md:flex-row gap-3">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 shadow-xs">
             <div className="relative flex-1">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" 
                       style={lang === 'en' ? { right: 'auto', left: '12px' } : {}} />
@@ -481,7 +543,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                 placeholder={lang === 'ar' ? 'بحث بكود الحساب أو الاسم المالي...' : 'Search accounts by code or ledger title...'}
                 value={coaSearch}
                 onChange={(e) => setCoaSearch(e.target.value)}
-                className="w-full pr-9 pl-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-500 transition-all text-slate-800"
+                className="w-full pr-9 pl-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-500 transition-all text-slate-800 dark:text-zinc-100 placeholder-slate-400"
                 style={lang === 'en' ? { paddingRight: '12px', paddingLeft: '36px' } : {}}
               />
             </div>
@@ -490,7 +552,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-200 focus:outline-none"
               >
                 <option value="all">{lang === 'ar' ? 'كل أنواع الدليل' : 'All Account Types'}</option>
                 <option value="ASSET">{lang === 'ar' ? 'الأصول (Assets)' : 'Assets'}</option>
@@ -502,7 +564,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
                 <thead>
@@ -639,7 +701,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
 
       {/* SUBTAB 4: VOUCHER LISTING */}
       {activeSubTab === 'ledger' && (
-        <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
               <thead>
@@ -649,7 +711,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                   <th className="p-3 w-28">{lang === 'ar' ? 'تاريخ الترحيل' : 'Posting Date'}</th>
                   <th className="p-3 w-32">{lang === 'ar' ? 'نوع السند' : 'Type'}</th>
                   <th className="p-3">{lang === 'ar' ? 'الشرح والبيان العام' : 'Narration'}</th>
-                  <th className="p-3 text-right w-44">{lang === 'ar' ? 'القيمة المتزنة YER' : 'Balanced Amount YER'}</th>
+                  <th className="p-3 text-right w-44">{lang === 'ar' ? 'القيمة المتزنة (ريال يمني)' : 'Balanced Amount (YER)'}</th>
                   <th className="p-3 text-center w-36">{lang === 'ar' ? 'المستندات' : 'Documents'}</th>
                 </tr>
               </thead>
@@ -738,7 +800,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
 
       {/* SUBTAB 8: AI PARSER */}
       {activeSubTab === 'ai_parser' && (
-        <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm animate-fade-in space-y-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xs animate-fade-in space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h3 className="font-black text-sm text-slate-900 flex items-center gap-2">
               <Bot className="w-5 h-5 text-emerald-600" />

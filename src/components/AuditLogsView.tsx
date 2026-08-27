@@ -1,3 +1,5 @@
+import { printHTML } from '../lib/printUtils';
+import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShieldAlert, 
@@ -98,6 +100,57 @@ interface AuditLogsViewProps {
 }
 
 export default function AuditLogsView({ lang }: AuditLogsViewProps) {
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+
+  const handlePrintAuditCertificate = (log: AuditLogItem | null) => {
+    if (!log) return;
+    const isRtl = lang === 'ar';
+    const accentColor = '#059669';
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html dir="${isRtl ? 'rtl' : 'ltr'}">
+        <head>
+          <meta charset="utf-8" />
+          <title>${isRtl ? 'شهادة تدقيق أمني ورقمي معتمدة' : 'Official Security Audit Certificate'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; color: #0f172a; background: #fff; }
+            @page { size: A4 portrait; margin: 15mm; }
+          </style>
+        </head>
+        <body>
+          <div style="max-width: 780px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double ${accentColor}; padding-bottom: 20px; margin-bottom: 25px;">
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="/UAMEX_ERPLOGO.png" style="height: 55px; object-fit: contain;" alt="UAMEX ERP" />
+                <img src="/LogoRohamaab.png" style="height: 55px; object-fit: contain;" alt="Logo Rohamaab" />
+                <div>
+                  <h2 style="margin: 0; color: #0f172a; font-size: 16px; font-weight: 900;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
+                  <p style="margin: 3px 0 0 0; color: ${accentColor}; font-size: 11px; font-weight: 700;">نظام يو امكس المؤسسي الشامل - UAMEX ERP™</p>
+                  <p style="margin: 2px 0 0 0; color: #64748b; font-size: 10px;">قطاع الرقابة والامتثال وسجلات الحوكمة (NEB-11)</p>
+                </div>
+              </div>
+              <div style="text-align: ${isRtl ? 'left' : 'right'};"><span style="display: inline-block; padding: 4px 12px; background: #ecfdf5; border: 1px solid #10b981; color: #065f46; font-weight: 900; border-radius: 6px; font-size: 11px;">شهادة تدقيق رسميـة</span><p style="margin: 8px 0 0 0; font-size: 11px; font-family: monospace; font-weight: 700; color: #334155;">${log.id}</p><p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">${isRtl ? 'التاريخ:' : 'Timestamp:'} ${new Date(log.timestamp || Date.now()).toLocaleString(isRtl ? 'ar-YE' : 'en-US')}</p></div>
+            </div>
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 25px; font-size: 11px;">
+              <table style="width: 100%;">
+                <tr><td style="width: 25%; font-weight: bold; color: #64748b;">${isRtl ? 'المستخدم / المنفذ:' : 'Actor:'}</td><td style="font-weight: 900; font-size: 13px; color: #0f172a;">${log.user_name || 'System Admin'}</td><td style="width: 25%; font-weight: bold; color: #64748b;">${isRtl ? 'البريد الإلكتروني:' : 'Email:'}</td><td style="font-weight: bold; color: #059669;">${log.user_email || 'admin@rohamaab.org'}</td></tr>
+                <tr><td style="font-weight: bold; color: #64748b; padding-top: 8px;">${isRtl ? 'نوع العملية:' : 'Action Type:'}</td><td style="padding-top: 8px; font-family: monospace; font-weight: 900; color: #059669;">${log.action_ar || log.action_en}</td><td style="font-weight: bold; color: #64748b; padding-top: 8px;">${isRtl ? 'عنوان IP والجهاز:' : 'Client IP:'}</td><td style="padding-top: 8px; font-family: monospace;">${log.ip_address || '127.0.0.1'}</td></tr>
+                <tr><td style="font-weight: bold; color: #64748b; padding-top: 8px;">${isRtl ? 'النطاق والمورد المستهدف:' : 'Resource:'}</td><td colspan="3" style="padding-top: 8px; color: #334155; font-weight: 600;">${log.target_resource || 'System Ledger'}</td></tr>
+              </table>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+              <div style="text-align: center; flex: 1;"><div style="font-size: 10px; font-weight: bold; color: #475569;">${isRtl ? 'مسؤول أمن المعلومات' : 'SecOps Lead'}</div><div style="margin-top: 30px; border-top: 1px solid #94a3b8; width: 60%; margin-left: auto; margin-right: auto;"></div><div style="font-size: 9px; color: #94a3b8; margin-top: 4px;">${isRtl ? 'التوقيع الرقمي' : 'Digital Sign'}</div></div>
+              <div style="text-align: center; flex: 1;"><div style="width: 70px; height: 70px; border: 2px dashed ${accentColor}; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: ${accentColor}; font-size: 8px; font-weight: 900;">${isRtl ? 'ختم الحوكمة والأمان' : 'Security Stamp'}</div></div>
+              <div style="text-align: center; flex: 1;"><div style="font-size: 10px; font-weight: bold; color: #475569;">${isRtl ? 'رئيس قطاع الرقابة والامتثال' : 'Chief Compliance Officer'}</div><div style="margin-top: 30px; border-top: 1px solid #94a3b8; width: 60%; margin-left: auto; margin-right: auto;"></div><div style="font-size: 9px; color: #94a3b8; margin-top: 4px;">${isRtl ? 'الاعتماد الرقابي' : 'Compliance Approval'}</div></div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printHTML(htmlContent);
+  };
   // Real-time state
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -562,6 +615,14 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
         </button>
 
         <button
+          onClick={() => setIsPDFModalOpen(true)}
+          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+          title={lang === 'ar' ? 'طباعة تقرير التدقيق الأمني والرقابي المعتمد (PDF)' : 'Print Certified Security Audit Report (PDF)'}
+        >
+          <Printer className="w-3.5 h-3.5" />
+          <span>{lang === 'ar' ? 'تقرير التدقيق المعتمد' : 'Print Audit Report'}</span>
+        </button>
+        <button
           onClick={handleExportCSV}
           className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer"
           title={lang === 'ar' ? 'تصدير السجلات إلى ملف CSV' : 'Export Audit Logs to CSV'}
@@ -883,6 +944,19 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
       </div>
 
       {/* 5. AUDIT LOG DETAIL MODAL WITH "BEFORE" VS "AFTER" PAYLOAD DIFF */}
+      {/* Certified Audit Report Modal */}
+      <PrintPDFTemplateModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        lang={lang}
+        type="audit_trail"
+        data={{
+          auditLogs: filteredLogs,
+          title: lang === 'ar' ? 'تقرير سجلات التدقيق الأمني والرقابي المعتمد' : 'Certified Security Audit Trail & Compliance Report',
+          subtitle: lang === 'ar' ? 'تتبع وتدقيق العمليات الحساسة، التعديلات المالية، والتحقق المشفر SHA-256' : 'Sensitive Operations Log, Mutation Audit & SHA-256 Cryptographic Verification'
+        }}
+      />
+
       {selectedLog && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
@@ -999,7 +1073,7 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
             {/* Modal Footer */}
             <div className="h-14 px-6 bg-slate-50 dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
               <button
-                onClick={() => window.print()}
+                onClick={() => handlePrintAuditCertificate(selectedLog)}
                 className="px-4 py-1.5 bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />

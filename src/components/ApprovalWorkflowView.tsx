@@ -382,7 +382,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
                   type: 'DISBURSE',
                   entity_id: itemId,
                   quantity: requestedQty,
-                  notes: `صرف مادة لمشروع ${newVal.project_name_ar || ''} (WBS: ${newVal.wbs_activity_name || ''})`,
+                  notes: `صرف مادة لمشروع ${newVal.project_name_ar || ''} (النشاط: ${newVal.wbs_activity_name || ''})`,
                   created_at: new Date().toISOString()
                 })
               });
@@ -618,7 +618,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fade-in">
         {/* Left: Matrix List */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 space-y-4">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
               <Shield className="w-5 h-5 text-amber-600" />
               <div className="text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
@@ -693,7 +693,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
         {/* Right: Threshold Limits */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="bg-white border border-slate-200/80 rounded-xl shadow-sm p-5 space-y-4">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
               <Coins className="w-5 h-5 text-amber-600" />
               <div className="text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
@@ -761,7 +761,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
     return (
       <div className="space-y-4 animate-fade-in">
-        <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex justify-between items-center border-b border-slate-100 pb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-amber-600" />
@@ -1142,7 +1142,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       return [
         {
           id: 1,
-          name_ar: 'إنشاء طلب صرف المادة ومطابقة WBS',
+          name_ar: 'إنشاء طلب صرف المادة ومطابقة خطة النشاط',
           name_en: 'Material Issue Request & WBS Mapping',
           role_ar: 'منسق المشروع / أخصائي اللوجستيات',
           role_en: 'Project Officer / Logistics Specialist',
@@ -1150,7 +1150,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
           actor: req.requester_name || 'Project Coordinator',
           date: req.created_at,
           isBottleneck: false,
-          desc_ar: 'تم تقديم طلب الصرف وتحديد نشاط خطة المشروع (WBS Activity) والكميات المطلوبة.',
+          desc_ar: 'تم تقديم طلب الصرف وتحديد نشاط خطة المشروع (النشاط التنفيذي) والكميات المطلوبة.',
           desc_en: 'Issue request submitted with WBS activity link and requested quantities.',
         },
         {
@@ -1164,8 +1164,8 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
           date: histList.find(h => h.approver_role === 'Project Manager')?.created_at,
           isBottleneck: bottleneckStep === 2,
           desc_ar: step2Status === 'pending'
-            ? 'بانتظار التحقق من مطابقة الصرف لخطة WBS والسقف المالي للنشاط.'
-            : step2Status === 'completed' ? 'تمت مراجعة مطابقة الصرف وموافقة مدير المشروع.' : 'مرفوض لعدم التطابق مع خطة WBS.',
+            ? 'بانتظار التحقق من مطابقة الصرف لخطة النشاط والسقف المالي.'
+            : step2Status === 'completed' ? 'تمت مراجعة مطابقة الصرف وموافقة مدير المشروع.' : 'مرفوض لعدم التطابق مع خطة النشاط الميداني.',
           desc_en: step2Status === 'pending'
             ? 'Awaiting project manager audit against activity WBS budget.'
             : step2Status === 'completed' ? 'WBS activity & project budget authority verified.' : 'Rejected by Project Manager.',
@@ -1363,43 +1363,43 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
       {/* Stats Summary Panel */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 print:hidden">
-        <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center gap-3">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-slate-100 rounded-lg text-slate-600">
             <History className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] text-zinc-400 font-bold block uppercase tracking-wider">{lang === 'ar' ? 'إجمالي الطلبات' : 'Total Requests'}</span>
-            <span className="text-lg font-black text-slate-900 font-mono">{requests.length}</span>
+            <span className="text-lg font-black text-slate-900 dark:text-white font-mono">{requests.length}</span>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center gap-3">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-amber-50 rounded-lg text-amber-600 border border-amber-100">
             <Clock className="w-5 h-5 animate-pulse" />
           </div>
           <div>
             <span className="text-[10px] text-amber-600 font-bold block uppercase tracking-wider">{lang === 'ar' ? 'قيد المراجعة والتدقيق' : 'Awaiting Review'}</span>
-            <span className="text-lg font-black text-slate-900 font-mono">{pendingCount}</span>
+            <span className="text-lg font-black text-slate-900 dark:text-white font-mono">{pendingCount}</span>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center gap-3">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-emerald-50 rounded-lg text-emerald-600 border border-emerald-100">
             <CheckCircle className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] text-emerald-600 font-bold block uppercase tracking-wider">{lang === 'ar' ? 'تم اعتمادها وترحيلها' : 'Approved & Posted'}</span>
-            <span className="text-lg font-black text-slate-900 font-mono">{approvedCount}</span>
+            <span className="text-lg font-black text-slate-900 dark:text-white font-mono">{approvedCount}</span>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center gap-3">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-rose-50 rounded-lg text-rose-600 border border-rose-100">
             <XCircle className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] text-rose-600 font-bold block uppercase tracking-wider">{lang === 'ar' ? 'نمذجة تنبؤية' : 'Rejected Requests'}</span>
-            <span className="text-lg font-black text-slate-900 font-mono">{rejectedCount}</span>
+            <span className="text-lg font-black text-slate-900 dark:text-white font-mono">{rejectedCount}</span>
           </div>
         </div>
       </div>
@@ -1459,7 +1459,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
         <div className="lg:col-span-7 space-y-4 print:hidden">
           
           {/* Controls Box */}
-          <div className="bg-white border border-slate-200/80 p-4 rounded-xl shadow-sm space-y-3">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl shadow-xs space-y-3">
             <div className="flex flex-col md:flex-row gap-2.5">
               
               {/* Search input */}
@@ -1601,7 +1601,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
         {/* Right Side: Detailed Approval / Timeline Panel (5 Columns) */}
         <div className="lg:col-span-5 space-y-4 print:col-span-12 text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
           {selectedRequest ? (
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-6 print:border-none print:p-0">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs p-6 space-y-6 print:border-none print:p-0">
               
               {/* Detailed Header for print / screen */}
               <div className="border-b border-slate-100 pb-4 flex justify-between items-start gap-4">
@@ -1683,7 +1683,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
                 
                 const projName = newVal.project_name_ar || meta.project_name_ar || 'المشروع الميداني';
                 const projCode = newVal.project_code || meta.project_code || 'PRJ-2026';
-                const wbsName = newVal.wbs_activity_name || meta.wbs_activity_name || 'نشاط WBS';
+                const wbsName = newVal.wbs_activity_name || meta.wbs_activity_name || 'النشاط التنفيذي';
                 const itemName = newVal.item_name_ar || meta.item_name_ar || 'المادة الإغاثية';
                 const sku = newVal.sku || meta.sku || 'SKU';
                 const requestedQty = newVal.requested_qty ?? meta.requested_qty ?? 0;
@@ -1698,10 +1698,10 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
                     <div className="flex justify-between items-center border-b border-emerald-500/20 pb-2">
                       <span className="text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400 tracking-wider flex items-center gap-1">
                         <Box className="w-3.5 h-3.5" />
-                        <span>{lang === 'ar' ? 'طلب صرف مواد للمشروع (WBS Material Issue Request)' : 'Project Material Issue Voucher'}</span>
+                        <span>{lang === 'ar' ? 'طلب صرف مواد للمشروع (طلب صرف مواد)' : 'Project Material Issue Voucher'}</span>
                       </span>
                       <span className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        {lang === 'ar' ? 'مربوط بـ WBS' : 'WBS Mapped'}
+                        {lang === 'ar' ? 'مربوط بخطة النشاط' : 'WBS Mapped'}
                       </span>
                     </div>
 
@@ -1713,7 +1713,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
                           <span className="font-mono text-[10px] text-emerald-600 font-bold block">{projCode}</span>
                         </div>
                         <div className="text-left dir-ltr">
-                          <span className="text-[9px] text-zinc-400 font-bold block">{lang === 'ar' ? 'نشاط WBS:' : 'WBS Activity:'}</span>
+                          <span className="text-[9px] text-zinc-400 font-bold block">{lang === 'ar' ? 'النشاط التنفيذي:' : 'WBS Activity:'}</span>
                           <span className="font-extrabold text-amber-600 dark:text-amber-400 text-[11px]">{wbsName}</span>
                         </div>
                       </div>

@@ -84,8 +84,8 @@ const TEMPLATES: SampleTemplate[] = [
   {
     id: 'tpl_activities_wbs',
     category: 'activities',
-    titleAr: 'أنشطة وبنود شجرة العمل (WBS)',
-    titleEn: 'WBS Operations & Project Activities',
+    titleAr: 'الأنشطة والمهام التنفيذية للمشاريع',
+    titleEn: 'Field Operations & Project Activities',
     descriptionAr: 'قائمة الأنشطة التنفيذية الميدانية، الميزانيات المخصصة، والمراحل',
     descriptionEn: 'Field work breakdown activities, allocated budgets, and milestones',
     headers: ['wbs_code', 'activity_name_ar', 'project_code', 'allocated_budget_yer', 'start_date', 'end_date', 'lead_officer'],
@@ -105,7 +105,7 @@ const TEMPLATES: SampleTemplate[] = [
     headers: ['employee_code', 'full_name_ar', 'department', 'job_title_ar', 'phone_number', 'email', 'base_salary_yer', 'hire_date'],
     sampleRows: [
       { employee_code: 'EMP-001', full_name_ar: 'د. وفاء المقطري', department: 'القطاع الطبي والصحي', job_title_ar: 'منسق البرامج الصحية', phone_number: '+967 771 234 567', email: 'wafa@rohamaa.org', base_salary_yer: 1200000, hire_date: '2023-05-10' },
-      { employee_code: 'EMP-002', full_name_ar: 'أ. محمد عبد الله الصنعاني', department: 'المالية والحوكمة', job_title_ar: 'كبير المحاسبين IPSAS', phone_number: '+967 772 345 678', email: 'mohammed@rohamaa.org', base_salary_yer: 1400000, hire_date: '2022-01-15' }
+      { employee_code: 'EMP-002', full_name_ar: 'أ. محمد عبد الله الصنعاني', department: 'المالية والحوكمة', job_title_ar: 'كبير المحاسبين الماليين', phone_number: '+967 772 345 678', email: 'mohammed@rohamaa.org', base_salary_yer: 1400000, hire_date: '2022-01-15' }
     ],
     apiEndpoint: '/api/tables/users'
   },
@@ -171,7 +171,7 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
     'الكمية الافتتاحية': 'initial_quantity',
     'تكلفة الوحدة': 'unit_cost_yer',
     'كود النشاط': 'wbs_code',
-    'رمز WBS': 'wbs_code',
+    'رمز النشاط التنفيذي': 'wbs_code',
     'اسم النشاط': 'activity_name_ar',
     'كود المشروع': 'project_code',
     'الميزانية المخصصة': 'allocated_budget_yer',
@@ -399,7 +399,7 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
 
   // Handle Export Operations
   const handleExecuteExport = () => {
-    const filename = `NexoraOS_${selectedTemplate.id}_${new Date().toISOString().slice(0, 10)}`;
+    const filename = `UAMEX_ERP_${selectedTemplate.id}_${new Date().toISOString().slice(0, 10)}`;
 
     // Filter columns
     const cleanRows = filteredExportRows.map(r => {
@@ -452,16 +452,16 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
   const handleOpenShareModal = () => {
     const totalCount = filteredExportRows.length;
     const summary = isRtl
-      ? `🏛️ *جمعية رُحماء بينهم للعمل الإنساني والتنمية (NexoraOS™)*\n` +
+      ? `🏛️ *جمعية رُحماء بينهم للعمل الإنساني والتنمية (UAMEX ERP™)*\n` +
         `📊 *موجز التصدير الموحد للبيانات المعتمدة*\n` +
         `───────────────────────\n` +
         `📁 الفئة: ${selectedTemplate.titleAr}\n` +
         `🔢 إجمالي السجلات: ${totalCount} سجل موثق\n` +
         `🗓️ تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-YE')}\n` +
-        `🔒 التوثيق: معتمد ومحمي بالبصمة الرقمية والشفافية (IATI Standard)\n` +
+        `🔒 التوثيق: معتمد ومحمي بالبصمة الرقمية والشفافية الدولية\n` +
         `───────────────────────\n` +
         `رابط المنظومة: ${window.location.href}`
-      : `🏛️ *Rohamaa Baynahum Foundation (NexoraOS™)*\n` +
+      : `🏛️ *Rohamaa Baynahum Foundation (UAMEX ERP™)*\n` +
         `📊 *Certified Master Data Export Summary*\n` +
         `Category: ${selectedTemplate.titleEn}\n` +
         `Total Verified Items: ${totalCount}\n` +
@@ -504,7 +504,7 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
           </h2>
           <p className="text-xs text-zinc-300 max-w-3xl leading-relaxed">
             {isRtl
-              ? 'إدارة متكاملة للأرصدة الافتتاحية، الأنشطة والأعمال، سجلات الكادر والموظفين، والبيانات الأساسية مع التحقق الذكي، التصدير متعدد الصيغ (Excel/CSV/PDF/IATI) وتوليد روابط المشاركة الموثقة.'
+              ? 'إدارة متكاملة للأرصدة الافتتاحية، الأنشطة والأعمال، سجلات الكادر والموظفين، والبيانات الأساسية مع التحقق الذكي، التصدير متعدد الصيغ (إكسل، PDF، ملفات رقمية موحدة) وتوليد روابط المشاركة الموثقة.'
               : 'Unified management for opening balances, activities, personnel records, and master transactions with smart parsing, multi-format exports, and verified sharing payloads.'}
           </p>
         </div>
@@ -542,7 +542,7 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
           },
           {
             id: 'activities',
-            titleAr: '2. الأنشطة والأعمال WBS',
+            titleAr: '2. الأنشطة والمهام الميدانية التنفيذية',
             titleEn: '2. Activities & Operations',
             subAr: 'المشاريع، المهام والمعالم',
             subEn: 'Projects, Tasks, Milestones',

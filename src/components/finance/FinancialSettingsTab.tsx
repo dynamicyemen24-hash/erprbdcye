@@ -1,3 +1,4 @@
+import { showToast } from '../enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
@@ -52,6 +53,7 @@ export default function FinancialSettingsTab({
   lang, 
   onRefreshCurrencies 
 }: FinancialSettingsTabProps) {
+  const isRtl = lang === 'ar';
   
   // 1. Currencies state and Modal
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -274,7 +276,7 @@ export default function FinancialSettingsTab({
       }
       onRefreshCurrencies();
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast({ type: 'error', title: isRtl ? 'الإعدادات المالية' : 'Financial Settings', message: err.message });
     } finally {
       setCurrLoading(false);
     }

@@ -60,7 +60,7 @@ const POLICY_CATEGORIES: PolicyCategory[] = [
     color: 'blue',
     policies: [
       { key: 'proj_overbudget_warning_pct', titleAr: 'نسبة تحذير تجاوز الميزانية', titleEn: 'Budget Overrun Warning %', descAr: 'النسبة التي يُصدر فيها تحذير تجاوز الميزانية', descEn: 'Percentage that triggers budget overrun alert', type: 'number', unit: '%', min: 50, max: 100, category: 'system' },
-      { key: 'proj_wbs_auto_code_enabled', titleAr: 'توليد تلقائي لأكواد هيكل العمل', titleEn: 'Auto WBS Code Generation', descAr: 'تفعيل التوليد التلقائي لأكواد هيكل العمل (WBS)', descEn: 'Enable automatic Work Breakdown Structure code generation', type: 'boolean', category: 'system' },
+      { key: 'proj_wbs_auto_code_enabled', titleAr: 'توليد تلقائي لأكواد هيكل العمل', titleEn: 'Auto WBS Code Generation', descAr: 'تفعيل التوليد التلقائي لأكواد هيكل تفكيك العمل والأنشطة', descEn: 'Enable automatic Work Breakdown Structure code generation', type: 'boolean', category: 'system' },
       { key: 'proj_daily_field_log_mandatory', titleAr: 'سجل يومي ميداني إلزامي', titleEn: 'Daily Field Log Mandatory', descAr: 'إلزام الميدانيين بتعبئة السجل اليومي', descEn: 'Require field staff to submit daily activity logs', type: 'boolean', category: 'system' },
       { key: 'proj_gps_geofence_radius_meters', titleAr: 'نصف قطر السياج الجغرافي', titleEn: 'GPS Geofence Radius', descAr: 'نصف قطر المنطقة الجغرافية للمتابعة الميدانية', descEn: 'GPS geofence radius for field tracking', type: 'number', unit: 'متر', min: 100, max: 5000, category: 'system' },
     ],
@@ -72,7 +72,7 @@ const POLICY_CATEGORIES: PolicyCategory[] = [
     icon: HandHeart,
     color: 'amber',
     policies: [
-      { key: 'serv_sphere_standards_enforced', titleAr: 'تطبيق معايير Sphere', titleEn: 'Enforce Sphere Standards', descAr: 'فرض معايير Sphere الإنسانية على خدمة المستفيدين', descEn: 'Enforce Sphere humanitarian standards on beneficiary services', type: 'boolean', category: 'system' },
+      { key: 'serv_sphere_standards_enforced', titleAr: 'تطبيق معايير العمل الإنساني المعتمدة', titleEn: 'Enforce Sphere Standards', descAr: 'فرض معايير الجودة والاستجابة الإنسانية على خدمة المستفيدين', descEn: 'Enforce Sphere humanitarian standards on beneficiary services', type: 'boolean', category: 'system' },
       { key: 'serv_national_id_dedup_check', titleAr: 'فحص تكرار الهوية الوطنية', titleEn: 'National ID Dedup Check', descAr: 'فحص تلقائي لتكرار أرقام الهويات الوطنية', descEn: 'Automatic duplicate check for national ID numbers', type: 'boolean', category: 'system' },
       { key: 'serv_vulnerability_reassess_days', titleAr: 'فترة إعادة تقييم الحساسية', titleEn: 'Vulnerability Reassessment Days', descAr: 'عدد الأيام لإعادة تقييم حالة الحساسية', descEn: 'Days between vulnerability reassessments', type: 'number', unit: 'يوم', min: 30, max: 365, category: 'system' },
       { key: 'serv_aid_receipt_biometric_enabled', titleAr: 'إيصال المساعدات بالبصمة', titleEn: 'Biometric Aid Receipt', descAr: 'تفعيل التحقق بالبصمة عند استلام المساعدات', descEn: 'Enable biometric verification for aid receipt', type: 'boolean', category: 'system' },
@@ -85,7 +85,7 @@ const POLICY_CATEGORIES: PolicyCategory[] = [
     icon: Coins,
     color: 'purple',
     policies: [
-      { key: 'fin_accounting_standard', titleAr: 'المعايير المحاسبية', titleEn: 'Accounting Standard', descAr: 'المعايير المحاسبية المعتمدة', descEn: 'Approved accounting standards', type: 'select', options: [{ value: 'IPSAS_ACCRUAL', labelAr: 'IPSAS 조회 원가', labelEn: 'IPSAS Accrual' }, { value: 'IPSAS_CASH', labelAr: 'IPSAS نقدي', labelEn: 'IPSAS Cash' }, { value: 'IFRS', labelAr: 'IFRS', labelEn: 'IFRS' }], category: 'system' },
+      { key: 'fin_accounting_standard', titleAr: 'المعايير المحاسبية', titleEn: 'Accounting Standard', descAr: 'المعايير المحاسبية المعتمدة', descEn: 'Approved accounting standards', type: 'select', options: [{ value: 'IPSAS_ACCRUAL', labelAr: 'أساس الاستحقاق المحاسبي الكامل', labelEn: 'Accrual Basis' }, { value: 'IPSAS_CASH', labelAr: 'الأساس النقدي المعدل', labelEn: 'Cash Basis' }, { value: 'IFRS', labelAr: 'المعايير الدولية لإعداد التقارير', labelEn: 'IFRS Standards' }], category: 'system' },
       { key: 'fin_unbalanced_journals_allowed', titleAr: 'السماح بقيود غير متوازنة', titleEn: 'Allow Unbalanced Journals', descAr: 'السماح بإنشاء قيود محاسبية غير متوازنة', descEn: 'Allow creation of unbalanced journal entries', type: 'boolean', category: 'system' },
       { key: 'fin_petty_cash_max_limit_yer', titleAr: 'حد صندوق المصروفات النثرية', titleEn: 'Petty Cash Max Limit', descAr: 'الحد الأقصى لصندوق المصروفات النثرية', descEn: 'Maximum petty cash fund limit', type: 'number', unit: 'ريال يمني', min: 100000, max: 50000000, category: 'system' },
       { key: 'fin_fx_rate_daily_refresh', titleAr: 'تحديث أسعار الصرف يومياً', titleEn: 'Daily FX Rate Refresh', descAr: 'تحديث تلقائي لأسعار الصرف يومياً', descEn: 'Automatically refresh exchange rates daily', type: 'boolean', category: 'system' },
@@ -100,9 +100,9 @@ const POLICY_CATEGORIES: PolicyCategory[] = [
     icon: Database,
     color: 'cyan',
     policies: [
-      { key: 'proc_three_way_match_tolerance_pct', titleAr: 'نسبة تolerance المطابقة الثلاثية', titleEn: 'Three-Way Match Tolerance %', descAr: 'نسبة الفرق المسموح بها بين الفاتورة والاستلام', descEn: 'Allowed variance percentage between invoice and receipt', type: 'number', unit: '%', min: 0, max: 10, category: 'system' },
+      { key: 'proc_three_way_match_tolerance_pct', titleAr: 'نسبة التسامح في مطابقة التوريد والفواتير', titleEn: 'Three-Way Match Tolerance %', descAr: 'نسبة الفرق المسموح بها بين الفاتورة والاستلام', descEn: 'Allowed variance percentage between invoice and receipt', type: 'number', unit: '%', min: 0, max: 10, category: 'system' },
       { key: 'proc_min_rfq_vendor_bids', titleAr: 'الحد الأدنى لعروض الموردين', titleEn: 'Minimum RFQ Vendor Bids', descAr: 'الحد الأدنى لعدد عروض الموردين المطلوبة', descEn: 'Minimum number of vendor bids required', type: 'number', unit: 'عرض', min: 1, max: 10, category: 'system' },
-      { key: 'proc_tender_opening_quorum', titleAr: 'نصيب فتح المناقصة', titleEn: 'Tender Opening Quorum', descAr: 'العدد الأدنى لأعضاء لجنة فتح المناقصة', descEn: 'Minimum committee members for tender opening', type: 'number', unit: 'أعضاء', min: 2, max: 10, category: 'system' },
+      { key: 'proc_tender_opening_quorum', titleAr: 'النصاب القانوني للجنة فتح المظاريف', titleEn: 'Tender Opening Quorum', descAr: 'العدد الأدنى لأعضاء لجنة فتح المظاريف والمناقصات', descEn: 'Minimum committee members for tender opening', type: 'number', unit: 'أعضاء', min: 2, max: 10, category: 'system' },
       { key: 'org:PROC_APPROVAL_TIER_1_LIMIT_YER', titleAr: 'حد الموافقة المستوى 1', titleEn: 'Tier 1 Approval Limit', descAr: 'الحد الأقصى للموافقة بدون تصعيد', descEn: 'Maximum approval without escalation', type: 'number', unit: 'ريال يمني', min: 100000, max: 50000000, category: 'org' },
       { key: 'org:PROC_APPROVAL_TIER_2_LIMIT_YER', titleAr: 'حد الموافقة المستوى 2', titleEn: 'Tier 2 Approval Limit', descAr: 'الحد الأقصى للموافقة الإدارية', descEn: 'Maximum manager-level approval', type: 'number', unit: 'ريال يمني', min: 1000000, max: 100000000, category: 'org' },
       { key: 'org:PROC_APPROVAL_TIER_3_LIMIT_YER', titleAr: 'حد الموافقة المستوى 3', titleEn: 'Tier 3 Approval Limit', descAr: 'الحد الأقصى للموافقة التنفيذية', descEn: 'Maximum executive-level approval', type: 'number', unit: 'ريال يمني', min: 10000000, max: 500000000, category: 'org' },
@@ -167,12 +167,12 @@ const POLICY_CATEGORIES: PolicyCategory[] = [
     policies: [
       { key: 'grant_closeout_notice_days', titleAr: 'أيام إشعار انتهاء المنحة', titleEn: 'Grant Closeout Notice Days', descAr: 'عدد أيام الإشعار قبل انتهاء المنحة', descEn: 'Days notice before grant closeout', type: 'number', unit: 'يوم', min: 7, max: 90, category: 'system' },
       { key: 'grant_donor_report_lead_days', titleAr: 'أيام تذكير تقرير الجهة الممولة', titleEn: 'Donor Report Reminder Days', descAr: 'أيام التذكير قبل موعد تقرير الجهة الممولة', descEn: 'Days reminder before donor report deadline', type: 'number', unit: 'يوم', min: 3, max: 30, category: 'system' },
-      { key: 'grant_iati_standard_export', titleAr: 'تصدير معيار IATI', titleEn: 'IATI Standard Export', descAr: 'تفعيل التصدير بمعيار IATI للشفافية', descEn: 'Enable IATI standard export for transparency', type: 'boolean', category: 'system' },
+      { key: 'grant_iati_standard_export', titleAr: 'تصدير مؤشرات الشفافية والتقارير الدولية', titleEn: 'IATI Standard Export', descAr: 'تفعيل تصدير مؤشرات الشفافية والتقارير المعتمدة للمانحين', descEn: 'Enable IATI standard export for transparency', type: 'boolean', category: 'system' },
     ],
   },
   {
     id: 'ai',
-    titleAr: 'الذكاء الاصطناعي والabwehr',
+    titleAr: 'الذكاء الاصطناعي وكشف الانحرافات',
     titleEn: 'AI & Anomaly Detection',
     icon: Activity,
     color: 'violet',

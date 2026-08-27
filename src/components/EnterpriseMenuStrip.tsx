@@ -316,11 +316,11 @@ export const EnterpriseMenuStrip: React.FC<EnterpriseMenuStripProps> = ({
           action: onOpenShortcuts
         },
         {
-          labelAr: 'حول نظام NexoraOS™ Enterprise',
-          labelEn: 'About NexoraOS™',
+          labelAr: 'حول منظومة UAMEX ERP™ المؤسسية',
+          labelEn: 'About UAMEX ERP™',
           icon: Info,
           action: () => {
-            showToast(isRtl ? 'NexoraOS™ v2.4 - جمعية رُحماء بينهم' : 'NexoraOS™ v2.4 Enterprise Platform');
+            showToast(isRtl ? 'منظومة UAMEX ERP™ - جمعية رُحماء بينهم للعمل الإنساني والتنمية' : 'UAMEX ERP™ - Rohama Charity Foundation');
           }
         }
       ]

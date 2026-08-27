@@ -162,11 +162,11 @@ export const EnterpriseToolStrip: React.FC<EnterpriseToolStripProps> = ({
           labelAr: 'اعتماد الميزانية وتخصيص الاعتمادات',
           labelEn: 'Approve Budget Allocation',
           icon: CheckSquare,
-          badgeAr: 'IPSAS',
-          badgeEn: 'IPSAS',
-          badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+          badgeAr: 'معتمد',
+          badgeEn: 'Audited',
+          badgeColor: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
           action: () => {
-            showToast(isRtl ? 'تم إجراء الفحص الدفتري واعتماد الميزانية ⚖️' : 'IPSAS ledger check passed ⚖️');
+            showToast(isRtl ? 'تم الفحص المحاسبي واعتماد الميزانية ⚖️' : 'Financial budget ledger check passed ⚖️');
           }
         });
       }

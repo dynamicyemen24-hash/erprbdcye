@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 import { printElement, exportToPDF, exportToExcel } from '../lib/printUtils';
+import { showToast } from './enterprise/EnterpriseToastContainer';
 
 import { GlobalFilterBar } from './dashboard/GlobalFilterBar';
 
@@ -262,7 +263,11 @@ export const UnifiedActionBar: React.FC<UnifiedActionBarProps> = ({
               <button
                 onClick={() => {
                   navigator.clipboard?.writeText(window.location.href);
-                  alert(lang === 'ar' ? 'تم نسخ رابط اللوحة إلى الحافظة' : 'Dashboard link copied');
+                  showToast({
+                    type: 'success',
+                    title: lang === 'ar' ? 'نسخ الرابط' : 'Link Copied',
+                    message: lang === 'ar' ? 'تم نسخ رابط اللوحة إلى الحافظة بنجاح ✓' : 'Dashboard link copied to clipboard ✓'
+                  });
                   setIsMoreDropdownOpen(false);
                 }}
                 className="w-full px-3 py-2 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg flex items-center gap-2.5 transition-all cursor-pointer font-bold"

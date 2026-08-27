@@ -1,3 +1,4 @@
+import { showToast } from './enterprise/EnterpriseToastContainer';
 import React, { useState } from 'react';
 import { 
   Plus, 
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Program, Currency } from '../types';
 import { printHTML, createPrintDocument } from '../lib/printUtils';
+import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { generateNumericCode } from '../lib/idGenerator';
@@ -55,6 +57,7 @@ export default function SponsorshipsView({
 
   // Modal and Form state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
   const [selectedSponsorship, setSelectedSponsorship] = useState<any | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -542,7 +545,7 @@ export default function SponsorshipsView({
       if (!response.ok) throw new Error('Failed to delete.');
       onRefresh();
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast({ type: 'error', title: lang === 'ar' ? 'خطأ في العملية' : 'Operation Error', message: err.message });
     }
   };
 
@@ -600,60 +603,70 @@ export default function SponsorshipsView({
           </p>
         </div>
         
-        <button
-          onClick={() => openFormModal(null)}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md hover:shadow-amber-600/10 flex items-center justify-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>{lang === 'ar' ? 'إضافة كفالة جديدة' : 'Add New Pledge'}</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setIsPDFModalOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            title={lang === 'ar' ? 'طباعة كشف كفالات الأيتام المعتمد (A4 PDF)' : 'Print Certified Sponsorships Registry'}
+          >
+            <Printer className="w-4 h-4" />
+            <span>{lang === 'ar' ? 'طباعة كشف الكفالات' : 'Print Registry'}</span>
+          </button>
+          <button
+            onClick={() => openFormModal(null)}
+            className="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md hover:shadow-amber-600/10 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{lang === 'ar' ? 'إضافة كفالة جديدة' : 'Add New Pledge'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Financial Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-amber-50 rounded-xl text-amber-600">
             <DollarSign className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'حجم الالتزامات الكلي' : 'Total Pledge Volume'}</span>
-            <span className="text-sm font-black text-slate-900 font-mono">
+            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
               {loading ? '...' : `${totalsForPrimary.total.toLocaleString(undefined, {maximumFractionDigits:0})} ${displayCurrency}`}
             </span>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-600">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'إجمالي المبالغ المحصلة' : 'Collected / Received'}</span>
-            <span className="text-sm font-black text-slate-900 font-mono">
+            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
               {loading ? '...' : `${totalsForPrimary.paid.toLocaleString(undefined, {maximumFractionDigits:0})} ${displayCurrency}`}
             </span>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-rose-50 rounded-xl text-rose-600">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'المستحقات المتبقية' : 'Due / Remaining'}</span>
-            <span className="text-sm font-black text-slate-900 font-mono">
+            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
               {loading ? '...' : `${totalsForPrimary.remain.toLocaleString(undefined, {maximumFractionDigits:0})} ${displayCurrency}`}
             </span>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-3 shadow-xs">
           <div className="p-2.5 bg-sky-50 rounded-xl text-sky-600">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'تسليمات ميدانية قيد الانتظار' : 'Pending Handovers'}</span>
-            <span className="text-sm font-black text-slate-900 font-mono">
+            <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
               {loading ? '...' : `${pendingDeliveries} ${lang === 'ar' ? 'تسليماً' : 'Cases'}`}
             </span>
           </div>
@@ -661,7 +674,7 @@ export default function SponsorshipsView({
       </div>
 
       {/* Filter Options */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400"
@@ -674,7 +687,7 @@ export default function SponsorshipsView({
               placeholder={lang === 'ar' ? 'البحث عن طريق الكفيل، المستفيد، الوكيل المستلم، الهاتف...' : 'Search by sponsor name, beneficiary, receiver, phone...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-amber-500/50 rounded-xl py-2 px-4 text-xs focus:outline-none transition-all"
+              className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:border-amber-500/50 rounded-xl py-2 px-4 text-xs focus:outline-none transition-all"
               style={lang === 'ar' ? { paddingRight: '36px', paddingLeft: '16px' } : { paddingLeft: '36px', paddingRight: '16px' }}
             />
           </div>
@@ -715,7 +728,7 @@ export default function SponsorshipsView({
               <select
                 value={filterPaymentStatus}
                 onChange={(e) => setFilterPaymentStatus(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
               >
                 <option value="ALL">{lang === 'ar' ? 'الكل' : 'All Payments'}</option>
                 <option value="paid">{lang === 'ar' ? 'مكفول بالكامل (Paid)' : 'Fully Paid'}</option>
@@ -729,7 +742,7 @@ export default function SponsorshipsView({
               <select
                 value={filterDeliveryStatus}
                 onChange={(e) => setFilterDeliveryStatus(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
               >
                 <option value="ALL">{lang === 'ar' ? 'الكل' : 'All Deliveries'}</option>
                 <option value="delivered">{lang === 'ar' ? 'تم التسليم والمطابقة (Delivered)' : 'Delivered'}</option>
@@ -742,7 +755,7 @@ export default function SponsorshipsView({
               <select
                 value={filterCurrency}
                 onChange={(e) => setFilterCurrency(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
               >
                 <option value="ALL">{lang === 'ar' ? 'الكل' : 'All Currencies'}</option>
                 {currencies.map(c => (
@@ -755,7 +768,7 @@ export default function SponsorshipsView({
       </div>
 
       {/* Grid of sponsorships */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-zinc-400 font-bold text-xs space-y-3">
             <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -769,7 +782,7 @@ export default function SponsorshipsView({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
-              <thead className="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider">
+              <thead className="bg-slate-50 dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 text-[10px] font-extrabold uppercase text-slate-500 dark:text-zinc-400 tracking-wider">
                 <tr>
                   <th className="px-6 py-3">{lang === 'ar' ? 'الكفيل والوسيط' : 'Sponsor'}</th>
                   <th className="px-6 py-3">{lang === 'ar' ? 'اليتيم / المستفيد' : 'Beneficiary'}</th>
@@ -781,7 +794,7 @@ export default function SponsorshipsView({
                   <th className="px-6 py-3 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200">
+              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
                 {filteredList.map((sp) => {
                   const bName = getBeneficiaryName(sp.beneficiary_id);
                   const bCode = getBeneficiaryCode(sp.beneficiary_id);
@@ -791,10 +804,10 @@ export default function SponsorshipsView({
                   const progress = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
 
                   return (
-                    <tr key={sp.id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={sp.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-extrabold text-slate-800">{sp.sponsor_name_ar || sp.sponsor_name || '-'}</p>
+                          <p className="font-extrabold text-slate-800 dark:text-zinc-100">{sp.sponsor_name_ar || sp.sponsor_name || '-'}</p>
                           {sp.mediator_name && (
                             <span className="text-[9px] text-zinc-400 font-bold block mt-0.5">
                               {lang === 'ar' ? `بوساطة: ${sp.mediator_name}` : `Mediator: ${sp.mediator_name}`}
@@ -898,7 +911,7 @@ export default function SponsorshipsView({
       {/* Detail viewer */}
       {viewingSponsorship && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl border border-slate-200 max-w-lg w-full overflow-hidden shadow-2xl animate-scale-up">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 max-w-lg w-full overflow-hidden shadow-2xl animate-scale-up">
             <div className="px-6 py-4 bg-zinc-900 text-white flex justify-between items-center">
               <h3 className="font-black text-sm">{lang === 'ar' ? 'تفاصيل سجل كفالة اليتيم' : 'Sponsorship Registry Details'}</h3>
               <button 

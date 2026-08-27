@@ -155,7 +155,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-emerald-200/80 font-medium">
-                {isRtl ? 'نظام التشغيل المؤسسي الذكي - الرابطة التشغيلية الموحدة' : 'Intelligent Enterprise Operating System'}
+                {isRtl ? 'منظومة يو امكس المؤسسية الشاملة - جمعية رُحماء بينهم' : 'UAMEX ERP™ Intelligent Enterprise Operating System'}
               </p>
             </div>
           </div>
@@ -391,7 +391,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                 <div className="p-3 bg-slate-50 dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-700/50 space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-zinc-100 text-xs">
                     <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>{isRtl ? 'معايير IPSAS وميثاق إسفير' : 'IPSAS & Sphere Compliant'}</span>
+                    <span>{isRtl ? 'المعايير المحاسبية والإنسانية المعتمدة' : 'Certified Accounting & Humanitarian Standards'}</span>
                   </div>
                   <p className="text-[10px] text-slate-500 dark:text-zinc-400">
                     {isRtl ? 'امتثال دولي كامل وتقارير تدقيقية معتمدة.' : 'Full international accounting & NGO reporting standards.'}

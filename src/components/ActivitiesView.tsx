@@ -1734,7 +1734,7 @@ export default function ActivitiesView({
                     {isRtl ? 'إصدار طلب / سند صرف مالي للنشاط' : 'Issue Financial Disbursement Voucher'}
                   </h3>
                   <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                    {isRtl ? 'ربط السند الفوري بالحسابات العامة وشجرة الحسابات IPSAS' : 'Direct linkage to general ledger & IPSAS Accounts'}
+                    {isRtl ? 'ربط السند الفوري بالحسابات العامة ودليل الحسابات المعتمد' : 'Direct linkage to general ledger & certified accounts'}
                   </p>
                 </div>
               </div>

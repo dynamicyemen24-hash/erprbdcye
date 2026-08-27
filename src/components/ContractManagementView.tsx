@@ -1,4 +1,5 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+import { showToast } from './enterprise/EnterpriseToastContainer';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   FileText,
   Briefcase,
@@ -138,7 +139,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
     focalPersonName: '',
     focalPersonEmail: '',
     focalPersonPhone: '',
-    complianceStandards: 'Sphere Standards 2026, CHS Alliance, IATI Standard 2.03, IPSAS Ledger',
+    complianceStandards: 'معايير الجودة الإنسانية الدولية، ميثاق الشفافية والشراكة، معايير التوثيق المعتمدة، المعايير المحاسبية الرسمية',
     notes: ''
   });
 
@@ -432,9 +433,9 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
       <div style="font-family: sans-serif; direction: rtl; padding: 30px; background: #fff; color: #0f172a;">
         <div style="text-align: center; border-bottom: 3px double #059669; padding-bottom: 15px; margin-bottom: 25px;">
           <h1 style="color: #059669; font-size: 20px; font-weight: 900; margin: 0 0 5px 0;">${e(localStorage.getItem('rbd_org_name') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية')}</h1>
-          <h2 style="color: #d97706; font-size: 16px; font-weight: 800; margin: 0 0 10px 0;">نظام التشغيل المؤسسي NexoraOS™ - إدارة الشراكات والتمويل المؤسسي</h2>
+          <h2 style="color: #d97706; font-size: 16px; font-weight: 800; margin: 0 0 10px 0;">منظومة UAMEX ERP™ - إدارة الشراكات والتمويل المؤسسي</h2>
           <div style="font-size: 14px; font-weight: bold; color: #334155;">وثيقة اتفاقية شراكة رسمية معتمدة</div>
-          <div style="font-family: monospace; font-size: 12px; color: #64748b; margin-top: 5px;">كود الشراكة: ${e(prt.partnershipCode)} | معيار IATI: ${e(prt.iatiActivityId || 'N/A')}</div>
+          <div style="font-family: monospace; font-size: 12px; color: #64748b; margin-top: 5px;">كود الشراكة: ${e(prt.partnershipCode)} | كود الشفافية: ${e(prt.iatiActivityId || 'معتمد')}</div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12px;">
@@ -667,7 +668,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
             </h1>
             <p className="text-xs text-zinc-300 max-w-3xl leading-relaxed">
               {isRtl 
-                ? 'منظومة مؤسسية ذكية لإدارة دورة الشراء الكاملة، فواتير المبيعات والتبرعات، وربط كافة أوامر التوريد والإيرادات ببطاقات أنشطة المشاريع والمهام WBS لحظياً مع التحديث الآلي لحالة الإنجاز والامتثال الشرعي (IPSAS Compliance).'
+                ? 'منظومة مؤسسية ذكية لإدارة دورة الشراء الكاملة، فواتير المبيعات والتبرعات، وربط كافة أوامر التوريد والإيرادات ببطاقات أنشطة المشاريع والمهام WBS لحظياً مع التحديث الآلي لحالة الإنجاز والامتثال الشرعي (المعايير المحاسبية المعتمدة).'
                 : 'Enterprise OS unifying purchasing POs, sales invoices, donor pledges, and real-time mapping to project WBS task cards with auto-completion triggers and IPSAS compliance.'}
             </p>
           </div>
@@ -752,7 +753,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4.5 rounded-2xl shadow-xs flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 uppercase tracking-wider block">
-              {isRtl ? 'نسبة الترابط ببطاقات WBS' : 'WBS Activity Link Ratio'}
+              {isRtl ? 'نسبة الترابط بالأنشطة التنفيذية' : 'WBS Activity Link Ratio'}
             </span>
             <p className="text-xl font-black text-emerald-600 font-mono">
               100% <span className="text-xs text-emerald-500 font-sans">{isRtl ? 'ربط محكم' : 'synced'}</span>
@@ -833,7 +834,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           }`}
         >
           <Link2 className="w-4 h-4" />
-          <span>{isRtl ? 'ماتريكس الترابط مع أنشطة المشاريع WBS' : 'Project Activity WBS Matrix'}</span>
+          <span>{isRtl ? 'مصفوفة ترابط أوامر التوريد مع أنشطة المشاريع' : 'Project Activity WBS Matrix'}</span>
           <span className="px-1.5 py-0.2 bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 rounded font-mono text-[10px]">LIVE</span>
         </button>
 
@@ -1182,7 +1183,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                 {isRtl ? 'أوامر الشراء المعتمدة (Purchase Orders - POs)' : 'Approved Purchase Orders'}
               </h3>
               <p className="text-xs text-slate-500">
-                {isRtl ? 'تتبع أوامر الشراء المرتبطة بالأنشطة والموردين مع إمكانية إثبات الاستلام الميداني والتحديث الآلي لـ WBS.' : 'Track purchase orders linked to activities & vendors with automatic WBS status triggers.'}
+                {isRtl ? 'تتبع أوامر الشراء المرتبطة بالأنشطة والموردين مع إمكانية إثبات الاستلام الميداني والتحديث الآلي لحالة الإنجاز.' : 'Track purchase orders linked to activities & vendors with automatic WBS status triggers.'}
               </p>
             </div>
 
@@ -1256,7 +1257,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                   ) : (
                     <span className="text-emerald-600 font-black flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{isRtl ? 'تم التسليم وتحديث WBS' : 'Delivered & WBS Updated'}</span>
+                      <span>{isRtl ? 'تم التسليم وتحديث حالة الإنجاز' : 'Delivered & WBS Updated'}</span>
                     </span>
                   )}
                 </div>
@@ -1575,7 +1576,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                             <div style="font-family: sans-serif; direction: rtl; padding: 30px; background: #fff; color: #0f172a;">
                               <div style="text-align: center; border-bottom: 3px double #d97706; padding-bottom: 15px; margin-bottom: 25px;">
                                 <h1 style="color: #059669; font-size: 20px; font-weight: 900; margin: 0 0 5px 0;">${e(localStorage.getItem('rbd_org_name') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية')}</h1>
-                                <h2 style="color: #d97706; font-size: 16px; font-weight: 800; margin: 0 0 10px 0;">نظام التشغيل المؤسسي NexoraOS™ - إدارة عقود الموردين والمقاولين</h2>
+                                <h2 style="color: #d97706; font-size: 16px; font-weight: 800; margin: 0 0 10px 0;">منظومة UAMEX ERP™ - إدارة عقود الموردين والمقاولين</h2>
                                 <div style="font-size: 14px; font-weight: bold; color: #334155;">وثيقة عقد رسمية معتمدة</div>
                                 <div style="font-family: monospace; font-size: 12px; color: #64748b; margin-top: 5px;">كود العقد: ${e(contract.contractCode)} | النوع: ${e(contract.contractType)}</div>
                               </div>
@@ -1622,7 +1623,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                             navigator.share({ title: contract.titleAr, text: `${contract.contractCode} - ${contract.titleAr}` });
                           } else {
                             navigator.clipboard.writeText(`${contract.contractCode} - ${contract.titleAr}`);
-                            alert(isRtl ? 'تم نسخ بيانات العقد' : 'Contract details copied');
+                            showToast({ type: 'success', title: isRtl ? 'نسخ البيانات' : 'Copied', message: isRtl ? 'تم نسخ بيانات العقد إلى الحافظة بنجاح' : 'Contract details copied to clipboard' });
                           }
                         }}
                         className="px-3 py-1.5 bg-violet-50 text-violet-700 hover:bg-violet-600 hover:text-white border border-violet-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
@@ -1670,12 +1671,12 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
             <div className="flex items-center gap-2 mb-1">
               <Link2 className="w-5 h-5 text-purple-400" />
               <h3 className="font-extrabold text-sm text-white">
-                {isRtl ? 'ماتريكس الربط اللحظي بين أوامر التوريد والإيرادات وبطاقات أنشطة المشاريع WBS' : 'Live Correlation Matrix: Procurement, Revenue & Project WBS Tasks'}
+                {isRtl ? 'ماتريكس الربط اللحظي بين أوامر التوريد والإيرادات وبطاقات أنشطة المشاريع الميدانية' : 'Live Correlation Matrix: Procurement, Revenue & Project WBS Tasks'}
               </h3>
             </div>
             <p className="text-xs text-purple-200 leading-relaxed">
               {isRtl 
-                ? 'يربط هذا الجدول التفاعلي بين بطاقات أنشطة المشاريع الميدانية، والميزانية المرصودة، وأوامر التوريد الصادرة POs، والإيرادات المحصلة. عند إثبات استلام أمر الشراء، تتحدث نسبة إنجاز بطاقة النشاط آلياً في نظام المشاريع WBS.'
+                ? 'يربط هذا الجدول التفاعلي بين بطاقات أنشطة المشاريع الميدانية، والميزانية المرصودة، وأوامر التوريد الصادرة POs، والإيرادات المحصلة. عند إثبات استلام أمر الشراء، تتحدث نسبة إنجاز بطاقة النشاط آلياً في نظام إدارة المشاريع والأنشطة.'
                 : 'Directly correlates project WBS cards with purchase orders and revenue invoices. Executing a PO automatically advances the corresponding project WBS completion index.'}
             </p>
           </div>
@@ -1685,7 +1686,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               <table className="w-full text-right rtl:text-right text-xs">
                 <thead className="bg-slate-50 dark:bg-zinc-800/80 text-slate-500 dark:text-zinc-400 font-extrabold uppercase text-[10px] border-b border-slate-200 dark:border-zinc-800">
                   <tr>
-                    <th className="p-3.5">{isRtl ? 'رمز النشاط WBS' : 'WBS Code'}</th>
+                    <th className="p-3.5">{isRtl ? 'رمز النشاط الميداني' : 'WBS Code'}</th>
                     <th className="p-3.5">{isRtl ? 'عنوان النشاط والمشروع' : 'Activity & Project'}</th>
                     <th className="p-3.5">{isRtl ? 'الميزانية المعتمدة' : 'Allocated Budget'}</th>
                     <th className="p-3.5">{isRtl ? 'المشتريات الملتزم بها (POs)' : 'Committed POs'}</th>
@@ -1757,7 +1758,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               <Sparkles className="w-6 h-6 text-amber-300 animate-spin" />
               <div>
                 <h3 className="font-extrabold text-base text-white">
-                  {isRtl ? 'المساعد الذكي لتحليل المشتريات والمبيعات وترابط أنشطة WBS' : 'AI Smart Procurement & Sales Analytics Copilot'}
+                  {isRtl ? 'المساعد الذكي لتحليل المشتريات والمبيعات وترابط الأنشطة الميدانية' : 'AI Smart Procurement & Sales Analytics Copilot'}
                 </h3>
                 <p className="text-xs text-emerald-200">
                   {isRtl ? 'تحليل مقارن لأسعار التوريد مقابل متوسط السوق، والتنبؤ بالتوافق مع الميزانيات والامتثال المعياري.' : 'Comparative supplier pricing analysis against market averages and predictive cash-flow forecasting.'}
@@ -1781,9 +1782,9 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               </div>
 
               <div className="p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 space-y-2">
-                <span className="text-[10px] font-black text-emerald-300 uppercase block">الامتثال الشرعي و IPSAS</span>
+                <span className="text-[10px] font-black text-emerald-300 uppercase block">الامتثال المالي والمحاسبي المعتمد</span>
                 <p className="text-xs text-white leading-relaxed font-bold">
-                  جميع فواتير الدعم والتبرعات مطابقة لمعايير IPSAS ومحفوظة ضمن السجل المالي غير القابل للتعديل.
+                  جميع فواتير الدعم والتبرعات مطابقة لالمعايير المحاسبية المعتمدة والمحفوظة ضمن السجل المالي غير القابل للتعديل.
                 </p>
               </div>
             </div>
@@ -1820,7 +1821,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'نشاط المشروع المستهدف WBS' : 'Target WBS Activity Task'}</label>
+                <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'النشاط الميداني المستهدف للمشروع' : 'Target WBS Activity Task'}</label>
                 <select value={newPoForm.wbsActivityId} onChange={e => setNewPoForm(p => ({ ...p, wbsActivityId: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
                   {activityLinks.map(a => (
                     <option key={a.activityId} value={a.activityId}>{a.activityCode} - {a.activityNameAr}</option>
@@ -2096,7 +2097,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="p-3 bg-slate-50 dark:bg-zinc-800 rounded-xl space-y-2">
                 <div className="flex justify-between items-center font-extrabold">
-                  <span>2. السلامة والرقابة والملاءة المالية (IPSAS Audit):</span>
+                  <span>2. السلامة والرقابة والملاءة المالية (التدقيق المالي والمحاسبي):</span>
                   <span className="font-mono text-amber-600">{pcaPillars.financials}%</span>
                 </div>
                 <input type="range" min="50" max="100" value={pcaPillars.financials} onChange={e => setPcaPillars(p => ({ ...p, financials: parseInt(e.target.value) }))} className="w-full accent-amber-500 cursor-pointer" />
@@ -2112,7 +2113,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="p-3 bg-slate-50 dark:bg-zinc-800 rounded-xl space-y-2">
                 <div className="flex justify-between items-center font-extrabold">
-                  <span>4. الموارد البشرية والسيون والصفات الصونية (Safeguarding):</span>
+                  <span>4. الموارد البشرية وإجراءات الحماية والوقاية المؤسسية:</span>
                   <span className="font-mono text-amber-600">{pcaPillars.humanResources}%</span>
                 </div>
                 <input type="range" min="50" max="100" value={pcaPillars.humanResources} onChange={e => setPcaPillars(p => ({ ...p, humanResources: parseInt(e.target.value) }))} className="w-full accent-amber-500 cursor-pointer" />
@@ -2120,7 +2121,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="p-3 bg-slate-50 dark:bg-zinc-800 rounded-xl space-y-2">
                 <div className="flex justify-between items-center font-extrabold">
-                  <span>5. معايير إسفير والتحقق الميداني والشفافية (IATI):</span>
+                  <span>5. معايير الجودة والتحقق الميداني والشفافية المعتمدة:</span>
                   <span className="font-mono text-amber-600">{pcaPillars.monitoringAndSphere}%</span>
                 </div>
                 <input type="range" min="50" max="100" value={pcaPillars.monitoringAndSphere} onChange={e => setPcaPillars(p => ({ ...p, monitoringAndSphere: parseInt(e.target.value) }))} className="w-full accent-amber-500 cursor-pointer" />
@@ -2129,7 +2130,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               {/* Total Calculated Index Banner */}
               <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-black text-slate-500 uppercase block">{isRtl ? 'المؤشر المركب النهائي (PCA Score)' : 'Final Composite PCA Score'}</span>
+                  <span className="text-[10px] font-black text-slate-500 uppercase block">{isRtl ? 'المؤشر المركب النهائي لتقييم الشريك' : 'Final Composite Partnership Score'}</span>
                   <span className="text-xl font-black font-mono text-amber-600">{calculatedPcaScore}%</span>
                 </div>
                 <div className="text-left font-black text-xs">

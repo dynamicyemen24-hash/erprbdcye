@@ -3,6 +3,8 @@ import React from 'react';
 import ElectronicSignatureModule from './ElectronicSignatureModule';
 import { approveFinancialReport, FinancialReport } from '../core/ledger/reportApproval';
 
+import { showToast } from './enterprise/EnterpriseToastContainer';
+
 interface ReportApprovalViewProps {
   report: FinancialReport;
   lang: 'ar' | 'en';
@@ -17,9 +19,17 @@ export default function ReportApprovalView({ report, lang, currentUser }: Report
       role: currentUser?.role
     });
     if (result.success) {
-      alert(lang === 'ar' ? 'تم اعتماد التقرير بنجاح' : 'Report approved successfully');
+      showToast({ 
+        type: 'success', 
+        title: lang === 'ar' ? 'اعتماد التقرير المالي' : 'Report Approval', 
+        message: lang === 'ar' ? 'تم اعتماد التقرير وتوثيقه بالتوقيع الإلكتروني بنجاح ✓' : 'Report approved successfully with electronic signature ✓' 
+      });
     } else {
-      alert(lang === 'ar' ? result.message : result.message);
+      showToast({ 
+        type: 'error', 
+        title: lang === 'ar' ? 'تعذر اعتماد التقرير' : 'Approval Error', 
+        message: result.message || (lang === 'ar' ? 'حدث خطأ أثناء اعتماد التقرير' : 'Failed to approve report') 
+      });
     }
   };
 

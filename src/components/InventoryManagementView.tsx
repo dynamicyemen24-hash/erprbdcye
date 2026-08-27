@@ -1,3 +1,4 @@
+import { showToast } from './enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import { 
   Warehouse, 
@@ -435,7 +436,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   // Request Web Push Authorization
   const requestPushPermission = async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
-      alert(isRtl ? 'إشعارات الدفع عبر المتصفح غير مدعومة في هذه البيئة.' : 'Web Push Notifications are not supported in this browser environment.');
+      showToast({ type: 'warning', title: isRtl ? 'إشعارات الدفع' : 'Web Push', message: isRtl ? 'إشعارات الدفع عبر المتصفح غير مدعومة في هذه البيئة.' : 'Web Push Notifications are not supported in this browser environment.' });
       return;
     }
     try {
@@ -556,7 +557,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     warehouseId: 'wh-1',
     itemId: 'inv-101',
     requestedQty: '200',
-    notes: 'صرف مواد خفيفة وعاجلة لمستفيدي مخيمات النازحين بمأرب حسب خطة WBS',
+    notes: 'صرف مواد خفيفة وعاجلة لمستفيدي مخيمات النازحين بمأرب حسب خطة المشروع المعتمدة',
     requesterRole: 'Project Officer'
   });
 
@@ -1243,17 +1244,17 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       if (res.ok) {
         setProcurementSuccessMsg(
           isRtl
-            ? 'تم رفع طلب صرف المواد للمشروع بنجاح وفحص السقف المالي للميزانية والتكامل مع WBS!'
+            ? 'تم رفع طلب صرف المواد للمشروع بنجاح وفحص السقف المالي للميزانية والتكامل مع خطة النشاط!'
             : 'Material issue request created & submitted to workflow with WBS budget check!'
         );
         setIsMaterialIssueModalOpen(false);
         await loadProcurementRequests();
       } else {
-        alert(isRtl ? 'حدث خطأ أثناء تقديم طلب الصرف' : 'Error submitting material issue request');
+        showToast({ type: 'error', title: isRtl ? 'طلب صرف المواد' : 'Material Issue', message: isRtl ? 'حدث خطأ أثناء تقديم طلب الصرف' : 'Error submitting material issue request' });
       }
     } catch (err: any) {
       console.error('Error creating material issue request:', err);
-      alert(err.message || 'Error creating request');
+      showToast({ type: 'error', title: isRtl ? 'طلب صرف المواد' : 'Material Issue', message: err.message || (isRtl ? 'فشل إنشاء الطلب' : 'Error creating request') });
     } finally {
       setMaterialIssueSubmitting(false);
     }
@@ -1347,7 +1348,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       await loadProcurementRequests();
     } catch (err: any) {
       console.error("Error approving material issue request:", err);
-      alert(err.message || "Error approving request");
+      showToast({ type: "error", title: isRtl ? "اعتماد الصرف" : "Disbursement Approval", message: err.message || (isRtl ? "تعذر اعتماد طلب الصرف" : "Error approving request") });
     }
   };
 
@@ -1810,17 +1811,17 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
     // Validation for DISBURSE or TRANSFER stock sufficiency
     if ((movementForm.type === 'DISBURSE' || movementForm.type === 'TRANSFER') && sourceItem.qty < qtyChange) {
-      alert(isRtl ? 'عفواً، الكمية المطلوبة تتجاوز الرصيد المتاح حالياً بالمخزن!' : 'Requested quantity exceeds available stock balance!');
+      showToast({ type: 'warning', title: isRtl ? 'مخزون غير كافٍ' : 'Insufficient Stock', message: isRtl ? 'عفواً، الكمية المطلوبة تتجاوز الرصيد المتاح حالياً بالمخزن!' : 'Requested quantity exceeds available stock balance!' });
       return;
     }
 
     if (movementForm.type === 'TRANSFER') {
       if (!movementForm.targetWarehouseId) {
-        alert(isRtl ? 'الرجاء اختيار المستودع المستهدف للتحويل!' : 'Please select the target warehouse for transfer!');
+        showToast({ type: 'warning', title: isRtl ? 'تحديد المستودع' : 'Warehouse Selection', message: isRtl ? 'الرجاء اختيار المستودع المستهدف للتحويل!' : 'Please select the target warehouse for transfer!' });
         return;
       }
       if (movementForm.sourceWarehouseId === movementForm.targetWarehouseId) {
-        alert(isRtl ? 'عفواً، لا يمكن تحويل الشحنة إلى نفس المستودع المصدر!' : 'Cannot transfer stock to the same source warehouse!');
+        showToast({ type: 'warning', title: isRtl ? 'المستودع المصدر والهدف متطابقان' : 'Warehouse Conflict', message: isRtl ? 'عفواً، لا يمكن تحويل الشحنة إلى نفس المستودع المصدر!' : 'Cannot transfer stock to the same source warehouse!' });
         return;
       }
     }
@@ -2610,7 +2611,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             className="px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer"
           >
             <Target className="w-4 h-4 text-amber-300" />
-            <span>{isRtl ? 'طلب صرف مواد للمشروع (WBS)' : 'WBS Material Issue Request'}</span>
+            <span>{isRtl ? 'طلب صرف مواد لمشروع ميداني' : 'WBS Material Issue Request'}</span>
           </button>
 
           <button
@@ -3472,7 +3473,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-base font-black text-white">
-                      {isRtl ? 'إدارة الأصول الثابتة والمنقولة وتتبع دورة الحياة (IPSAS-17)' : 'Fixed & Movable Asset Lifecycle & Project Mapping Hub'}
+                      {isRtl ? 'إدارة الأصول الثابتة والمنقولة وتتبع دورة الحياة (المعايير المحاسبية للأصول الثابتة)' : 'Fixed & Movable Asset Lifecycle & Project Mapping Hub'}
                     </h2>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-zinc-950">
                       {isRtl ? 'الأصول والممتلكات' : 'Fixed Assets'}
@@ -3480,7 +3481,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   </div>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed">
                     {isRtl 
-                      ? 'تتبع شامل لجميع الأصول والمعدات (شراء، ضمان، إهلاك IPSAS-17، موردين، مواقع) مع ربط تلقائي ومباشر بأصول المشاريع والتسليمات الميدانية (Assets-to-Project Mapping).' 
+                      ? 'تتبع شامل لجميع الأصول والمعدات (شراء، ضمان، الإهلاك المحاسبي النظامي، موردين، مواقع) مع ربط تلقائي ومباشر بأصول المشاريع والتسليمات الميدانية (Assets-to-Project Mapping).' 
                       : 'End-to-end lifecycle tracking (purchase date, warranty, supplier, location) with automatic mapping to project assets.'}
                   </p>
                 </div>
@@ -3561,7 +3562,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 }`}
               >
                 <Coins className="w-4 h-4" />
-                <span>{isRtl ? 'محرك الإهلاك (IPSAS-17 Depreciation)' : 'Depreciation Engine'}</span>
+                <span>{isRtl ? 'محرك الإهلاك المحاسبي للأصول' : 'Depreciation Engine'}</span>
               </button>
 
               <button
@@ -3599,7 +3600,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             </div>
 
             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-2xl shadow-xs">
-              <span className="text-[10px] font-black uppercase text-slate-400 block">{isRtl ? 'صافي القيمة الدفترية الحالية (IPSAS-17)' : 'Net Book Value'}</span>
+              <span className="text-[10px] font-black uppercase text-slate-400 block">{isRtl ? 'صافي القيمة الدفترية الحالية (المعايير المحاسبية للأصول الثابتة)' : 'Net Book Value'}</span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-xl font-black font-mono text-blue-600 dark:text-blue-400">
                   {fixedAssets.reduce((sum, a) => sum + calculateDepreciation(a).netBookValueYER, 0).toLocaleString()}
@@ -3963,7 +3964,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                     <Coins className="w-5 h-5 text-emerald-500" />
                     <div>
                       <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
-                        {isRtl ? 'جدول ومحرك الإهلاك المحاسبي حسب معيار القطاع العام (IPSAS-17)' : 'IPSAS-17 Straight-Line Depreciation Engine'}
+                        {isRtl ? 'جدول ومحرك الإهلاك المحاسبي حسب معيار القطاع العام (المعايير المحاسبية للأصول الثابتة)' : 'IPSAS-17 Straight-Line Depreciation Engine'}
                       </h3>
                       <p className="text-xs text-slate-500">
                         {isRtl ? 'حساب تلقائي للإهلاك المتراكم وصافي القيمة الدفترية بناءً على العمر الإنتاجي بالشهور والقيمة المتبقية' : 'Automated straight-line depreciation calculation per IPSAS-17 standards.'}
@@ -4982,10 +4983,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               <div>
                 <h4 className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                   <Target className="w-4 h-4 text-emerald-500" />
-                  <span>{isRtl ? 'سجل سير عمل طلبات صرف المواد للمشاريع (WBS Material Issue Requests Workflow)' : 'WBS Material Issue Requests Workflow'}</span>
+                  <span>{isRtl ? 'سجل طلبات صرف المواد للمشاريع الميدانية' : 'WBS Material Issue Requests Workflow'}</span>
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                  {isRtl ? 'صرف المواد والمستلزمات الإغاثية بناءً على خطة WBS مع الفحص التلقائي لميزانية وسقف المشروع.' : 'Automated material issuance to project WBS activities with live budget authority check.'}
+                  {isRtl ? 'صرف المواد والمستلزمات الإغاثية بناءً على خطة المشروع مع الفحص التلقائي لسقف الميزانية المعتمدة.' : 'Automated material issuance to project WBS activities with live budget authority check.'}
                 </p>
               </div>
 
@@ -5004,7 +5005,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 font-bold bg-slate-50/50 dark:bg-zinc-800/50">
                     <th className="p-3">{isRtl ? 'رمز الطلب / التاريخ' : 'Request Code / Date'}</th>
                     <th className="p-3">{isRtl ? 'المشروع المستهدف' : 'Project'}</th>
-                    <th className="p-3">{isRtl ? 'نشاط خطة WBS' : 'WBS Activity'}</th>
+                    <th className="p-3">{isRtl ? 'نشاط المشروع التنفيذي' : 'Project Activity'}</th>
                     <th className="p-3 text-center">{isRtl ? 'المادة والكمية' : 'Item & Quantity'}</th>
                     <th className="p-3 text-center">{isRtl ? 'التكلفة الإجمالية' : 'Total Cost'}</th>
                     <th className="p-3 text-center">{isRtl ? 'فحص الميزانية' : 'Budget Audit'}</th>
@@ -5035,7 +5036,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                       const projName = newVal.project_name_ar || meta.project_name_ar || 'المشروع الميداني';
                       const projCode = newVal.project_code || meta.project_code || 'PRJ-2026';
-                      const wbsName = newVal.wbs_activity_name || meta.wbs_activity_name || 'نشاط WBS';
+                      const wbsName = newVal.wbs_activity_name || meta.wbs_activity_name || 'نشاط تنفيذي';
                       const itemName = newVal.item_name_ar || meta.item_name_ar || 'المادة الإغاثية';
                       const reqQty = newVal.requested_qty ?? meta.requested_qty ?? 0;
                       const unitAr = newVal.unit_ar || 'وحدة';
@@ -5683,7 +5684,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 <Target className="w-5 h-5 text-amber-300" />
                 <div>
                   <h3 className="font-extrabold text-sm">
-                    {isRtl ? 'طلب صرف مواد لمشروع ومطابقة WBS' : 'Project Material Issue Request'}
+                    {isRtl ? 'طلب صرف مواد لمشروع ومطابقة خطة النشاط' : 'Project Material Issue Request'}
                   </h3>
                   <span className="text-[10px] text-emerald-200 block">
                     {isRtl ? 'فحص تلقائي للسقف المالي والكميات المتاحة قبل الصرف' : 'Automated budget authority check & inventory verification'}
@@ -5725,7 +5726,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                 <div>
                   <label className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
-                    ⚡ {isRtl ? 'نشاط خطة WBS' : 'WBS Activity'}
+                    ⚡ {isRtl ? 'نشاط المشروع التنفيذي' : 'Project Activity'}
                   </label>
                   <select
                     value={materialIssueForm.wbsActivityId}
@@ -5939,11 +5940,11 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                 <div>
                   <label className="block text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-1">
-                    💰 {isRtl ? 'الحسابات - رمز الدفتر IPSAS' : 'IPSAS Ledger Code'}
+                    💰 {isRtl ? 'الحسابات - رمز دفتر الأستاذ العام' : 'IPSAS Ledger Code'}
                   </label>
                   <input
                     type="text"
-                    placeholder="IPSAS-17-FIXED-ASSETS-1204"
+                    placeholder="ACC-FIXED-ASSETS-1204"
                     value={maintenanceForm.accountingLedgerCode}
                     onChange={(e) => setMaintenanceForm(prev => ({ ...prev, accountingLedgerCode: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 font-mono text-slate-900 dark:text-white"
@@ -6015,7 +6016,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 <Target className="w-5 h-5 text-amber-300" />
                 <div>
                   <h3 className="font-extrabold text-sm">
-                    {isRtl ? 'طلب صرف مواد لمشروع ومطابقة WBS' : 'Project Material Issue Request'}
+                    {isRtl ? 'طلب صرف مواد لمشروع ومطابقة خطة النشاط' : 'Project Material Issue Request'}
                   </h3>
                   <span className="text-[10px] text-emerald-200 block">
                     {isRtl ? 'فحص تلقائي للسقف المالي والكميات المتاحة قبل الصرف' : 'Automated budget authority check & inventory verification'}
@@ -6057,7 +6058,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                 <div>
                   <label className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
-                    ⚡ {isRtl ? 'نشاط خطة WBS' : 'WBS Activity'}
+                    ⚡ {isRtl ? 'نشاط المشروع التنفيذي' : 'Project Activity'}
                   </label>
                   <select
                     value={materialIssueForm.wbsActivityId}
@@ -6306,7 +6307,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                     <div>
                       <label className="block text-[11px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1.5">
-                        🎯 {isRtl ? 'المشروع والنشاط الميداني (WBS)' : 'WBS Project Activity'}
+                        🎯 {isRtl ? 'المشروع والنشاط الميداني المعتمد' : 'WBS Project Activity'}
                       </label>
                       <select
                         value={multiProjectActivity}
@@ -6512,7 +6513,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       {[
-                        { id: 'SPHERE_FAMILY_SCALE', title: 'معايير اسفير وحجم الأسرة', desc: '1-6: x1 | 7-9: x2 | 10+: x3' },
+                        { id: 'SPHERE_FAMILY_SCALE', title: 'المعايير الإنسانية حسب حجم الأسرة', desc: '1-6: x1 | 7-9: x2 | 10+: x3' },
                         { id: 'EQUAL_FLAT', title: 'توزيع متساوي وموحد', desc: 'حصة متساوية تماماً لجميع الأسر' },
                         { id: 'FINANCIAL_CAP', title: 'التحديد بالسقف المالي', desc: 'سقف محدد بالريال لكل أسرة مستفيدة' },
                         { id: 'VULNERABILITY_PRIORITY', title: 'أولوية الأشد احتياجاً', desc: 'ترتيب الأولوية للأيتام والأسر الكبيرة' }

@@ -1,3 +1,4 @@
+import { showToast } from './enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
 import { 
   Target, TrendingUp, ShieldCheck, Coins, Users, HeartHandshake, Building2, 
@@ -116,11 +117,11 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         setIsUpdateModalOpen(false);
         fetchStrategicPlan();
       } else {
-        alert(lang === 'ar' ? 'حدث خطأ أثناء تحديث الهدف' : 'Failed to update goal');
+        showToast({ type: 'error', title: lang === 'ar' ? 'التخطيط الاستراتيجي' : 'Strategic Planning', message: lang === 'ar' ? 'حدث خطأ أثناء تحديث الهدف' : 'Failed to update goal' });
       }
     } catch (err) {
       console.error(err);
-      alert(lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error');
+      showToast({ type: 'warning', title: lang === 'ar' ? 'الاتصال بالخادم' : 'Server Connection', message: lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error' });
     }
   };
 
@@ -140,11 +141,11 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         setIsNewGoalModalOpen(false);
         fetchStrategicPlan();
       } else {
-        alert(lang === 'ar' ? 'فشل إنشاء الهدف الاستراتيجي' : 'Failed to create goal');
+        showToast({ type: 'error', title: lang === 'ar' ? 'التخطيط الاستراتيجي' : 'Strategic Planning', message: lang === 'ar' ? 'فشل إنشاء الهدف الاستراتيجي' : 'Failed to create goal' });
       }
     } catch (err) {
       console.error(err);
-      alert(lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error');
+      showToast({ type: 'warning', title: lang === 'ar' ? 'الاتصال بالخادم' : 'Server Connection', message: lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error' });
     }
   };
 
@@ -164,11 +165,11 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         setIsNewSwotModalOpen(false);
         fetchStrategicPlan();
       } else {
-        alert(lang === 'ar' ? 'فشل إضافة عنصر SWOT' : 'Failed to add SWOT item');
+        showToast({ type: 'error', title: lang === 'ar' ? 'تحليل SWOT' : 'SWOT Analysis', message: lang === 'ar' ? 'فشل إضافة عنصر SWOT' : 'Failed to add SWOT item' });
       }
     } catch (err) {
       console.error(err);
-      alert(lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error');
+      showToast({ type: 'warning', title: lang === 'ar' ? 'الاتصال بالخادم' : 'Server Connection', message: lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error' });
     }
   };
 

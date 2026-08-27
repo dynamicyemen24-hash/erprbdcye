@@ -71,7 +71,7 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
   const toolsList: ToolMetadata[] = useMemo(() => [
     {
       id: 'sphere',
-      nameAr: 'حاسبة إسفير الدولية',
+      nameAr: 'حاسبة تقدير الاحتياجات الميدانية والإغاثة',
       nameEn: 'Sphere Humanitarian Calc',
       category: 'field',
       categoryNameAr: 'العمليات الميدانية والإغاثة',
@@ -79,12 +79,12 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
       icon: Droplet,
       iconColor: 'text-blue-600 dark:text-blue-400',
       bgLight: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50',
-      badgeAr: 'معيار إسفير 2026',
-      descriptionAr: 'حساب مياه WASH، المساحة، السعرات الحرارية، والمرافق الصحية.'
+      badgeAr: 'معايير العمل الإنساني',
+      descriptionAr: 'حساب مخصصات المياه، المساحة الآمنة، السلال الغذائية والمرافق الصحية.'
     },
     {
       id: 'id_verifier',
-      nameAr: 'متحقق الهويات والبصص',
+      nameAr: 'التحقق والتدقيق الميداني للهويات والملفات',
       nameEn: 'Beneficiary ID Verifier',
       category: 'field',
       categoryNameAr: 'العمليات الميدانية والإغاثة',
@@ -97,7 +97,7 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
     },
     {
       id: 'risk',
-      nameAr: 'مؤشر المخاطر الميدانية FCRI',
+      nameAr: 'مؤشر تقييم المخاطر التشغيلية والميدانية',
       nameEn: 'Field Risk Index',
       category: 'field',
       categoryNameAr: 'العمليات الميدانية والإغاثة',
@@ -105,12 +105,12 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
       icon: ShieldAlert,
       iconColor: 'text-rose-600 dark:text-rose-400',
       bgLight: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50',
-      badgeAr: 'إدارة المخاطر',
-      descriptionAr: 'تقييم الأمن، اللوجستيات، سلاسل الإمداد، وتذبذب العملات.'
+      badgeAr: 'إدارة المخاطر الميدانية',
+      descriptionAr: 'تقييم السلامة، سلاسل الإمداد اللوجستية وتذبذب تكاليف التدخل.'
     },
     {
       id: 'checklists',
-      nameAr: 'قوائم المهمات والتوزيع',
+      nameAr: 'قوائم التدقيق الميداني والمطابقة',
       nameEn: 'Dispatch Checklists',
       category: 'field',
       categoryNameAr: 'العمليات الميدانية والإغاثة',
@@ -123,7 +123,7 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
     },
     {
       id: 'icr',
-      nameAr: 'حاسبة الميزانيات ICR',
+      nameAr: 'حاسبة التكاليف المباشرة والتشغيلية للمشاريع',
       nameEn: 'ICR & Direct Cost Calc',
       category: 'finance',
       categoryNameAr: 'المالية والميزانيات',
@@ -131,12 +131,12 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
       icon: Percent,
       iconColor: 'text-amber-600 dark:text-amber-400',
       bgLight: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50',
-      badgeAr: 'معايير المانحين',
-      descriptionAr: 'احتساب المصاريف الإدارية المباشرة وغير المباشرة مع نسب USAID & UN.'
+      badgeAr: 'ضوابط الموازنات المعتمدة',
+      descriptionAr: 'احتساب المصاريف التشغيلية والإشرافية المباشرة وغير المباشرة للمشاريع.'
     },
     {
       id: 'ipsas',
-      nameAr: 'مدقق ترميز IPSAS 1',
+      nameAr: 'المدقق المحاسبي وتوازن قيود اليومية',
       nameEn: 'IPSAS Code Validator',
       category: 'finance',
       categoryNameAr: 'المالية والميزانيات',
@@ -144,12 +144,12 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
       icon: FileCheck,
       iconColor: 'text-indigo-600 dark:text-indigo-400',
       bgLight: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50',
-      badgeAr: 'دليل الحسابات الدولي',
-      descriptionAr: 'فحص مطابقة الأكواد الحسابية وتوازن القيد المزدوج.'
+      badgeAr: 'المطابقة المحاسبية الرسمية',
+      descriptionAr: 'فحص سلامة الحسابات ومطابقة القيود وتوازن طرفي القيد المزدوج.'
     },
     {
       id: 'iati',
-      nameAr: 'ترميز القطاعات IATI',
+      nameAr: 'دليل القطاعات التنموية والإنسانية المعتمد',
       nameEn: 'IATI Sector Mapper',
       category: 'governance',
       categoryNameAr: 'المعايير والحوكمة',
@@ -157,12 +157,12 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
       icon: Map,
       iconColor: 'text-emerald-600 dark:text-emerald-400',
       bgLight: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50',
-      badgeAr: 'الشفافية الدولية',
-      descriptionAr: 'دليل أكواد DAC وتنسيق النشاطات الدولية لتوليد ملفات XML.'
+      badgeAr: 'الشفافية والتقارير المعتمدة',
+      descriptionAr: 'دليل تصنيف القطاعات والأنشطة التنموية وفق النماذج المعتمدة.'
     },
     {
       id: 'chs_audit',
-      nameAr: 'التقييم الذاتي CHS',
+      nameAr: 'مقياس معايير الجودة والمساءلة الإنسانية',
       nameEn: 'CHS Core Humanitarian Audit',
       category: 'governance',
       categoryNameAr: 'المعايير والحوكمة',
@@ -170,8 +170,8 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
       icon: Award,
       iconColor: 'text-sky-600 dark:text-sky-400',
       bgLight: 'bg-sky-50 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/50',
-      badgeAr: 'الالتزامات الـ9',
-      descriptionAr: 'مقياس المساءلة والالتزامات الإنسانية التسعة للمؤسسة.'
+      badgeAr: 'معايير الجودة والمساءلة',
+      descriptionAr: 'تقييم مستوى التزام المؤسسة بمعايير الجودة والمساءلة والشفافية.'
     }
   ], []);
 
@@ -409,7 +409,7 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
       <html lang="${lang}" dir="${isRtl ? 'rtl' : 'ltr'}">
       <head>
         <meta charset="UTF-8">
-        <title>تقرير تقدير الاحتياجات الإنسانية - معايير إسفير الدولية</title>
+        <title>تقرير تقدير الاحتياجات الإنسانية الميدانية المعتمدة</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
@@ -421,7 +421,7 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
           <div class="flex justify-between items-center border-b-2 border-slate-900 pb-4">
             <div>
               <h1 class="text-xl font-black text-emerald-800">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
-              <h2 class="text-xs font-bold text-slate-600">شهادة تقدير الاحتياجات - ميثاق إسفير الدولي (Sphere Standards)</h2>
+              <h2 class="text-xs font-bold text-slate-600">وثيقة تقدير الاحتياجات الميدانية وفق معايير العمل الإنساني</h2>
             </div>
             <div class="text-left font-mono text-xs font-black">
               <p>التاريخ: ${new Date().toLocaleDateString('ar-EG')}</p>
@@ -445,7 +445,7 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
             </thead>
             <tbody class="divide-y divide-slate-200 font-bold">
               <tr>
-                <td class="p-2.5 text-blue-700 font-black">إمدادات المياه الصالحة WASH</td>
+                <td class="p-2.5 text-blue-700 font-black">إمدادات المياه الصالحة للاستخدام والشرب</td>
                 <td class="p-2.5">15 لتر / فرد / يوم</td>
                 <td class="p-2.5 text-left font-mono font-black text-sm">${waterNeeded.toLocaleString()} L</td>
               </tr>

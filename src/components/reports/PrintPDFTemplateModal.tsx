@@ -25,6 +25,13 @@ import {
   buildProgramsReportPDFHTML,
   buildActivitiesReportPDFHTML,
   buildStaffReportPDFHTML,
+  buildOperationalManualPDFHTML,
+  buildUserManualPDFHTML,
+  buildProcurementReportPDFHTML,
+  buildInventoryReportPDFHTML,
+  buildSponsorshipReportPDFHTML,
+  buildRevenueInvestmentReportPDFHTML,
+  buildAuditReportPDFHTML,
   generateAndDownloadPDF, 
   printPDFHTML,
   safeArray 
@@ -36,7 +43,7 @@ interface PrintPDFTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
   lang: 'ar' | 'en';
-  type: 'project' | 'financial' | 'executive' | 'beneficiary' | 'predictive' | 'evaluation' | 'interconnected' | 'strategy' | 'programs' | 'projects' | 'activities' | 'staff';
+  type: 'project' | 'financial' | 'executive' | 'beneficiary' | 'predictive' | 'evaluation' | 'interconnected' | 'strategy' | 'programs' | 'projects' | 'activities' | 'staff' | 'operational_manual' | 'user_manual' | 'procurement' | 'inventory' | 'sponsorship' | 'revenue_investments' | 'audit_trail';
   data: {
     projects?: any[];
     programs?: any[];
@@ -47,7 +54,14 @@ interface PrintPDFTemplateModalProps {
     goals?: any[];
     activities?: any[];
     users?: any[];
-    financialType?: 'trial' | 'income' | 'balance_sheet';
+    orders?: any[];
+    vendors?: any[];
+    inventoryItems?: any[];
+    warehouses?: any[];
+    invoices?: any[];
+    investments?: any[];
+    auditLogs?: any[];
+    financialType?: 'trial' | 'income' | 'balance_sheet' | 'cash_flow';
     title?: string;
     subtitle?: string;
   };
@@ -64,16 +78,36 @@ export default function PrintPDFTemplateModal({
   const isRtl = lang === 'ar';
 
   // State customization
-  const [reportTitle, setReportTitle] = useState(
-    data.title || (type === 'project' 
-      ? (isRtl ? 'تقرير الأداء التنفيذي للمشاريع الميدانية' : 'Field Projects Executive Performance Report')
-      : (isRtl ? 'القوائم المالية والختامية المعيارية' : 'Standard Financial Statements'))
-  );
-  const [reportSubtitle, setReportSubtitle] = useState(
-    data.subtitle || (type === 'project'
-      ? (isRtl ? 'متابعة نسبة الإنجاز والموازنات والمستفيدين' : 'Tracking progress, budgets and beneficiaries')
-      : (isRtl ? 'معدة وفق معايير IPSAS والمعايير الدولية المحاسبية' : 'Prepared according to IPSAS standards'))
-  );
+  const getDefaultTitle = () => {
+    if (data.title) return data.title;
+    if (type === 'procurement') return isRtl ? 'تقرير المشتريات والمناقصات وسلاسل الإمداد المعتمد' : 'Certified Procurement & Supply Chain Report';
+    if (type === 'inventory') return isRtl ? 'تقرير المخزون والمستودعات المركزية المعتمد' : 'Certified Inventory & Central Warehouses Report';
+    if (type === 'sponsorship') return isRtl ? 'تقرير كفالات الأيتام والرعاية التكافلية المعتمد' : 'Certified Orphans Sponsorships & Social Care Report';
+    if (type === 'revenue_investments') return isRtl ? 'تقرير تنمية الموارد والمشاريع الاستثمارية والوقفية' : 'Resource Mobilization & Endowment Investments Report';
+    if (type === 'audit_trail') return isRtl ? 'تقرير سجلات التدقيق الأمني والرقابي المعتمد' : 'Certified Security Audit Trail & Compliance Report';
+    if (type === 'project' || type === 'projects') return isRtl ? 'تقرير الأداء التنفيذي للمشاريع الميدانية' : 'Field Projects Executive Performance Report';
+    if (type === 'programs') return isRtl ? 'تقرير أداء البرامج التنموية الاستراتيجية' : 'Development Programs Strategic Performance Report';
+    if (type === 'activities') return isRtl ? 'سجل الأنشطة والمتابعة الميدانية المعيارية' : 'Field Activities & WBS Operational Registry';
+    if (type === 'staff') return isRtl ? 'كشف سجل كوادر المؤسسة والفرق الميدانية' : 'Official HR Staff & Field Personnel Registry';
+    if (type === 'beneficiary') return isRtl ? 'تقرير المستفيدين والرعاية الاجتماعية الموحد' : 'Unified Beneficiaries & Social Care Report';
+    if (type === 'strategy') return isRtl ? 'وثيقة الخطة الاستراتيجية المعتمدة (2026 - 2031)' : 'Official Strategic Plan Document (2026 - 2031)';
+    if (type === 'executive') return isRtl ? 'التقرير التنفيذي الموحد المتكامل (15 باباً معمارياً)' : 'Executive Integrated Intelligence Report';
+    return isRtl ? 'القوائم المالية والختامية المعيارية' : 'Standard Financial Statements';
+  };
+
+  const getDefaultSubtitle = () => {
+    if (data.subtitle) return data.subtitle;
+    if (type === 'procurement') return isRtl ? 'سجل أوامر الشراء P2P، تقييم الموردين، والمطابقة المحاسبية الثلاثية' : 'P2P Purchase Orders, Vendor Vetting & 3-Way Match Audit';
+    if (type === 'inventory') return isRtl ? 'حركة المواد الإغاثية، الطاقة الاستيعابية للمستودعات، وتقييم المخزون المتاح' : 'Relief Stock Balances, Warehouse Capacities & Stock Valuation';
+    if (type === 'sponsorship') return isRtl ? 'سجل الحالات المكفولة، المخصصات الشهرية، وبيانات المتابعة التعليمية والصحية' : 'Sponsored Orphans Dossier, Monthly Stipends, Health & Education Welfare';
+    if (type === 'revenue_investments') return isRtl ? 'عوائد التمويل الذاتي، الفواتير المحصلة، واستدامة المحافظ الاستثمارية التنموية' : 'Self-Financing Yields, Revenue Invoicing & Endowment Sustainability Portfolios';
+    if (type === 'audit_trail') return isRtl ? 'تتبع وتدقيق العمليات الحساسة، التعديلات المالية، والتحقق المشفر SHA-256' : 'Sensitive Operations Log, Mutation Audit & SHA-256 Cryptographic Verification';
+    if (type === 'project' || type === 'projects') return isRtl ? 'متابعة نسبة الإنجاز والموازنات والمستفيدين' : 'Tracking progress, budgets and beneficiaries';
+    return isRtl ? 'معدة وفق معايير IPSAS والمعايير الدولية المحاسبية' : 'Prepared according to IPSAS standards';
+  };
+
+  const [reportTitle, setReportTitle] = useState(getDefaultTitle());
+  const [reportSubtitle, setReportSubtitle] = useState(getDefaultSubtitle());
 
   const [accentColor, setAccentColor] = useState('#059669'); // Primary Emerald
   const [includeSummary, setIncludeSummary] = useState(true);
@@ -189,6 +223,89 @@ export default function PrintPDFTemplateModal({
     } else if (type === 'staff') {
       return buildStaffReportPDFHTML({
         users: safeArray(data.users),
+        title: reportTitle,
+        subtitle: reportSubtitle,
+        lang,
+        accentColor,
+        includeSummary,
+        includeSignatures,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'operational_manual') {
+      return buildOperationalManualPDFHTML({
+        title: reportTitle,
+        subtitle: reportSubtitle,
+        lang,
+        accentColor,
+        includeSignatures,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'user_manual') {
+      return buildUserManualPDFHTML({
+        title: reportTitle,
+        subtitle: reportSubtitle,
+        lang,
+        accentColor,
+        includeSignatures,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'procurement') {
+      return buildProcurementReportPDFHTML({
+        orders: safeArray(data.orders),
+        vendors: safeArray(data.vendors),
+        title: reportTitle,
+        subtitle: reportSubtitle,
+        lang,
+        accentColor,
+        includeSummary,
+        includeSignatures,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'inventory') {
+      return buildInventoryReportPDFHTML({
+        inventoryItems: safeArray(data.inventoryItems),
+        warehouses: safeArray(data.warehouses),
+        title: reportTitle,
+        subtitle: reportSubtitle,
+        lang,
+        accentColor,
+        includeSummary,
+        includeSignatures,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'sponsorship') {
+      return buildSponsorshipReportPDFHTML({
+        sponsorships: safeArray(data.sponsorships),
+        title: reportTitle,
+        subtitle: reportSubtitle,
+        lang,
+        accentColor,
+        includeSummary,
+        includeSignatures,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'revenue_investments') {
+      return buildRevenueInvestmentReportPDFHTML({
+        invoices: safeArray(data.invoices),
+        investments: safeArray(data.investments),
+        title: reportTitle,
+        subtitle: reportSubtitle,
+        lang,
+        accentColor,
+        includeSummary,
+        includeSignatures,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'audit_trail') {
+      return buildAuditReportPDFHTML({
+        auditLogs: safeArray(data.auditLogs),
         title: reportTitle,
         subtitle: reportSubtitle,
         lang,

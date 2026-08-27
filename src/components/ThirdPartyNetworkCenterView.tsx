@@ -104,7 +104,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
     if (found) {
       setScannedResult(found);
     } else {
-      setScannedResult({ error: isRtl ? 'القسائم غير موجودة أو غير مسجلة للنظام.' : 'Voucher not found.' });
+      setScannedResult({ error: isRtl ? 'القسيمة غير موجودة أو غير مسجلة في النظام.' : 'Voucher not found.' });
     }
   };
 
@@ -267,7 +267,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
           <div class="info-item"><span>عدد القسائم المقبولة</span><strong>${claim.voucher_count} قسيمة</strong></div>
           <div class="info-item"><span>المبلغ المستحق المطالب به</span><strong>${claim.claimed_amount.toLocaleString()} ${claim.currency_code}</strong></div>
           <div class="info-item"><span>المبلغ المعتمد النهائي</span><strong>${claim.approved_amount.toLocaleString()} ${claim.currency_code}</strong></div>
-          <div class="info-item"><span>نتيجة المطابقة الثلاثية</span><strong>مطابق بالكامل (Three-Way Matched)</strong></div>
+          <div class="info-item"><span>نتيجة المطابقة والاعتماد</span><strong>مطابق بالكامل (مطابقة أمر الشراء، وسند الاستلام، والفاتورة)</strong></div>
         </div>
 
         <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px; border-radius: 10px; font-size: 11px; margin-bottom: 20px;">
@@ -298,7 +298,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
 
   return (
     <ModuleShell
-      titleAr="مركز أطراف الثالث"
+      titleAr="شبكة الشركاء والتجار المعتمدين"
       titleEn="Third-Party Network"
       domainCode="NEB-14"
       icon={ShieldCheck}
@@ -315,7 +315,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-white">
-                {isRtl ? 'مركز أطراف العملية والإمداد (Third-Party Network & Merchant Claims)' : 'Third-Party Network & Merchant Claims'}
+                {isRtl ? 'شبكة الشركاء والتجار ومطالبات التوريد الميداني' : 'Third-Party Network & Merchant Claims'}
               </h1>
               <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-semibold">
                 {isRtl ? 'إمداد وتسويات معتمدة' : 'Verified Settlements'}
@@ -333,7 +333,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
             className="px-3.5 py-2 bg-amber-600/80 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-all shadow cursor-pointer"
           >
             <QrCode className="w-4 h-4" />
-            <span>{isRtl ? 'التحقق من قسيمة (Voucher Scanner)' : 'Scan Voucher'}</span>
+            <span>{isRtl ? 'التحقق من القسائم الرقمية' : 'Scan Voucher'}</span>
           </button>
 
           <button
@@ -357,7 +357,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>{isRtl ? 'مطالبات التجار والشركاء (Claims)' : 'Merchant Claims'}</span>
+          <span>{isRtl ? 'مطالبات التجار والشركاء المعتمدة' : 'Merchant Claims'}</span>
           <span className="bg-emerald-950 text-emerald-400 text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30">
             {claims.length}
           </span>
@@ -372,7 +372,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
           }`}
         >
           <QrCode className="w-4 h-4 text-amber-400" />
-          <span>{isRtl ? 'القسائم الرقمية والاستحقاق (Entitlements)' : 'Digital Vouchers'}</span>
+          <span>{isRtl ? 'القسائم الرقمية وسندات الاستحقاق' : 'Digital Vouchers'}</span>
           <span className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full">
             {vouchers.length}
           </span>
@@ -387,7 +387,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
           }`}
         >
           <Users className="w-4 h-4 text-blue-400" />
-          <span>{isRtl ? 'دليل الأطراف الشامل (Universal Parties)' : 'Parties Directory'}</span>
+          <span>{isRtl ? 'دليل الشركاء والموردين والجهات' : 'Parties Directory'}</span>
           <span className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full">
             {parties.length}
           </span>

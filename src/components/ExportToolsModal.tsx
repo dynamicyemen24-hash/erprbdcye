@@ -145,7 +145,7 @@ export default function ExportToolsModal({
             </div>
             <div>
               <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider block">
-                NexoraOS™ Export & Reporting Suite
+                UAMEX ERP™ Export & Reporting Suite
               </span>
               <h3 className="font-black text-sm text-white">{isRtl ? titleAr : titleEn}</h3>
             </div>
@@ -344,7 +344,7 @@ export default function ExportToolsModal({
           {/* Seal */}
           <div className="p-3 bg-slate-50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/80 rounded-xl flex items-center gap-2 text-[11px] text-slate-600 dark:text-zinc-400">
             <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>{isRtl ? 'موثق وفق معايير الحوكمة IPSAS & Sphere' : 'Certified per IPSAS & Sphere'}</span>
+            <span>{isRtl ? 'موثق وفق المعايير المؤسسية والإنسانية المعتمدة' : 'Certified per IPSAS & Sphere'}</span>
             <Award className="w-4 h-4 text-amber-500 ml-auto shrink-0" />
           </div>
         </div>

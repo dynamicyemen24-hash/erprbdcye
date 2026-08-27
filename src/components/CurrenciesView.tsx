@@ -1,3 +1,4 @@
+import { showToast } from './enterprise/EnterpriseToastContainer';
 import React, { useState } from 'react';
 import { 
   Coins, 
@@ -126,7 +127,7 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
       }
       onRefresh();
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      showToast({ type: 'error', title: lang === 'ar' ? 'خطأ في العملة' : 'Currency Error', message: err.message });
     }
   };
 

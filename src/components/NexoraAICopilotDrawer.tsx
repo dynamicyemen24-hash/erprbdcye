@@ -217,7 +217,7 @@ export default function NexoraAICopilotDrawer({
                   </span>
                 </h3>
                 <p className="text-[11px] text-slate-400">
-                  {isRtl ? 'الذكاء الاصطناعي، المعايير الدولية IPSAS، والأدلة التشغيلية SOPs' : 'Gemini AI, IPSAS Standards & Unified SOPs Library'}
+                  {isRtl ? 'المساعد الذكي للمنظومة، المعايير المحاسبية المعتمدة، والأدلة التشغيلية الرسمية' : 'Gemini AI, IPSAS Standards & Unified SOPs Library'}
                 </p>
               </div>
             </div>
@@ -309,7 +309,7 @@ export default function NexoraAICopilotDrawer({
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>{isRtl ? '🏛️ معايير IPSAS' : '🏛️ IPSAS Rules'}</span>
+              <span>{isRtl ? '🏛️ المعايير المحاسبية' : '🏛️ Accounting Rules'}</span>
             </button>
             <button
               onClick={() => setActiveTab('shortcuts')}
@@ -341,8 +341,8 @@ export default function NexoraAICopilotDrawer({
                       { titleAr: '🔍 تحليل الفجوات المالية والموازنات', titleEn: 'Budget Variance Analysis' },
                       { titleAr: '📊 التنبؤ بمعدل استدامة التمويل Runway', titleEn: 'Budget Runway Forecast' },
                       { titleAr: '🛡️ مصفوفة مخاطر الوصول والعمليات الميدانية', titleEn: 'Field Risk Assessment' },
-                      { titleAr: '🌟 تقرير مطابقة معايير CHS و Sphere', titleEn: 'CHS & Sphere Audit' },
-                      { titleAr: '🌐 تقرير المانحين وفق معيار الشفافية IATI', titleEn: 'IATI Donor Aid Compliance Report' }
+                      { titleAr: '🌟 تقرير الامتثال لمعايير الجودة والمساءلة الإنسانية', titleEn: 'Humanitarian Standards & Quality Audit' },
+                      { titleAr: '🌐 تقرير المانحين والشركاء وفق معايير الشفافية الدولية', titleEn: 'Donor Aid Transparency Compliance Report' }
                     ].map((item, idx) => (
                       <button
                         key={idx}
@@ -473,7 +473,7 @@ export default function NexoraAICopilotDrawer({
               <div className="space-y-3">
                 <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300">
                   <ShieldCheck className="w-4 h-4 text-emerald-400 mb-1" />
-                  <p>{isRtl ? 'تعتمد كافة العمليات المحاسبية في NexoraOS™ على القيد المزدوج التوازني وسجل التدقيق غير القابل للتعديل المعتمد لـ IPSAS.' : 'All NexoraOS? financial transactions strictly comply with IPSAS double-entry equilibrium & immutable audit trailing.'}</p>
+                  <p>{isRtl ? 'تعتمد كافة العمليات المحاسبية في المنظومة على القيد المزدوج التوازني وسجل التدقيق المالي غير القابل للتعديل.' : 'All NexoraOS? financial transactions strictly comply with IPSAS double-entry equilibrium & immutable audit trailing.'}</p>
                 </div>
 
                 {IPSAS_RULES.map((rule, idx) => (

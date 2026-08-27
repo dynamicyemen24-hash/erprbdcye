@@ -333,9 +333,9 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
 
   return (
     <ModuleShell
-      titleAr="نظام الكادر والملفات المهنية"
-      titleEn="Resource & Personnel OS"
-      descAr="السجلات الوظيفية للفرق الإنسانية، تخطيط المهام الميدانية"
+      titleAr="إدارة المستخدمين ومصفوفة الصلاحيات والأدوار"
+      titleEn="Enterprise Users, Roles & Access Control OS"
+      descAr="التحكم المركزي في حسابات الكادر المؤسسي، مصفوفة الصلاحيات، مستويات الأمان، وسقوف الاعتماد المالي"
       descEn="Staff profiles, humanitarian field logs, skills mapping, and active team locations"
       domainCode="NEB-09"
       icon={Users}
@@ -355,15 +355,15 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-black">
             <ShieldCheck className="w-4 h-4" />
-            <span>{isRtl ? 'إدارة الهوية والأدوار والصلاحيات المؤسسية' : 'Enterprise Identity & RBAC Governance'}</span>
+            <span>{isRtl ? 'إدارة الهوية والأدوار والصلاحيات المؤسسية' : 'Enterprise Identity & Access Governance'}</span>
           </div>
           <h2 className="text-xl font-black">
-            {isRtl ? 'المستخدمون ومصفوفة الصلاحيات (RBAC Governance)' : 'Users & Access Control Matrix'}
+            {isRtl ? 'المستخدمون ومصفوفة الصلاحيات المعتمدة' : 'Users & Access Control Matrix'}
           </h2>
           <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
             {isRtl 
-              ? 'التحكم المركزي في حسابات الكادر، مستويات التصريح الأمني (L1 إلى L5)، سقوف الاعتماد المالي، وتعيين الصلاحيات عبر الـ 15 نطاقاً تشغيلياً.' 
-              : 'Enterprise user directory, multi-tier security clearances, signing delegations and fine-grained RBAC matrix.'}
+              ? 'التحكم المركزي في حسابات الكادر، مستويات التصريح الأمني (المستوى الميداني والتنفيذي إلى الإدارة العليا)، وسقوف الاعتماد المالي وتعيين الصلاحيات المؤسسية.' 
+              : 'Enterprise user directory, multi-tier security clearances, signing delegations and fine-grained access matrix.'}
           </p>
         </div>
 
@@ -402,10 +402,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
       <div className="flex flex-wrap gap-2 bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-2xl border border-slate-200 dark:border-zinc-800">
         {[
           { id: 'users', label: isRtl ? 'دليل المستخدمين المعتمدين' : 'User Directory', icon: Users },
-          { id: 'matrix', label: isRtl ? 'مصفوفة الصلاحيات (RBAC Matrix)' : 'RBAC Matrix', icon: ShieldCheck },
+          { id: 'matrix', label: isRtl ? 'مصفوفة الصلاحيات والوصول' : 'Access Matrix', icon: ShieldCheck },
           { id: 'roles', label: isRtl ? 'الأدوار والمستويات الأمنية' : 'Roles & Clearances', icon: Award },
           { id: 'delegations', label: isRtl ? 'سقوف وصلاحيات الاعتماد المالي' : 'Delegation of Authority', icon: DollarSign },
-          { id: 'dimension_access', label: isRtl ? 'الصلاحيات المجهرية (الحسابات، المشاريع، الأنشطة، المنتجات)' : 'Dimension Access Matrix', icon: Layers },
+          { id: 'dimension_access', label: isRtl ? 'صلاحيات النطاقات التشغيلية والمشاريع' : 'Dimension Access Matrix', icon: Layers },
           { id: 'security_audit', label: isRtl ? 'سجل الجلسات والأمان اللحظي' : 'Active Sessions & Audit', icon: Fingerprint },
         ].map((tab) => {
           const Icon = tab.icon;

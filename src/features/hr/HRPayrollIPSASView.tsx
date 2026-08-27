@@ -35,15 +35,15 @@ export default function HRPayrollIPSASView({ lang }: HRPayrollIPSASViewProps) {
         <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">{isRtl ? 'ملخص الحركة المحاسبية للرواتب' : 'IPSAS Double-Entry Payroll Summary'}</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
           <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200 dark:border-zinc-800">
-            <span className="text-[10px] text-slate-400 block">{isRtl ? 'إجمالي الأجور الأساسية (Debit)' : 'Gross Salary Debit'}</span>
+            <span className="text-[10px] text-slate-400 block">{isRtl ? 'إجمالي الأجور الأساسية (مدين)' : 'Gross Salary Debit'}</span>
             <span className="text-lg font-black text-slate-900 dark:text-white">$12,500.00</span>
           </div>
           <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200 dark:border-zinc-800">
-            <span className="text-[10px] text-slate-400 block">{isRtl ? 'إجمالي البدلات والمكافآت (Debit)' : 'Allowances Debit'}</span>
+            <span className="text-[10px] text-slate-400 block">{isRtl ? 'إجمالي البدلات والمكافآت (مدين)' : 'Allowances Debit'}</span>
             <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">$1,750.00</span>
           </div>
           <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200 dark:border-zinc-800">
-            <span className="text-[10px] text-slate-400 block">{isRtl ? 'صافي الحسابات الجارية البنكية (Credit)' : 'Net Bank Payable Credit'}</span>
+            <span className="text-[10px] text-slate-400 block">{isRtl ? 'صافي الحسابات الجارية البنكية (دائن)' : 'Net Bank Payable Credit'}</span>
             <span className="text-lg font-black text-blue-600 dark:text-blue-400">$14,250.00</span>
           </div>
         </div>

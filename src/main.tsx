@@ -6,6 +6,7 @@ import { EnterpriseProvider } from './core/context/EnterpriseContext.tsx';
 import { EnvironmentModeProvider } from './core/context/EnvironmentModeContext.tsx';
 import ErrorBoundary from './app/components/ErrorBoundary.tsx';
 import './index.css';
+import 'leaflet/dist/leaflet.css';
 
 if (typeof performance !== 'undefined' && performance.mark) {
   performance.mark('app-start');

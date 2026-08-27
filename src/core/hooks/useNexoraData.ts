@@ -203,35 +203,50 @@ export function useNexoraData(lang: 'ar' | 'en') {
       setData(prev => ({ ...prev, prefetchProgress: progress }));
     };
 
-    // Helper to fetch individual endpoint safely with 2500ms timeout
+    // Helper to fetch individual endpoint safely with 4000ms timeout & retry
     const fetchEndpoint = async (ep: EndpointConfig) => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const timeoutDuration = ep.tier === 1 ? 4000 : 5000;
 
-      try {
-        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('rbd_token') : null;
-        const envMode = typeof localStorage !== 'undefined' ? localStorage.getItem('nexora_environment_mode') || 'production' : 'production';
-        const headers: Record<string, string> = {};
-        if (token) headers['Authorization'] = 'Bearer ' + token;
-        headers['x-environment-mode'] = envMode;
-        
-        const res = await fetch(ep.url, { headers, signal: controller.signal });
-        clearTimeout(timeoutId);
+      const tryFetch = async (): Promise<boolean> => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
 
-        if (res.ok) {
-          const json = await res.json();
-          if (json && typeof json === 'object' && Array.isArray(json.data) && json.pagination) {
-            fetchedResults[ep.key] = json.data;
-          } else if (json && typeof json === 'object' && Array.isArray(json.data)) {
-            fetchedResults[ep.key] = json.data;
-          } else {
-            fetchedResults[ep.key] = json;
+        try {
+          const token = typeof localStorage !== 'undefined' ? localStorage.getItem('rbd_token') : null;
+          const envMode = typeof localStorage !== 'undefined' ? localStorage.getItem('nexora_environment_mode') || 'production' : 'production';
+          const headers: Record<string, string> = {};
+          if (token) headers['Authorization'] = 'Bearer ' + token;
+          headers['x-environment-mode'] = envMode;
+          
+          const res = await fetch(ep.url, { headers, signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (res.ok) {
+            const json = await res.json();
+            if (json && typeof json === 'object' && Array.isArray(json.data) && json.pagination) {
+              fetchedResults[ep.key] = json.data;
+            } else if (json && typeof json === 'object' && Array.isArray(json.data)) {
+              fetchedResults[ep.key] = json.data;
+            } else {
+              fetchedResults[ep.key] = json;
+            }
+            modulesWarmed[ep.module] = true;
+            return true;
           }
-          modulesWarmed[ep.module] = true;
+          return false;
+        } catch {
+          clearTimeout(timeoutId);
+          return false;
         }
-      } catch (err) {
-        clearTimeout(timeoutId);
-        if (!fetchedResults[ep.key]) {
+      };
+
+      const success = await tryFetch();
+      if (!success) {
+        // Fast retry after 250ms for field connectivity resilience
+        await new Promise(r => setTimeout(r, 250));
+        const retrySuccess = await tryFetch();
+
+        if (!retrySuccess && !fetchedResults[ep.key]) {
           const fallbackData = (REAL_ENTERPRISE_DATA as any)[ep.key] || dataRef.current[ep.key];
           if (fallbackData && Array.isArray(fallbackData) && fallbackData.length > 0) {
             fetchedResults[ep.key] = fallbackData;
@@ -243,9 +258,8 @@ export function useNexoraData(lang: 'ar' | 'en') {
             fetchedResults[ep.key] = dataRef.current[ep.key] || [];
           }
         }
-      } finally {
-        updateProgress();
       }
+      updateProgress();
     };
 
     try {

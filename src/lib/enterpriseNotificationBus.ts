@@ -30,7 +30,7 @@ export interface OfflineSyncItem {
   retryCount: number;
 }
 
-class EnterpriseNotificationBus {
+export class EnterpriseNotificationBus {
   private static instance: EnterpriseNotificationBus;
   private listeners: Map<string, Array<(data: any) => void>> = new Map();
   private toastListeners: Array<(toast: ToastMessage) => void> = [];

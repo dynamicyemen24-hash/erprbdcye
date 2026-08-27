@@ -5,12 +5,12 @@ import {
   ShieldCheck, Settings, Database, Activity, Sliders,
   Maximize2, Minimize2, CheckCircle2, X, Calendar, Globe,
   BookOpen, PlayCircle, TrendingUp, Sparkles, Filter, ChevronDown,
-  FileCheck, Building2, Calculator
+  FileCheck, Building2, Calculator, PackageCheck, Handshake
 } from 'lucide-react';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 
-// ActiveTab: single source of truth
 import { ActiveTab } from '../core/types/dashboard';
+export type { ActiveTab };
 
 interface SystemsDockPanelProps {
   lang: 'ar' | 'en';
@@ -64,18 +64,18 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
         return [
           'strategic_planning', 'dashboard', 'domains', 'programs',
           'investments', 'finance', 'currencies', 'reports',
-          'approvals', 'docs', 'scenarios', 'hr_dashboard'
+          'approvals', 'docs', 'scenarios', 'hr_dashboard', 'third-party-network'
         ];
       case 'manager':
         return [
           'programs', 'projects', 'activities', 'investments', 'finance',
-          'currencies', 'contracts', 'approvals', 'users', 'control_panel',
-          'settings', 'audit', 'backup', 'docs', 'scenarios', 'hr_dashboard'
+          'currencies', 'contracts', 'inventory', 'approvals', 'users', 'control_panel',
+          'settings', 'audit', 'backup', 'docs', 'scenarios', 'hr_dashboard', 'third-party-network'
         ];
       case 'field':
         return [
           'projects', 'activities', 'geospatial', 'allocations',
-          'beneficiaries', 'sponsorships', 'docs', 'scenarios'
+          'beneficiaries', 'sponsorships', 'inventory', 'docs', 'scenarios'
         ];
       default:
         return [];
@@ -88,21 +88,21 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
 
   const isCompact = isMobileMode ? false : !isDockPinned;
 
-  // 13 NexoraOS Enterprise Systems - Clean Standard Business Names (No NEB Codes!)
+  // Enterprise Systems Registry
   const allSystems: SystemItem[] = useMemo(() => [
     // 1. Strategy & Planning Suite
     {
       id: 'sys-strategic-plan',
       tab: 'strategic_planning',
-      titleAr: 'Ø§Ù„ØªØ®Ø·ÙŠØ· Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠ Ø§Ù„Ø®Ù…Ø§Ø³ÙŠ',
-      titleEn: 'Strategic Planning & SWOT',
-      descAr: 'Ø§Ù„Ø£Ù‡Ø¯Ø§Ù Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ© ÙˆÙ…Ø¤Ø´Ø±Ø§Øª Ø§Ù„Ø£Ø¯Ø§Ø¡ ÙˆØ§Ù„Ø®Ø·Ø© Ø§Ù„Ø®Ù…Ø³ÙŠØ©',
-      descEn: '5-Year Strategic Goals, SWOT Matrix & Database Integration',
+      titleAr: 'التخطيط الاستراتيجي والمؤشرات',
+      titleEn: 'Strategic Planning & KPIs',
+      descAr: 'الخطة الاستراتيجية الخمسية، مصفوفة التحليل ومؤشرات القياس',
+      descEn: '5-Year Strategic Goals & Database Integration',
       suiteId: 'strategy',
-      suiteAr: 'Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ© ÙˆØ§Ù„ØªØ®Ø·ÙŠØ·',
+      suiteAr: 'الاستراتيجية والتخطيط',
       suiteEn: 'Strategy & Planning',
       icon: Activity,
-      statusAr: 'Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠ',
+      statusAr: 'استراتيجي',
       statusEn: 'Strategic',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
@@ -111,15 +111,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-strategy',
       tab: 'dashboard',
-      titleAr: 'Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ© ÙˆØ§Ù„Ø£Ø¯Ø§Ø¡ Ø§Ù„Ù…Ø¤Ø³Ø³ÙŠ',
+      titleAr: 'لوحة القيادة والمؤشرات العامة',
       titleEn: 'Strategy & Performance',
-      descAr: 'Ù…Ø¤Ø´Ø±Ø§Øª Ø§Ù„Ø£Ø¯Ø§Ø¡ Ø§Ù„Ø£Ù‡Ø¯Ø§Ù Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ©',
+      descAr: 'المؤشرات الرئيسية والأداء الاستراتيجي المؤسسي الشامل',
       descEn: 'Strategic KPIs & Balanced Scorecards',
       suiteId: 'strategy',
-      suiteAr: 'Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ© ÙˆØ§Ù„ØªØ®Ø·ÙŠØ·',
+      suiteAr: 'الاستراتيجية والتخطيط',
       suiteEn: 'Strategy & Planning',
       icon: Activity,
-      statusAr: 'Ù‚ÙŠØ§Ø¯ÙŠ',
+      statusAr: 'قيادي',
       statusEn: 'Executive',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
@@ -128,15 +128,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-domains',
       tab: 'domains',
-      titleAr: 'Ø§Ù„Ù…Ø­Ø§ÙØ¸ ÙˆØ§Ù„Ø£Ù†Ø¸Ù…Ø©',
-      titleEn: 'Portfolios & Domains',
-      descAr: 'Ø¥Ø´Ø±Ø§Ù Ø§Ù„Ù…Ø­Ø§ÙØ¸ Ø§Ù„ØªÙ†Ù…ÙˆÙŠØ© ÙˆØ§Ù„Ù‚Ø·Ø§Ø¹Ø§Øª',
+      titleAr: 'نطاقات العمل المؤسسية',
+      titleEn: 'Enterprise Domains',
+      descAr: 'الإشراف على النطاقات التشغيلية التنموية وحوكمتها',
       descEn: 'Development Portfolios Overview',
       suiteId: 'strategy',
-      suiteAr: 'Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ© ÙˆØ§Ù„ØªØ®Ø·ÙŠØ·',
+      suiteAr: 'الاستراتيجية والتخطيط',
       suiteEn: 'Strategy & Planning',
       icon: Compass,
-      statusAr: 'Ù…Ø¨Ø§Ø´Ø±',
+      statusAr: 'مركزي',
       statusEn: 'Active',
       accentColor: 'amber',
       badgeBg: 'bg-amber-500/10 dark:bg-amber-500/20',
@@ -145,15 +145,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-programs',
       tab: 'programs',
-      titleAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø¨Ø±Ø§Ù…Ø¬ Ø§Ù„ØªÙ†Ù…ÙˆÙŠØ©',
+      titleAr: 'البرامج التنموية والإنسانية',
       titleEn: 'Program Management',
-      descAr: 'Ø§Ù„Ø¨Ø±Ø§Ù…Ø¬ Ø§Ù„ØªÙ†Ù…ÙˆÙŠØ© ÙˆØ§Ù„Ù…ÙŠØ²Ø§Ù†ÙŠØ§Øª Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø©',
+      descAr: 'إدارة البرامج التنموية والميزانيات المرتبطة والخطط',
       descEn: 'Programs & Strategic Initiatives',
       suiteId: 'strategy',
-      suiteAr: 'Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ© ÙˆØ§Ù„ØªØ®Ø·ÙŠØ·',
+      suiteAr: 'الاستراتيجية والتخطيط',
       suiteEn: 'Strategy & Planning',
       icon: Briefcase,
-      statusAr: 'Ù…Ø¹ØªÙ…Ø¯',
+      statusAr: 'معتمد',
       statusEn: 'Approved',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
@@ -164,15 +164,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-projects',
       tab: 'projects',
-      titleAr: 'Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ©',
+      titleAr: 'المشاريع الميدانية التنفيذية',
       titleEn: 'Field Project Operations',
-      descAr: 'Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ ÙˆÙ†Ø³Ø¨ Ø§Ù„Ø¥Ù†Ø¬Ø§Ø² Ø§Ù„ÙØ¹Ù„ÙŠ',
+      descAr: 'متابعة تنفيذ المشاريع ونسب الإنجاز الفعلي والميداني',
       descEn: 'Field Projects & Milestones',
       suiteId: 'ops',
-      suiteAr: 'Ø§Ù„ØªØ´ØºÙŠÙ„ ÙˆØ§Ù„Ù…ÙŠØ¯Ø§Ù†',
+      suiteAr: 'التشغيل والميدان',
       suiteEn: 'Operations & Field',
       icon: Layers,
-      statusAr: 'Ù…ÙŠØ¯Ø§Ù†ÙŠ',
+      statusAr: 'ميداني',
       statusEn: 'Field',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
@@ -181,15 +181,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-activities',
       tab: 'activities',
-      titleAr: 'Ù‡ÙŠÙƒÙ„ WBS ÙˆØ§Ù„Ø£Ù†Ø´Ø·Ø© Ø§Ù„ØªØ´ØºÙŠÙ„ÙŠØ©',
-      titleEn: 'WBS Activities & M&E',
-      descAr: 'Ø¬Ø¯ÙˆÙ„Ø© Ø§Ù„Ø£Ù†Ø´Ø·Ø© ÙˆØ§Ù„Ù…Ø®Ø±Ø¬Ø§Øª Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ©',
+      titleAr: 'الأنشطة والمهام التشغيلية',
+      titleEn: 'Operational Activities',
+      descAr: 'جدولة المهام التنفيذية والمخرجات الميدانية',
       descEn: 'Work Breakdown & Outputs',
       suiteId: 'ops',
-      suiteAr: 'Ø§Ù„ØªØ´ØºÙŠÙ„ ÙˆØ§Ù„Ù…ÙŠØ¯Ø§Ù†',
+      suiteAr: 'التشغيل والميدان',
       suiteEn: 'Operations & Field',
       icon: CheckCircle2,
-      statusAr: 'ØªØ´ØºÙŠÙ„ÙŠ',
+      statusAr: 'تشغيلي',
       statusEn: 'Operational',
       accentColor: 'cyan',
       badgeBg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
@@ -198,16 +198,16 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-geospatial',
       tab: 'geospatial',
-      titleAr: 'Ø§Ù„Ø®Ø±ÙŠØ·Ø© Ø§Ù„Ù…ÙƒØ§Ù†ÙŠØ© GIS ÙˆØ¨Ø¤Ø± Ø§Ù„ÙƒØ«Ø§ÙØ©',
-      titleEn: 'Geospatial GIS Field Map',
-      descAr: 'Ø§Ù„Ø±Ø¨Ø· Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ ÙˆØ¨Ø¤Ø± Ø§Ù„Ø§Ø­ØªÙŠØ§Ø¬ Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠ',
+      titleAr: 'الخريطة المكانية وبؤر الاحتياج',
+      titleEn: 'Geospatial Field Map',
+      descAr: 'الربط الجغرافي وتوزيع التدخلات والمساعدات المكانية',
       descEn: 'Spatial Heatmaps & Geotagging',
       suiteId: 'ops',
-      suiteAr: 'Ø§Ù„ØªØ´ØºÙŠÙ„ ÙˆØ§Ù„Ù…ÙŠØ¯Ø§Ù†',
+      suiteAr: 'التشغيل والميدان',
       suiteEn: 'Operations & Field',
       icon: Globe,
-      statusAr: 'Ù…ÙƒØ§Ù†ÙŠØ© GIS',
-      statusEn: 'GIS Spatial',
+      statusAr: 'مكاني',
+      statusEn: 'Spatial',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
       badgeText: 'text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
@@ -215,15 +215,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-allocations',
       tab: 'allocations',
-      titleAr: 'ØªØ®ØµÙŠØµ Ø§Ù„ÙƒÙˆØ§Ø¯Ø± ÙˆØ§Ù„Ù…ÙˆØ§Ø±Ø¯',
+      titleAr: 'تخصيص الموارد والفرق الميدانية',
       titleEn: 'Staff & Resource Allocation',
-      descAr: 'ØªÙˆØ²ÙŠØ¹ Ø§Ù„ÙƒÙˆØ§Ø¯Ø± Ø§Ù„ÙÙ†ÙŠØ© Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙŠØ¯Ø§Ù†',
+      descAr: 'توزيع الكوادر الفنية والمعدات على مواقع العمل',
       descEn: 'Resource Planning & Workload',
       suiteId: 'ops',
-      suiteAr: 'Ø§Ù„ØªØ´ØºÙŠÙ„ ÙˆØ§Ù„Ù…ÙŠØ¯Ø§Ù†',
+      suiteAr: 'التشغيل والميدان',
       suiteEn: 'Operations & Field',
       icon: Calendar,
-      statusAr: 'Ù…ÙˆØ§Ø±Ø¯',
+      statusAr: 'موارد',
       statusEn: 'Resources',
       accentColor: 'amber',
       badgeBg: 'bg-amber-500/10 dark:bg-amber-500/20',
@@ -234,15 +234,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-beneficiaries',
       tab: 'beneficiaries',
-      titleAr: 'Ø³Ø¬Ù„ Ø§Ù„Ù…Ø³ØªÙÙŠØ¯ÙŠÙ† ÙˆØ§Ù„Ø®Ø¯Ù…Ø§Øª',
+      titleAr: 'سجل المستفيدين والخدمات',
       titleEn: 'Beneficiaries & Services',
-      descAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø³ØªÙÙŠØ¯ÙŠÙ† ÙˆØ§Ù„Ù…Ø³ÙˆØ­Ø§Øª Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ©',
+      descAr: 'إدارة سجلات المستفيدين والمسوحات الميدانية والتحقق',
       descEn: 'Beneficiary Registry & Service Log',
       suiteId: 'services',
-      suiteAr: 'Ø§Ù„Ø®Ø¯Ù…Ø§Øª ÙˆØ§Ù„Ø±Ø¹Ø§ÙŠØ©',
+      suiteAr: 'الخدمات والرعاية',
       suiteEn: 'Services & Welfare',
       icon: Users,
-      statusAr: 'Ø®Ø¯Ù…ÙŠ',
+      statusAr: 'خدمي',
       statusEn: 'Service',
       accentColor: 'blue',
       badgeBg: 'bg-blue-500/10 dark:bg-blue-500/20',
@@ -251,15 +251,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-sponsorships',
       tab: 'sponsorships',
-      titleAr: 'ÙƒÙØ§Ù„Ø§Øª Ø§Ù„Ø£ÙŠØªØ§Ù… ÙˆØ§Ù„Ø±Ø¹Ø§ÙŠØ© Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠØ©',
+      titleAr: 'كفالات الأيتام والرعاية الاجتماعية',
       titleEn: 'Orphan Care & Sponsorships',
-      descAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙƒÙØ§Ù„Ø§Øª ÙˆØ§Ù„Ø£Ø³Ø± Ø§Ù„Ù…ØªØ¹ÙÙØ©',
+      descAr: 'إدارة ملفات الأيتام والأسر المكفولة وتوزيع الكفالات',
       descEn: 'Orphan Care & Social Welfare',
       suiteId: 'services',
-      suiteAr: 'Ø§Ù„Ø®Ø¯Ù…Ø§Øª ÙˆØ§Ù„Ø±Ø¹Ø§ÙŠØ©',
+      suiteAr: 'الخدمات والرعاية',
       suiteEn: 'Services & Welfare',
       icon: Heart,
-      statusAr: 'Ø±Ø¹Ø§ÙŠØ©',
+      statusAr: 'رعاية',
       statusEn: 'Welfare',
       accentColor: 'rose',
       badgeBg: 'bg-rose-500/10 dark:bg-rose-500/20',
@@ -270,15 +270,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-investments',
       tab: 'investments',
-      titleAr: 'Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ø§Ø³ØªØ«Ù…Ø§Ø±ÙŠØ© ÙˆØ§Ù„Ø£ÙˆÙ‚Ø§Ù Ø§Ù„ØªÙ†Ù…ÙˆÙŠØ©',
+      titleAr: 'المشاريع الاستثمارية والأوقاف التنموية',
       titleEn: 'Investment & Endowment OS',
-      descAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø£ÙˆÙ‚Ø§Ù Ø§Ù„ØªÙ†Ù…ÙˆÙŠØ©ØŒ Ø¹ÙˆØ§Ø¦Ø¯ Ø§Ù„Ø§Ø³ØªØ«Ù…Ø§Ø±ØŒ ÙˆÙ…Ø¤Ø´Ø±Ø§Øª ROI/IRR',
-      descEn: 'Endowment Investments, Yield Distribution & RBAC Controls',
+      descAr: 'إدارة الأوقاف التنموية، عوائد الاستثمار والاستدامة المالية',
+      descEn: 'Endowment Investments & Yield Distribution',
       suiteId: 'finance',
-      suiteAr: 'Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ§Ù„Ø£Ø«Ø±',
+      suiteAr: 'المالية والأثر',
       suiteEn: 'Finance & Impact',
       icon: TrendingUp,
-      statusAr: 'Ø£ÙˆÙ‚Ø§Ù ÙˆØ§Ø³ØªØ«Ù…Ø§Ø±',
+      statusAr: 'استثمار',
       statusEn: 'Endowment',
       accentColor: 'amber',
       badgeBg: 'bg-amber-500/10 dark:bg-amber-500/20',
@@ -287,16 +287,16 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-finance',
       tab: 'finance',
-      titleAr: 'Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ¯ÙØªØ± Ø§Ù„Ø£Ø³ØªØ§Ø° IPSAS',
-      titleEn: 'IPSAS Finance & Ledger',
-      descAr: 'Ø§Ù„Ù…Ø¹Ø§ÙŠÙŠØ± Ø§Ù„Ø¯ÙˆÙ„ÙŠØ© IPSAS ÙˆØ´Ø¬Ø±Ø© Ø§Ù„Ø­Ø³Ø§Ø¨Ø§Øª',
-      descEn: 'IPSAS Accounting & Ledger',
+      titleAr: 'المالية ودفتر الأستاذ العام',
+      titleEn: 'Finance & General Ledger',
+      descAr: 'دليل الحسابات المعتمد، قيود اليومية وميزان المراجعة',
+      descEn: 'Chart of Accounts & General Ledger',
       suiteId: 'finance',
-      suiteAr: 'Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ§Ù„Ø£Ø«Ø±',
+      suiteAr: 'المالية والأثر',
       suiteEn: 'Finance & Impact',
       icon: Coins,
-      statusAr: 'Ù…Ø§Ù„ÙŠØ© IPSAS',
-      statusEn: 'IPSAS',
+      statusAr: 'محاسبة',
+      statusEn: 'Ledger',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
       badgeText: 'text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
@@ -304,15 +304,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-currencies',
       tab: 'currencies',
-      titleAr: 'Ø§Ù„Ø¹Ù…Ù„Ø§Øª ÙˆØ£Ø³Ø¹Ø§Ø± Ø§Ù„ØµØ±Ù',
+      titleAr: 'العملات وأسعار الصرف',
       titleEn: 'Currencies & Exchange Rates',
-      descAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø¹Ù…Ù„Ø§Øª ÙˆØ§Ù„ØªØ­ÙˆÙŠÙ„Ø§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ©',
+      descAr: 'إدارة العملات وأسعار الصرف والتحويلات المالية',
       descEn: 'Multi-currency & FX Rates',
       suiteId: 'finance',
-      suiteAr: 'Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ§Ù„Ø£Ø«Ø±',
+      suiteAr: 'المالية والأثر',
       suiteEn: 'Finance & Impact',
       icon: Coins,
-      statusAr: 'Ø¹Ù…Ù„Ø§Øª',
+      statusAr: 'عملات',
       statusEn: 'Forex',
       accentColor: 'amber',
       badgeBg: 'bg-amber-500/10 dark:bg-amber-500/20',
@@ -321,15 +321,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-contracts',
       tab: 'contracts',
-      titleAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø¹Ù‚ÙˆØ¯ Ø§Ù„Ù…ÙˆØ±Ø¯ÙŠÙ† ÙˆØ§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª',
-      titleEn: 'Contract & Vendor Obligations OS',
-      descAr: 'Ø¹Ù‚ÙˆØ¯ Ø§Ù„ØªÙˆØ±ÙŠØ¯ ÙˆØ§Ù„Ù…Ù‚Ø§ÙˆÙ„Ø§Øª ÙˆØ±Ø§Ø¯Ø§Ø± Ø§Ù„ØªØ¬Ø¯ÙŠØ¯ ÙˆØ§Ù„ØªØ³Ø¯ÙŠØ¯',
+      titleAr: 'العقود والاتفاقيات الرسمية',
+      titleEn: 'Contracts & Agreements',
+      descAr: 'عقود التوريد والمقاولات واتفاقيات الشركاء والمنح',
       descEn: 'Procurement contracts, renewals & payment milestones',
       suiteId: 'finance',
-      suiteAr: 'Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ§Ù„Ø£Ø«Ø±',
+      suiteAr: 'المالية والأثر',
       suiteEn: 'Finance & Impact',
       icon: FileCheck,
-      statusAr: 'Ø§Ù„Ø¹Ù‚ÙˆØ¯ ÙˆØ§Ù„Ø´Ø±Ø§ÙƒØ§Øª',
+      statusAr: 'عقود',
       statusEn: 'Contracts',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
@@ -338,16 +338,16 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-reports',
       tab: 'reports',
-      titleAr: 'Ù…Ø¤Ø´Ø±Ø§Øª Ø§Ù„Ø£Ø«Ø± ÙˆØ§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ',
-      titleEn: 'AI Impact & Analytics',
-      descAr: 'Ù…Ø¹Ø§ÙŠÙŠØ± Sphere / CHS ÙˆØªÙ‚Ø§Ø±ÙŠØ± Ø§Ù„Ø£Ø«Ø±',
-      descEn: 'Sphere & CHS Standards Analytics',
+      titleAr: 'التقارير المؤسسية الشاملة',
+      titleEn: 'Institutional Reports',
+      descAr: 'التقارير التحليلية والمخرجات الرسمية القابلة للطباعة',
+      descEn: 'Analytics, printable statements & impact logs',
       suiteId: 'finance',
-      suiteAr: 'Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ§Ù„Ø£Ø«Ø±',
+      suiteAr: 'المالية والأثر',
       suiteEn: 'Finance & Impact',
       icon: Brain,
-      statusAr: 'Ø°ÙƒØ§Ø¡ Ø£Ø«Ø±',
-      statusEn: 'AI Analytics',
+      statusAr: 'تقارير',
+      statusEn: 'Reports',
       accentColor: 'purple',
       badgeBg: 'bg-purple-500/10 dark:bg-purple-500/20',
       badgeText: 'text-purple-700 dark:text-purple-400 border-purple-500/20'
@@ -357,15 +357,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-approvals',
       tab: 'approvals',
-      titleAr: 'Ø³ÙŠØ± Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯Ø§Øª ÙˆØ§Ù„Ù…ÙˆØ§ÙÙ‚Ø§Øª',
+      titleAr: 'سلسلة الموافقات والاعتمادات',
       titleEn: 'Approval Workflows',
-      descAr: 'Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ© Ù…ØªØ¹Ø¯Ø¯Ø© Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª',
+      descAr: 'الموافقات المالية والإدارية متعددة المستويات',
       descEn: 'Multi-level Authorization Engine',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: ShieldCheck,
-      statusAr: 'Ø§Ø¹ØªÙ…Ø§Ø¯Ø§Øª',
+      statusAr: 'اعتمادات',
       statusEn: 'Approvals',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
@@ -374,32 +374,66 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-hr-dashboard',
       tab: 'hr_dashboard',
-      titleAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙˆØ§Ø±Ø¯ Ø§Ù„Ø¨Ø´Ø±ÙŠØ© ÙˆØ§Ù„ÙƒÙˆØ§Ø¯Ø±',
-      titleEn: 'HR Workspace & Talent OS',
-      descAr: 'Ù„ÙˆØ­Ø© Ø§Ù„Ø£Ø¯Ø§Ø¡ØŒ Ù…Ø³ÙŠØ±Ø§Øª Ø§Ù„Ø±ÙˆØ§ØªØ¨ ÙˆØ§Ù„Ø¨Ø¯Ù„Ø§ØªØŒ ÙˆØªÙ‚Ø§Ø±ÙŠØ± Ø§Ù„Ø¹Ù‡Ø¯ Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ© Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø©',
-      descEn: 'Performance dashboard, payroll, field allowances & staff custodianship ledger',
+      titleAr: 'الموارد البشرية والكوادر',
+      titleEn: 'Human Resources & Talent',
+      descAr: 'الملفات الوظيفية، مسيرات الرواتب والعهد الميدانية',
+      descEn: 'Performance dashboard, payroll & staff ledger',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: Users,
-      statusAr: 'Ù…Ø³ØªÙ…Ø±',
-      statusEn: 'Live',
+      statusAr: 'كوادر',
+      statusEn: 'HR',
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
       badgeText: 'text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
     },
     {
+      id: 'sys-inventory',
+      tab: 'inventory',
+      titleAr: 'المستودعات وإدارة المخزون',
+      titleEn: 'Warehouse & Inventory OS',
+      descAr: 'إدارة المخازن المركزية، الأصناف وسندات الاستلام والصرف',
+      descEn: 'Central Warehouses, stock items & dispatch receipts',
+      suiteId: 'governance',
+      suiteAr: 'الحوكمة والنظام',
+      suiteEn: 'Governance & Core',
+      icon: PackageCheck,
+      statusAr: 'مستودعات',
+      statusEn: 'Stock',
+      accentColor: 'emerald',
+      badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+      badgeText: 'text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+    },
+    {
+      id: 'sys-third-party',
+      tab: 'third-party-network',
+      titleAr: 'شبكة الشركاء والجهات الداعمة',
+      titleEn: 'Partner & Donor Network',
+      descAr: 'سجل المانحين والمنظمات الدولية والجهات الشريكة',
+      descEn: 'Donors, international partners & collaborative registry',
+      suiteId: 'governance',
+      suiteAr: 'الحوكمة والنظام',
+      suiteEn: 'Governance & Core',
+      icon: Handshake,
+      statusAr: 'شركاء',
+      statusEn: 'Partners',
+      accentColor: 'blue',
+      badgeBg: 'bg-blue-500/10 dark:bg-blue-500/20',
+      badgeText: 'text-blue-700 dark:text-blue-400 border-blue-500/20'
+    },
+    {
       id: 'sys-users',
       tab: 'users',
-      titleAr: 'Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙˆÙ† ÙˆØ§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª',
+      titleAr: 'المستخدمون ومصفوفة الصلاحيات',
       titleEn: 'Users & Permissions',
-      descAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø£Ø¯ÙˆØ§Ø± ÙˆØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„ÙˆØµÙˆÙ„',
+      descAr: 'إدارة حسابات الكادر المؤسسي ومستويات الأمان والاعتمادات',
       descEn: 'Role-Based Access Control',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: Users,
-      statusAr: 'Ø£Ù…Ø§Ù†',
+      statusAr: 'صلاحيات',
       statusEn: 'RBAC',
       accentColor: 'indigo',
       badgeBg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
@@ -408,15 +442,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-control-panel',
       tab: 'control_panel',
-      titleAr: 'Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… ÙˆØ§Ù„Ø¹Ù…Ù„ÙŠØ§Øª',
+      titleAr: 'لوحة التحكم والمراقبة المركزية',
       titleEn: 'Control Panel & Console',
-      descAr: 'Ø§Ù„ØªØ­ÙƒÙ… Ø¨Ø§Ù„Ø¨Ù†ÙŠØ© Ø§Ù„ØªØ­ØªÙŠØ©ØŒ Neon DBØŒ ÙˆÙ…ÙØ§ØªÙŠØ­ Ø§Ù„ØªØ´ØºÙŠÙ„',
-      descEn: 'Cloud Engine, Neon DB & System Switches',
+      descAr: 'مراقبة أداء الخوادم، قواعد البيانات السحابية وحالة الربط',
+      descEn: 'Cloud Engine & System Switches',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: Sliders,
-      statusAr: 'ØªØ­ÙƒÙ…',
+      statusAr: 'تحكم',
       statusEn: 'Console',
       accentColor: 'amber',
       badgeBg: 'bg-amber-500/10 dark:bg-amber-500/20',
@@ -425,15 +459,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-settings',
       tab: 'settings',
-      titleAr: 'Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù…Ø¤Ø³Ø³Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      titleAr: 'الإعدادات العامة والسياسات',
       titleEn: 'Platform Settings',
-      descAr: 'Ø§Ù„Ù‡ÙˆÙŠØ© Ø§Ù„Ø¨ØµØ±ÙŠØ© ÙˆØ¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù…Ø¤Ø³Ø³Ø© Ø§Ù„Ø¹Ø§Ù…Ø©',
+      descAr: 'إعدادات المنظومة، هوية المؤسسة، التراخيص والضوابط',
       descEn: 'Enterprise Identity & Config',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: Settings,
-      statusAr: 'Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª',
+      statusAr: 'إعدادات',
       statusEn: 'Settings',
       accentColor: 'slate',
       badgeBg: 'bg-slate-500/10 dark:bg-slate-500/20',
@@ -442,15 +476,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-audit',
       tab: 'audit',
-      titleAr: 'Ø³Ø¬Ù„ Ø§Ù„ØªØ¯Ù‚ÙŠÙ‚ ÙˆØ§Ù„Ø£Ù…Ø§Ù†',
+      titleAr: 'سجل التدقيق والأمان المؤسسي',
       titleEn: 'Audit & Compliance Logs',
-      descAr: 'ØªØªØ¨Ø¹ ÙƒØ§ÙØ© Ø§Ù„Ø¹Ù…Ù„ÙŠØ§Øª ÙˆØ§Ù„Ø£Ù†Ø´Ø·Ø© Ø§Ù„Ø£Ù…Ù†ÙŠØ©',
+      descAr: 'سجل العمليات الإدارية والرقابة على الحركات الحساسة',
       descEn: 'Immutable System Audit Trail',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: Database,
-      statusAr: 'ØªØ¯Ù‚ÙŠÙ‚',
+      statusAr: 'تدقيق',
       statusEn: 'Audit',
       accentColor: 'slate',
       badgeBg: 'bg-slate-500/10 dark:bg-slate-500/20',
@@ -459,15 +493,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-backup',
       tab: 'backup',
-      titleAr: 'Ø§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ ÙˆØ§Ù„ØªØ¹Ø§ÙÙŠ',
+      titleAr: 'النسخ الاحتياطي واستعادة البيانات',
       titleEn: 'Backup & Recovery',
-      descAr: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù†Ø³Ø® Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ Ù„Ù‚ÙˆØ§Ø¹Ø¯ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª',
+      descAr: 'إدارة النسخ الاحتياطية وتأمين قواعد البيانات السحابية',
       descEn: 'Database Backups & Disaster Recovery',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: Database,
-      statusAr: 'Ø¨ÙŠØ§Ù†Ø§Øª',
+      statusAr: 'نسخ أمان',
       statusEn: 'Backup',
       accentColor: 'slate',
       badgeBg: 'bg-slate-500/10 dark:bg-slate-500/20',
@@ -476,15 +510,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-docs',
       tab: 'docs',
-      titleAr: 'Ø§Ù„Ø¯Ù„ÙŠÙ„ Ø§Ù„Ù…Ø¹Ø±ÙÙŠ ÙˆØ§Ù„Ù„ÙˆØ§Ø¦Ø­',
+      titleAr: 'دليل الاستخدام واللوائح المؤسسية',
       titleEn: 'SOP & Knowledge Base',
-      descAr: 'Ø§Ù„Ø£Ø¯Ù„Ø© Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¦ÙŠØ© ÙˆØ§Ù„Ø³ÙŠØ§Ø³Ø§Øª Ø§Ù„Ø¯Ø§Ø®Ù„ÙŠØ©',
+      descAr: 'الأدلة الإجرائية واللوائح والسياسات التشغيلية الداخلية',
       descEn: 'Operating Manuals & Governance',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: BookOpen,
-      statusAr: 'Ø¯Ù„ÙŠÙ„',
+      statusAr: 'لوائح',
       statusEn: 'Docs',
       accentColor: 'sky',
       badgeBg: 'bg-sky-500/10 dark:bg-sky-500/20',
@@ -493,15 +527,15 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
     {
       id: 'sys-scenarios',
       tab: 'scenarios',
-      titleAr: 'Ø§Ù„Ø³ÙŠÙ†Ø§Ø±ÙŠÙˆÙ‡Ø§Øª Ø§Ù„ØªØ´ØºÙŠÙ„ÙŠØ©',
+      titleAr: 'سيناريوهات العمليات التشغيلية',
       titleEn: 'Operational Playbooks',
-      descAr: 'Ù…Ø­Ø§ÙƒØ§Ø© Ø§Ù„Ø£Ø²Ù…Ø§Øª ÙˆØ³ÙŠÙ†Ø§Ø±ÙŠÙˆÙ‡Ø§Øª Ø§Ù„ØªØ¯Ø®Ù„',
+      descAr: 'محاكاة الأزمات وإجراءات الاستجابة الميدانية السريعة',
       descEn: 'Emergency Response Playbooks',
       suiteId: 'governance',
-      suiteAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø© ÙˆØ§Ù„Ù†Ø¸Ø§Ù…',
+      suiteAr: 'الحوكمة والنظام',
       suiteEn: 'Governance & Core',
       icon: PlayCircle,
-      statusAr: 'Ø³ÙŠÙ†Ø§Ø±ÙŠÙˆ',
+      statusAr: 'سيناريو',
       statusEn: 'Playbooks',
       accentColor: 'amber',
       badgeBg: 'bg-amber-500/10 dark:bg-amber-500/20',
@@ -553,12 +587,12 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
   };
 
   const suiteFilterPills = [
-    { id: 'all', labelAr: 'Ø§Ù„ÙƒÙ„', labelEn: 'All', count: allSystems.length },
-    { id: 'strategy', labelAr: 'Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ©', labelEn: 'Strategy', count: allSystems.filter(s => s.suiteId === 'strategy').length },
-    { id: 'ops', labelAr: 'Ø§Ù„Ù…ÙŠØ¯Ø§Ù†', labelEn: 'Field Ops', count: allSystems.filter(s => s.suiteId === 'ops').length },
-    { id: 'services', labelAr: 'Ø§Ù„Ø®Ø¯Ù…Ø§Øª', labelEn: 'Services', count: allSystems.filter(s => s.suiteId === 'services').length },
-    { id: 'finance', labelAr: 'Ø§Ù„Ù…Ø§Ù„ÙŠØ©', labelEn: 'Finance', count: allSystems.filter(s => s.suiteId === 'finance').length },
-    { id: 'governance', labelAr: 'Ø§Ù„Ø­ÙˆÙƒÙ…Ø©', labelEn: 'Governance', count: allSystems.filter(s => s.suiteId === 'governance').length },
+    { id: 'all', labelAr: 'الكل', labelEn: 'All', count: allSystems.length },
+    { id: 'strategy', labelAr: 'الاستراتيجية', labelEn: 'Strategy', count: allSystems.filter(s => s.suiteId === 'strategy').length },
+    { id: 'ops', labelAr: 'الميدان', labelEn: 'Field Ops', count: allSystems.filter(s => s.suiteId === 'ops').length },
+    { id: 'services', labelAr: 'الخدمات', labelEn: 'Services', count: allSystems.filter(s => s.suiteId === 'services').length },
+    { id: 'finance', labelAr: 'المالية', labelEn: 'Finance', count: allSystems.filter(s => s.suiteId === 'finance').length },
+    { id: 'governance', labelAr: 'الحوكمة', labelEn: 'Governance', count: allSystems.filter(s => s.suiteId === 'governance').length },
   ];
 
   return (
@@ -573,13 +607,13 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
             </div>
             <div className="min-w-0">
               <h3 className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
-                <span>{isRtl ? 'Ù„ÙˆØ­Ø© Ø§Ù„Ø£Ù†Ø¸Ù…Ø© Ø§Ù„Ù…Ø¤Ø³Ø³ÙŠØ©' : 'Enterprise Systems Dock'}</span>
+                <span>{isRtl ? 'لوحة الأنظمة المؤسسية' : 'Enterprise Systems Dock'}</span>
                 <span className="text-[9px] font-bold px-1.5 py-0.2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded border border-emerald-500/20 shrink-0">
-                  {allSystems.length} {isRtl ? 'Ù†Ø¸Ø§Ù…' : 'Systems'}
+                  {allSystems.length} {isRtl ? 'نظام' : 'Systems'}
                 </span>
               </h3>
               <p className="text-[9px] text-slate-500 dark:text-zinc-400 font-bold truncate">
-                {isRtl ? 'Ø§Ù„ØªÙ†Ù‚Ù„ Ø§Ù„Ù…Ø¨Ø§Ø´Ø± Ø¹Ø¨Ø± Ø§Ù„Ù…Ù†Ø¸ÙˆÙ…Ø© Ø§Ù„ØªØ´ØºÙŠÙ„ÙŠØ©' : 'Instant Platform Navigation'}
+                {isRtl ? 'التنقل المباشر عبر المنظومة التشغيلية' : 'Instant Platform Navigation'}
               </p>
             </div>
           </div>
@@ -590,7 +624,7 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
             <button
               onClick={onToggleDockPin}
               className="p-1.5 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-400 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-zinc-700"
-              title={isCompact ? (isRtl ? 'ØªÙˆØ³ÙŠØ¹ Ù„ÙˆØ­Ø© Ø§Ù„Ø£Ù†Ø¸Ù…Ø©' : 'Expand Systems Panel') : (isRtl ? 'ØªØµØºÙŠØ± Ø¥Ù„Ù‰ Ø´Ø±ÙŠØ· Ø§Ù„Ø¯ÙˆÙƒ' : 'Compact Dock Mode')}
+              title={isCompact ? (isRtl ? 'توسيع لوحة الأنظمة' : 'Expand Systems Panel') : (isRtl ? 'تصغير إلى شريط الدوك' : 'Compact Dock Mode')}
             >
               {isCompact ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
             </button>
@@ -608,10 +642,10 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={isRtl ? 'Ø¨Ø­Ø« Ø³Ø±ÙŠØ¹ ÙÙŠ Ø§Ù„Ø£Ù†Ø¸Ù…Ø©...' : 'Filter Enterprise Systems...'}
+              placeholder={isRtl ? 'بحث سريع في الأنظمة...' : 'Filter Enterprise Systems...'}
               className={`w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl py-1.5 ${
                 isRtl ? 'pr-8 pl-6' : 'pl-8 pr-6'
-              } text-[11px] font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-colors shadow-2xs`}
+              } text-[11px] font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500 transition-colors shadow-2xs`}
             />
             {searchTerm && (
               <button 
@@ -623,37 +657,32 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
             )}
           </div>
 
-          {/* Quick Suite Filter Pills */}
-          <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pb-1 pt-0.5">
-            {suiteFilterPills.map((pill) => {
-              const isSelected = selectedSuite === pill.id;
-              return (
-                <button
-                  key={pill.id}
-                  onClick={() => setSelectedSuite(pill.id)}
-                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 border ${
-                    isSelected
-                      ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
-                      : 'bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-800'
-                  }`}
-                >
-                  <span>{isRtl ? pill.labelAr : pill.labelEn}</span>
-                  <span className={`text-[8px] font-mono rtl:mr-1 ltr:ml-1 px-1 rounded-full ${isSelected ? 'bg-amber-600/60 text-white' : 'bg-slate-200 dark:bg-zinc-800 text-slate-500'}`}>
-                    {pill.count}
-                  </span>
-                </button>
-              );
-            })}
+          {/* Suite Category Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar">
+            {suiteFilterPills.map(p => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedSuite(p.id)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-extrabold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
+                  selectedSuite === p.id 
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' 
+                    : 'bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-800'
+                }`}
+              >
+                <span>{isRtl ? p.labelAr : p.labelEn}</span>
+                <span className="rtl:mr-1 ltr:ml-1 opacity-75 font-mono text-[9px]">({p.count})</span>
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* SYSTEMS LIST AREA */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-0.5">
-        {/* COMPACT MODE RAIL */}
+      {/* SYSTEMS LIST (ACCORDION OR COMPACT) */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pr-0.5">
         {isCompact ? (
-          <div className="space-y-1.5 flex flex-col items-center">
-            {allSystems.map((system) => {
+          /* COMPACT RAIL MODE (Icons Only) */
+          <div className="flex flex-col items-center gap-1.5 py-1">
+            {filteredSystems.map((system) => {
               const IconComp = system.icon;
               const isActive = activeTab === system.tab;
 
@@ -661,73 +690,55 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
                 <button
                   key={system.id}
                   onClick={() => onNavigate(system.tab)}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer relative group border ${
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer relative group border ${
                     isActive 
-                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md scale-105' 
-                      : 'bg-slate-50 dark:bg-zinc-900/60 hover:bg-slate-100 dark:hover:bg-zinc-800 border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300'
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm' 
+                      : 'bg-slate-50 dark:bg-zinc-900/60 border-slate-200/80 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:text-emerald-600 hover:border-emerald-500/50'
                   }`}
-                  title={`${isRtl ? system.titleAr : system.titleEn} (${isRtl ? system.suiteAr : system.suiteEn})`}
+                  title={isRtl ? system.titleAr : system.titleEn}
                 >
                   <IconComp className="w-4 h-4 shrink-0" />
                   
-                  {isActive && (
-                    <span className="w-2 h-2 rounded-full bg-amber-400 absolute top-1 right-1 ring-2 ring-emerald-700"></span>
-                  )}
-
-                  {/* Hover Tooltip Card */}
-                  <div className={`absolute ${isRtl ? 'right-12' : 'left-12'} top-0 hidden group-hover:flex flex-col bg-slate-900 dark:bg-zinc-900 text-white p-2.5 rounded-xl shadow-2xl border border-slate-700 dark:border-zinc-700 z-50 w-48 text-right rtl:text-right ltr:text-left animate-in fade-in zoom-in-95 duration-150`}>
-                    <div className="flex items-center justify-between gap-1 mb-1">
-                      <span className="text-[10px] font-black text-amber-400">
-                        {isRtl ? system.suiteAr : system.suiteEn}
-                      </span>
-                      <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded border ${system.badgeBg} ${system.badgeText}`}>
-                        {isRtl ? system.statusAr : system.statusEn}
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-extrabold leading-snug">
-                      {isRtl ? system.titleAr : system.titleEn}
-                    </span>
-                    <span className="text-[9px] text-slate-400 mt-0.5 leading-tight">
-                      {isRtl ? system.descAr : system.descEn}
-                    </span>
+                  {/* Floating tooltip on hover */}
+                  <div className={`absolute ${isRtl ? 'right-11' : 'left-11'} top-1 hidden group-hover:block bg-zinc-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md whitespace-nowrap z-50`}>
+                    {isRtl ? system.titleAr : system.titleEn}
                   </div>
                 </button>
               );
             })}
           </div>
         ) : (
-          /* EXPANDED MODE CATEGORIZED SUITES */
+          /* EXPANDED ACCORDION MODE (Grouped by Suites) */
           <>
             {groupedSuites.length === 0 ? (
-              <div className="p-4 text-center text-slate-400 dark:text-zinc-500 text-xs font-bold bg-slate-50 dark:bg-zinc-900/40 rounded-xl border border-slate-200 dark:border-zinc-800">
-                {isRtl ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ù†Ø¸Ù…Ø© ØªØ·Ø§Ø¨Ù‚ Ø§Ù„Ø¨Ø­Ø« Ø§Ù„Ø­Ø±ÙÙŠ' : 'No matching systems found'}
+              <div className="p-4 text-center text-slate-400 dark:text-zinc-500 text-[11px] font-bold">
+                {isRtl ? 'لا توجد أنظمة مطابقة لخيارات البحث' : 'No matching systems found'}
               </div>
             ) : (
-              groupedSuites.map(([suiteId, suiteData]) => {
-                const isCollapsed = collapsedSuites[suiteId] || false;
+              groupedSuites.map(([suiteKey, suiteData]) => {
+                const isCollapsed = collapsedSuites[suiteKey];
 
                 return (
-                  <div key={suiteId} className="space-y-1">
-                    {/* Suite Category Header */}
+                  <div key={suiteKey} className="rounded-xl border border-slate-200/80 dark:border-zinc-800/80 overflow-hidden bg-white/50 dark:bg-zinc-950/40">
+                    {/* Suite Header bar */}
                     <button
-                      onClick={() => toggleSuiteCollapse(suiteId)}
-                      className="w-full flex items-center justify-between px-2 py-1 rounded-lg text-[10px] font-black uppercase text-amber-600 dark:text-amber-400/90 tracking-wider hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                      onClick={() => toggleSuiteCollapse(suiteKey)}
+                      className="w-full px-2.5 py-1.5 bg-slate-100/70 dark:bg-zinc-900/70 hover:bg-slate-200/70 dark:hover:bg-zinc-850 text-left rtl:text-right flex items-center justify-between transition-colors border-b border-slate-200/50 dark:border-zinc-800/50 cursor-pointer"
                     >
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        <span>{isRtl ? suiteData.suiteAr : suiteData.suiteEn}</span>
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[9px] font-mono text-slate-400 dark:text-zinc-500">
-                          ({suiteData.items.length})
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
+                          {isRtl ? suiteData.suiteAr : suiteData.suiteEn}
                         </span>
-                        <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isCollapsed ? '-rotate-90 rtl:rotate-90' : ''}`} />
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 font-mono">
+                          {suiteData.items.length}
+                        </span>
                       </div>
+                      <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isCollapsed ? '-rotate-90 rtl:rotate-90' : ''}`} />
                     </button>
 
-                    {/* Suite Items List */}
+                    {/* Suite Systems Items */}
                     {!isCollapsed && (
-                      <div className="space-y-1 pt-0.5">
+                      <div className="p-1.5 space-y-1">
                         {suiteData.items.map((system) => {
                           const IconComp = system.icon;
                           const isActive = activeTab === system.tab;
@@ -787,7 +798,7 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
           {
             id: 'copilot',
             icon: Brain,
-            titleAr: 'Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒØ§Ø¡ Copilot',
+            titleAr: 'المساعد الذكي للمنظومة',
             titleEn: 'AI Copilot',
             onClick: onOpenCopilot,
             color: 'text-emerald-600 dark:text-emerald-400',
@@ -796,7 +807,7 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
           {
             id: 'docs',
             icon: BookOpen,
-            titleAr: 'Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…',
+            titleAr: 'دليل الاستخدام واللوائح',
             titleEn: 'User Manual',
             onClick: onOpenDocs,
             color: 'text-sky-600 dark:text-sky-400',
@@ -805,7 +816,7 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
           {
             id: 'scenarios',
             icon: PlayCircle,
-            titleAr: 'Ø§Ù„Ø³ÙŠÙ†Ø§Ø±ÙŠÙˆÙ‡Ø§Øª SOP',
+            titleAr: 'سيناريوهات العمليات التشغيلية',
             titleEn: 'Playbooks',
             onClick: onOpenScenarios,
             color: 'text-amber-600 dark:text-amber-400',
@@ -814,7 +825,7 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
           {
             id: 'helpers',
             icon: Calculator,
-            titleAr: 'Ø­Ø§Ø³Ø¨Ø§Øª Ø§Ù„Ø¥ØºØ§Ø«Ø©',
+            titleAr: 'أدوات ومقاييس العمل الإنساني',
             titleEn: 'Relief Calculators',
             onClick: onOpenHelpers,
             color: 'text-rose-600 dark:text-rose-400',
@@ -851,7 +862,7 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
         return (
           <div className="pt-2 mt-2 border-t border-slate-200 dark:border-zinc-800 space-y-1.5 shrink-0">
             <div className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500 px-1">
-              {isRtl ? 'Ø§Ù„Ø£Ø¯ÙˆØ§Øª ÙˆØ§Ù„Ù…Ø³Ø§Ø¹Ø¯Ø©' : 'Utility & AI Assistance'}
+              {isRtl ? 'الأدوات والمساعدة المؤسسية' : 'Utility & AI Assistance'}
             </div>
             <div className="grid grid-cols-2 gap-1.5">
               {activeHelpers.map(h => {
@@ -879,12 +890,14 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
         <div className="pt-2 mt-2 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between text-[9px] font-bold text-slate-500 dark:text-zinc-400 shrink-0">
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>{isRtl ? 'Ø§Ù„Ù…Ù†Ø¸ÙˆÙ…Ø©: Ù†Ø´Ø·Ø©' : 'System: Operational'}</span>
+            <span>{isRtl ? 'المنظومة: نشطة ومتصلة' : 'System: Operational'}</span>
           </div>
-          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">Nexora Engine</span>
+          <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">UAMEX Engine</span>
         </div>
       )}
 
     </div>
   );
 };
+
+export default SystemsDockPanel;

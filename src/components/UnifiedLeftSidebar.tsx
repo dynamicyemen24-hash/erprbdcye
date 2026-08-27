@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { 
+  ShoppingCart,
   ChevronRight, ChevronLeft, Pin, PinOff, Search,
   LayoutDashboard, Compass, Briefcase, Layers, Activity, 
   Users, Heart, Coins, ShieldCheck, TrendingUp, User, 
   Box, FileCheck, Settings, Database, PlayCircle, BookOpen, 
-  Globe, Calendar, Sliders, Brain, Sparkles, HelpCircle, FileText, Lock
+  Globe, Calendar, Sliders, Brain, Sparkles, HelpCircle, FileText, Lock, Receipt
 } from 'lucide-react';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 import { triggerHaptic } from '../helpers/hapticSwipe';
@@ -61,6 +62,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       titleEn: 'Strategy & Performance',
       items: [
         { tab: 'dashboard', domainCode: '', titleAr: 'لوحة القيادة الاستراتيجية', titleEn: 'Strategy Dashboard', icon: LayoutDashboard },
+        { tab: 'workspaces', domainCode: '', titleAr: 'مساحات عمل الوحدات التشغيلية', titleEn: 'Institutional Workspaces', icon: Briefcase, badgeAr: 'أدوار', badgeEn: 'Roles' },
         { tab: 'strategic_planning', domainCode: '', titleAr: 'التخطيط الاستراتيجي والأداء', titleEn: 'Strategic Planning', icon: Activity, badgeAr: 'خطة', badgeEn: 'Plan' },
         { tab: 'investments', domainCode: '', titleAr: 'المشاريع الاستثمارية والأوقاف', titleEn: 'Investment & Endowments', icon: TrendingUp },
       ]
@@ -92,6 +94,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       titleEn: 'Finance & Accounts',
       items: [
         { tab: 'finance', domainCode: '', titleAr: 'النظام المالي والقيود المحاسبية', titleEn: 'Financial Ledger', icon: Coins },
+        { tab: 'sales', domainCode: '', titleAr: 'المبيعات والإيرادات والتبرعات', titleEn: 'Sales & Revenue', icon: Receipt },
         { tab: 'approvals', domainCode: '', titleAr: 'الموافقات والاعتمادات', titleEn: 'Approval Requests', icon: ShieldCheck },
         { tab: 'currencies', domainCode: '', titleAr: 'أسعار وصرف العملات', titleEn: 'Currencies & FX', icon: Coins },
       ]
@@ -101,6 +104,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       titleAr: 'الموارد والمشتريات',
       titleEn: 'Resources & Procurement',
       items: [
+        { tab: 'procurement', domainCode: '', titleAr: 'المشتريات والمناقصات (P2P)', titleEn: 'Procurement & Tenders', icon: ShoppingCart, badgeAr: 'P2P', badgeEn: 'P2P' },
         { tab: 'inventory', domainCode: '', titleAr: 'إدارة المخازن والمواد', titleEn: 'Inventory Management', icon: Box },
         { tab: 'contracts', domainCode: '', titleAr: 'عقود الموردين والمشتريات', titleEn: 'Vendor Contracts', icon: FileCheck },
         { tab: 'allocations', domainCode: '', titleAr: 'تخطيط وتوزيع الكادر', titleEn: 'Resource Allocation', icon: Calendar },
@@ -117,6 +121,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
         { tab: 'reports', domainCode: '', titleAr: 'التقارير والمؤشرات المعتمدة', titleEn: 'Certified Reports', icon: TrendingUp },
         { tab: 'control_panel', domainCode: '', titleAr: 'لوحة التحكم والعمليات', titleEn: 'Control Console', icon: Sliders },
         { tab: 'settings', domainCode: '', titleAr: 'إعدادات المؤسسة', titleEn: 'System Settings', icon: Settings },
+        { tab: 'backup', domainCode: '', titleAr: 'النسخ الاحتياطي والأرشفة', titleEn: 'Backup & Recovery', icon: Database },
         { tab: 'audit', domainCode: '', titleAr: 'سجل التدقيق الداخلي', titleEn: 'Audit Logs', icon: Database },
         { tab: 'docs', domainCode: '', titleAr: 'دليل النظام والسياسات', titleEn: 'Knowledge & Policies', icon: BookOpen },
       ]
@@ -127,9 +132,9 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
   const filteredGroups = useMemo(() => {
     // Role-Based Allowed Tabs Map
     const roleAllowedTabs: Record<string, ActiveTab[]> = {
-      executive: ['dashboard', 'strategic_planning', 'investments', 'programs', 'scenarios', 'reports', 'domains', 'control_panel'],
-      manager: ['finance', 'approvals', 'currencies', 'inventory', 'contracts', 'reports', 'audit', 'users', 'hr_dashboard'],
-      field: ['beneficiaries', 'sponsorships', 'geospatial', 'programs', 'projects', 'activities', 'allocations', 'scenarios'],
+      executive: ['dashboard', 'workspaces', 'strategic_planning', 'investments', 'programs', 'procurement', 'scenarios', 'reports', 'domains', 'control_panel', 'sales'],
+      manager: ['finance', 'sales', 'approvals', 'currencies', 'procurement', 'inventory', 'contracts', 'reports', 'audit', 'users', 'hr_dashboard', 'third-party-network', 'workspaces'],
+      field: ['beneficiaries', 'sponsorships', 'geospatial', 'programs', 'projects', 'activities', 'allocations', 'scenarios', 'workspaces'],
     };
 
     const allowed = roleAllowedTabs[activeRolePerspective];
@@ -189,7 +194,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
           <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-zinc-500 mb-1">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>{isRtl ? 'منظور الدور الوظيفي (RBAC):' : 'Role Perspective:'}</span>
+              <span>{isRtl ? 'منظور الدور والصلاحيات:' : 'Role Perspective:'}</span>
             </span>
           </div>
           <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-zinc-900 p-1 rounded-lg border border-slate-200 dark:border-zinc-800 text-[10px] font-bold">

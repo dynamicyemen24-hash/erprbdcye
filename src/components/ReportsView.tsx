@@ -19,6 +19,7 @@ import {
 } from 'recharts';
 import { 
   FileText, 
+  BookOpen,
   Printer, 
   Download, 
   BarChart3, 
@@ -37,6 +38,7 @@ import {
   Activity,
   CheckCircle2,
   TrendingUp,
+  Scale,
   ShieldCheck,
   Filter,
   Sparkles,
@@ -115,6 +117,7 @@ export default function ReportsView({
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [isPDFModalOpen, setIsPDFModalOpen] = useState<boolean>(false);
   const [customPDFType, setCustomPDFType] = useState<string | null>(null);
+  const [customFinancialStatementType, setCustomFinancialStatementType] = useState<'trial' | 'income' | 'balance_sheet' | 'cash_flow'>('income');
 
   // Executive Intelligence Report Interactive Filter States & Drill-Down
   const [execTenant, setExecTenant] = useState<string>('ROH-001');
@@ -1176,6 +1179,30 @@ export default function ReportsView({
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span>{lang === 'ar' ? 'مشاركة عبر واتساب' : 'Share WhatsApp'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setCustomPDFType('operational_manual');
+                      setIsPDFModalOpen(true);
+                    }}
+                    className="px-3 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                    title={lang === 'ar' ? 'طباعة وتصدير الدليل التشغيلي واللوائح المعتمدة (SOP)' : 'Export Master SOP Manual'}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>{lang === 'ar' ? 'الدليل التشغيلي' : 'SOP Manual'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setCustomPDFType('user_manual');
+                      setIsPDFModalOpen(true);
+                    }}
+                    className="px-3 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                    title={lang === 'ar' ? 'طباعة وتصدير دليل المستخدم الشامل للنظام' : 'Export User Manual'}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>{lang === 'ar' ? 'دليل المستخدم' : 'User Manual'}</span>
                   </button>
 
                   <button
@@ -2317,6 +2344,40 @@ export default function ReportsView({
         {/* TAB 2: PROGRAMS, PROJECTS & ACTIVITIES */}
         {activeTab === 'programs_projects' && (
           <div className="space-y-6">
+            {/* Quick Print Control Bar */}
+            <div className="p-4 bg-gradient-to-r from-zinc-900 to-zinc-950 text-white rounded-xl shadow-sm border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 font-black text-xs">
+                  <Printer className="w-4 h-4 text-emerald-400" />
+                  <span>{lang === 'ar' ? 'طباعة كشوفات وتقارير البرامج والمشاريع المعتمدة' : 'Official Programs & Projects Print Suite'}</span>
+                </div>
+                <p className="text-[10px] text-zinc-400">
+                  {lang === 'ar' ? 'توليد تقارير A4 معمدة متضمنة الترويسة والأختام وتوقيعات الحوكمة الرسمية' : 'Generate certified A4 dossiers with logos, official stamp, and governance signatures'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    setCustomPDFType('programs');
+                    setIsPDFModalOpen(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black rounded-lg transition-all flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'طباعة تقرير البرامج' : 'Print Programs'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setCustomPDFType('projects');
+                    setIsPDFModalOpen(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-black rounded-lg transition-all flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'طباعة تقرير المشاريع' : 'Print Projects'}</span>
+                </button>
+              </div>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* Programs Chart Card */}
@@ -2419,6 +2480,64 @@ export default function ReportsView({
         {/* TAB 3: FINANCIAL LEDGER & FUNDS */}
         {activeTab === 'financial' && (
           <div className="space-y-6">
+            {/* Quick Print Control Bar */}
+            <div className="p-4 bg-gradient-to-r from-zinc-900 to-zinc-950 text-white rounded-xl shadow-sm border border-zinc-800 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 font-black text-xs">
+                  <Scale className="w-4 h-4 text-emerald-400" />
+                  <span>{lang === 'ar' ? 'طباعة القوائم المالية المعيارية (IPSAS Standards)' : 'Certified IPSAS Financial Statements Suite'}</span>
+                </div>
+                <p className="text-[10px] text-zinc-400">
+                  {lang === 'ar' ? 'اختر القائمة المطلوبة لتوليد وثيقة A4 معتمدة ومطابقة محاسبياً' : 'Select standard financial statement to print with official stamp and signatures'}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  onClick={() => {
+                    setCustomFinancialStatementType('trial');
+                    setCustomPDFType('financial');
+                    setIsPDFModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black rounded-lg transition-all flex items-center gap-1 shadow cursor-pointer"
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>{lang === 'ar' ? 'ميزان المراجعة' : 'Trial Balance'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setCustomFinancialStatementType('income');
+                    setCustomPDFType('financial');
+                    setIsPDFModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-[10px] font-black rounded-lg transition-all flex items-center gap-1 shadow cursor-pointer"
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>{lang === 'ar' ? 'الأداء المالي (الدخل)' : 'Performance (Income)'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setCustomFinancialStatementType('balance_sheet');
+                    setCustomPDFType('financial');
+                    setIsPDFModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black rounded-lg transition-all flex items-center gap-1 shadow cursor-pointer"
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>{lang === 'ar' ? 'المركز المالي (الميزانية)' : 'Financial Position'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setCustomFinancialStatementType('cash_flow');
+                    setCustomPDFType('financial');
+                    setIsPDFModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black rounded-lg transition-all flex items-center gap-1 shadow cursor-pointer"
+                >
+                  <Printer className="w-3 h-3" />
+                  <span>{lang === 'ar' ? 'التدفقات النقدية (IPSAS 2)' : 'Cash Flows'}</span>
+                </button>
+              </div>
+            </div>
             
             {/* Currency Collection Cards CSS Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -2517,10 +2636,20 @@ export default function ReportsView({
                 </button>
                 <button
                   onClick={() => {
-                    setCustomPDFType('staff');
+                    setCustomPDFType('sponsorship');
                     setIsPDFModalOpen(true);
                   }}
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black rounded-lg transition-all flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'طباعة كشف كفالات الأيتام' : 'Print Orphans Sponsorships'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setCustomPDFType('staff');
+                    setIsPDFModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-[10px] font-black rounded-lg transition-all flex items-center gap-1.5 shadow cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>{lang === 'ar' ? 'طباعة كشف الموظفين' : 'Print Staff Registry'}</span>
@@ -2888,6 +3017,29 @@ export default function ReportsView({
         {/* TAB 7: HR & HUMAN CAPITAL ENTERPRISE BI (NEB-09) */}
         {activeTab === 'hr_human_capital' && (
           <div className="space-y-6 animate-in fade-in duration-200">
+            {/* HR Print Bar */}
+            <div className="p-4 bg-gradient-to-r from-zinc-900 to-zinc-950 text-white rounded-xl shadow-sm border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 font-black text-xs">
+                  <Users className="w-4 h-4 text-emerald-400" />
+                  <span>{lang === 'ar' ? 'سجل كوادر المؤسسة والفرق الميدانية المعمد' : 'Certified Staff & Field Personnel Registry'}</span>
+                </div>
+                <p className="text-[10px] text-zinc-400">
+                  {lang === 'ar' ? 'طباعة الكشف الرسمي للكوادر مصنفاً حسب الأقسام والمستويات الوظيفية والأمان' : 'Print certified staff dossier by department, grade, and security clearance'}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setCustomPDFType('staff');
+                  setIsPDFModalOpen(true);
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg transition-all flex items-center gap-1.5 shadow cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>{lang === 'ar' ? 'طباعة كشف الكوادر' : 'Print Staff Dossier'}</span>
+              </button>
+            </div>
+
             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
                 <div>
@@ -3059,6 +3211,7 @@ export default function ReportsView({
             activeTab === 'intelligence' ? 'strategy' :
             activeTab === 'programs_projects' ? 'projects' :
             activeTab === 'geographic' ? 'activities' :
+            activeTab === 'hr_human_capital' ? 'staff' :
             'project'
           )
         }
@@ -3070,9 +3223,13 @@ export default function ReportsView({
           accounts: accounts,
           activities: activities,
           users: users,
-          financialType: 'income',
+          financialType: customFinancialStatementType,
           title: customPDFType === 'staff'
             ? (lang === 'ar' ? 'كشف سجل كوادر المؤسسة والفرق الميدانية' : 'Official HR Staff & Field Personnel Registry')
+            : customPDFType === 'operational_manual'
+            ? (lang === 'ar' ? 'الدليل التشغيلي المؤسسي واللوائح والتوصيف الوظيفي' : 'Enterprise SOP, Governance Bylaws & Job Taxonomy')
+            : customPDFType === 'user_manual'
+            ? (lang === 'ar' ? 'دليل المستخدم الشامل - نظام يو امكس المؤسسي' : 'Comprehensive User Manual - UAMEX ERP™')
             : activeTab === 'executive_report'
             ? (lang === 'ar' ? 'التقرير التنفيذي الموحد المتكامل (15 باباً معمارياً)' : 'Executive Integrated Intelligence Report (15 Architectural Parts)')
             : activeTab === 'financial'

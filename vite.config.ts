@@ -21,14 +21,15 @@ export default defineConfig(() => {
       cssCodeSplit: true,
       sourcemap: false,
       reportCompressedSize: false,
-      chunkSizeWarningLimit: 1200,
+      chunkSizeWarningLimit: 2500,
       modulePreload: {
         resolveDependencies(filename, deps) {
           return deps.filter(
             dep =>
               !dep.includes('vendor-pdf-excel') &&
               !dep.includes('vendor-charts') &&
-              !dep.includes('vendor-maps')
+              !dep.includes('vendor-maps') &&
+              !dep.includes('enterprise-data-snapshot')
           );
         },
       },

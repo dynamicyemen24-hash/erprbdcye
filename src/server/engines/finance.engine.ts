@@ -247,23 +247,18 @@ export class LedgerEngine {
           ]
         );
 
-        // 3. Update account balance
-        if (line.debit > 0) {
-          await client.query(
-            `UPDATE chart_of_accounts
-             SET current_balance = current_balance + $1
-             WHERE id = $2`,
-            [line.debit, line.accountId]
-          );
-        }
-        if (line.credit > 0) {
-          await client.query(
-            `UPDATE chart_of_accounts
-             SET current_balance = current_balance - $1
-             WHERE id = $2`,
-            [line.credit, line.accountId]
-          );
-        }
+        // 3. Update account balance (Debit normal for Asset/Expense, Credit normal for Liability/Equity/Revenue)
+        await client.query(
+          `UPDATE chart_of_accounts
+           SET current_balance = current_balance + (
+             CASE 
+               WHEN UPPER(account_type) IN ('ASSET', 'EXPENSE') THEN ($1 - $2)
+               ELSE ($2 - $1)
+             END
+           )
+           WHERE id = $3`,
+          [line.debit || 0, line.credit || 0, line.accountId]
+        );
       }
 
       // 4. Audit log
@@ -358,19 +353,18 @@ export class LedgerEngine {
           ]
         );
 
-        // Update account balance (reverse)
-        if (line.debit > 0) {
-          await client.query(
-            'UPDATE chart_of_accounts SET current_balance = current_balance - $1 WHERE id = $2',
-            [line.debit, line.account_id]
-          );
-        }
-        if (line.credit > 0) {
-          await client.query(
-            'UPDATE chart_of_accounts SET current_balance = current_balance + $1 WHERE id = $2',
-            [line.credit, line.account_id]
-          );
-        }
+        // Update account balance (reverse: swap debit and credit effects)
+        await client.query(
+          `UPDATE chart_of_accounts
+           SET current_balance = current_balance + (
+             CASE 
+               WHEN UPPER(account_type) IN ('ASSET', 'EXPENSE') THEN ($1 - $2)
+               ELSE ($2 - $1)
+             END
+           )
+           WHERE id = $3`,
+          [line.credit || 0, line.debit || 0, line.account_id]
+        );
       }
 
       // 5. Mark original as reversed

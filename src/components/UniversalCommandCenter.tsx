@@ -45,6 +45,7 @@ import { triggerHaptic } from '../helpers/hapticSwipe';
 import { fuzzyMatchArabic, normalizeArabicText } from '../core/utils/arabicSearch';
 import { parseNaturalLanguageQuery, StructuredERPQuery } from '../core/services/naturalLanguageQuery';
 import { useResumeIntelligence } from '../core/services/resumeIntelligence';
+import { showToast } from './enterprise/EnterpriseToastContainer';
 
 interface UniversalCommandCenterProps {
   lang: 'ar' | 'en';
@@ -149,7 +150,11 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
   const toggleVoiceSearch = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert(isRtl ? 'خاصية التعرف الصوتي غير مدعومة في متصفحك الحالي' : 'Speech recognition is not supported in your browser');
+      showToast({
+        type: 'warning',
+        title: isRtl ? 'البحث الصوتي' : 'Voice Search',
+        message: isRtl ? 'خاصية التعرف الصوتي غير مدعومة في متصفحك الحالي، يمكنك الكتابة في شريط الأوامر.' : 'Speech recognition is not supported in your browser.'
+      });
       return;
     }
 

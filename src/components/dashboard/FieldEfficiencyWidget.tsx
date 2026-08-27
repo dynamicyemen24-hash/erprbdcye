@@ -1,3 +1,4 @@
+import { showToast } from '../enterprise/EnterpriseToastContainer';
 import React, { useState, useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip, 
@@ -136,7 +137,7 @@ export function FieldEfficiencyWidget({ lang }: FieldEfficiencyWidgetProps) {
     const alertMsg = lang === 'ar' 
       ? `تمت محاكاة تسجيل ${simAmount} زيارة ${simType === 'planned' ? '?????' : '????? ??????'} في ${regionAr} بنجاح!` 
       : `Successfully simulated ${simAmount} ${simType} visits in ${simRegion}!`;
-    alert(alertMsg);
+    showToast({ type: 'info', title: lang === 'ar' ? 'الكفاءة الميدانية' : 'Field Efficiency', message: alertMsg });
   };
 
   const resetSimulation = () => {
