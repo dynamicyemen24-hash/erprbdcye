@@ -17,6 +17,7 @@ export interface DashboardViewProps {
   activeOrg?: any;
   orgName?: string;
   onOpenHelpers?: () => void;
+  onOpenSystemMap?: () => void;
 }
 
 export interface KPILayoutItem {

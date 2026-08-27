@@ -57,6 +57,14 @@ export function useAppUIStore() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isRecordRetrievalOpen, setIsRecordRetrievalOpen] = useState(false);
   const [globalToolStripSearch, setGlobalToolStripSearch] = useState('');
+  const [showSystemMapModal, setShowSystemMapModal] = useState(false);
+  const [homeExperienceMode, setHomeExperienceMode] = useState<'work_first' | 'classic_analytics'>(() => {
+    try {
+      const saved = localStorage.getItem('uamex_home_experience_mode');
+      if (saved === 'classic_analytics' || saved === 'work_first') return saved;
+    } catch {}
+    return 'work_first';
+  });
 
   // Context perspective controls
   const [activeRolePerspective, setActiveRolePerspective] = useState<RolePerspective>('executive');
@@ -77,6 +85,7 @@ export function useAppUIStore() {
     setShowUserProfilePopover(false);
     setIsMobileMenuOpen(false);
     setIsRecordRetrievalOpen(false);
+    setShowSystemMapModal(false);
   }, []);
 
   return {
@@ -97,6 +106,8 @@ export function useAppUIStore() {
     isMobileMenuOpen,
     isRecordRetrievalOpen,
     globalToolStripSearch,
+    showSystemMapModal,
+    homeExperienceMode,
     activeRolePerspective,
     organizationId,
     fiscalYear,
@@ -117,6 +128,8 @@ export function useAppUIStore() {
     setIsMobileMenuOpen,
     setIsRecordRetrievalOpen,
     setGlobalToolStripSearch,
+    setShowSystemMapModal,
+    setHomeExperienceMode,
     setActiveRolePerspective,
     setOrganizationId,
     setFiscalYear,

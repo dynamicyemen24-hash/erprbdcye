@@ -371,13 +371,65 @@ ${classBanner}
 
 export function instantPrint(html: string): boolean {
   if (!html) return false;
-  const w = window.open('', '_blank', 'width=1200,height=800');
-  if (!w) return false;
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  w.print();
-  return true;
+
+  // Modern browsers block window.open unless triggered directly without state delays.
+  // We use a zero-popup hidden iframe approach first with window.open fallback.
+  try {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.zIndex = '-1';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (doc) {
+      doc.open();
+      doc.write(html);
+      doc.close();
+
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (err) {
+          console.warn('[InstantPrint] Iframe print fallback:', err);
+          const w = window.open('', '_blank', 'width=1200,height=800');
+          if (w) {
+            w.document.write(html);
+            w.document.close();
+            w.focus();
+            setTimeout(() => w.print(), 350);
+          }
+        } finally {
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 5000);
+        }
+      }, 350);
+      return true;
+    }
+  } catch (e) {
+    console.error('[InstantPrint] Failure:', e);
+  }
+
+  // Fallback to direct window.open
+  try {
+    const w = window.open('', '_blank', 'width=1200,height=800');
+    if (!w) return false;
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 350);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

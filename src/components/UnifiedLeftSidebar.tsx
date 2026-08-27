@@ -22,6 +22,7 @@ interface UnifiedLeftSidebarProps {
   onOpenDocs?: () => void;
   onOpenScenarios?: () => void;
   onOpenHelpers?: () => void;
+  onOpenSystemMap?: () => void;
 }
 
 export interface SidebarDomainGroup {
@@ -48,7 +49,8 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
   onOpenCopilot,
   onOpenDocs,
   onOpenScenarios,
-  onOpenHelpers
+  onOpenHelpers,
+  onOpenSystemMap
 }) => {
   const isRtl = lang === 'ar';
   const { activeRolePerspective, setActiveRolePerspective } = useEnterprise();
@@ -235,9 +237,9 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
         </div>
       )}
 
-      {/* SEARCH BOX (Only visible when expanded) */}
-      {!isCollapsed && (
-        <div className="p-2 border-b border-slate-100 dark:border-zinc-900 shrink-0">
+      {/* SEARCH BOX & MODE B EXPLORER */}
+      {!isCollapsed ? (
+        <div className="p-2 border-b border-slate-100 dark:border-zinc-900 shrink-0 space-y-1.5">
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-2.5 text-slate-400" />
             <input
@@ -248,7 +250,35 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
               className="w-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[11px] font-bold rounded-lg pl-8 rtl:pl-2 rtl:pr-8 py-1.5 text-slate-800 dark:text-zinc-200 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
             />
           </div>
+
+          {onOpenSystemMap && (
+            <button
+              onClick={onOpenSystemMap}
+              className="w-full px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-black flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
+              title="Alt + M"
+            >
+              <div className="flex items-center gap-1.5">
+                <Compass className="w-3.5 h-3.5 text-amber-500 group-hover:rotate-45 transition-transform" />
+                <span>{isRtl ? 'خريطة المنظومة الشاملة' : 'Enterprise System Map'}</span>
+              </div>
+              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-white dark:bg-zinc-800 border border-emerald-500/20 text-slate-500 dark:text-zinc-400">
+                Alt+M
+              </span>
+            </button>
+          )}
         </div>
+      ) : (
+        onOpenSystemMap && (
+          <div className="p-1 border-b border-slate-100 dark:border-zinc-900 flex justify-center shrink-0">
+            <button
+              onClick={onOpenSystemMap}
+              className="p-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-amber-400 transition-all cursor-pointer"
+              title={isRtl ? 'خريطة المنظومة الشاملة [Alt+M]' : 'Enterprise System Map [Alt+M]'}
+            >
+              <Compass className="w-4 h-4" />
+            </button>
+          </div>
+        )
       )}
 
       {/* NAVIGATION TREE */}

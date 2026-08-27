@@ -25,6 +25,7 @@ import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { generateNumericCode } from '../lib/idGenerator';
+import { UniversalObjectPageModal } from './common/UniversalObjectPageModal';
 
 
 interface SponsorshipsViewProps {
@@ -908,105 +909,113 @@ export default function SponsorshipsView({
         )}
       </div>
 
-      {/* Detail viewer */}
+      {/* Universal Object Page Modal (UOP Standard for Sponsorships) */}
       {viewingSponsorship && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 max-w-lg w-full overflow-hidden shadow-2xl animate-scale-up">
-            <div className="px-6 py-4 bg-zinc-900 text-white flex justify-between items-center">
-              <h3 className="font-black text-sm">{lang === 'ar' ? 'تفاصيل سجل كفالة اليتيم' : 'Sponsorship Registry Details'}</h3>
-              <button 
-                onClick={() => setViewingSponsorship(null)}
-                className="p-1 hover:bg-zinc-800 rounded-full border border-zinc-800 text-zinc-400 hover:text-white transition-all cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-5">
-              <div className="space-y-1">
-                <p className="text-[10px] text-zinc-400 font-extrabold uppercase">{lang === 'ar' ? 'الكفيل والوسيط الراعي' : 'Sponsor details'}</p>
-                <p className="text-base font-black text-slate-900">{viewingSponsorship.sponsor_name_ar || viewingSponsorship.sponsor_name}</p>
-                {viewingSponsorship.mediator_name && (
-                  <p className="text-xs text-slate-500 font-semibold">بواسطة المندوب: {viewingSponsorship.mediator_name}</p>
-                )}
-              </div>
-
-              <div className="border-t border-b border-slate-100 py-4 grid grid-cols-2 gap-4 text-xs">
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'اليتيم المكفول' : 'Sponsored Orphan'}</p>
-                  <p className="font-extrabold text-amber-800">{getBeneficiaryName(viewingSponsorship.beneficiary_id)}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'رقم ملف اليتيم' : 'Beneficiary Code'}</p>
-                  <p className="font-mono font-extrabold text-slate-800">{getBeneficiaryCode(viewingSponsorship.beneficiary_id)}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'البرنامج الموجه' : 'Program Link'}</p>
-                  <p className="font-extrabold text-slate-800">{getProgramName(viewingSponsorship.program_id)}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'مندوب الاستلام والتسليم' : 'Field Agent'}</p>
-                  <p className="font-extrabold text-slate-800">{viewingSponsorship.field_agent_name || '-'}</p>
-                </div>
-              </div>
-
-              <div className="bg-slate-50 rounded-xl p-4 space-y-2 border border-slate-100 text-xs">
-                <div className="flex justify-between font-bold text-slate-500">
-                  <span>{lang === 'ar' ? 'الالتزام الكلي للكفالة' : 'Total volume pledge'}</span>
-                  <span className="font-mono text-slate-800 font-extrabold">{parseFloat(viewingSponsorship.total_amount).toLocaleString()} {viewingSponsorship.currency_code}</span>
-                </div>
-                <div className="flex justify-between font-bold text-slate-500">
-                  <span>{lang === 'ar' ? 'المبلغ المحصل فعلياً' : 'Amount paid to date'}</span>
-                  <span className="font-mono text-emerald-600 font-extrabold">{parseFloat(viewingSponsorship.paid_amount).toLocaleString()} {viewingSponsorship.currency_code}</span>
-                </div>
-                <div className="flex justify-between font-bold text-slate-500 border-t border-slate-200/60 pt-2">
-                  <span>{lang === 'ar' ? 'المبلغ المتبقي المعلق' : 'Remaining balance due'}</span>
-                  <span className="font-mono text-rose-600 font-extrabold">{parseFloat(viewingSponsorship.remaining_amount).toLocaleString()} {viewingSponsorship.currency_code}</span>
-                </div>
-              </div>
-
-              <div className="text-xs space-y-1.5">
-                <p className="text-zinc-400 font-bold">{lang === 'ar' ? 'الوكيل المستلم ميدانياً للمبالغ' : 'Field receiver details'}</p>
-                <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex justify-between items-center">
-                  <div>
-                    <p className="font-extrabold text-slate-800">{viewingSponsorship.receiver_name || '-'}</p>
-                    <p className="font-mono text-slate-500 mt-0.5 text-[10px]">{viewingSponsorship.receiver_phone || '-'}</p>
-                  </div>
-                  {viewingSponsorship.receiver_phone && (
-                    <a href={`tel:${viewingSponsorship.receiver_phone}`} className="p-2 bg-white rounded-full border border-slate-200 text-amber-600 hover:bg-amber-50 transition-all">
-                      <Phone className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-              <button
-                onClick={() => handlePrintSponsorship(viewingSponsorship)}
-                className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
-              >
-                <Printer className="w-3.5 h-3.5 shrink-0" />
-                <span>{lang === 'ar' ? 'طباعة بطاقة الكفالة' : 'Print Card'}</span>
-              </button>
-              <button
-                onClick={() => {
-                  setViewingSponsorship(null);
-                  openFormModal(viewingSponsorship);
-                }}
-                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                {lang === 'ar' ? 'تعديل الكفالة' : 'Edit Pledge'}
-              </button>
-              <button
-                onClick={() => setViewingSponsorship(null)}
-                className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                {lang === 'ar' ? 'إغلاق' : 'Close'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <UniversalObjectPageModal
+          isOpen={Boolean(viewingSponsorship)}
+          onClose={() => setViewingSponsorship(null)}
+          lang={lang}
+          domainCode="NEB-08"
+          domainNameAr="نظام الشراكات وتنمية الموارد ورعاية الأيتام"
+          domainNameEn="Partnerships, Sponsorships & Funding OS"
+          recordCode={viewingSponsorship.sponsorship_code || 'SPON-ROHAMAA'}
+          titleAr={`كفالة رعاية اليتيم: ${getBeneficiaryName(viewingSponsorship.beneficiary_id)}`}
+          titleEn={`Orphan Care Sponsorship: ${getBeneficiaryName(viewingSponsorship.beneficiary_id)}`}
+          status={{
+            code: viewingSponsorship.payment_status || 'active',
+            labelAr: viewingSponsorship.payment_status === 'paid' ? 'مسدد بالكامل' : viewingSponsorship.payment_status === 'partial' ? 'مسدد جزئياً' : 'كفالة جارية ونشطة',
+            labelEn: viewingSponsorship.payment_status === 'paid' ? 'Fully Paid' : 'Active Recurring',
+            color: viewingSponsorship.payment_status === 'paid' ? 'emerald' : 'amber'
+          }}
+          metrics={[
+            {
+              labelAr: 'إجمالي الالتزام المالي',
+              labelEn: 'Total Volume Pledge',
+              value: `${parseFloat(viewingSponsorship.total_amount || '0').toLocaleString()}`,
+              unitAr: viewingSponsorship.currency_code,
+              unitEn: viewingSponsorship.currency_code,
+              color: 'blue'
+            },
+            {
+              labelAr: 'المحصل الفعلي',
+              labelEn: 'Paid to Date',
+              value: `${parseFloat(viewingSponsorship.paid_amount || '0').toLocaleString()}`,
+              unitAr: viewingSponsorship.currency_code,
+              unitEn: viewingSponsorship.currency_code,
+              color: 'emerald'
+            },
+            {
+              labelAr: 'المخصص الشهري',
+              labelEn: 'Monthly Allowance',
+              value: `${parseFloat(viewingSponsorship.monthly_amount || '0').toLocaleString()}`,
+              unitAr: viewingSponsorship.currency_code,
+              unitEn: viewingSponsorship.currency_code,
+              color: 'amber'
+            },
+            {
+              labelAr: 'الرصيد المتبقي المستحق',
+              labelEn: 'Balance Due',
+              value: `${parseFloat(viewingSponsorship.remaining_amount || '0').toLocaleString()}`,
+              unitAr: viewingSponsorship.currency_code,
+              unitEn: viewingSponsorship.currency_code,
+              color: 'rose'
+            }
+          ]}
+          overviewFieldGroups={[
+            {
+              groupTitleAr: '1. بيانات الكفيل والوسيط الراعي',
+              groupTitleEn: '1. Sponsor & Mediator Identity',
+              fields: [
+                { labelAr: 'اسم الكفيل الراعي', labelEn: 'Sponsor Name', value: viewingSponsorship.sponsor_name_ar || viewingSponsorship.sponsor_name || 'فاعل خير' },
+                { labelAr: 'مندوب التنسيق والوساطة', labelEn: 'Mediator / Coordinator', value: viewingSponsorship.mediator_name || 'المكتب التنفيذي للجمعية' },
+                { labelAr: 'المندوب الميداني المعتمد', labelEn: 'Assigned Field Officer', value: viewingSponsorship.field_agent_name || 'مندوب فرع تعز' },
+                { labelAr: 'البرنامج التنموي التابع له', labelEn: 'Program Alignment', value: getProgramName(viewingSponsorship.program_id) }
+              ]
+            },
+            {
+              groupTitleAr: '2. بيانات اليتيم المستفيد والمستلم الميداني',
+              groupTitleEn: '2. Orphan & Field Receiver Profile',
+              fields: [
+                { labelAr: 'اليتيم المكفول', labelEn: 'Sponsored Orphan', value: getBeneficiaryName(viewingSponsorship.beneficiary_id) },
+                { labelAr: 'رقم ملف اليتيم الموحد', labelEn: 'Beneficiary Code', value: getBeneficiaryCode(viewingSponsorship.beneficiary_id), isCopyable: true },
+                { labelAr: 'الوكيل المستلم ميدانياً', labelEn: 'Authorized Receiver', value: viewingSponsorship.receiver_name || 'ولي أمر اليتيم' },
+                { labelAr: 'هاتف المستلم للتواصل', labelEn: 'Receiver Phone', value: viewingSponsorship.receiver_phone || '—', isCopyable: true }
+              ]
+            },
+            {
+              groupTitleAr: '3. الحوكمة المالية ودورات الصرف',
+              groupTitleEn: '3. Financial Governance & Payment Terms',
+              fields: [
+                { labelAr: 'دورية استحقاق الكفالة', labelEn: 'Disbursement Cycle', value: 'صرف شهري منتظم' },
+                { labelAr: 'حساب الأستاذ العام', labelEn: 'GL Account', value: '230101 - صندوق أمانات كفالات الأيتام' },
+                { labelAr: 'طريقة التحويل والصرف', labelEn: 'Payment Channel', value: 'محفظة رقمية / كاك بنك / الكريمي' }
+              ]
+            }
+          ]}
+          timeline={[
+            { id: 'tl-1', titleAr: 'توقيع عقد الكفالة وتخصيص اليتيم', titleEn: 'Sponsorship Pledge Signed', actor: 'إدارة الرعاية والتكافل', roleAr: 'مسؤول الكفالات', roleEn: 'Sponsorship Officer', timestamp: '2026-01-01', status: 'approved' },
+            { id: 'tl-2', titleAr: 'مطابقة السجل الحيوي وعدم الازدواج', titleEn: 'Biometric Verification', actor: 'النظام الآلي المركزي', roleAr: 'محرك التحقق', roleEn: 'Verification Engine', timestamp: '2026-01-02', status: 'approved' },
+            { id: 'tl-3', titleAr: 'تحصيل وصرف دفعة الربع الأول 2026', titleEn: 'Q1 Payment Disbursed', actor: 'الإدارة المالية', roleAr: 'أمين الصندوق', roleEn: 'Treasurer', timestamp: '2026-01-15', status: 'approved' }
+          ]}
+          linkedRecords={[
+            { id: 'lr-1', code: getBeneficiaryCode(viewingSponsorship.beneficiary_id), typeAr: 'ملف المستفيد واليتيم', typeEn: 'Beneficiary Case', titleAr: `السجل الاجتماعي لـ ${getBeneficiaryName(viewingSponsorship.beneficiary_id)}`, targetTab: 'beneficiaries' },
+            { id: 'lr-2', code: 'TX-2026-10492', typeAr: 'سند تسوية وصرف بنكي', typeEn: 'Disbursement Voucher', titleAr: 'صرف مخصصات كفالة الأيتام الشهرية', amountYer: parseFloat(viewingSponsorship.paid_amount || '0'), targetTab: 'finance' }
+          ]}
+          auditTrail={[
+            { id: 'at-1', actionAr: 'تأكيد استلام كفالة شهر أغسطس 2026', actionEn: 'Confirm August 2026 Receipt', user: 'م. مروان الذماري', timestamp: '2026-08-20 10:15' }
+          ]}
+          onEdit={() => {
+            const s = viewingSponsorship;
+            setViewingSponsorship(null);
+            openFormModal(s);
+          }}
+          onDelete={() => {
+            if (viewingSponsorship) {
+              handleDelete(viewingSponsorship.id);
+              setViewingSponsorship(null);
+            }
+          }}
+        />
       )}
 
       {/* Add / Edit Form Modal */}

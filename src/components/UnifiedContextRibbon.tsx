@@ -31,7 +31,8 @@ import {
   Building,
   Lock,
   Award,
-  ChevronDown
+  ChevronDown,
+  Target
 } from 'lucide-react';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ActiveTab } from '../core/types';
@@ -155,6 +156,14 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
           { labelAr: 'أسعار العملات', labelEn: 'Currency Ledger', tab: 'currencies' as ActiveTab, icon: Coins },
           { labelAr: 'تقارير الميزانية والـ BI', labelEn: 'Financial Reports & BI', tab: 'reports' as ActiveTab, icon: FileText },
         ];
+      case 'dashboard':
+      case 'workspaces':
+        return [
+          { labelAr: 'الخطة الاستراتيجية', labelEn: 'Strategic Plan', tab: 'strategic_planning' as ActiveTab, icon: Target },
+          { labelAr: 'المشاريع الميدانية', labelEn: 'Field Projects', tab: 'projects' as ActiveTab, icon: Briefcase },
+          { labelAr: 'سجل المستفيدين والأيتام', labelEn: 'Beneficiaries', tab: 'beneficiaries' as ActiveTab, icon: Users },
+          { labelAr: 'النظام المالي IPSAS', labelEn: 'Financial Ledger', tab: 'finance' as ActiveTab, icon: Coins },
+        ];
       default:
         return [
           { labelAr: 'مركز الأنظمة المؤسسية', labelEn: 'Enterprise Systems Center', tab: 'domains' as ActiveTab, icon: Layers },
@@ -222,47 +231,58 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
       </div>
 
       {/* ROW 2: CONTEXTUAL OPERATIONAL ACTIONS */}
-      {activeTab !== 'dashboard' && (
       <div className="px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 dark:bg-zinc-900/30">
         
-        {/* Left Side: Search & Primary Action */}
-        <div className="flex items-center flex-wrap gap-2">
-          
-          {/* Active View Quick Filter / Search */}
-          <div className="relative flex items-center">
-            <Search className={`w-3.5 h-3.5 text-zinc-400 absolute ${isRtl ? 'right-2.5' : 'left-2.5'}`} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder={isRtl ? `تصفية ${currentConfig.title_ar}...` : `Filter ${currentConfig.title_en}...`}
-              className={`text-xs py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-emerald-500 w-36 sm:w-48 transition-all font-medium ${
-                isRtl ? 'pr-8 pl-6' : 'pl-8 pr-6'
-              }`}
-            />
-            {searchQuery && (
+        {/* Left Side: Context Breadcrumb on Home, or Search & Primary Action on Work Area */}
+        {activeTab === 'dashboard' ? (
+          <div className="flex items-center gap-2 text-xs py-0.5">
+            <span className="font-semibold text-slate-500 dark:text-zinc-400">
+              {isRtl ? 'المنظومة' : 'System'}
+            </span>
+            <span className="text-slate-300 dark:text-zinc-600">/</span>
+            <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>{isRtl ? 'قمرة الإنجاز الفوري المؤسسي (Work-First Cockpit™)' : 'Quantum Work-First Cockpit™'}</span>
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center flex-wrap gap-2">
+            
+            {/* Active View Quick Filter / Search */}
+            <div className="relative flex items-center">
+              <Search className={`w-3.5 h-3.5 text-zinc-400 absolute ${isRtl ? 'right-2.5' : 'left-2.5'}`} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder={isRtl ? `تصفية ${currentConfig.title_ar}...` : `Filter ${currentConfig.title_en}...`}
+                className={`text-xs py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-emerald-500 w-36 sm:w-48 transition-all font-medium ${
+                  isRtl ? 'pr-8 pl-6' : 'pl-8 pr-6'
+                }`}
+              />
+              {searchQuery && (
+                <button
+                  onClick={onResetFilters}
+                  className={`absolute ${isRtl ? 'left-2' : 'right-2'} text-zinc-400 hover:text-rose-500`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Primary Action Button (If applicable) */}
+            {primaryAction && (
               <button
-                onClick={onResetFilters}
-                className={`absolute ${isRtl ? 'left-2' : 'right-2'} text-zinc-400 hover:text-rose-500`}
+                onClick={() => {
+                  triggerHaptic('medium');
+                  window.dispatchEvent(new CustomEvent('nexora-open-add-modal', { detail: { tab: activeTab } }));
+                }}
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black shadow-sm transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
               >
-                <X className="w-3 h-3" />
+                <Plus className="w-3.5 h-3.5 text-white" />
+                <span>{isRtl ? primaryAction.labelAr : primaryAction.labelEn}</span>
               </button>
             )}
-          </div>
-
-          {/* Primary Action Button (If applicable) */}
-          {primaryAction && (
-            <button
-              onClick={() => {
-                triggerHaptic('medium');
-                window.dispatchEvent(new CustomEvent('nexora-open-add-modal', { detail: { tab: activeTab } }));
-              }}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black shadow-sm transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-            >
-              <Plus className="w-3.5 h-3.5 text-white" />
-              <span>{isRtl ? primaryAction.labelAr : primaryAction.labelEn}</span>
-            </button>
-          )}
 
           {/* View Mode Switcher for Projects/Activities/Geospatial */}
           {(activeTab === 'projects' || activeTab === 'activities' || activeTab === 'geospatial') && (
@@ -298,6 +318,7 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
           )}
 
         </div>
+        )}
 
         {/* Right Side: Context Shortcuts & AI Tools */}
         <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar max-w-full">
@@ -336,7 +357,6 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
           </button>
         </div>
       </div>
-      )}
     </div>
   );
 };

@@ -33,6 +33,7 @@ import {
 import HRDocumentGeneratorModal from '../hr/HRDocumentGeneratorModal';
 import { ModuleShell } from '../../components/enterprise/ModuleShell';
 import { PolicyButton } from '../../core/security/PermissionGate';
+import { OrgHierarchySymbol } from '../../components/common/SovereignSystemIcons';
 
 interface HRManagementWorkspaceProps {
   lang: 'ar' | 'en';
@@ -92,7 +93,7 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
       titleAr="إدارة الموارد البشرية"
       titleEn="HR Management"
       domainCode="NEB-09"
-      icon={Users}
+      icon={OrgHierarchySymbol}
       lang={lang}
       accent="purple"
     >

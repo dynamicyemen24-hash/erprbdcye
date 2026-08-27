@@ -13,7 +13,13 @@ import {
   RefreshCw, 
   ShieldCheck,
   CheckCircle2,
-  Globe
+  Globe,
+  Calculator,
+  Zap,
+  BookOpen,
+  PlayCircle,
+  ChevronDown,
+  Compass
 } from "lucide-react";
 import { EnterpriseLogo } from './EnterpriseLogo';
 import NexoraOSLogo from './NexoraOSLogo';
@@ -60,6 +66,7 @@ export interface GlobalEnterpriseHeaderProps {
   setIsSystemsDockPinned: (pinned: boolean) => void;
   setPendingSecureTab: (tab: ActiveTab | null) => void;
   onOpenCopilot?: () => void;
+  onOpenSystemMap?: () => void;
 }
 
 export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
@@ -70,7 +77,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
   layoutDensity, setLayoutDensity, setIsShortcutsModalOpen, setShowExportModal,
   setShowScenariosModal, setShowHelpersModal, setShowDocsModal,
   isSystemsDockPinned, setIsSystemsDockPinned, setPendingSecureTab,
-  onOpenCopilot
+  onOpenCopilot, onOpenSystemMap
 }) => {
   const isRtl = lang === 'ar';
   const { tenantContext, availableOrganizations, switchOrganization } = useTenantContext();
@@ -81,6 +88,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
   const [selectedBranch, setSelectedBranch] = useState(defaultBranch);
   const [selectedFiscalYear, setSelectedFiscalYear] = useState('FY2026');
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
+  const [showHelpersMenu, setShowHelpersMenu] = useState(false);
   return (
     <header className="border-b border-emerald-500/20 bg-zinc-950 text-white z-50 select-none relative shadow-md">
       {/* UNIFIED SINGLE-TIER ENTERPRISE HEADER BAR (Clean, Spacious, Non-crowded) */}
@@ -105,6 +113,17 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
           >
             <Grid className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-90 transition-transform duration-300" />
           </button>
+
+          {/* Mode B: Enterprise System Map Launcher */}
+          {onOpenSystemMap && (
+            <button
+              onClick={onOpenSystemMap}
+              className="p-1.5 bg-emerald-950/60 hover:bg-emerald-800/80 text-emerald-200 rounded-lg border border-emerald-500/30 transition-all cursor-pointer flex items-center justify-center group shadow-xs"
+              title={isRtl ? 'خريطة المنظومة الشاملة [Alt+M]' : 'Enterprise System Map [Alt+M]'}
+            >
+              <Compass className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
+            </button>
+          )}
 
           {/* System Identity & Organization Brand */}
           <div className="flex items-center gap-2">
@@ -197,17 +216,139 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
           {/* Offline Sync Status */}
           <OfflineSyncStatusWidget lang={lang} />
 
-          {/* AI Copilot Button */}
-          {onOpenCopilot && (
+          {/* Consolidated Helper Tools Suite Menu */}
+          <div className="relative">
             <button
-              onClick={onOpenCopilot}
-              className="p-1.5 md:px-2 md:py-1 bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-700/60 text-amber-400 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-              title={isRtl ? 'المساعد الذكي' : 'AI Copilot'}
+              onClick={() => setShowHelpersMenu(prev => !prev)}
+              className="p-1.5 md:px-2.5 md:py-1 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title={isRtl ? 'الأدوات والمقاييس المساعدة المؤسسية [Alt+H]' : 'Institutional Helper Tools Suite [Alt+H]'}
             >
-              <Brain className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span className="hidden lg:inline">{isRtl ? 'المساعد الذكي' : 'Copilot'}</span>
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden md:inline">{isRtl ? 'الأدوات المساعدة' : 'Tools'}</span>
+              <span className="px-1 py-0.2 bg-amber-500/30 rounded text-[9px] font-mono font-bold">12+</span>
+              <ChevronDown className={`w-3 h-3 text-amber-400/80 transition-transform ${showHelpersMenu ? 'rotate-180' : ''}`} />
             </button>
-          )}
+
+            {/* Helper Tools Dropdown Panel */}
+            {showHelpersMenu && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowHelpersMenu(false)} 
+                />
+                <div className={`absolute top-full mt-2 ${isRtl ? 'left-0' : 'right-0'} w-72 bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/80 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 text-slate-100`}>
+                  <div className="px-2.5 py-1.5 border-b border-zinc-800 flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <Zap className="w-3 h-3 text-amber-400" />
+                      <span>{isRtl ? 'الأدوات والمقاييس المساعدة' : 'Helper Tools Suite'}</span>
+                    </span>
+                    <span className="text-[9px] font-mono text-zinc-400">UAMEX Utility</span>
+                  </div>
+
+                  <div className="py-1.5 space-y-1 text-xs">
+                    {/* Primary Tool: Relief & Governance Calculators */}
+                    <button
+                      onClick={() => {
+                        setShowHelpersMenu(false);
+                        setShowHelpersModal(true);
+                      }}
+                      className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-800/80 text-left rtl:text-right transition-colors cursor-pointer group"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Calculator className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-bold text-white leading-tight">
+                          {isRtl ? 'أدوات ومقاييس العمل الإنساني (12 أداة)' : 'Relief & Humanitarian Calculators (12)'}
+                        </div>
+                        <div className="text-[9.5px] text-zinc-400 truncate">
+                          {isRtl ? 'إسفير، فحص الهويات، الزكاة، تحوط العملات، IPSAS' : 'Sphere, ID check, Zakat, FX, IPSAS'}
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Copilot Assistant */}
+                    {onOpenCopilot && (
+                      <button
+                        onClick={() => {
+                          setShowHelpersMenu(false);
+                          onOpenCopilot();
+                        }}
+                        className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-800/80 text-left rtl:text-right transition-colors cursor-pointer group"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                          <Brain className="w-3.5 h-3.5 animate-pulse" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[11px] font-bold text-white leading-tight">
+                            {isRtl ? 'المساعد الذكي للمنظومة (Copilot)' : 'AI Copilot Assistant'}
+                          </div>
+                          <div className="text-[9.5px] text-zinc-400 truncate">
+                            {isRtl ? 'تحليلات ذكية واستفسارات فورية للبيانات' : 'Instant smart analytics & data queries'}
+                          </div>
+                        </div>
+                      </button>
+                    )}
+
+                    {/* User Manual & Governance Bylaws */}
+                    <button
+                      onClick={() => {
+                        setShowHelpersMenu(false);
+                        setShowDocsModal(true);
+                      }}
+                      className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-800/80 text-left rtl:text-right transition-colors cursor-pointer group"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <BookOpen className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-bold text-white leading-tight">
+                          {isRtl ? 'دليل الاستخدام واللوائح المؤسسية' : 'User Manual & Institutional Bylaws'}
+                        </div>
+                        <div className="text-[9.5px] text-zinc-400 truncate">
+                          {isRtl ? 'المرجعية الإجرائية والسياسات المعتمدة' : 'Standard policies & operational manuals'}
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Operational Scenarios & Playbooks */}
+                    <button
+                      onClick={() => {
+                        setShowHelpersMenu(false);
+                        setShowScenariosModal(true);
+                      }}
+                      className="w-full p-2 rounded-xl flex items-center gap-2.5 hover:bg-zinc-800/80 text-left rtl:text-right transition-colors cursor-pointer group"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <PlayCircle className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-bold text-white leading-tight">
+                          {isRtl ? 'سيناريوهات العمليات واللوائح (SOP)' : 'Operational Scenarios & SOP Playbooks'}
+                        </div>
+                        <div className="text-[9.5px] text-zinc-400 truncate">
+                          {isRtl ? 'مراحل التدشين والتوصيف الوظيفي' : 'Deployment stages & role taxonomy'}
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-zinc-800 px-2 flex justify-between items-center text-[9px] text-zinc-500">
+                    <span>{isRtl ? 'اختصار: Alt + H' : 'Shortcut: Alt + H'}</span>
+                    <button
+                      onClick={() => {
+                        setShowHelpersMenu(false);
+                        setShowHelpersModal(true);
+                      }}
+                      className="text-amber-400 hover:underline font-bold"
+                    >
+                      {isRtl ? 'عرض كافة الأدوات' : 'Open Suite'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Environment Mode Indicator & Switcher */}
           <EnvironmentModeHeaderButton lang={lang} />

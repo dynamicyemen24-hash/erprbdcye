@@ -627,13 +627,14 @@ export function buildFinancialStatementPDFHTML(options: {
   `;
 }
 
-// Download PDF directly from HTML string
+// Download PDF directly from HTML string with bulletproof multi-page support
 export async function generateAndDownloadPDF(htmlContent: string, filename: string): Promise<void> {
   const container = document.createElement('div');
-  container.style.position = 'fixed';
-  container.style.left = '-9999px';
+  container.style.position = 'absolute';
+  container.style.left = '0';
   container.style.top = '0';
-  container.style.width = '800px';
+  container.style.width = '820px';
+  container.style.zIndex = '-9999';
   container.style.backgroundColor = '#ffffff';
   container.innerHTML = sanitizeHtml(htmlContent);
   document.body.appendChild(container);
@@ -642,96 +643,141 @@ export async function generateAndDownloadPDF(htmlContent: string, filename: stri
     const html2canvasModule = await import('html2canvas');
     const html2canvas = (html2canvasModule.default || html2canvasModule) as any;
     const canvas = await html2canvas(container, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
+      allowTaint: true,
       backgroundColor: '#ffffff',
       logging: false,
+      windowWidth: 1200
     });
 
-    document.body.removeChild(container);
+    if (document.body.contains(container)) {
+      document.body.removeChild(container);
+    }
 
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const jsPDFModule = await import('jspdf');
     const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
     const pdf = new jsPDF({
       orientation: 'p',
       unit: 'mm',
       format: 'a4',
+      compress: true
     });
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+    const pageHeightInCanvas = (imgWidth * pdfHeight) / pdfWidth;
+    
+    let heightLeft = imgHeight;
+    let position = 0;
 
-    const imgX = (pdfWidth - imgWidth * ratio) / 2;
-    const imgY = 10;
+    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, (imgHeight * pdfWidth) / imgWidth);
+    heightLeft -= pageHeightInCanvas;
 
-    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, (position * pdfWidth) / imgWidth, pdfWidth, (imgHeight * pdfWidth) / imgWidth);
+      heightLeft -= pageHeightInCanvas;
+    }
+
     pdf.save(`${filename}.pdf`);
   } catch (err) {
-    console.error('Failed to generate PDF:', err);
+    console.error('Failed to generate PDF canvas, falling back to direct print:', err);
     if (document.body.contains(container)) {
       document.body.removeChild(container);
     }
-    // Fallback to silent print if canvas fails
     printPDFHTML(htmlContent);
   }
 }
 
-// Direct Silent IFrame Print
+// Direct Bulletproof Print (Supports popup, iframe, and native print dialog)
 export function printPDFHTML(htmlContent: string): void {
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  iframe.style.zIndex = '-1';
-  document.body.appendChild(iframe);
+  // 1. Try iframe silent print (avoids popup blockers)
+  try {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.zIndex = '-1';
+    document.body.appendChild(iframe);
 
-  const doc = iframe.contentWindow?.document || iframe.contentDocument;
-  if (doc) {
-    doc.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Print Document</title>
-          <style>
-            @page {
-              size: A4 portrait;
-              margin: 10mm;
-            }
-            body {
-              margin: 0;
-              padding: 0;
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              background-color: #ffffff;
-            }
-            @media print {
-              .no-print { display: none !important; }
-            }
-          </style>
-        </head>
-        <body>
-          ${htmlContent}
-        </body>
-      </html>
-    `);
-    doc.close();
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (doc) {
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html dir="rtl">
+          <head>
+            <meta charset="utf-8" />
+            <title>Official UAMEX Certified Document</title>
+            <style>
+              @page {
+                size: A4 portrait;
+                margin: 10mm;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #ffffff;
+                color: #0f172a;
+              }
+              @media print {
+                .no-print { display: none !important; }
+              }
+            </style>
+          </head>
+          <body>
+            ${htmlContent}
+          </body>
+        </html>
+      `);
+      doc.close();
 
-    setTimeout(() => {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
       setTimeout(() => {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (e) {
+          console.warn('[printPDFHTML] Iframe print fallback:', e);
+          const w = window.open('', '_blank');
+          if (w) {
+            w.document.write(htmlContent);
+            w.document.close();
+            w.focus();
+            setTimeout(() => w.print(), 350);
+          }
+        } finally {
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 5000);
         }
-      }, 3000);
-    }, 400);
+      }, 400);
+      return;
+    }
+  } catch (err) {
+    console.error('[printPDFHTML] Iframe creation error:', err);
   }
+
+  // 2. Direct window fallback
+  try {
+    const w = window.open('', '_blank');
+    if (w) {
+      w.document.write(htmlContent);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 350);
+    }
+  } catch {}
 }
 
 // Global Document Builder for 15-Part Executive Integrated Intelligence Report

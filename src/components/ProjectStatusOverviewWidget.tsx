@@ -1741,7 +1741,7 @@ export default function ProjectStatusOverviewWidget({
                         {isRtl ? 'بوابة الذكاء الاصطناعي: التحليل الفوري للمحفظة' : 'AI Intelligence Portal: Portfolio Quick Insights'}
                       </h4>
                       <p className="text-[9.5px] text-slate-400 dark:text-zinc-500 font-semibold mt-0.5">
-                        {isRtl ? 'تحليل ذكي تلقائي مدعوم بنماذج Gemini لتقييم المخاطر وتوجيه الأثر الميداني' : 'Automated strategic breakdown powered by Gemini models for risks & field impact'}
+                        {isRtl ? 'تحليل ذكي استراتيجي مدعوم بمحرك يوماكس إي آي (UAMEX AI™) لتقييم المخاطر وتوجيه الأثر الميداني' : 'Automated strategic breakdown powered by UAMEX AI™ Sovereign Engine'}
                       </p>
                     </div>
                   </div>
@@ -2757,7 +2757,7 @@ export default function ProjectStatusOverviewWidget({
                             <RefreshCw className={`w-3 h-3 ${pulseAnalysisLoading[selectedStakeholderProjId] ? 'animate-spin' : ''}`} />
                             {pulseAnalysisLoading[selectedStakeholderProjId]
                               ? (isRtl ? 'جاري تحليل النصوص...' : 'Analyzing semantic logs...')
-                              : (isRtl ? 'تحليل النبض بالذكاء الاصطناعي' : 'Run Gemini Sentiment NLP')}
+                              : (isRtl ? 'تحليل النبض بالذكاء الاصطناعي' : 'Run UAMEX Sentiment NLP')}
                           </button>
                         </div>
 
@@ -2917,7 +2917,7 @@ export default function ProjectStatusOverviewWidget({
                             </div>
 
                             <div className="flex items-center justify-between text-[8px] font-mono text-slate-400 dark:text-zinc-500 pt-2 border-t border-slate-100 dark:border-zinc-900/60 mt-2">
-                              <span>{isRtl ? 'المحلل المعرفي: Gemini NLP v3.6' : 'Cognitive Engine: Gemini NLP v3.6'}</span>
+                              <span>{isRtl ? 'المحلل المعرفي: UAMEX AI NLP v4.0' : 'Cognitive Engine: UAMEX AI NLP v4.0'}</span>
                               <span>{isRtl ? 'منظومة يو امكس المؤسسية UAMEX ERP™' : 'UAMEX ERP™ Operations Engine'}</span>
                             </div>
                           </div>
@@ -3095,7 +3095,7 @@ export default function ProjectStatusOverviewWidget({
                               </div>
 
                               <div className="p-2 bg-emerald-500/5 dark:bg-emerald-950/15 border border-emerald-500/10 rounded-lg text-[9px] font-bold text-emerald-700 dark:text-emerald-400 leading-normal">
-                                ?? <b className="font-extrabold">{isRtl ? 'ملاحظة للمستخدم:' : 'User Instruction:'}</b> {isRtl ? 'بإمكانك كتابة وتعديل المراسلات الميدانية، ثم النقر على زر "تحليل النبض" لتقوم Gemini بمعالجة المشاعر اللغوية والالتزام الإنساني بشكل فوري.' : 'You can draft new emails/meeting summaries on the left, then click "Run Gemini Sentiment NLP" to dynamically recalculate the sentiment score.'}
+                                ?? <b className="font-extrabold">{isRtl ? 'ملاحظة للمستخدم:' : 'User Instruction:'}</b> {isRtl ? 'بإمكانك كتابة وتعديل المراسلات الميدانية، ثم النقر على زر "تحليل النبض" ليقوم محرك يوماكس إي آي بمعالجة المشاعر اللغوية والالتزام الإنساني بشكل فوري.' : 'You can draft new emails/meeting summaries on the left, then click "Run Gemini Sentiment NLP" to dynamically recalculate the sentiment score.'}
                               </div>
                             </div>
 

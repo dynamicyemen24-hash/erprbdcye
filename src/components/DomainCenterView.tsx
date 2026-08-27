@@ -302,9 +302,9 @@ const DOMAIN_ENRICHMENT: {
     suiteKey: 'intelligence',
     suiteAr: 'الذكاء والأثر المؤسسي',
     suiteEn: 'AI & Impact Suite',
-    targetTab: 'reports',
-    managedEntitiesAr: ['مساعد Gemini AI Copilot', 'معايير العمل الإنساني الدولية', 'تقارير الأثر المطبوعة A4', 'التحليل التنبؤي للاحتياج'],
-    managedEntitiesEn: ['Gemini AI Intelligence Copilot', 'Sphere & CHS Standards Score', 'High-Fidelity A4 PDF Reports', 'Predictive Needs Analytics'],
+    targetTab: 'business_intelligence',
+    managedEntitiesAr: ['مساعد يوماكس إي آي (UAMEX AI™)', 'معايير العمل الإنساني الدولية (Sphere & CHS)', 'مصفوفة ذكاء الأعمال الموزعة', 'التحليل التنبؤي للاحتياج والعائد SROI'],
+    managedEntitiesEn: ['UAMEX AI™ Sovereign Copilot', 'Sphere & CHS Standards Score', 'Distributed Business Intelligence', 'Predictive Needs & SROI Analytics'],
     primaryKpiAr: 'مؤشر جودة العمل والمساءلة الإنسانية',
     primaryKpiEn: 'CHS Humanitarian Impact Score',
     kpiValue: '94 / 100',
@@ -445,7 +445,7 @@ export default function DomainCenterView({ lang, onNavigate }: DomainCenterViewP
 الطلب المُدخل:
 ${aiPrompt}
 
-⚠️  خدمة Gemini AI غير مُفعّلة في الخادم. لتفعيل التحليل الذكي، أعد تكوين مفتاح Gemini API في ملف config/index.ts.
+⚠️  خدمة يوماكس إي آي (UAMEX AI™) غير مفعّلة في الخادم. لتفعيل التحليل المؤسسي، يرجى تهيئة مفتاح الترخيص المؤسسي.
 
 هذه المسودة تُظهر طلبك فقط. سيتم استبدالها بتحليل حقيقي فور تفعيل الخدم.`
       : `[DRAFT — AI service not configured yet]
@@ -453,7 +453,7 @@ ${aiPrompt}
 Your prompt:
 ${aiPrompt}
 
-⚠️  Gemini AI service is not enabled on the server. To activate intelligent analysis, configure the Gemini API key in config/index.ts.
+⚠️  UAMEX AI™ sovereign engine is not active on this node. Please verify institutional license credentials.
 
 This draft shows your prompt only. It will be replaced with real analysis once the service is enabled.`;
 
@@ -1296,7 +1296,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1.5">
                         <span className="text-[9px] font-mono font-black text-fuchsia-600 dark:text-fuchsia-400">{tool.code}</span>
-                        <span className="px-1.5 py-0.2 bg-fuchsia-500/10 text-fuchsia-600 text-[8px] font-bold rounded">GEMINI ENGINE</span>
+                        <span className="px-1.5 py-0.2 bg-fuchsia-500/10 text-fuchsia-600 text-[8px] font-bold rounded">UAMEX AI ENGINE</span>
                       </div>
                       <h3 className="text-xs font-black text-slate-900 dark:text-zinc-100 mt-0.5">
                         {isRtl ? tool.nameAr : tool.nameEn}
@@ -1323,12 +1323,12 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                     </h3>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 bg-fuchsia-500/10 text-fuchsia-600 text-[9px] font-bold rounded border border-fuchsia-500/20">GEMINI PRO 1.5</span>
+                <span className="px-2.5 py-1 bg-fuchsia-500/10 text-fuchsia-600 text-[9px] font-bold rounded border border-fuchsia-500/20">UAMEX AI TIER 4</span>
               </div>
 
               {/* Textarea Input */}
               <div className="space-y-1">
-                <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'موجه الذكاء الاصطناعي للتحليل والاستشراف:' : 'Gemini AI Prompt & Context Input:'}</label>
+                <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'موجه يوماكس إي آي للتحليل والاستشراف المؤسسي:' : 'UAMEX AI Prompt & Context Input:'}</label>
                 <textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
@@ -1346,7 +1346,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                   className="px-5 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <Wand2 className="w-4 h-4" />
-                  <span>{isAiGenerating ? (isRtl ? 'جاري التحليل وتوليد الأثر...' : 'Generating Stream...') : (isRtl ? 'تحليل بالذكاء الاصطناعي مع Gemini' : 'Generate with Gemini AI')}</span>
+                  <span>{isAiGenerating ? (isRtl ? 'جاري المعالجة عبر يوماكس إي آي...' : 'Processing UAMEX AI...') : (isRtl ? 'تحليل ذكي مع يوماكس إي آي' : 'Generate with UAMEX AI')}</span>
                 </button>
 
                 {aiOutput && (
@@ -1363,7 +1363,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
               {/* Stream Output Frame */}
               {(aiOutput || isAiGenerating) && (
                 <div className="space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-3.5">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-zinc-400 block">{isRtl ? 'مخرج التقرير من خوادم Gemini AI:' : 'Gemini AI Intelligent Stream Response:'}</span>
+                  <span className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-zinc-400 block">{isRtl ? 'مخرج التحليل من محرك يوماكس إي آي السيادي:' : 'UAMEX AI Sovereign Intelligence Output:'}</span>
                   <div className="p-4 bg-slate-950 text-emerald-400 rounded-xl border border-zinc-800 text-xs font-mono leading-relaxed whitespace-pre-wrap select-text max-h-64 overflow-y-auto custom-scrollbar shadow-inner">
                     {aiOutput}
                     {isAiGenerating && <span className="animate-pulse bg-emerald-400 w-1.5 h-4 inline-block ml-0.5" />}
@@ -1707,7 +1707,7 @@ This draft shows your prompt only. It will be replaced with real analysis once t
             {/* Signatures block */}
             <div className="grid grid-cols-3 gap-6 pt-8 border-t border-slate-200 text-center text-xs font-bold text-slate-600">
               <div className="space-y-6">
-                <span>معد التقرير (Gemini AI Engine)</span>
+                <span>معد التقرير (UAMEX AI™ Sovereign Engine)</span>
                 <div className="h-12 flex items-center justify-center font-mono text-emerald-600 font-black italic">✓ Digital Signature</div>
               </div>
               <div className="space-y-6">

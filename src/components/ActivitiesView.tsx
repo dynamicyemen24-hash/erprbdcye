@@ -49,8 +49,10 @@ import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
 import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
-import { generateNumericCode } from '../lib/idGenerator';
 import { REAL_ENTERPRISE_DATA } from '../core/data/realEnterpriseData';
+import { generateNumericCode } from '../lib/idGenerator';
+import { instantPrint } from '../core/export';
+import { WBSActivityTreeSymbol } from './common/SovereignSystemIcons';
 
 // ==================== SECTOR & ACTIVITY TYPES TAXONOMY ====================
 export interface ActivitySector {
@@ -776,7 +778,7 @@ export default function ActivitiesView({
       </html>
     `;
 
-    printHTML(printContent);
+    instantPrint(printContent);
   };
 
   // Filter Activities
@@ -811,7 +813,7 @@ export default function ActivitiesView({
       descAr="تنظيم ومتابعة المهام الميدانية، بطاقات العمل اليومية"
       descEn="Detailed task planning, field checklists, and progress tracking"
       domainCode="NEB-05"
-      icon={Compass}
+      icon={WBSActivityTreeSymbol}
       accent="cyan"
       lang={lang}
       onRefresh={onRefresh}

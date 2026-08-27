@@ -138,7 +138,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
             15 NEB Domains
           </span>
           <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full text-xs font-bold font-mono">
-            Neon + Gemini 2.5
+            Neon + UAMEX AI™
           </span>
         </div>
       </div>
@@ -327,7 +327,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
               <span className="text-xs font-black text-emerald-400">AI Intelligence & Impact OS</span>
             </div>
             <p className="text-[11px] text-zinc-300">
-              {lang === 'ar' ? 'الذكاء المؤسسي وقياس الأثر: محرك Gemini 2.5 للتحليلات التنبؤية، تقارير قياس الأثر، ومعايير Sphere & CHS.' : 'AI Intelligence & Impact OS: Gemini 2.5 predictive analytics, Sphere/CHS humanitarian impact.'}
+              {lang === 'ar' ? 'الذكاء المؤسسي وقياس الأثر: محرك يوماكس إي آي (UAMEX AI™) للتحليلات التنبؤية، تقارير قياس الأثر، ومعايير Sphere & CHS.' : 'AI Intelligence & Impact OS: UAMEX AI™ sovereign engine for predictive analytics, Sphere/CHS humanitarian impact.'}
             </p>
           </div>
 

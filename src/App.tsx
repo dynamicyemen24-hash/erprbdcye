@@ -51,6 +51,7 @@ import {
   FileCheck,
   ShoppingCart
 } from 'lucide-react';
+import { BINexusSymbol } from './components/bi/BIIcons';
 
 // Enterprise Domain Features & Shared Component Imports
 import LoginView from './components/LoginView';
@@ -70,10 +71,12 @@ const HelperToolsPanel = lazyWithRetry(() => import('./components/helpers/Helper
 const BiometricSecurityGate = lazyWithRetry(() => import('./components/BiometricSecurityGate'), 'BiometricSecurityGate');
 const NexoraAICopilotDrawer = lazyWithRetry(() => import('./components/NexoraAICopilotDrawer'), 'NexoraAICopilotDrawer');
 const AppMatrixLauncherModal = lazyWithRetry(() => import('./components/AppMatrixLauncherModal'), 'AppMatrixLauncherModal');
+const EnterpriseSystemMapModal = lazyWithRetry(() => import('./components/navigation/EnterpriseSystemMapModal'), 'EnterpriseSystemMapModal');
 const UniversalCommandCenter = lazyWithRetry(() => import('./components/UniversalCommandCenter'), 'UniversalCommandCenter');
 const CustomizableShortcutsModal = lazyWithRetry(() => import('./components/shortcuts/CustomizableShortcutsManagerModal'), 'CustomizableShortcutsModal');
 const FastRecordRetrievalDrawer = lazyWithRetry(() => import('./components/records/FastRecordRetrievalDrawer'), 'FastRecordRetrievalDrawer');
 import { EnvironmentModeBanner } from './components/EnvironmentModeBanner';
+import { FloatingEnterpriseDock } from './components/FloatingEnterpriseDock';
 import { EnterpriseToastContainer, showToast } from './components/enterprise/EnterpriseToastContainer';
 
 import { 
@@ -131,6 +134,7 @@ export default function App() {
     showAppLauncherModal, isCommandCenterOpen, isShortcutsModalOpen,
     showAboutSystemModal, showUserProfilePopover, isSystemsDockPinned,
     isMobileMenuOpen, isRecordRetrievalOpen, globalToolStripSearch,
+    showSystemMapModal, setShowSystemMapModal,
     activeRolePerspective, organizationId, fiscalYear, setLang, setTheme,
     setLayoutDensity, setShowDocsModal, setShowExportModal, setShowScenariosModal,
     setShowHelpersModal, setShowCopilotDrawer, setShowAppLauncherModal,
@@ -139,6 +143,8 @@ export default function App() {
     setIsRecordRetrievalOpen, setGlobalToolStripSearch, setActiveRolePerspective,
     setOrganizationId, setFiscalYear, closeAllModals
   } = uiStore;
+
+  const [selectedHelperTool, setSelectedHelperTool] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (typeof performance !== 'undefined' && performance.mark) {
@@ -351,6 +357,24 @@ export default function App() {
       } else if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
         e.preventDefault();
         setIsShortcutsModalOpen(prev => !prev);
+      } else if (e.altKey && (e.key === 'h' || e.key === 'H' || e.key === 'ا')) {
+        e.preventDefault();
+        setShowHelpersModal(prev => !prev);
+      } else if (e.altKey && (e.key === 'a' || e.key === 'A' || e.key === 'ش')) {
+        e.preventDefault();
+        setShowCopilotDrawer(prev => !prev);
+      } else if (e.altKey && (e.key === 'p' || e.key === 'P' || e.key === 'ح')) {
+        e.preventDefault();
+        setShowExportModal(prev => !prev);
+      } else if (e.altKey && (e.key === 's' || e.key === 'S' || e.key === 'س')) {
+        e.preventDefault();
+        setShowScenariosModal(prev => !prev);
+      } else if (e.altKey && (e.key === 'd' || e.key === 'D' || e.key === 'ي')) {
+        e.preventDefault();
+        setIsSystemsDockPinned(prev => !prev);
+      } else if (e.altKey && (e.key === 'm' || e.key === 'M' || e.key === 'ة')) {
+        e.preventDefault();
+        setShowSystemMapModal(prev => !prev);
       } else if (e.key === 'F1') {
         e.preventDefault();
         setShowDocsModal(prev => !prev);
@@ -360,7 +384,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [closeAllModals, setIsCommandCenterOpen, setIsRecordRetrievalOpen, setIsShortcutsModalOpen, setShowDocsModal]);
+  }, [closeAllModals, setIsCommandCenterOpen, setIsRecordRetrievalOpen, setIsShortcutsModalOpen, setShowDocsModal, setShowSystemMapModal]);
   
   // User Authentication State
   const enterprise = useEnterprise();
@@ -607,7 +631,8 @@ export default function App() {
     hr_dashboard: { icon: Users, title_ar: 'لوحة إدارة الموارد البشرية', title_en: 'HR Management Dashboard', category_ar: 'الموارد البشرية', category_en: 'HR OS' },
     'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', category_ar: 'التزويد والمطالبات', category_en: 'Third-Party OS' },
     sales: { icon: Coins, title_ar: 'المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', category_ar: 'تنمية الموارد', category_en: 'Fundraising' },
-    procurement: { icon: ShoppingCart, title_ar: 'المشتريات والمناقصات (P2P)', title_en: 'Procurement & Tenders OS', category_ar: 'المشتريات والعقود', category_en: 'Procurement OS' }
+    procurement: { icon: ShoppingCart, title_ar: 'المشتريات والمناقصات (P2P)', title_en: 'Procurement & Tenders OS', category_ar: 'المشتريات والعقود', category_en: 'Procurement OS' },
+    business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', category_ar: 'ذكاء الأثر الدولي', category_en: 'Business Intelligence' }
   };
 
   const dbConnected = !!serverStats;
@@ -703,6 +728,7 @@ export default function App() {
         setIsSystemsDockPinned={setIsSystemsDockPinned}
         setPendingSecureTab={setPendingSecureTab}
         onOpenCopilot={() => setShowCopilotDrawer(true)}
+        onOpenSystemMap={() => setShowSystemMapModal(true)}
       />
 
       {/* LAYER 2: CONTEXT BREADCRUMB & UNIFIED RIBBON */}
@@ -738,6 +764,7 @@ export default function App() {
             onOpenDocs={() => setShowDocsModal(true)}
             onOpenScenarios={() => setShowScenariosModal(true)}
             onOpenHelpers={() => setShowHelpersModal(true)}
+            onOpenSystemMap={() => setShowSystemMapModal(true)}
           />
         </div>
 
@@ -793,26 +820,8 @@ export default function App() {
             {loading && projects.length === 0 && programs.length === 0 ? (
               <SkeletonLoader lang={lang} />
             ) : (
-              <>
-                {activeTab === 'dashboard' && (
-                  <React.Suspense fallback={
-                    <div className="flex items-center justify-center min-h-[200px]">
-                      <div className="animate-pulse space-y-4 w-full max-w-md">
-                        <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4"></div>
-                        <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2"></div>
-                        <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3"></div>
-                      </div>
-                    </div>
-                  }>
-                    <ProjectStatusOverviewWidget 
-                      projects={projects}
-                      lang={lang}
-                      onNavigate={(tab) => handleSelectTab(tab)}
-                    />
-                  </React.Suspense>
-                )}
-                <TabContentRenderer
-                  activeTab={activeTab}
+              <TabContentRenderer
+                activeTab={activeTab}
                   lang={lang}
                   loading={loading}
                   currentUser={currentUser as any}
@@ -835,8 +844,8 @@ export default function App() {
                   onDrillDown={(tab, filters) => handleDrillDown(tab, filters)}
                   onRefreshData={fetchAllData}
                   onOpenHelpers={() => setShowHelpersModal(true)}
+                  onOpenSystemMap={() => setShowSystemMapModal(true)}
                 />
-              </>
             )}
           </div>
         </main>
@@ -851,6 +860,20 @@ export default function App() {
       />
 
       {/* MODALS */}
+      {showSystemMapModal && (
+        <React.Suspense fallback={<SuspenseFallback />}>
+          <EnterpriseSystemMapModal
+            isOpen={showSystemMapModal}
+            onClose={() => setShowSystemMapModal(false)}
+            lang={lang}
+            onNavigate={(tab) => {
+              setShowSystemMapModal(false);
+              handleSelectTab(tab as ActiveTab);
+            }}
+          />
+        </React.Suspense>
+      )}
+
       {showExportModal && (
         <React.Suspense fallback={<SuspenseFallback />}>
           <ExportToolsModal
@@ -913,7 +936,7 @@ export default function App() {
             </div>
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50/30 dark:bg-zinc-950/20">
               <React.Suspense fallback={<div className="p-6 text-center text-slate-400">...</div>}>
-                <HelperToolsPanel lang={lang} />
+                <HelperToolsPanel lang={lang} initialTool={selectedHelperTool as any} onClose={() => { setShowHelpersModal(false); setSelectedHelperTool(undefined); }} />
               </React.Suspense>
             </div>
           </div>
@@ -1089,6 +1112,13 @@ export default function App() {
           setLang={setLang}
           onRefreshData={fetchAllData}
           onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+          onOpenHelpers={(toolId) => {
+            if (toolId) setSelectedHelperTool(toolId);
+            setShowHelpersModal(true);
+          }}
+          onOpenCopilot={() => setShowCopilotDrawer(true)}
+          onOpenPrintModal={() => setShowExportModal(true)}
+          onOpenScenariosModal={() => setShowScenariosModal(true)}
         />
       </React.Suspense>
 

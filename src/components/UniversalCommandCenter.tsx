@@ -8,6 +8,10 @@ import {
   Layers, 
   Heart, 
   Coins, 
+  DollarSign,
+  Calendar,
+  QrCode,
+  Brain,
   Settings, 
   Database, 
   FileText, 
@@ -66,6 +70,10 @@ interface UniversalCommandCenterProps {
   setLang?: (fn: (prev: 'ar' | 'en') => 'ar' | 'en') => void;
   onRefreshData?: () => void;
   onOpenShortcutsModal?: () => void;
+  onOpenHelpers?: (toolId?: string) => void;
+  onOpenCopilot?: () => void;
+  onOpenPrintModal?: () => void;
+  onOpenScenariosModal?: () => void;
 }
 
 type CategoryType = 'ALL' | 'FREQUENT' | 'DOMAINS' | 'REPORTS' | 'ACTIONS' | 'RECORDS' | 'SETTINGS';
@@ -103,7 +111,11 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
   setTheme,
   setLang,
   onRefreshData,
-  onOpenShortcutsModal
+  onOpenShortcutsModal,
+  onOpenHelpers,
+  onOpenCopilot,
+  onOpenPrintModal,
+  onOpenScenariosModal
 }) => {
   if (!isOpen) return null;
   const isRtl = lang === 'ar';
@@ -200,13 +212,97 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
     { id: 'dom-neb10', category: 'DOMAINS', titleAr: 'NEB-10: المحاسبة المالية والحوكمة IPSAS', titleEn: 'NEB-10: Finance & IPSAS Ledger OS', subAr: '246 حساباً شجرياً، سندات الصرف والقبض، وميزان المراجعة', subEn: '246 chart of accounts, vouchers & IPSAS trial balance', icon: Coins, badge: 'NEB-10', badgeColor: 'bg-emerald-500/10 text-emerald-600', action: () => { onNavigate('finance'); onClose(); } },
     { id: 'dom-neb11', category: 'DOMAINS', titleAr: 'NEB-11: المعرفة والأرشيف والسياسات', titleEn: 'NEB-11: Knowledge & Document OS', subAr: 'المستندات الرسمية، الأدلة الإجرائية، وسجل الاعتمادات', subEn: 'Official manuals & document repository', icon: FileText, badge: 'NEB-11', badgeColor: 'bg-amber-500/10 text-amber-600', action: () => { onNavigate('docs'); onClose(); } },
     { id: 'dom-neb12', category: 'DOMAINS', titleAr: 'NEB-12: التكامل والخدمات الرقمية والعملات', titleEn: 'NEB-12: Digital Services & Currency OS', subAr: 'أسعار الصرف، واجهات API، والمزامنة السحابية Neon', subEn: 'Exchange rates, APIs & Neon database integration', icon: Database, badge: 'NEB-12', badgeColor: 'bg-purple-500/10 text-purple-600', action: () => { onNavigate('currencies'); onClose(); } },
-    { id: 'dom-neb13', category: 'DOMAINS', titleAr: 'NEB-13: ذكاء الأثر والتقارير التنفيذية AI', titleEn: 'NEB-13: AI Intelligence & Impact OS', subAr: 'التقارير التحليلية، معايير Sphere/CHS، والملخص الذكي', subEn: 'AI executive reporting & impact analytics', icon: Sparkles, badge: 'NEB-13', badgeColor: 'bg-fuchsia-500/10 text-fuchsia-600', action: () => { onNavigate('reports'); onClose(); } },
+    { id: 'dom-neb13', category: 'DOMAINS', titleAr: 'NEB-13: ذكاء الأعمال والأثر المؤسسي المعياري', titleEn: 'NEB-13: Business Intelligence & Impact OS', subAr: 'مصفوفة الارتباط التكاملي، مؤشرات إسفير وCHS، والتحليل الموزع على الوحدات', subEn: 'Cross-domain impact correlation, Sphere/CHS benchmarks & unit distribution', icon: Sparkles, badge: 'NEB-13', badgeColor: 'bg-fuchsia-500/10 text-fuchsia-600', action: () => { onNavigate('business_intelligence'); onClose(); } },
     { id: 'dom-neb14', category: 'DOMAINS', titleAr: 'NEB-14: المشتريات والمناقصات والعقود', titleEn: 'NEB-14: Procurement & Contracts OS', subAr: 'أوامر الشراء، عروض الأسعار، وتقييم الموردين', subEn: 'Procurement orders, RFQs & vendor evaluations', icon: ShoppingCart, badge: 'NEB-14', badgeColor: 'bg-orange-500/10 text-orange-600', action: () => { onNavigate('contracts'); onClose(); } },
     { id: 'dom-neb15', category: 'DOMAINS', titleAr: 'NEB-15: تنمية الموارد والتبرعات والإيرادات', titleEn: 'NEB-15: Fundraising & Revenue OS', subAr: 'إدارة التبرعات، الحملات التمويلية، وبوابات الدفع', subEn: 'Donation tracking & revenue optimization', icon: TrendingUp, badge: 'NEB-15', badgeColor: 'bg-lime-500/10 text-lime-600', action: () => { onNavigate('finance'); onClose(); } },
   ], [onNavigate, onClose]);
 
   // 2. High-Frequency Direct Operational Actions (1-Click Execution)
   const actionCommands: CommandItem[] = useMemo(() => [
+    {
+      id: 'act-tool-zakat',
+      category: 'ACTIONS',
+      titleAr: 'حاسبة الزكاة الشرعية وتوزيع المصارف والصدقات',
+      titleEn: 'Zakat & Charities Assessment Engine',
+      subAr: 'احتساب زكاة المال، الذهب، التجارة وحصص المصارف الثمانية الشرعية',
+      subEn: 'Calculate zakat on cash, gold, trade and allocate 8 Quranic categories',
+      icon: Coins,
+      badge: 'ZAKAT / زكاة',
+      badgeColor: 'bg-amber-500/10 text-amber-600',
+      action: () => { onOpenHelpers?.('zakat_calculator'); onClose(); }
+    },
+    {
+      id: 'act-tool-fx',
+      category: 'ACTIONS',
+      titleAr: 'محول ومراقب أسعار الصرف المتعددة والتحوط المالي',
+      titleEn: 'Multi-Currency FX & Project Hedging',
+      subAr: 'تحويل العملات (صنعاء/عدن/SAR/USD) واحتياطي مخاطر التضخم',
+      subEn: 'Convert currencies & simulate budget hedging reserves',
+      icon: DollarSign,
+      badge: 'FX / صرف',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600',
+      action: () => { onOpenHelpers?.('fx_hedging'); onClose(); }
+    },
+    {
+      id: 'act-tool-sphere',
+      category: 'ACTIONS',
+      titleAr: 'حاسبة معايير إسفير الإنسانية للإغاثة الميدانية',
+      titleEn: 'Sphere Humanitarian Assessment Calculator',
+      subAr: 'تقدير مخصصات المياه، السلال الغذائية، مساحات المأوى والمرافق',
+      subEn: 'Water liters, food baskets, shelter & latrines sizing',
+      icon: Layers,
+      badge: 'SPHERE / إسفير',
+      badgeColor: 'bg-blue-500/10 text-blue-600',
+      action: () => { onOpenHelpers?.('sphere'); onClose(); }
+    },
+    {
+      id: 'act-tool-hijri',
+      category: 'ACTIONS',
+      titleAr: 'محول التقويم الهجري وجدولة المواسم الإنسانية',
+      titleEn: 'Hijri Calendar & Seasonal Campaign Scheduler',
+      subAr: 'التحويل المباشر والعد التنازلي لمواسم رمضان، الأضاحي، والمدارس',
+      subEn: 'Hijri conversions & readiness countdown for Ramadan and Eid',
+      icon: Calendar,
+      badge: 'HIJRI / هجري',
+      badgeColor: 'bg-teal-500/10 text-teal-600',
+      action: () => { onOpenHelpers?.('hijri_converter'); onClose(); }
+    },
+    {
+      id: 'act-tool-qr',
+      category: 'ACTIONS',
+      titleAr: 'مولد الأختام الرقمية ورموز الاستجابة السريعة QR',
+      titleEn: 'Document QR & Security Stamp Generator',
+      subAr: 'توليد رموز QR مشفرة وهاش SHA-256 للقرارات والمستندات',
+      subEn: 'Cryptographic SHA-256 QR and verification stamps',
+      icon: QrCode,
+      badge: 'QR / ختم',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600',
+      action: () => { onOpenHelpers?.('qr_stamp_generator'); onClose(); }
+    },
+    {
+      id: 'act-tool-copilot',
+      category: 'ACTIONS',
+      titleAr: 'تشغيل المساعد الذكي التوليدي UAMEX Copilot',
+      titleEn: 'Launch UAMEX AI Copilot Assistant',
+      subAr: 'تحليل البيانات، صياغة الخطط، والتشخيص الفوري بالذكاء الاصطناعي',
+      subEn: 'AI conversational reasoning, impact diagnostics & drafting',
+      icon: Brain,
+      badge: 'AI / ذكاء',
+      badgeColor: 'bg-purple-500/10 text-purple-600',
+      action: () => { onOpenCopilot?.(); onClose(); }
+    },
+    {
+      id: 'act-tool-print-suite',
+      category: 'ACTIONS',
+      titleAr: 'طباعة التقارير والقوائم المعمدة الرسمية (A4 Print)',
+      titleEn: 'Print Certified Enterprise Reports & Statements',
+      subAr: 'تصدير وثائق A4 معتمدة بالأختام وشعاري المنظومة والجمعية',
+      subEn: 'Generate stamped PDF dossiers with dual logos',
+      icon: Printer,
+      badge: 'PRINT / طباعة',
+      badgeColor: 'bg-rose-500/10 text-rose-600',
+      action: () => { onOpenPrintModal?.(); onClose(); }
+    },
     {
       id: 'act-new-voucher',
       category: 'ACTIONS',
@@ -315,7 +411,7 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
       badgeColor: 'bg-blue-500/10 text-blue-600',
       action: () => { onNavigate('scenarios' as TabId); onClose(); }
     }
-  ], [onNavigate, onRefreshData, onClose]);
+  ], [onNavigate, onRefreshData, onOpenHelpers, onOpenCopilot, onOpenPrintModal, onClose]);
 
   // 3. Direct Deep Links to Reports
   const reportCommands: CommandItem[] = useMemo(() => [

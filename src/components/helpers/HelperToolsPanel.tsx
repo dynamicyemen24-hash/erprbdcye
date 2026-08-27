@@ -1,7 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { 
   Calculator, 
   Map, 
+  DollarSign,
+  Coins,
+  Calendar as CalendarIcon,
+  QrCode,
+  Scale,
+  TrendingDown,
+  ExternalLink,
+  Share2,
+  Bookmark,
   FileCheck, 
   Users, 
   Droplet, 
@@ -40,10 +49,12 @@ import { printHTML } from '../../lib/printUtils';
 
 interface HelperToolsPanelProps {
   lang: 'ar' | 'en';
+  initialTool?: ToolId;
+  onClose?: () => void;
 }
 
 type ToolCategory = 'all' | 'field' | 'finance' | 'governance';
-type ToolId = 'sphere' | 'iati' | 'ipsas' | 'icr' | 'risk' | 'id_verifier' | 'chs_audit' | 'checklists';
+type ToolId = 'sphere' | 'id_verifier' | 'risk' | 'checklists' | 'zakat_calculator' | 'fx_hedging' | 'ipsas' | 'icr' | 'hijri_converter' | 'qr_stamp_generator' | 'iati' | 'chs_audit';
 
 interface ToolMetadata {
   id: ToolId;
@@ -59,13 +70,13 @@ interface ToolMetadata {
   descriptionAr: string;
 }
 
-export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
+export default function HelperToolsPanel({ lang, initialTool, onClose }: HelperToolsPanelProps) {
   const isRtl = lang === 'ar';
   
   // Category Filter & Search
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeTool, setActiveTool] = useState<ToolId>('sphere');
+  const [activeTool, setActiveTool] = useState<ToolId>(initialTool || 'sphere');
 
   // Metadata for the 8 Integrated Enterprise Tools
   const toolsList: ToolMetadata[] = useMemo(() => [
@@ -107,6 +118,58 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
       bgLight: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50',
       badgeAr: 'إدارة المخاطر الميدانية',
       descriptionAr: 'تقييم السلامة، سلاسل الإمداد اللوجستية وتذبذب تكاليف التدخل.'
+    },
+    {
+      id: 'zakat_calculator',
+      nameAr: 'حاسبة الزكاة الشرعية وتوزيع المصارف والصدقات',
+      nameEn: 'Zakat & Charities Engine',
+      category: 'finance',
+      categoryNameAr: 'المالية والميزانيات',
+      categoryNameEn: 'Finance & Budgets',
+      icon: Coins,
+      iconColor: 'text-amber-500 dark:text-amber-400',
+      bgLight: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50',
+      badgeAr: 'المصارف الشرعية الثمانية',
+      descriptionAr: 'احتساب زكاة المال، عروض التجارة، نصاب الذهب والفضة، وحصص المصارف الثمانية.'
+    },
+    {
+      id: 'fx_hedging',
+      nameAr: 'محول ومراقب أسعار الصرف المتعددة والتحوط المالي',
+      nameEn: 'Multi-Currency FX & Hedging',
+      category: 'finance',
+      categoryNameAr: 'المالية والميزانيات',
+      categoryNameEn: 'Finance & Budgets',
+      icon: DollarSign,
+      iconColor: 'text-emerald-500 dark:text-emerald-400',
+      bgLight: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50',
+      badgeAr: 'مؤشرات الصرف الحية والتحوط',
+      descriptionAr: 'تحويل العملات (YER صنعاء/عدن/SAR/USD)، ومراقبة فجوة السوق ومخاطر تقلب الموازنات.'
+    },
+    {
+      id: 'hijri_converter',
+      nameAr: 'محول التقويم الهجري وجدولة المواسم الإنسانية',
+      nameEn: 'Hijri & Seasonal Scheduler',
+      category: 'governance',
+      categoryNameAr: 'المعايير والحوكمة',
+      categoryNameEn: 'Standards & Governance',
+      icon: CalendarIcon,
+      iconColor: 'text-teal-500 dark:text-teal-400',
+      bgLight: 'bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800/50',
+      badgeAr: 'التقويم الإسلامي والمواسم',
+      descriptionAr: 'تحويل التواريخ، وحساب العد التنازلي لمواسم رمضان، الأضاحي، والعودة للمدارس.'
+    },
+    {
+      id: 'qr_stamp_generator',
+      nameAr: 'مولد الأختام الرقمية ورموز الاستجابة السريعة للتحقق',
+      nameEn: 'QR & Digital Audit Stamper',
+      category: 'governance',
+      categoryNameAr: 'المعايير والحوكمة',
+      categoryNameEn: 'Standards & Governance',
+      icon: QrCode,
+      iconColor: 'text-indigo-500 dark:text-indigo-400',
+      bgLight: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50',
+      badgeAr: 'التوثيق الرقمي المشفر SHA-256',
+      descriptionAr: 'إنشاء رموز QR وأختام الحوكمة الرقمية المشفرة للقرارات والوثائق المعتمدة.'
     },
     {
       id: 'checklists',
@@ -401,6 +464,216 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
   const toggleChecklistItem = (item: string) => {
     setCompletedItems(prev => ({ ...prev, [item]: !prev[item] }));
   };
+
+  // ==================== TOOL 9: ZAKAT & CHARITIES ENGINE STATE & LOGIC ====================
+  const [zakatCash, setZakatCash] = useState<number>(15000000);
+  const [zakatGoldGrams, setZakatGoldGrams] = useState<number>(0);
+  const [zakatGoldPrice, setZakatGoldPrice] = useState<number>(85000);
+  const [zakatTradeGoods, setZakatTradeGoods] = useState<number>(5000000);
+  const [zakatReceivables, setZakatReceivables] = useState<number>(2000000);
+  const [zakatDebtsDue, setZakatDebtsDue] = useState<number>(3000000);
+  const [zakatCopied, setZakatCopied] = useState<boolean>(false);
+
+  const calculatedNisabThreshold = useMemo(() => {
+    return Math.round(97.14 * zakatGoldPrice);
+  }, [zakatGoldPrice]);
+
+  const netZakatableAmount = useMemo(() => {
+    const totalAssets = zakatCash + (zakatGoldGrams * zakatGoldPrice) + zakatTradeGoods + zakatReceivables;
+    return Math.max(0, totalAssets - zakatDebtsDue);
+  }, [zakatCash, zakatGoldGrams, zakatGoldPrice, zakatTradeGoods, zakatReceivables, zakatDebtsDue]);
+
+  const isZakatEligible = netZakatableAmount >= calculatedNisabThreshold;
+  const totalZakatObligation = isZakatEligible ? Math.round(netZakatableAmount * 0.025) : 0;
+
+  const zakatBreakdown = useMemo(() => [
+    { name: isRtl ? 'الفقراء والمساكين (دعم الأسر الأشد احتياجاً)' : 'The Poor & Needy', percent: 50, amount: Math.round(totalZakatObligation * 0.50), color: 'emerald' },
+    { name: isRtl ? 'الغارمون (سداد ديون المعسرين وأصحاب الكرب)' : 'The Debt-Ridden (Gharimeen)', percent: 15, amount: Math.round(totalZakatObligation * 0.15), color: 'amber' },
+    { name: isRtl ? 'في سبيل الله (المشاريع الإنسانية والتعليمية والصحية)' : 'In the Cause of Allah (Relief & Health)', percent: 15, amount: Math.round(totalZakatObligation * 0.15), color: 'teal' },
+    { name: isRtl ? 'ابن السبيل (النازحون وعابرو السبيل المنقطعون)' : 'Stranded Wayfarers / IDPs', percent: 10, amount: Math.round(totalZakatObligation * 0.10), color: 'blue' },
+    { name: isRtl ? 'العاملون عليها (المصاريف التشغيلية لتحصيل وتوزيع الزكاة)' : 'Zakat Administrators / Field Logistics', percent: 10, amount: Math.round(totalZakatObligation * 0.10), color: 'purple' }
+  ], [isRtl, totalZakatObligation]);
+
+  const handlePrintZakatStatement = () => {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html dir="${isRtl ? 'rtl' : 'ltr'}">
+        <head>
+          <meta charset="utf-8" />
+          <title>${isRtl ? 'سند احتساب الزكاة الشرعية والمصارف' : 'Official Zakat Assessment'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; color: #0f172a; }
+            @page { size: A4 portrait; margin: 15mm; }
+          </style>
+        </head>
+        <body>
+          <div style="max-width: 780px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double #d97706; padding-bottom: 20px; margin-bottom: 25px;">
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="/UAMEX_ERPLOGO.png" style="height: 55px;" alt="UAMEX ERP" />
+                <img src="/LogoRohamaab.png" style="height: 55px;" alt="Logo Rohamaab" />
+                <div>
+                  <h2 style="margin: 0; color: #0f172a; font-size: 16px; font-weight: 900;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
+                  <p style="margin: 3px 0 0 0; color: #d97706; font-size: 11px; font-weight: 700;">نظام يو امكس المؤسسي الشامل - UAMEX ERP™</p>
+                  <p style="margin: 2px 0 0 0; color: #64748b; font-size: 10px;">إدارة الموارد المالية والمصارف الشرعية (NEB-10)</p>
+                </div>
+              </div>
+              <div style="text-align: ${isRtl ? 'left' : 'right'};">
+                <span style="padding: 4px 12px; background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; font-weight: 900; border-radius: 6px; font-size: 11px;">
+                  ${isZakatEligible ? (isRtl ? 'بلغت النصاب الشرعي' : 'Nisab Reached') : (isRtl ? 'دون النصاب' : 'Below Nisab')}
+                </span>
+                <p style="margin: 8px 0 0 0; font-size: 10px; color: #64748b;">${isRtl ? 'تاريخ الاحتساب:' : 'Date:'} ${new Date().toLocaleDateString(isRtl ? 'ar-YE' : 'en-US')}</p>
+              </div>
+            </div>
+
+            <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin-bottom: 25px;">
+              <table style="width: 100%; font-size: 11px;">
+                <tr>
+                  <td style="color: #92400e; font-weight: bold;">${isRtl ? 'الوعاء الزكوي الخاضع للزكاة:' : 'Net Zakatable Wealth:'}</td>
+                  <td style="font-weight: 900; font-size: 14px; color: #78350f; font-family: monospace;">${netZakatableAmount.toLocaleString()} YER</td>
+                  <td style="color: #92400e; font-weight: bold;">${isRtl ? 'نصاب الذهب المعتمد:' : 'Gold Nisab Threshold:'}</td>
+                  <td style="font-weight: bold; font-family: monospace;">${calculatedNisabThreshold.toLocaleString()} YER</td>
+                </tr>
+                <tr>
+                  <td style="color: #92400e; font-weight: bold; padding-top: 10px;">${isRtl ? 'مقدار الزكاة الواجبة (2.5%):' : 'Total Zakat Due (2.5%):'}</td>
+                  <td colspan="3" style="padding-top: 10px; font-weight: 900; font-size: 18px; color: #059669; font-family: monospace;">
+                    ${totalZakatObligation.toLocaleString()} YER
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <h3 style="font-size: 13px; font-weight: 900; color: #0f172a; margin-bottom: 12px;">${isRtl ? 'توزيع الحصص على المصارف الثمانية الشرعية:' : 'Allocation Across Quranic Zakat Beneficiaries:'}</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 11px;">
+              <thead>
+                <tr style="background-color: #0f172a; color: #ffffff;">
+                  <th style="padding: 8px 10px; text-align: ${isRtl ? 'right' : 'left'};">المصرف الشرعي</th>
+                  <th style="padding: 8px 10px; text-align: center; width: 80px;">النسبة</th>
+                  <th style="padding: 8px 10px; text-align: right; width: 160px;">المبلغ المخصص (YER)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${zakatBreakdown.map((item, idx) => `
+                  <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 10px; font-weight: bold;">${item.name}</td>
+                    <td style="padding: 10px; text-align: center; font-weight: 900; color: #d97706;">${item.percent}%</td>
+                    <td style="padding: 10px; text-align: right; font-family: monospace; font-weight: 900; font-size: 12px;">${item.amount.toLocaleString()} YER</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </body>
+      </html>
+    `;
+    printHTML(htmlContent);
+  };
+
+  // ==================== TOOL 10: MULTI-CURRENCY FX & HEDGING STATE & LOGIC ====================
+  const [fxAmount, setFxAmount] = useState<number>(10000);
+  const [fxFrom, setFxFrom] = useState<string>('USD');
+  const [fxTo, setFxTo] = useState<string>('YER_SANAA');
+  const [fxCopied, setFxCopied] = useState<boolean>(false);
+
+  const [ratesConfig] = useState<Record<string, number>>({
+    USD: 1,
+    SAR: 0.266,
+    EUR: 1.08,
+    YER_SANAA: 0.00187,
+    YER_ADEN: 0.000465
+  });
+
+  const convertFx = useCallback((amount: number, from: string, to: string) => {
+    const fromRate = ratesConfig[from] || 1;
+    const toRate = ratesConfig[to] || 1;
+    const amountInUsd = amount * fromRate;
+    return amountInUsd / toRate;
+  }, [ratesConfig]);
+
+  const convertedFxValue = useMemo(() => {
+    return convertFx(fxAmount, fxFrom, fxTo);
+  }, [convertFx, fxAmount, fxFrom, fxTo]);
+
+  const [projectBudgetUsd, setProjectBudgetUsd] = useState<number>(50000);
+  const [projectDurationMonths, setProjectDurationMonths] = useState<number>(6);
+  const expectedInflationRate = 0.015;
+  const recommendedHedgingBuffer = Math.round(projectBudgetUsd * (expectedInflationRate * projectDurationMonths));
+  const totalHedgedBudgetUsd = projectBudgetUsd + recommendedHedgingBuffer;
+
+  // ==================== TOOL 11: HIJRI & SEASONAL SCHEDULER STATE & LOGIC ====================
+  const [selectedGregorianDate, setSelectedGregorianDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  
+  const hijriFormatted = useMemo(() => {
+    try {
+      const d = new Date(selectedGregorianDate);
+      return new Intl.DateTimeFormat(isRtl ? 'ar-SA-u-ca-islamic-umalqura' : 'en-US-u-ca-islamic-umalqura', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(d);
+    } catch {
+      return '1448 هـ';
+    }
+  }, [selectedGregorianDate, isRtl]);
+
+  const seasonalCampaigns = useMemo(() => [
+    { id: 'ramadan', titleAr: 'حملة رمضان المبارك والسلال الغذائية', titleEn: 'Holy Ramadan Drive', hijriTarget: '1 رمضان 1448 هـ', daysLeft: 165, targetFamilies: 8500, readinessPct: 75, accent: 'amber' },
+    { id: 'eid_fitr', titleAr: 'مشروع كسوة العيد وزكاة الفطر للأيتام', titleEn: 'Eid Clothes Drive', hijriTarget: '29 رمضان 1448 هـ', daysLeft: 194, targetFamilies: 3200, readinessPct: 60, accent: 'emerald' },
+    { id: 'adhah', titleAr: 'مشروع الأضاحي والإطعام والتوزيع الميداني', titleEn: 'Eid Al-Adha Meat', hijriTarget: '10 ذو الحجة 1448 هـ', daysLeft: 265, targetFamilies: 12000, readinessPct: 40, accent: 'rose' },
+    { id: 'back_to_school', titleAr: 'مشروع الحقيبة والزي المدرسي للطلاب', titleEn: 'Back to School Bags', hijriTarget: '1 محرم 1449 هـ', daysLeft: 285, targetFamilies: 4500, readinessPct: 55, accent: 'blue' },
+    { id: 'winter', titleAr: 'حملة دفء الشتاء والإيواء للأسر النازحة', titleEn: 'Winter Warmth Relief', hijriTarget: '15 جمادى الأولى 1448 هـ', daysLeft: 78, targetFamilies: 6000, readinessPct: 88, accent: 'teal' }
+  ], []);
+
+  // ==================== TOOL 12: QR & DIGITAL AUDIT STAMPER STATE & LOGIC ====================
+  const [stampDocType, setStampDocType] = useState<string>('قرار إداري وتنفيذي');
+  const [stampDocRef, setStampDocRef] = useState<string>('ROH-2026-DEC-094');
+  const [stampBeneficiaryOrOrg, setStampBeneficiaryOrOrg] = useState<string>('قطاع البرامج والمشاريع الإغاثية');
+  const [stampNotes, setStampNotes] = useState<string>('معتمد وموثق بموجب محاضر التدقيق والحوكمة المؤسسية');
+  const [stampCopied, setStampCopied] = useState<boolean>(false);
+
+  const digitalAuditHash = useMemo(() => {
+    return 'SHA256-' + btoa(stampDocRef + '-' + stampDocType).replace(/=/g, '').toUpperCase() + '-UAMEX-VERIFIED';
+  }, [stampDocRef, stampDocType]);
+
+  const handlePrintAuditStampCard = () => {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html dir="${isRtl ? 'rtl' : 'ltr'}">
+        <head>
+          <meta charset="utf-8" />
+          <title>${isRtl ? 'بطاقة التحقق والختم الرقمي المعتمد' : 'Digital Verification Stamp Card'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; color: #0f172a; }
+            @page { size: A4 portrait; margin: 15mm; }
+          </style>
+        </head>
+        <body>
+          <div style="max-width: 600px; margin: 40px auto; border: 2px solid #059669; border-radius: 16px; padding: 30px;">
+            <div style="text-align: center; border-bottom: 2px dashed #e2e8f0; padding-bottom: 20px; margin-bottom: 20px;">
+              <div style="display: flex; justify-content: center; gap: 15px; align-items: center; margin-bottom: 10px;">
+                <img src="/UAMEX_ERPLOGO.png" style="height: 50px;" alt="UAMEX ERP" />
+                <img src="/LogoRohamaab.png" style="height: 50px;" alt="Logo Rohamaab" />
+              </div>
+              <h2 style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 900;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
+              <p style="margin: 3px 0 0 0; color: #059669; font-size: 11px; font-weight: 700;">ختم التحقق الرقمي المشفر والمطابقة المؤسسية</p>
+            </div>
+
+            <div style="margin-bottom: 20px; font-size: 11px;">
+              <div><strong>رقم المستند: </strong>${stampDocRef}</div>
+              <div><strong>النوع: </strong>${stampDocType}</div>
+              <div><strong>الجهة: </strong>${stampBeneficiaryOrOrg}</div>
+            </div>
+
+            <div style="background-color: #0f172a; color: #10b981; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 9px; word-break: break-all;">
+              DIGITAL HASH: ${digitalAuditHash}
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    printHTML(htmlContent);
+  };
+
 
   // Print Sphere Report Function
   const handlePrintSphereReport = () => {
@@ -1353,6 +1626,606 @@ export default function HelperToolsPanel({ lang }: HelperToolsPanelProps) {
           </div>
         )}
 
+        {/* ==================== TOOL 9: ZAKAT & CHARITIES ENGINE ==================== */}
+        {activeTool === 'zakat_calculator' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Header / Intro Card */}
+            <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl">
+                    <Coins className="w-5 h-5" />
+                  </span>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white">
+                    {lang === 'ar' ? 'حاسبة الزكاة الشرعية وتوزيع المصارف والصدقات (NEB-10 / NEB-15)' : 'Official Zakat & Charities Assessment Engine'}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  {lang === 'ar' 
+                    ? 'احتساب دقيق للوعاء الزكوي، نصاب الذهب والفضة، وحصص المصارف الثمانية الشرعية المعتمدة بالريال اليمني.' 
+                    : 'Calculate net zakatable assets, gold nisab threshold, and 8 Quranic distribution categories.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    const text = `تقرير احتساب الزكاة - جمعية رُحماء بينهم\nالوعاء الزكوي: ${netZakatableAmount.toLocaleString()} YER\nنصاب الذهب: ${calculatedNisabThreshold.toLocaleString()} YER\nالزكاة الواجبة (2.5%): ${totalZakatObligation.toLocaleString()} YER\nحالة النصاب: ${isZakatEligible ? 'متحقق' : 'دون النصاب'}`;
+                    navigator.clipboard.writeText(text);
+                    setZakatCopied(true);
+                    setTimeout(() => setZakatCopied(false), 2000);
+                  }}
+                  className="px-3 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  {zakatCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{zakatCopied ? (lang === 'ar' ? 'تم النسخ' : 'Copied') : (lang === 'ar' ? 'نسخ الحسبة' : 'Copy')}</span>
+                </button>
+
+                <button
+                  onClick={handlePrintZakatStatement}
+                  className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'طباعة سند معتمد A4' : 'Print Assessment'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Inputs Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
+                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                  {lang === 'ar' ? 'السيولة النقدية والأرصدة البنكية (YER)' : 'Cash & Bank Balances (YER)'}
+                </label>
+                <input
+                  type="number"
+                  value={zakatCash}
+                  onChange={(e) => setZakatCash(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black"
+                />
+                <span className="text-[10px] text-zinc-400 block">النقد السائل الجاهز في الخزينة والحسابات</span>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
+                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                  {lang === 'ar' ? 'سعر جرام الذهب عيار 21 اليوم (YER)' : 'Gold Price / Gram 21K (YER)'}
+                </label>
+                <input
+                  type="number"
+                  value={zakatGoldPrice}
+                  onChange={(e) => setZakatGoldPrice(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black text-amber-600"
+                />
+                <span className="text-[10px] text-zinc-400 block">لحساب قيمة النصاب الشرعي (85 جم عيار 24)</span>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
+                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                  {lang === 'ar' ? 'ذهب الاستثمار / الادخار (جرام)' : 'Investment Gold (Grams)'}
+                </label>
+                <input
+                  type="number"
+                  value={zakatGoldGrams}
+                  onChange={(e) => setZakatGoldGrams(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black"
+                />
+                <span className="text-[10px] text-zinc-400 block">الذهب المملوك لغرض النماء أو الادخار</span>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
+                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                  {lang === 'ar' ? 'قيمة عروض التجارة والمخزون المتاح (YER)' : 'Trade Goods & Merchandise (YER)'}
+                </label>
+                <input
+                  type="number"
+                  value={zakatTradeGoods}
+                  onChange={(e) => setZakatTradeGoods(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black"
+                />
+                <span className="text-[10px] text-zinc-400 block">تقوم بسعر البيع الحالي وقت الحول</span>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
+                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                  {lang === 'ar' ? 'الديون المرجوة للجمعية (الذمم المدينة)' : 'Good Receivables (YER)'}
+                </label>
+                <input
+                  type="number"
+                  value={zakatReceivables}
+                  onChange={(e) => setZakatReceivables(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black"
+                />
+                <span className="text-[10px] text-zinc-400 block">ديون موثوقة مرجوة السداد قريباً</span>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
+                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                  {lang === 'ar' ? 'الديون والالتزامات الحالة الواجبة الخصم' : 'Deductible Due Debts (YER)'}
+                </label>
+                <input
+                  type="number"
+                  value={zakatDebtsDue}
+                  onChange={(e) => setZakatDebtsDue(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black text-rose-600"
+                />
+                <span className="text-[10px] text-zinc-400 block">تخصم من وعاء الزكاة لأنها مستحقة السداد</span>
+              </div>
+            </div>
+
+            {/* Results KPI Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-1 shadow-sm">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                  {lang === 'ar' ? 'صافي الوعاء الزكوي الخاضع' : 'Net Zakatable Assets'}
+                </span>
+                <div className="text-xl font-black font-mono text-slate-900 dark:text-white">
+                  {netZakatableAmount.toLocaleString()} <span className="text-xs font-normal text-zinc-400">YER</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  نصاب الذهب الشرعي: <span className="font-mono font-bold text-amber-600">{calculatedNisabThreshold.toLocaleString()} YER</span>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-1 shadow-sm">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                  {lang === 'ar' ? 'حالة بلوغ النصاب الشرعي' : 'Nisab Threshold Status'}
+                </span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`px-3 py-1 rounded-lg text-xs font-black ${
+                    isZakatEligible 
+                      ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30' 
+                      : 'bg-rose-500/10 text-rose-600 border border-rose-500/30'
+                  }`}>
+                    {isZakatEligible ? (lang === 'ar' ? 'بلغت النصاب (واجبة الزكاة)' : 'Nisab Reached') : (lang === 'ar' ? 'دون النصاب الشرعي' : 'Below Nisab')}
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  نسبة الزكاة المعتمدة شرعاً: <span className="font-mono font-bold text-emerald-600">2.5% (ربع العشر)</span>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-5 space-y-1 shadow-lg shadow-amber-500/20">
+                <span className="text-[10px] font-black text-amber-100 uppercase tracking-wider block">
+                  {lang === 'ar' ? 'إجمالي الزكاة الواجب إخراجها' : 'Total Zakat Obligation'}
+                </span>
+                <div className="text-2xl font-black font-mono">
+                  {totalZakatObligation.toLocaleString()} <span className="text-xs font-normal opacity-80">YER</span>
+                </div>
+                <div className="text-[11px] text-amber-100 mt-1">
+                  {totalZakatObligation > 0 ? (lang === 'ar' ? 'جاهزة للتوزيع الفوري على المصارف' : 'Ready for distribution') : (lang === 'ar' ? 'لا تجب الزكاة لعدم بلوغ النصاب' : 'No zakat due')}
+                </div>
+              </div>
+            </div>
+
+            {/* Allocation Table */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 shadow-sm">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white flex items-center justify-between">
+                <span>{lang === 'ar' ? 'توزيع مخصصات الزكاة على المصارف الشرعية الثمانية:' : 'Zakat Allocation by Quranic Beneficiaries:'}</span>
+                <span className="text-xs font-mono font-bold text-emerald-600">100% ALLOCATED</span>
+              </h4>
+
+              <div className="space-y-2">
+                {zakatBreakdown.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-slate-50 dark:bg-zinc-950/50 border border-slate-100 dark:border-zinc-800/80 rounded-xl flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 font-mono font-black flex items-center justify-center text-[10px]">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <span className="font-bold text-slate-800 dark:text-zinc-200">{item.name}</span>
+                        <span className="text-[10px] text-zinc-400 block font-mono">حصة المصرف: {item.percent}%</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono font-black text-slate-900 dark:text-white text-sm">
+                        {item.amount.toLocaleString()} <span className="text-[10px] text-zinc-400">YER</span>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==================== TOOL 10: MULTI-CURRENCY FX & HEDGING ==================== */}
+        {activeTool === 'fx_hedging' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/30 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                    <DollarSign className="w-5 h-5" />
+                  </span>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white">
+                    {lang === 'ar' ? 'محول ومراقب أسعار الصرف المتعددة والتحوط المالي (NEB-10 / NEB-04)' : 'Multi-Currency FX & Hedging Simulator'}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  {lang === 'ar' ? 'تحويل العملات الفوري، ومراقبة فجوة السوق الموازي، وحساب مخصصات التحوط لموازنات المشاريع الإغاثية.' : 'Real-time multi-currency conversions, market spread tracking & project FX risk reserves.'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  const text = `تقرير الصرف والتحوط:\nالمبلغ: ${fxAmount} ${fxFrom} = ${Math.round(convertedFxValue).toLocaleString()} ${fxTo}\nاحتياطي التحوط لميزانية المشروع: ${recommendedHedgingBuffer.toLocaleString()} USD`;
+                  navigator.clipboard.writeText(text);
+                  setFxCopied(true);
+                  setTimeout(() => setFxCopied(false), 2000);
+                }}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                {fxCopied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{fxCopied ? (lang === 'ar' ? 'تم النسخ' : 'Copied') : (lang === 'ar' ? 'نسخ النتائج' : 'Copy Rates')}</span>
+              </button>
+            </div>
+
+            {/* Quick Conversion Card */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-sm">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white">
+                {lang === 'ar' ? 'أداة التحويل الفوري متعددة العملات:' : 'Instant FX Rate Converter:'}
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    {lang === 'ar' ? 'المبلغ المراد تحويله:' : 'Amount:'}
+                  </label>
+                  <input
+                    type="number"
+                    value={fxAmount}
+                    onChange={(e) => setFxAmount(Number(e.target.value))}
+                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    {lang === 'ar' ? 'من عملة:' : 'From:'}
+                  </label>
+                  <select
+                    value={fxFrom}
+                    onChange={(e) => setFxFrom(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-bold"
+                  >
+                    <option value="USD">دولار أمريكي (USD)</option>
+                    <option value="SAR">ريال سعودي (SAR)</option>
+                    <option value="EUR">يورو أوروبي (EUR)</option>
+                    <option value="YER_SANAA">ريال يمني (صنعاء - 535)</option>
+                    <option value="YER_ADEN">ريال يمني (عدن - 2150)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    {lang === 'ar' ? 'إلى عملة:' : 'To:'}
+                  </label>
+                  <select
+                    value={fxTo}
+                    onChange={(e) => setFxTo(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-bold"
+                  >
+                    <option value="YER_SANAA">ريال يمني (صنعاء - 535)</option>
+                    <option value="YER_ADEN">ريال يمني (عدن - 2150)</option>
+                    <option value="SAR">ريال سعودي (SAR)</option>
+                    <option value="USD">دولار أمريكي (USD)</option>
+                    <option value="EUR">يورو أوروبي (EUR)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Conversion Result Box */}
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase">{lang === 'ar' ? 'القيمة المحولة المعيارية:' : 'Equivalent Value:'}</span>
+                  <div className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    {Math.round(convertedFxValue).toLocaleString()} <span className="text-xs font-normal">{fxTo}</span>
+                  </div>
+                </div>
+                <div className="text-right text-[11px] text-slate-500">
+                  سعر الصرف المعتمد: <span className="font-mono font-bold text-slate-800 dark:text-zinc-200">1 {fxFrom} = {(convertedFxValue / (fxAmount || 1)).toFixed(4)} {fxTo}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Project Hedging Simulation */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-sm">
+              <div className="flex items-center gap-2">
+                <Scale className="w-4 h-4 text-amber-500" />
+                <h4 className="font-black text-xs text-slate-900 dark:text-white">
+                  {lang === 'ar' ? 'محاكي مخاطر تقلب العملة واحتياطي التحوط للمشاريع الإغاثية:' : 'Project Budget FX Exposure & Hedging Reserve:'}
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    {lang === 'ar' ? 'الموازنة التقديرية للمشروع (USD):' : 'Estimated Project Budget (USD):'}
+                  </label>
+                  <input
+                    type="number"
+                    value={projectBudgetUsd}
+                    onChange={(e) => setProjectBudgetUsd(Number(e.target.value))}
+                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    {lang === 'ar' ? 'فترة تنفيذ المشروع (بالأشهر):' : 'Execution Duration (Months):'}
+                  </label>
+                  <input
+                    type="number"
+                    value={projectDurationMonths}
+                    onChange={(e) => setProjectDurationMonths(Number(e.target.value))}
+                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold block uppercase">{lang === 'ar' ? 'مخصص التحوط الموصى به ضد التضخم:' : 'Recommended Hedging Buffer:'}</span>
+                  <div className="text-lg font-black font-mono text-amber-600 dark:text-amber-400 mt-0.5">
+                    +{recommendedHedgingBuffer.toLocaleString()} USD
+                  </div>
+                  <span className="text-[10px] text-zinc-400 mt-1 block">بمعدل مخاطر {((expectedInflationRate * projectDurationMonths) * 100).toFixed(1)}% خلال فترة العقد</span>
+                </div>
+
+                <div className="p-3.5 bg-slate-900 text-white rounded-xl">
+                  <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'إجمالي الموازنة المحمية المقترحة:' : 'Total Hedged Budget:'}</span>
+                  <div className="text-lg font-black font-mono text-emerald-400 mt-0.5">
+                    {totalHedgedBudgetUsd.toLocaleString()} USD
+                  </div>
+                  <span className="text-[10px] text-zinc-400 mt-1 block">تضمن استكمال مشتريات المشروع دون عجز مالي</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==================== TOOL 11: HIJRI & SEASONAL SCHEDULER ==================== */}
+        {activeTool === 'hijri_converter' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-teal-500/10 via-teal-500/5 to-transparent border border-teal-500/30 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-teal-500/20 text-teal-600 dark:text-teal-400 rounded-xl">
+                    <CalendarIcon className="w-5 h-5" />
+                  </span>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white">
+                    {lang === 'ar' ? 'محول التقويم الهجري وجدولة المواسم الإنسانية (NEB-01 / NEB-05)' : 'Hijri Calendar & Humanitarian Campaign Scheduler'}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  {lang === 'ar' ? 'تحويل التواريخ الهجرية بدقة أم القرى، والعد التنازلي للمواسم الإنسانية السنوية ومؤشرات الجاهزية اللوجستية.' : 'Precision Hijri-Gregorian conversions & annual seasonal campaign readiness dashboards.'}
+                </p>
+              </div>
+
+              <div className="px-4 py-2 bg-teal-600/10 border border-teal-500/30 rounded-xl text-xs font-black text-teal-700 dark:text-teal-300">
+                اليوم: <span className="font-mono">{hijriFormatted}</span>
+              </div>
+            </div>
+
+            {/* Interactive Date Converter */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-sm">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white">
+                {lang === 'ar' ? 'التحويل المباشر بين التاريخين الميلادي والهجري:' : 'Direct Date Converter:'}
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    {lang === 'ar' ? 'التاريخ الميلادي:' : 'Gregorian Date:'}
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedGregorianDate}
+                    onChange={(e) => setSelectedGregorianDate(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-bold"
+                  />
+                </div>
+
+                <div className="p-3.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl">
+                  <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'الموافق بالتقويم الهجري المعتمد:' : 'Equivalent Hijri Date:'}</span>
+                  <div className="text-base font-black text-teal-600 dark:text-teal-400 mt-1 font-mono">
+                    {hijriFormatted}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Annual Humanitarian Campaigns Readiness Dashboard */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-sm">
+              <h4 className="font-black text-xs text-slate-900 dark:text-white flex items-center justify-between">
+                <span>{lang === 'ar' ? 'لوحة تتبع وجاهزية المواسم والحملات الإنسانية السنوية:' : 'Annual Campaign Readiness & Countdown:'}</span>
+                <span className="text-xs font-bold text-zinc-400">{seasonalCampaigns.length} مواسم استراتيجية</span>
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {seasonalCampaigns.map((camp) => (
+                  <div key={camp.id} className="p-4 bg-slate-50 dark:bg-zinc-950/60 border border-slate-200 dark:border-zinc-800 rounded-xl space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-black text-xs text-slate-900 dark:text-white block">{camp.titleAr}</span>
+                        <span className="text-[10px] text-zinc-400 font-mono mt-0.5 block">{camp.hijriTarget}</span>
+                      </div>
+                      <span className="px-2.5 py-1 bg-teal-500/10 text-teal-600 font-black text-[11px] rounded-lg border border-teal-500/20 font-mono shrink-0">
+                        متبقي {camp.daysLeft} يوم
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-[10px] text-zinc-500 font-bold">
+                        <span>نسبة الجاهزية اللوجستية والمشتريات</span>
+                        <span className="font-mono font-black text-slate-800 dark:text-zinc-200">{camp.readinessPct}%</span>
+                      </div>
+                      <div className="w-full bg-slate-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-teal-500 rounded-full transition-all"
+                          style={{ width: `${camp.readinessPct}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-1 border-t border-slate-100 dark:border-zinc-800/80">
+                      <span>الأسر المستهدفة: <strong className="text-slate-800 dark:text-zinc-200 font-mono">{camp.targetFamilies.toLocaleString()} أسرة</strong></span>
+                      <span className="text-emerald-600 font-bold">خطة معتمدة ✔</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==================== TOOL 12: QR & DIGITAL AUDIT STAMPER ==================== */}
+        {activeTool === 'qr_stamp_generator' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-500/10 via-indigo-500/5 to-transparent border border-indigo-500/30 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                    <QrCode className="w-5 h-5" />
+                  </span>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white">
+                    {lang === 'ar' ? 'مولد الأختام الرقمية ورموز الاستجابة السريعة للتحقق (NEB-11 / NEB-12)' : 'Document QR Code & Digital Audit Stamper'}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  {lang === 'ar' ? 'توليد رموز QR فورية مع توقيع رقمي SHA-256 وأختام حوكمة مشفرة للقرارات والوثائق الرسمية للجمعية.' : 'Generate cryptographically signed QR codes and tamper-proof verification stamps.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(digitalAuditHash);
+                    setStampCopied(true);
+                    setTimeout(() => setStampCopied(false), 2000);
+                  }}
+                  className="px-3 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  {stampCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{stampCopied ? (lang === 'ar' ? 'تم النسخ' : 'Copied') : (lang === 'ar' ? 'نسخ الهاش' : 'Copy Hash')}</span>
+                </button>
+
+                <button
+                  onClick={handlePrintAuditStampCard}
+                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'طباعة بطاقة التحقق' : 'Print Stamp Card'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Inputs & Visual Stamp Preview */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Inputs Column */}
+              <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-sm">
+                <h4 className="font-black text-xs text-slate-900 dark:text-white">
+                  {lang === 'ar' ? 'بيانات المستند المراد توثيقه وختمه رقمياً:' : 'Document Metadata for Stamping:'}
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                      {lang === 'ar' ? 'نوع المستند / المعاملة:' : 'Document Type:'}
+                    </label>
+                    <select
+                      value={stampDocType}
+                      onChange={(e) => setStampDocType(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-bold"
+                    >
+                      <option value="قرار إداري وتنفيذي">قرار إداري وتنفيذي</option>
+                      <option value="أمر صرف مالي IPSAS">أمر صرف مالي IPSAS</option>
+                      <option value="سند استلام إغاثي ميداني">سند استلام إغاثي ميداني</option>
+                      <option value="شهادة كفالة يتيم معتمدة">شهادة كفالة يتيم معتمدة</option>
+                      <option value="أمر شراء P2P وتوريد">أمر شراء P2P وتوريد</option>
+                      <option value="محضر تفتيش ورقابة">محضر تفتيش ورقابة</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                      {lang === 'ar' ? 'الرقم المرجعي للمستند:' : 'Reference Code:'}
+                    </label>
+                    <input
+                      type="text"
+                      value={stampDocRef}
+                      onChange={(e) => setStampDocRef(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-mono font-black"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    {lang === 'ar' ? 'الجهة / المستفيد / القسم المستهدف:' : 'Designated Target / Beneficiary:'}
+                  </label>
+                  <input
+                    type="text"
+                    value={stampBeneficiaryOrOrg}
+                    onChange={(e) => setStampBeneficiaryOrOrg(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    {lang === 'ar' ? 'ملاحظات الاعتماد والتحقق:' : 'Certification Notes:'}
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={stampNotes}
+                    onChange={(e) => setStampNotes(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-medium resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Visual Stamp Card Preview */}
+              <div className="bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col items-center justify-between text-center space-y-4 shadow-sm">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest block">معاينة الختم المعتمد</span>
+                  <h5 className="text-xs font-black text-slate-900 dark:text-white">جمعية رُحماء بينهم</h5>
+                </div>
+
+                {/* SVG Mock QR Code */}
+                <div className="p-3 bg-white rounded-2xl shadow-inner border border-slate-200">
+                  <svg width="110" height="110" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="#ffffff" />
+                    <rect x="10" y="10" width="30" height="30" fill="#0f172a" />
+                    <rect x="15" y="15" width="20" height="20" fill="#ffffff" />
+                    <rect x="20" y="20" width="10" height="10" fill="#059669" />
+                    <rect x="60" y="10" width="30" height="30" fill="#0f172a" />
+                    <rect x="65" y="15" width="20" height="20" fill="#ffffff" />
+                    <rect x="70" y="20" width="10" height="10" fill="#059669" />
+                    <rect x="10" y="60" width="30" height="30" fill="#0f172a" />
+                    <rect x="15" y="65" width="20" height="20" fill="#ffffff" />
+                    <rect x="20" y="70" width="10" height="10" fill="#059669" />
+                    <rect x="50" y="50" width="15" height="15" fill="#059669" />
+                    <rect x="70" y="60" width="10" height="10" fill="#0f172a" />
+                    <rect x="60" y="75" width="10" height="15" fill="#0f172a" />
+                  </svg>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono text-zinc-400 block">{stampDocRef}</span>
+                  <span className="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-600 rounded text-[10px] font-black border border-emerald-500/30">
+                    MOUNTED SHA-256
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        
         {/* ==================== TOOL 8: DISPATCH CHECKLISTS ==================== */}
         {activeTool === 'checklists' && (
           <div className="space-y-4 animate-fade-in">

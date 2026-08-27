@@ -29,8 +29,12 @@ import {
   ArrowLeft,
   Search,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Award,
+  Lock,
+  Scale
 } from 'lucide-react';
+import { UAMEX_AI_MODEL_TIERS, UAMEX_AI_CONSTITUTION } from '../core/ai/UAMEXAIConstitution';
 
 interface NexoraAICopilotDrawerProps {
   isOpen: boolean;
@@ -66,7 +70,7 @@ export default function NexoraAICopilotDrawer({
   onNavigate
 }: NexoraAICopilotDrawerProps) {
   const isRtl = lang === 'ar';
-  const [activeTab, setActiveTab] = useState<'copilot' | 'sops' | 'ipsas' | 'shortcuts'>('copilot');
+  const [activeTab, setActiveTab] = useState<'copilot' | 'constitution' | 'sops' | 'ipsas' | 'shortcuts'>('copilot');
 
   // AI State
   const [prompt, setPrompt] = useState('');
@@ -75,8 +79,8 @@ export default function NexoraAICopilotDrawer({
   const [result, setResult] = useState<CopilotResponse | null>(null);
   
   // Model & Key Configuration
-  const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem('nexora_ai_model') || 'gemini-2.5-flash';
+  const [selectedModelId, setSelectedModelId] = useState<string>(() => {
+    return localStorage.getItem('uamex_ai_tier') || 'uamex-fast';
   });
   const [customKey, setCustomKey] = useState<string>(() => {
     return localStorage.getItem('nexora_gemini_api_key') || '';
@@ -90,9 +94,11 @@ export default function NexoraAICopilotDrawer({
 
   if (!isOpen) return null;
 
-  const handleModelChange = (model: string) => {
-    setSelectedModel(model);
-    localStorage.setItem('nexora_ai_model', model);
+  const currentTier = UAMEX_AI_MODEL_TIERS.find(t => t.id === selectedModelId) || UAMEX_AI_MODEL_TIERS[0];
+
+  const handleTierChange = (tierId: string) => {
+    setSelectedModelId(tierId);
+    localStorage.setItem('uamex_ai_tier', tierId);
   };
 
   const handleKeySave = (key: string) => {
@@ -100,20 +106,24 @@ export default function NexoraAICopilotDrawer({
     localStorage.setItem('nexora_gemini_api_key', key);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     Array.from(files).forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(isRtl ? 'حجم الملف يتجاوز الحد المسموح (5 ميجابايت)' : 'File size exceeds limit (5MB)');
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Str = event.target?.result as string;
+      reader.onload = () => {
         setAttachedFiles((prev) => [
           ...prev,
           {
             name: file.name,
-            type: file.type || 'application/octet-stream',
-            data: base64Str,
+            type: file.type,
+            data: reader.result as string,
             sizeMb: (file.size / (1024 * 1024)).toFixed(2)
           }
         ]);
@@ -141,8 +151,9 @@ export default function NexoraAICopilotDrawer({
           'x-gemini-api-key': customKey
         },
         body: JSON.stringify({
-          model: selectedModel,
+          model: currentTier.underlyingModel,
           prompt: queryText,
+          systemInstruction: UAMEX_AI_CONSTITUTION.buildSystemInstruction('جمعية رُحماء بينهم للعمل الإنساني والتنمية'),
           attachedFiles: attachedFiles,
           context: contextData
         })
@@ -151,14 +162,14 @@ export default function NexoraAICopilotDrawer({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || (isRtl ? 'حدث خطأ أثناء معالجة الطلب عبر محرك Gemini' : 'Failed to process prompt via Gemini AI'));
+        throw new Error(data.error || (isRtl ? 'حدث تعذر مؤقت في محرك يوماكس إي آي، جاري التبديل الاحتياطي.' : 'UAMEX AI Engine temporary fallback triggered.'));
       }
 
       setResult(data);
       if (!forcedPrompt) setPrompt('');
     } catch (err: any) {
-      console.error('Copilot Error:', err);
-      setError(err.message || (isRtl ? 'تعذر الاتصال بمركز الذكاء الاصطناعي المؤسسي' : 'Failed to connect to AI Hub'));
+      console.error('UAMEX AI Copilot Error:', err);
+      setError(err.message || (isRtl ? 'تعذر الاتصال بمحرك يوماكس إي آي' : 'Failed to connect to UAMEX AI Engine'));
     } finally {
       setLoading(false);
     }
@@ -190,7 +201,8 @@ export default function NexoraAICopilotDrawer({
 
   const KEYBOARD_SHORTCUTS = [
     { keys: 'Ctrl + K  /  Cmd + K', descAr: 'فتح شريط الأوامر الموحد والبحث الشامل', descEn: 'Open Universal Command Bar' },
-    { keys: 'F1', descAr: 'فتح درج الذكاء الاصطناعي والمساعدة الموحد', descEn: 'Open Help & Copilot Portal' },
+    { keys: 'Alt + H', descAr: 'فتح قائمة الأدوات والمقاييس المساعدة', descEn: 'Open Helper Tools Suite' },
+    { keys: 'F1', descAr: 'فتح بوابة يوماكس إي آي والمساعدة', descEn: 'Open UAMEX AI Portal' },
     { keys: 'Esc', descAr: 'إغلاق النوافذ المنبثقة واللوحات المنزلقة', descEn: 'Close open modals & drawers' },
     { keys: '/', descAr: 'التركيز المباشر على مربع البحث الشامل', descEn: 'Focus universal search bar' }
   ];
@@ -203,21 +215,23 @@ export default function NexoraAICopilotDrawer({
       >
         <div className="w-screen max-w-2xl bg-zinc-950 text-zinc-100 shadow-2xl border-l border-zinc-800/80 flex flex-col h-full">
           
-          {/* Drawer Header */}
-          <div className="p-4 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
+          {/* Drawer Header - UAMEX AI Sovereign Identity */}
+          <div className="p-4 bg-gradient-to-r from-zinc-900 via-zinc-950 to-zinc-900 border-b border-zinc-800/80 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-950/50">
-                <Sparkles className="w-5 h-5 text-white animate-pulse" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-amber-500 flex items-center justify-center shadow-lg shadow-emerald-950/50">
+                <Brain className="w-5 h-5 text-white animate-pulse" />
               </div>
               <div>
-                <h3 className="font-black text-sm text-white flex items-center gap-2">
-                  <span>{isRtl ? 'درج الذكاء والمساعدة الموحد' : 'Help & Copilot Portal'}</span>
-                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono">
-                    Nexora AI v3.2
+                <div className="flex items-center gap-2">
+                  <h3 className="font-black text-sm text-white tracking-tight">
+                    {isRtl ? 'يوماكس إي آي (UAMEX AI™)' : 'UAMEX AI™ Sovereign Engine'}
+                  </h3>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold">
+                    {currentTier.badgeText}
                   </span>
-                </h3>
-                <p className="text-[11px] text-slate-400">
-                  {isRtl ? 'المساعد الذكي للمنظومة، المعايير المحاسبية المعتمدة، والأدلة التشغيلية الرسمية' : 'Gemini AI, IPSAS Standards & Unified SOPs Library'}
+                </div>
+                <p className="text-[11px] text-zinc-400">
+                  {isRtl ? 'محرك الذكاء الاصطناعي السيادي لجمعية رُحماء بينهم' : 'Sovereign Enterprise Intelligence for Rohama\'a Baynahum'}
                 </p>
               </div>
             </div>
@@ -225,53 +239,62 @@ export default function NexoraAICopilotDrawer({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowConfig(!showConfig)}
-                className={`p-2 rounded-lg border transition-all cursor-pointer ${
+                className={`p-2 rounded-xl border transition-all cursor-pointer ${
                   showConfig 
                     ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' 
                     : 'bg-zinc-900 border-zinc-800 text-slate-400 hover:text-white'
                 }`}
-                title={isRtl ? 'إعدادات المفتاح والمحرك' : 'AI Model & API Key Config'}
+                title={isRtl ? 'ترقية وتعديل نمط المعالجة' : 'Upgrade Engine Tier'}
               >
                 <Sliders className="w-4 h-4" />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-slate-400 hover:text-white transition-all cursor-pointer"
+                className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-slate-400 hover:text-white transition-all cursor-pointer"
               >
                 <X className="w-4.5 h-4.5" />
               </button>
             </div>
           </div>
 
-          {/* Configuration Banner */}
+          {/* Configuration Banner - Sovereign Multi-Tier Engine */}
           {showConfig && (
-            <div className="p-4 bg-zinc-900/90 border-b border-amber-500/30 animate-in slide-in-from-top-2">
-              <h4 className="text-xs font-bold text-amber-400 mb-2 flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5" />
-                <span>{isRtl ? 'إعدادات محرك Gemini والمفتاح المخصص' : 'Gemini Engine & Custom API Key'}</span>
+            <div className="p-4 bg-zinc-900/90 border-b border-amber-500/30 animate-in slide-in-from-top-2 space-y-3">
+              <h4 className="text-xs font-black text-amber-400 flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5" />
+                <span>{isRtl ? 'أنماط وترقيات محرك يوماكس إي آي (UAMEX AI Engine Tiers)' : 'UAMEX AI Processing Tiers'}</span>
               </h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">{isRtl ? 'اختيار نموذج الذكاء الاصطناعي:' : 'Select AI Model:'}</label>
-                  <select
-                    value={selectedModel}
-                    onChange={(e) => handleModelChange(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-200 outline-none focus:border-amber-500"
-                  >
-                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (Super Fast)</option>
-                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Reasoning)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">{isRtl ? 'مفتاح Gemini API الخارجي (اختياري):' : 'Custom Gemini API Key (Optional):'}</label>
-                  <input
-                    type="password"
-                    value={customKey}
-                    onChange={(e) => handleKeySave(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-200 outline-none focus:border-amber-500 font-mono"
-                  />
-                </div>
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1 font-bold">
+                  {isRtl ? 'مستوى الذكاء ونمط التحليل المؤسسي:' : 'Cognitive Processing Tier:'}
+                </label>
+                <select
+                  value={selectedModelId}
+                  onChange={(e) => handleTierChange(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-100 font-bold outline-none focus:border-amber-500"
+                >
+                  {UAMEX_AI_MODEL_TIERS.map(tier => (
+                    <option key={tier.id} value={tier.id}>
+                      {isRtl ? tier.nameAr : tier.nameEn}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-zinc-400 mt-1">
+                  {isRtl ? currentTier.descriptionAr : currentTier.descriptionEn}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1 font-bold">
+                  {isRtl ? 'مفتاح الترخيص المؤسسي المشفر (اختياري للترقية):' : 'Enterprise License API Key (Optional):'}
+                </label>
+                <input
+                  type="password"
+                  value={customKey}
+                  onChange={(e) => handleKeySave(e.target.value)}
+                  placeholder="UAM-AI-SECURE-KEY..."
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-200 outline-none focus:border-amber-500 font-mono"
+                />
               </div>
             </div>
           )}
@@ -280,140 +303,242 @@ export default function NexoraAICopilotDrawer({
           <div className="flex items-center gap-1 p-2 bg-zinc-900 border-b border-zinc-800 shrink-0 text-xs font-semibold overflow-x-auto">
             <button
               onClick={() => setActiveTab('copilot')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'copilot'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'span' : '🤖 Gemini Copilot'}</span>
+              <span>{isRtl ? 'يوماكس إي آي' : 'UAMEX AI™ Copilot'}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('constitution')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'constitution'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-zinc-800'
+              }`}
+            >
+              <Scale className="w-3.5 h-3.5 text-amber-400" />
+              <span>{isRtl ? 'دستور الذكاء المؤسسي' : 'AI Constitution'}</span>
             </button>
             <button
               onClick={() => setActiveTab('sops')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'sops'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>{isRtl ? '📖 الأدلة التشغيلية SOPs' : '📖 SOPs Library'}</span>
+              <span>{isRtl ? 'الأدلة التشغيلية SOPs' : 'SOPs Library'}</span>
             </button>
             <button
               onClick={() => setActiveTab('ipsas')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'ipsas'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
-              <span>{isRtl ? '🏛️ المعايير المحاسبية' : '🏛️ Accounting Rules'}</span>
+              <span>{isRtl ? 'المعايير المحاسبية' : 'Accounting Rules'}</span>
             </button>
             <button
               onClick={() => setActiveTab('shortcuts')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'shortcuts'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
               <Command className="w-3.5 h-3.5" />
-              <span>{isRtl ? '⌨️ اختصارات Cmd+K' : '⌨️ Shortcuts'}</span>
+              <span>{isRtl ? 'الاختصارات' : 'Shortcuts'}</span>
             </button>
           </div>
 
-          {/* Drawer Body Area */}
+          {/* Drawer Body */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-
-            {/* TAB 1: GEMINI COPILOT */}
+            
+            {/* TAB 1: UAMEX AI COPILOT */}
             {activeTab === 'copilot' && (
               <div className="space-y-4">
                 
-                {/* Preset Quick Prompts */}
+                {/* 1-Click Fast Operational Prompt Chips */}
                 <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                    {isRtl ? 'تحليلات سريعة نقرة واحدة:' : 'One-Click Quick Analytics:'}
-                  </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                    <Zap className="w-3 h-3 text-amber-400" />
+                    <span>{isRtl ? 'توجيهات سريعة بنقرة واحدة (Direct Prompts):' : 'Direct 1-Click Prompts:'}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
                     {[
-                      { titleAr: '🔍 تحليل الفجوات المالية والموازنات', titleEn: 'Budget Variance Analysis' },
-                      { titleAr: '📊 التنبؤ بمعدل استدامة التمويل Runway', titleEn: 'Budget Runway Forecast' },
-                      { titleAr: '🛡️ مصفوفة مخاطر الوصول والعمليات الميدانية', titleEn: 'Field Risk Assessment' },
-                      { titleAr: '🌟 تقرير الامتثال لمعايير الجودة والمساءلة الإنسانية', titleEn: 'Humanitarian Standards & Quality Audit' },
-                      { titleAr: '🌐 تقرير المانحين والشركاء وفق معايير الشفافية الدولية', titleEn: 'Donor Aid Transparency Compliance Report' }
-                    ].map((item, idx) => (
+                      {
+                        titleAr: 'تحليل كفاءة الإنفاق والعائد SROI',
+                        titleEn: 'Spend Efficiency & SROI',
+                        promptAr: 'قم بإجراء تحليل معمق لكفاءة الإنفاق ومعدل العائد الاجتماعي على الاستثمار (SROI) للمشاريع الميدانية الحالية ومقارنتها بالمعيار المستهدف 1:4.8.'
+                      },
+                      {
+                        titleAr: 'مطابقة المشاريع مع معايير ميثاق إسفير',
+                        titleEn: 'Sphere Standards Audit',
+                        promptAr: 'حلل مدى مطابقة مشاريع الإغاثة والمياه الجارية مع المعايير الدنيا لميثاق إسفير CHS 9، واقترح التدابير التصحيحية الفورية.'
+                      },
+                      {
+                        titleAr: 'تدقيق كفالات الأيتام ومطابقة الحسابات',
+                        titleEn: 'Orphan Sponsorships Audit',
+                        promptAr: 'دقق سجلات كفالات الأيتام المربوطة بموازنات البرامج، وفحص انتظام التحويلات الشهرية وفق معايير IPSAS والحماية الاجتماعية.'
+                      },
+                      {
+                        titleAr: 'توليد ملخص تنفيذي للمدير العام',
+                        titleEn: 'Executive C-Level Summary',
+                        promptAr: 'ولد ملخصاً استراتيجياً تنفيذياً شاملاً يربط البرامج التنموية بالمستفيدين الموثقين ومؤشرات الأداء الميداني في عموم المحافظات.'
+                      }
+                    ].map((chip, idx) => (
                       <button
                         key={idx}
-                        onClick={() => handleSend(item.titleAr)}
-                        className="px-3 py-1.5 bg-zinc-900 hover:bg-emerald-950/40 border border-zinc-800 hover:border-emerald-500/50 rounded-lg text-xs text-zinc-300 hover:text-emerald-300 transition-all text-right cursor-pointer"
+                        onClick={() => handleSend(chip.promptAr)}
+                        className="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[11px] text-zinc-300 hover:text-white transition-all cursor-pointer text-left rtl:text-right"
                       >
-                        {isRtl ? item.titleAr : item.titleEn}
+                        {isRtl ? chip.titleAr : chip.titleEn}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Attached Files List */}
-                {attachedFiles.length > 0 && (
-                  <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 space-y-2">
-                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                      <Paperclip className="w-3.5 h-3.5" />
-                      <span>{isRtl ? 'الملفات والمرفقات المحددة:' : 'Attached files for analysis:'}</span>
-                    </span>
-                    <div className="space-y-1.5">
+                {/* Query Input Box */}
+                <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-3 space-y-2 shadow-inner">
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder={isRtl ? 'اكتب استفسارك ليوماكس إي آي (مثال: دقق انحرافات الموازنة، فحص شروط الكفالة، أو استشراف الأثر)...' : 'Ask UAMEX AI anything...'}
+                    className="w-full bg-transparent text-xs text-white placeholder-zinc-500 outline-none resize-none min-h-[70px]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        handleSend();
+                      }
+                    }}
+                  />
+
+                  {/* Attached files preview */}
+                  {attachedFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800">
                       {attachedFiles.map((file, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-xs bg-zinc-950 px-3 py-1.5 rounded-lg border border-zinc-800">
-                          <span className="truncate text-zinc-300">{file.name} ({file.sizeMb} MB)</span>
-                          <button onClick={() => removeAttachedFile(idx)} className="text-rose-400 hover:text-rose-300 p-1">
-                            <Trash2 className="w-3.5 h-3.5" />
+                        <div key={idx} className="flex items-center gap-1.5 px-2 py-1 bg-zinc-800 rounded-lg text-[10px] text-zinc-300">
+                          <Paperclip className="w-3 h-3 text-amber-400" />
+                          <span className="max-w-[120px] truncate">{file.name}</span>
+                          <button onClick={() => removeAttachedFile(idx)} className="text-zinc-500 hover:text-red-400">
+                            <X className="w-3 h-3" />
                           </button>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Loading Indicator */}
-                {loading && (
-                  <div className="p-6 bg-zinc-900/60 rounded-2xl border border-emerald-500/20 text-center space-y-3">
-                    <Loader2 className="w-8 h-8 text-emerald-400 animate-spin mx-auto" />
-                    <p className="text-xs font-bold text-emerald-300 animate-pulse">
-                      {isRtl ? 'جاري معالجة الاستعلام المؤسسي وإجراء التحليل التنبؤي...' : 'Executing AI predictive reasoning & IPSAS cross-matching...'}
-                    </p>
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/80">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        multiple
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-1.5 text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer"
+                        title={isRtl ? 'إرفاق مستند أو صورة' : 'Attach Document or Image'}
+                      >
+                        <Paperclip className="w-4 h-4" />
+                      </button>
+                      <span className="text-[10px] text-zinc-500 font-mono">
+                        Ctrl+Enter للإرسال
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => handleSend()}
+                      disabled={loading || (!prompt.trim() && attachedFiles.length === 0)}
+                      className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-amber-600 hover:from-emerald-500 hover:to-amber-500 disabled:opacity-50 text-white text-xs font-black rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-md"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>{isRtl ? 'جاري التحليل السيادي...' : 'Analyzing...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>{isRtl ? 'إرسال' : 'Query UAMEX AI'}</span>
+                          <Send className="w-3.5 h-3.5" />
+                        </>
+                      )}
+                    </button>
                   </div>
-                )}
+                </div>
 
                 {/* Error Banner */}
                 {error && (
-                  <div className="p-4 bg-rose-950/40 border border-rose-800/80 rounded-xl text-rose-300 text-xs flex items-start gap-2">
-                    <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                  <div className="p-3 bg-red-950/30 border border-red-500/30 rounded-xl text-xs text-red-200 flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-red-400 shrink-0" />
                     <span>{error}</span>
                   </div>
                 )}
 
                 {/* AI Result Card */}
-                {result && !loading && (
-                  <div className="p-4 bg-zinc-900/90 rounded-2xl border border-emerald-500/30 space-y-4 shadow-xl">
-                    <div>
-                      <h4 className="text-xs font-black text-emerald-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                        <Brain className="w-4 h-4" />
-                        <span>{isRtl ? 'الملخص والتوصيات التنفيذية' : 'Executive AI Insights'}</span>
-                      </h4>
-                      <p className="text-xs text-zinc-200 leading-relaxed bg-zinc-950/80 p-3 rounded-xl border border-zinc-800">
+                {result && (
+                  <div className="bg-zinc-900/95 border border-emerald-500/30 rounded-2xl p-5 space-y-4 shadow-xl animate-in fade-in">
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs font-black text-white">
+                          {isRtl ? 'تحليل يوماكس إي آي المعتمد' : 'UAMEX AI Certified Synthesis'}
+                        </span>
+                      </div>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-mono font-bold border ${
+                        result.risk_assessment?.risk_level === 'LOW' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                        result.risk_assessment?.risk_level === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                        'bg-red-500/10 text-red-400 border-red-500/30'
+                      }`}>
+                        RISK: {result.risk_assessment?.risk_level || 'LOW'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-bold text-amber-400 uppercase">
+                        {isRtl ? 'الملخص الاستراتيجي التنفيذي:' : 'Executive Summary:'}
+                      </h5>
+                      <p className="text-xs text-zinc-300 leading-relaxed bg-zinc-950/60 p-3 rounded-xl border border-zinc-800/80">
                         {result.summary}
                       </p>
                     </div>
 
-                    {result.key_findings && (
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-300 mb-2">{isRtl ? 'النتائج والمؤشرات الرئيسية:' : 'Key Analytical Findings:'}</h4>
-                        <ul className="space-y-1.5 text-xs text-zinc-300">
-                          {result.key_findings.map((finding, idx) => (
-                            <li key={idx} className="flex items-start gap-2 bg-zinc-950 p-2 rounded-lg border border-zinc-800/60">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                              <span>{finding}</span>
+                    {result.key_findings?.length > 0 && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-bold text-emerald-400 uppercase">
+                          {isRtl ? 'أبرز الاستنتاجات الميدانية:' : 'Key Operational Findings:'}
+                        </h5>
+                        <ul className="space-y-1 text-xs text-zinc-300">
+                          {result.key_findings.map((f, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-emerald-400 font-mono font-bold">•</span>
+                              <span>{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {result.strategic_recommendations?.length > 0 && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-bold text-sky-400 uppercase">
+                          {isRtl ? 'توصيات الحوكمة والأثر:' : 'Strategic Recommendations:'}
+                        </h5>
+                        <ul className="space-y-1 text-xs text-zinc-300">
+                          {result.strategic_recommendations.map((r, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <ArrowRight className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
+                              <span>{r}</span>
                             </li>
                           ))}
                         </ul>
@@ -425,30 +550,64 @@ export default function NexoraAICopilotDrawer({
               </div>
             )}
 
-            {/* TAB 2: SOPS LIBRARY */}
+            {/* TAB 2: UAMEX AI CONSTITUTION */}
+            {activeTab === 'constitution' && (
+              <div className="space-y-4 animate-in fade-in">
+                <div className="bg-gradient-to-r from-amber-500/10 to-emerald-500/10 border border-amber-500/30 rounded-2xl p-4 text-xs space-y-1.5">
+                  <div className="flex items-center gap-2 text-amber-400 font-black">
+                    <Scale className="w-4 h-4" />
+                    <span>دستور يوماكس إي آي (UAMEX AI™ Sovereign Constitution)</span>
+                  </div>
+                  <p className="text-zinc-300 leading-relaxed text-[11px]">
+                    الميثاق الدستوري الحاكم لكافة خوارزميات وتحليلات الذكاء الاصطناعي في نظام UAMEX ERP™ المعتمد لجمعية رُحماء بينهم للعمل الإنساني والتنمية.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {UAMEX_AI_CONSTITUTION.articles.map((art) => (
+                    <div key={art.articleNumber} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-mono font-black text-xs flex items-center justify-center">
+                          {art.articleNumber}
+                        </span>
+                        <h4 className="font-extrabold text-xs text-white">
+                          {isRtl ? art.titleAr : art.titleEn}
+                        </h4>
+                      </div>
+                      <p className="text-xs text-zinc-300 leading-relaxed pl-8 rtl:pr-8 rtl:pl-0">
+                        {isRtl ? art.textAr : art.textEn}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-3 bg-zinc-900/60 border border-zinc-800 rounded-2xl flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                  <span>Version: {UAMEX_AI_CONSTITUTION.version}</span>
+                  <span className="text-emerald-400 font-bold">SOVEREIGN SEAL CERTIFIED</span>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: SOPS LIBRARY */}
             {activeTab === 'sops' && (
-              <div className="space-y-4">
+              <div className="space-y-3 animate-in fade-in">
                 <div className="relative">
-                  <Search className={`w-4 h-4 text-slate-400 absolute top-3 ${isRtl ? 'right-3' : 'left-3'}`} />
+                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-zinc-400" />
                   <input
                     type="text"
                     value={sopFilter}
                     onChange={(e) => setSopFilter(e.target.value)}
-                    placeholder={isRtl ? 'البحث في قائمة الأدلة التشغيلية المعيارية...' : 'Search SOPs Library...'}
-                    className={`w-full bg-zinc-900 border border-zinc-800 rounded-xl ${isRtl ? 'pr-9 pl-4' : 'pl-9 pr-4'} py-2.5 text-xs text-zinc-100 placeholder:text-slate-500 outline-none focus:border-emerald-500`}
+                    placeholder={isRtl ? 'البحث في الأدلة التشغيلية المعتمدة...' : 'Search SOPs...'}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  {filteredSops.map((sop, idx) => (
-                    <div key={idx} className="p-3 bg-zinc-900 hover:bg-zinc-800 rounded-xl border border-zinc-800 transition-all flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded">
-                            {sop.code}
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-bold text-zinc-100">{isRtl ? sop.titleAr : sop.titleEn}</h4>
+                  {filteredSops.map((sop) => (
+                    <div key={sop.code} className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl flex items-center justify-between gap-3 hover:border-zinc-700 transition-colors">
+                      <div className="space-y-0.5">
+                        <span className="text-[9px] font-mono font-bold text-amber-400">{sop.code} ({sop.domain})</span>
+                        <h5 className="text-xs font-bold text-white">{isRtl ? sop.titleAr : sop.titleEn}</h5>
                       </div>
                       {onNavigate && (
                         <button
@@ -456,10 +615,9 @@ export default function NexoraAICopilotDrawer({
                             onNavigate(sop.tab);
                             onClose();
                           }}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                          className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold rounded-lg transition-colors cursor-pointer shrink-0"
                         >
-                          <span>{isRtl ? 'انتقال' : 'Go'}</span>
-                          {isRtl ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
+                          {isRtl ? 'فتح التبويب' : 'Open Tab'}
                         </button>
                       )}
                     </div>
@@ -468,93 +626,39 @@ export default function NexoraAICopilotDrawer({
               </div>
             )}
 
-            {/* TAB 3: IPSAS RULES */}
+            {/* TAB 4: IPSAS RULES */}
             {activeTab === 'ipsas' && (
-              <div className="space-y-3">
-                <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 mb-1" />
-                  <p>{isRtl ? 'تعتمد كافة العمليات المحاسبية في المنظومة على القيد المزدوج التوازني وسجل التدقيق المالي غير القابل للتعديل.' : 'All NexoraOS? financial transactions strictly comply with IPSAS double-entry equilibrium & immutable audit trailing.'}</p>
-                </div>
-
-                {IPSAS_RULES.map((rule, idx) => (
-                  <div key={idx} className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 space-y-1">
+              <div className="space-y-3 animate-in fade-in">
+                {IPSAS_RULES.map((rule) => (
+                  <div key={rule.std} className="bg-zinc-900 border border-zinc-800 p-3.5 rounded-xl space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-amber-400 font-mono">{rule.std}</span>
-                      <span className="text-[10px] text-slate-400">{rule.titleEn}</span>
+                      <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono text-[10px] font-bold">
+                        {rule.std}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 font-mono">IPSAS Standard</span>
                     </div>
-                    <h4 className="text-xs font-bold text-zinc-100">{isRtl ? rule.titleAr : rule.titleEn}</h4>
-                    <p className="text-xs text-slate-400">{rule.descAr}</p>
+                    <h5 className="text-xs font-bold text-white">{isRtl ? rule.titleAr : rule.titleEn}</h5>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed">{rule.descAr}</p>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* TAB 4: SHORTCUTS */}
+            {/* TAB 5: SHORTCUTS */}
             {activeTab === 'shortcuts' && (
-              <div className="space-y-3">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                  {isRtl ? 'دليل الاختصارات السريعة بلوحة المفاتيح:' : 'Keyboard Shortcuts Cheat Sheet:'}
-                </span>
-
-                {KEYBOARD_SHORTCUTS.map((item, idx) => (
-                  <div key={idx} className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-between">
-                    <span className="text-xs font-bold text-zinc-200">{isRtl ? item.descAr : item.descEn}</span>
-                    <span className="px-2.5 py-1 bg-zinc-950 border border-zinc-700 rounded-lg text-xs font-mono font-bold text-emerald-400 shadow">
-                      {item.keys}
-                    </span>
+              <div className="space-y-2 animate-in fade-in">
+                {KEYBOARD_SHORTCUTS.map((sc, idx) => (
+                  <div key={idx} className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl flex items-center justify-between">
+                    <span className="text-xs text-zinc-300">{isRtl ? sc.descAr : sc.descEn}</span>
+                    <kbd className="px-2.5 py-1 rounded bg-zinc-800 border border-zinc-700 font-mono text-[10px] font-bold text-amber-400">
+                      {sc.keys}
+                    </kbd>
                   </div>
                 ))}
               </div>
             )}
 
           </div>
-
-          {/* Drawer Footer Input (Only visible when activeTab === 'copilot') */}
-          {activeTab === 'copilot' && (
-            <div className="p-4 bg-zinc-900 border-t border-zinc-800 shrink-0">
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSend();
-                }}
-                className="flex items-center gap-2"
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  multiple
-                  accept="image/*,.pdf,.csv,.json,.txt,.doc,.docx,.xls,.xlsx"
-                  className="hidden"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-2.5 bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 text-zinc-400 hover:text-amber-400 rounded-xl transition-all cursor-pointer shrink-0"
-                  title={isRtl ? 'إرفاق صورة أو ملف' : 'Attach image or document'}
-                >
-                  <Paperclip className="w-4 h-4" />
-                </button>
-
-                <input
-                  type="text"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={isRtl ? 'اسأل مساعد الذكاء الاصطناعي المؤسسي...' : 'Ask Nexora AI Copilot...'}
-                  className="flex-1 px-4 py-2.5 bg-zinc-950 border border-zinc-800 focus:border-emerald-500 rounded-xl text-xs text-zinc-100 placeholder:text-slate-500 outline-none transition-all"
-                />
-                <button
-                  type="submit"
-                  disabled={loading || (!prompt.trim() && attachedFiles.length === 0)}
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-slate-600 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 cursor-pointer"
-                >
-                  <span>{isRtl ? 'تحليل' : 'Analyze'}</span>
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </form>
-            </div>
-          )}
 
         </div>
       </div>

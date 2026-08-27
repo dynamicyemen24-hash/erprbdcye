@@ -8,6 +8,7 @@ import { lazyWithRetry } from '../../lib/lazyWithRetry';
 
 // Lazy-loaded domain views with auto-retry and resilience for asynchronous code splitting & offline support
 const DashboardView = lazyWithRetry(() => import('../../components/DashboardView'), 'DashboardView');
+const QuantumWorkFirstCockpit = lazyWithRetry(() => import('../../components/dashboard/QuantumWorkFirstCockpit'), 'QuantumWorkFirstCockpit');
 const DomainCenterView = lazyWithRetry(() => import('../../components/DomainCenterView'), 'DomainCenterView');
 const GeospatialDashboardView = lazyWithRetry(() => import('../../components/GeospatialDashboardView'), 'GeospatialDashboardView');
 
@@ -44,6 +45,8 @@ const StrategicPlanningView = lazyWithRetry(() => import('../../components/Strat
 const InvestmentProjectsView = lazyWithRetry(() => import('../../components/InvestmentProjectsView').then(m => ({ default: m.InvestmentProjectsView })), 'InvestmentProjectsView');
 const SalesRevenueView = lazyWithRetry(() => import('../../components/SalesRevenueView'), 'SalesRevenueView');
 const InstitutionalRoleWorkspaces = lazyWithRetry(() => import('../../components/workspaces/InstitutionalRoleWorkspaces'), 'InstitutionalRoleWorkspaces');
+const BusinessIntelligenceView = lazyWithRetry(() => import('../../components/BusinessIntelligenceView'), 'BusinessIntelligenceView');
+import { BINexusSymbol } from '../../components/bi/BIIcons';
 
 // Lucide Icons for Premium Window Chrome
 import { 
@@ -79,6 +82,7 @@ export interface TabContentRendererProps {
   onDrillDown: (tab: ActiveTab, filters: any) => void;
   onRefreshData: () => void;
   onOpenHelpers?: () => void;
+  onOpenSystemMap?: () => void;
 }
 
 export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
@@ -105,6 +109,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   onDrillDown,
   onRefreshData,
   onOpenHelpers,
+  onOpenSystemMap
 }) => {
   const isRtl = lang === 'ar';
   const activeOrg = (organizations && organizations.length > 0) ? (organizations.find(o => o.id === 'hq') || organizations[0]) : null;
@@ -209,11 +214,82 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     investments: { icon: TrendingUp, title_ar: 'المشاريع الاستثمارية والأوقاف التنموية', title_en: 'Investment & Endowment OS', domainCode: 'NEB-15', desc_ar: 'إدارة أصول الأوقاف التنموية، عوائد الاستثمار، وحماية أصل الوقف.', desc_en: 'Endowment assets, performance tracking, yield distribution, and Shariah governance.' },
     hr_dashboard: { icon: Users, title_ar: 'لوحة إدارة الموارد البشرية', title_en: 'HR Management Dashboard', domainCode: 'NEB-09', desc_ar: 'إدارة الكادر الوظيفي، تقييم الأداء، وتوازن المهام.', desc_en: 'HR workforce management, performance appraisal, and workload balancing.' },
     'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', domainCode: 'NEB-14', desc_ar: 'إدارة أطراف العملية، مطابقة القسائم الرقمية، ومطالبات وتسويات التجار والشركاء.', desc_en: 'Third-party merchants, digital voucher fulfillment, claims processing, and settlements.' },
-    sales: { icon: Coins, title_ar: 'نظام المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', domainCode: 'NEB-15', desc_ar: 'إدارة حملات التبرع، الاشتراكات والمنتجات الوقفية، الفواتير، ونمو الإيرادات المستدامة.', desc_en: 'Fundraising campaigns, endowment products, invoices, and sustainable revenue generation.' }
+    sales: { icon: Coins, title_ar: 'نظام المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', domainCode: 'NEB-15', desc_ar: 'إدارة حملات التبرع، الاشتراكات والمنتجات الوقفية، الفواتير، ونمو الإيرادات المستدامة.', desc_en: 'Fundraising campaigns, endowment products, invoices, and sustainable revenue generation.' },
+    business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', domainCode: 'NEB-13', desc_ar: 'ذكاء الأثر ومصفوفة الارتباط التكاملي الموزع على الوحدات التشغيلية وفق معايير CHS وإسفير وSROI.', desc_en: 'Cross-domain impact intelligence matrix distributed across operational units based on CHS, Sphere & SROI standards.' }
+  };
+
+  const [homeExperienceMode, setHomeExperienceMode] = useState<'work_first' | 'classic_analytics'>(() => {
+    try {
+      const saved = localStorage.getItem('uamex_home_experience_mode');
+      if (saved === 'classic_analytics' || saved === 'work_first') return saved;
+    } catch {}
+    return 'work_first';
+  });
+
+  const handleToggleHomeMode = (mode: 'work_first' | 'classic_analytics') => {
+    setHomeExperienceMode(mode);
+    try {
+      localStorage.setItem('uamex_home_experience_mode', mode);
+    } catch {}
   };
 
   const renderSingleTabContent = (tabKey: ActiveTab) => {
     switch (tabKey) {
+      case 'dashboard':
+        if (homeExperienceMode === 'work_first') {
+          return (
+            <QuantumWorkFirstCockpit
+              lang={lang}
+              stats={dashboardStats}
+              currentUser={currentUser}
+              programs={programs}
+              projects={projects}
+              beneficiaries={beneficiaries}
+              sponsorships={sponsorships}
+              approvalRequests={approvalRequests}
+              onNavigate={safeNavigate}
+              onDrillDown={(t, f) => safeDrillDown(t, f)}
+              onOpenSystemMap={onOpenSystemMap}
+              onSwitchToClassicAnalytics={() => handleToggleHomeMode('classic_analytics')}
+              onRefresh={onRefreshData}
+            />
+          );
+        }
+        return (
+          <div className="space-y-4">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-500/20 text-amber-500 rounded-xl">
+                  <Layout className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-black text-slate-900 dark:text-white">
+                    {lang === 'ar' ? 'نمط لوحة القيادة الاستراتيجية والتحليلات الشاملة (Classic Strategic Hub)' : 'Classic Strategic Analytics Hub Mode'}
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    {lang === 'ar' ? 'النمط التحليلي الموسع لكافة الكروت المخصصة ومساحات العمل وبطاقة الأداء BSC' : 'Full-card strategic analytics, role workspaces, BSC and SWOT'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => handleToggleHomeMode('work_first')}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{lang === 'ar' ? 'التبديل إلى قمرة الإنجاز الفوري (Work-First)' : 'Switch to Quantum Work-First'}</span>
+              </button>
+            </div>
+
+            <InstitutionalRoleWorkspaces
+              lang={lang}
+              currentUserRole={currentUser?.role}
+              activeTab={activeTab}
+              setActiveTab={safeNavigate as any}
+              onNavigateToTab={safeNavigate as any}
+            />
+          </div>
+        );
       case 'workspaces':
         return (
           <InstitutionalRoleWorkspaces
@@ -228,29 +304,6 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <InvestmentProjectsView lang={lang} onNavigate={safeNavigate} />;
       case 'strategic_planning':
         return <StrategicPlanningView lang={lang} onNavigate={safeNavigate} />;
-      case 'dashboard':
-        return (
-          <DashboardView
-            stats={dashboardStats}
-            loading={loading}
-            onNavigate={safeNavigate}
-            onDrillDown={safeDrillDown}
-            lang={lang}
-            onRefresh={onRefreshData}
-            programs={programs}
-            projects={projects}
-            beneficiaries={beneficiaries}
-            sponsorships={sponsorships}
-            approvalRequests={approvalRequests}
-            users={users}
-            currencies={currencies}
-            systemAlerts={systemAlerts}
-            currentUser={currentUser}
-            activeOrg={activeOrg}
-            orgName={orgName}
-            onOpenHelpers={onOpenHelpers}
-          />
-        );
       case 'control_panel':
         return (
           <ControlPanelView
@@ -301,6 +354,18 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <ApprovalWorkflowView currentUser={currentUser as any} lang={lang} onRefresh={onRefreshData} initialStatusFilter={drillDownFilters.approvalsStatus} onNavigate={safeNavigate} />;
       case 'reports':
         return <ReportsView programs={programs} projects={projects} beneficiaries={beneficiaries} sponsorships={sponsorships} currencies={currencies} lang={lang} organizations={organizations} onNavigate={safeNavigate} />;
+      case 'business_intelligence':
+        return (
+          <BusinessIntelligenceView
+            lang={lang}
+            programs={programs}
+            projects={projects}
+            beneficiaries={beneficiaries}
+            sponsorships={sponsorships}
+            users={users}
+            onNavigate={safeNavigate}
+          />
+        );
       case 'users':
         return <UsersView users={users} roles={roles} loading={loading} onRefresh={onRefreshData} lang={lang} />;
       case 'inventory':
@@ -382,22 +447,12 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <SalesRevenueView lang={lang} onNavigate={safeNavigate} />;
       default:
         return (
-          <DashboardView
-            stats={dashboardStats}
-            loading={loading}
-            onNavigate={safeNavigate}
-            onDrillDown={safeDrillDown}
+          <InstitutionalRoleWorkspaces
             lang={lang}
-            onRefresh={onRefreshData}
-            programs={programs}
-            projects={projects}
-            beneficiaries={beneficiaries}
-            sponsorships={sponsorships}
-            approvalRequests={approvalRequests}
-            users={users}
-            currencies={currencies}
-            systemAlerts={systemAlerts}
-            currentUser={currentUser}
+            currentUserRole={currentUser?.role}
+            activeTab={activeTab}
+            setActiveTab={safeNavigate as any}
+            onNavigateToTab={safeNavigate as any}
           />
         );
     }

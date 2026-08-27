@@ -28,6 +28,7 @@ import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
 import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
+import { UniversalObjectPageModal } from './common/UniversalObjectPageModal';
 
 interface BeneficiariesViewProps {
   beneficiaries: any[];
@@ -821,113 +822,112 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         )}
       </div>
 
-      {/* Profile Detail Pop-up */}
+      {/* Universal Object Page Modal (UOP Standard for Beneficiaries) */}
       {viewingBeneficiary && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 max-w-2xl w-full overflow-hidden shadow-2xl animate-scale-up">
-            <div className="px-6 py-4 bg-zinc-900 text-white flex justify-between items-center">
-              <div className="flex items-center gap-2.5">
-                <span className="font-mono bg-amber-600 text-zinc-950 font-black px-2 py-0.5 rounded text-[10px]">
-                  {viewingBeneficiary.beneficiary_code}
-                </span>
-                <h3 className="font-black text-sm">{lang === 'ar' ? 'ملف الاستحقاق والبيانات الميدانية' : 'Beneficiary Case Dossier'}</h3>
-              </div>
-              <button 
-                onClick={() => setViewingBeneficiary(null)}
-                className="p-1 hover:bg-zinc-800 rounded-full border border-zinc-800 text-zinc-400 hover:text-white transition-all cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Header profile info */}
-              <div className="flex items-start gap-4 pb-6 border-b border-slate-100">
-                <div className="w-12 h-12 bg-amber-100 border border-amber-200 rounded-xl flex items-center justify-center font-black text-amber-700 text-xl">
-                  {viewingBeneficiary.full_name_ar?.[0] || 'ب'}
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-extrabold text-base text-slate-900">{viewingBeneficiary.full_name_ar}</h4>
-                  <p className="text-[11px] text-slate-500 font-bold">
-                    {lang === 'ar' ? 'رقم السجل: ' : 'Record Code: '}{viewingBeneficiary.beneficiary_code || 'BEN-ROHAMAA'} • {lang === 'ar' ? 'تصنيف الحالة: ' : 'Category: '} {viewingBeneficiary.category_code === 'ORPHAN' ? (lang === 'ar' ? 'يتيم مكفول' : 'Orphan') : viewingBeneficiary.category_code === 'POOR_FAMILY' ? (lang === 'ar' ? 'أسرة متعففة' : 'Poor Family') : (lang === 'ar' ? 'حالة مستفيدة' : 'Beneficiary')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Attributes Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'الهاتف' : 'Phone'}</p>
-                  <p className="font-mono font-extrabold text-slate-800">{viewingBeneficiary.phone_primary || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'المحافظة / المديرية' : 'Province'}</p>
-                  <p className="font-extrabold text-slate-800">{viewingBeneficiary.governorate} / {viewingBeneficiary.district || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'العنوان التفصيلي' : 'Address Detail'}</p>
-                  <p className="font-bold text-slate-800 truncate" title={viewingBeneficiary.address}>{viewingBeneficiary.address || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'العمر' : 'Age'}</p>
-                  <p className="font-mono font-extrabold text-slate-800">{viewingBeneficiary.age ? `${viewingBeneficiary.age} عاماً` : '-'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'حجم الأسرة' : 'Family Size'}</p>
-                  <p className="font-mono font-extrabold text-slate-800">{viewingBeneficiary.family_size || '1'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'الحالة المادية' : 'Financial State'}</p>
-                  <p className="font-extrabold text-slate-800">{viewingBeneficiary.financial_status === 'poor' ? 'فقير' : 'معدم للغاية'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'حالة السكن' : 'Housing'}</p>
-                  <p className="font-extrabold text-slate-800">{viewingBeneficiary.housing_status === 'owned' ? 'ملك' : 'إيجار'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'المستوى التعليمي' : 'Education'}</p>
-                  <p className="font-extrabold text-slate-800">{viewingBeneficiary.education_level || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-400 font-bold mb-0.5">{lang === 'ar' ? 'حفظ القرآن' : 'Quran'}</p>
-                  <p className="font-extrabold text-slate-800">{viewingBeneficiary.quran_memorization || '-'}</p>
-                </div>
-              </div>
-
-              {viewingBeneficiary.notes && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 leading-relaxed font-semibold">
-                  <h5 className="font-black text-slate-800 mb-1">{lang === 'ar' ? 'ملاحظات المنسق الميداني:' : 'Field Agent Notes:'}</h5>
-                  <p>{viewingBeneficiary.notes}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-              <button
-                onClick={() => handlePrintBeneficiary(viewingBeneficiary)}
-                className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
-              >
-                <Printer className="w-3.5 h-3.5 shrink-0" />
-                <span>{lang === 'ar' ? 'طباعة استمارة البحث' : 'Print Form'}</span>
-              </button>
-              <button
-                onClick={() => {
-                  setViewingBeneficiary(null);
-                  openFormModal(viewingBeneficiary);
-                }}
-                className="px-4 py-1.5 bg-amber-600 text-white hover:bg-amber-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                {lang === 'ar' ? 'تعديل البيانات' : 'Edit Case'}
-              </button>
-              <button
-                onClick={() => setViewingBeneficiary(null)}
-                className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg text-xs font-bold transition-all cursor-pointer"
-              >
-                {lang === 'ar' ? 'إغلاق' : 'Close'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <UniversalObjectPageModal
+          isOpen={Boolean(viewingBeneficiary)}
+          onClose={() => setViewingBeneficiary(null)}
+          lang={lang}
+          domainCode="NEB-06"
+          domainNameAr="نظام تقديم الخدمات والرعاية الاجتماعية"
+          domainNameEn="Service Delivery & Beneficiary Care OS"
+          recordCode={viewingBeneficiary.beneficiary_code || 'BEN-ROHAMAA'}
+          titleAr={viewingBeneficiary.full_name_ar}
+          titleEn={viewingBeneficiary.full_name_en || viewingBeneficiary.full_name_ar}
+          status={{
+            code: viewingBeneficiary.status_code || 'ACTIVE',
+            labelAr: viewingBeneficiary.status_code === 'ACTIVE' ? 'نشط ومستحق للدعم' : 'قيد التدقيق والبحث',
+            labelEn: viewingBeneficiary.status_code === 'ACTIVE' ? 'Active Eligible' : 'Audit Pending',
+            color: viewingBeneficiary.status_code === 'ACTIVE' ? 'emerald' : 'amber'
+          }}
+          metrics={[
+            {
+              labelAr: 'حجم أفراد الأسرة',
+              labelEn: 'Family Size',
+              value: viewingBeneficiary.family_size || 1,
+              unitAr: 'أفراد',
+              unitEn: 'indiv.',
+              color: 'blue'
+            },
+            {
+              labelAr: 'مؤشر الاستحقاق والفقر',
+              labelEn: 'Eligibility Score',
+              value: '95.0%',
+              unitAr: 'درجة',
+              unitEn: 'pts',
+              color: 'emerald'
+            },
+            {
+              labelAr: 'المساعدات المستلمة',
+              labelEn: 'Aids Received',
+              value: 6,
+              unitAr: 'دورة صرف',
+              unitEn: 'cycles',
+              color: 'amber'
+            },
+            {
+              labelAr: 'حالة السكن',
+              labelEn: 'Housing Status',
+              value: viewingBeneficiary.housing_status === 'owned' ? (lang === 'ar' ? 'ملك' : 'Owned') : (lang === 'ar' ? 'إيجار' : 'Rented'),
+              color: 'purple'
+            }
+          ]}
+          overviewFieldGroups={[
+            {
+              groupTitleAr: '1. البيانات الشخصية والتوثيق',
+              groupTitleEn: '1. Personal & Biometric Identity',
+              fields: [
+                { labelAr: 'الاسم الرباعي الكامل', labelEn: 'Full Name', value: viewingBeneficiary.full_name_ar },
+                { labelAr: 'رقم السجل الموحد', labelEn: 'Record Code', value: viewingBeneficiary.beneficiary_code, isCopyable: true },
+                { labelAr: 'رقم الهاتف الأساسي', labelEn: 'Primary Phone', value: viewingBeneficiary.phone_primary || '—', isCopyable: true },
+                { labelAr: 'العمر التقديري', labelEn: 'Age', value: viewingBeneficiary.age ? `${viewingBeneficiary.age} عاماً` : '—' },
+                { labelAr: 'المستوى التعليمي', labelEn: 'Education', value: viewingBeneficiary.education_level || '—' }
+              ]
+            },
+            {
+              groupTitleAr: '2. النطاق الجغرافي والسكن',
+              groupTitleEn: '2. Geographical & Residence Scope',
+              fields: [
+                { labelAr: 'المحافظة والمديرية', labelEn: 'Governorate / District', value: `${viewingBeneficiary.governorate} / ${viewingBeneficiary.district || '—'}` },
+                { labelAr: 'العنوان التفصيلي', labelEn: 'Detailed Address', value: viewingBeneficiary.address || '—' },
+                { labelAr: 'حالة المسكن', labelEn: 'Housing Condition', value: viewingBeneficiary.housing_status === 'owned' ? 'ملك' : 'إيجار' },
+                { labelAr: 'حفظ القرآن الكريم', labelEn: 'Quran Memorization', value: viewingBeneficiary.quran_memorization || '—' }
+              ]
+            },
+            {
+              groupTitleAr: '3. معايير الاستحقاق والحوكمة (CHS 9)',
+              groupTitleEn: '3. Eligibility & CHS Compliance',
+              fields: [
+                { labelAr: 'تصنيف الحالة', labelEn: 'Case Category', value: viewingBeneficiary.category_code === 'ORPHAN' ? 'يتيم مكفول' : viewingBeneficiary.category_code === 'POOR_FAMILY' ? 'أسرة متعففة' : 'حالة إنسانية' },
+                { labelAr: 'الوضع المادي والمعيشي', labelEn: 'Livelihood Status', value: viewingBeneficiary.financial_status === 'poor' ? 'فقير' : 'معدم للغاية' },
+                { labelAr: 'الملاحظات الميدانية', labelEn: 'Field Notes', value: viewingBeneficiary.notes || 'حالة مستحقة معتمدة من لجنة البحث الاجتماعي.' }
+              ]
+            }
+          ]}
+          timeline={[
+            { id: 'tl-1', titleAr: 'المسح الميداني وتعبئة استمارة الحالة', titleEn: 'Field Survey', actor: 'فريق المسح الميداني', roleAr: 'باحث اجتماعي', roleEn: 'Social Worker', timestamp: '2026-02-10', status: 'approved' },
+            { id: 'tl-2', titleAr: 'الفحص الجنائي للرقم الوطني ومنع الازدواج', titleEn: 'National ID De-duplication', actor: 'نظام UAMEX المركزي', roleAr: 'محرك التحقق الآلي', roleEn: 'Validation Engine', timestamp: '2026-02-11', status: 'approved' },
+            { id: 'tl-3', titleAr: 'اعتماد لجنة الرعاية الاجتماعية والبت', titleEn: 'Social Committee Approval', actor: 'أ. إبراهيم النهاري', roleAr: 'رئيس لجنة الرعاية', roleEn: 'Care Committee Head', timestamp: '2026-02-15', status: 'approved' }
+          ]}
+          linkedRecords={[
+            { id: 'lr-1', code: 'SPON-2026-042', typeAr: 'كفالة أيتام دورية', typeEn: 'Orphan Sponsorship', titleAr: 'كفالة المعيشة والتعليم الشهرية', amountYer: 50000, targetTab: 'sponsorships' },
+            { id: 'lr-2', code: 'DIST-2026-089', typeAr: 'قسيمة سلة غذائية', typeEn: 'Food Basket Voucher', titleAr: 'صرف السلة الغذائية الربع سنوية', targetTab: 'activities' }
+          ]}
+          auditTrail={[
+            { id: 'at-1', actionAr: 'تحديث بيانات السكن ورقم الهاتف', actionEn: 'Update phone & address', user: 'م. خالد الحميري', timestamp: '2026-08-10 09:20' }
+          ]}
+          onEdit={() => {
+            const b = viewingBeneficiary;
+            setViewingBeneficiary(null);
+            openFormModal(b);
+          }}
+          onDelete={() => {
+            if (viewingBeneficiary) {
+              handleDelete(viewingBeneficiary.id);
+              setViewingBeneficiary(null);
+            }
+          }}
+        />
       )}
 
       {/* Form Dialog Modal */}

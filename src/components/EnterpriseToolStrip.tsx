@@ -54,6 +54,7 @@ export interface EnterpriseToolStripProps {
   zoomLevel?: 'months' | 'quarters' | 'annual';
   onZoomChange?: (zoom: 'months' | 'quarters' | 'annual') => void;
   onOpenExportModal?: () => void;
+  onInstantPrint?: () => void;
   onOpenCopilot?: () => void;
   addRecordLabelAr?: string;
   addRecordLabelEn?: string;
@@ -77,6 +78,7 @@ export const EnterpriseToolStrip: React.FC<EnterpriseToolStripProps> = ({
   zoomLevel = 'months',
   onZoomChange,
   onOpenExportModal,
+  onInstantPrint,
   onOpenCopilot,
   addRecordLabelAr = 'إضافة جديد',
   addRecordLabelEn = 'Add New',
@@ -329,9 +331,18 @@ export const EnterpriseToolStrip: React.FC<EnterpriseToolStripProps> = ({
 
         <button
           type="button"
-          onClick={() => window.print()}
+          onClick={() => {
+            triggerHaptic('light');
+            if (onInstantPrint) {
+              onInstantPrint();
+            } else if (onOpenExportModal) {
+              onOpenExportModal();
+            } else {
+              window.print();
+            }
+          }}
           className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-zinc-700"
-          title={isRtl ? 'طباعة الشاشة الحالية (Ctrl+P)' : 'Print View (Ctrl+P)'}
+          title={isRtl ? 'طباعة مباشرة معتمدة (Ctrl+P)' : 'Instant Certified Print (Ctrl+P)'}
         >
           <Printer className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
         </button>

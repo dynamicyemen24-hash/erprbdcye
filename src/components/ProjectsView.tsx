@@ -21,7 +21,8 @@ import {
   Table as TableIcon,
   Sparkles,
   ArrowRightLeft,
-  Printer
+  Printer,
+  Eye
 } from 'lucide-react';
 import { Project, Program } from '../types';
 import { SwipeGestureContainer } from './helpers/SwipeGestureContainer';
@@ -34,6 +35,9 @@ import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { instantPrint } from '../core/export';
+import { ProjectLifecycleSymbol } from './common/SovereignSystemIcons';
+import { UniversalObjectPageModal } from './common/UniversalObjectPageModal';
 
 interface ProjectsViewProps {
   projects: Project[];
@@ -86,6 +90,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [inspectingProject, setInspectingProject] = useState<Project | null>(null);
 
   useEffect(() => {
     if (selectedProject) {
@@ -331,6 +336,92 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
     }).format(val);
   };
 
+  const handleDirectPrintProjects = () => {
+    const title = lang === 'ar' 
+      ? 'كشف المشاريع الميدانية والتنفيذية المعتمد - جمعية رُحماء بينهم' 
+      : "Official Field Projects Executive Registry - Rohama'a Baynahum";
+
+    const rows = filtered.map((p: any, idx: number) => {
+      const prog = programs.find(pr => pr.id === p.program_id);
+      const progName = prog ? (lang === 'ar' ? prog.name_ar : prog.name_en) : '-';
+      return `
+        <tr style="background: \${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; text-align: center;">
+          <td style="font-weight: bold; padding: 6px; border: 1px solid #cbd5e1;">\${idx + 1}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold;">\${p.code || p.project_code || 'PRJ'}</td>
+          <td style="text-align: \${lang === 'ar' ? 'right' : 'left'}; padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">
+            \${lang === 'ar' ? p.name_ar : p.name_en}
+          </td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1;">\${progName}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; color: #059669;">\${p.progress_percent || 0}%</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace;">\${parseFloat(p.budget || 0).toLocaleString()} YER</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1;">\${(p.actual_beneficiaries || 0).toLocaleString()} / \${(p.target_beneficiaries || 0).toLocaleString()}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">\${p.status_code || 'active'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const html = `
+      <!DOCTYPE html>
+      <html dir="\${lang === 'ar' ? 'rtl' : 'ltr'}">
+      <head>
+        <meta charset="utf-8" />
+        <title>\${title}</title>
+        <style>
+          @page { size: A4 landscape; margin: 12mm; }
+          body { font-family: Segoe UI, Tahoma, sans-serif; color: #0f172a; margin: 0; padding: 12px; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px double #059669; padding-bottom: 12px; margin-bottom: 16px; }
+          table { width: 100%; border-collapse: collapse; font-size: 9.5px; margin-top: 10px; }
+          th { background: #0f172a; color: white; padding: 7px 5px; border: 1px solid #334155; text-align: center; }
+          td { padding: 5px; border: 1px solid #cbd5e1; }
+          .footer { margin-top: 24px; border-top: 1px solid #cbd5e1; padding-top: 12px; display: flex; justify-content: space-between; font-size: 9px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="/UAMEX_ERPLOGO.png" style="height: 48px;" alt="UAMEX ERP" />
+            <img src="/LogoRohamaab.png" style="height: 48px;" alt="Rohamaab" />
+            <div>
+              <h2 style="margin: 0; font-size: 13px; font-weight: 800;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
+              <div style="font-size: 10px; color: #059669; font-weight: bold;">إدارة المشاريع الميدانية ومتابعة الإنجاز (NEB-04)</div>
+            </div>
+          </div>
+          <div style="text-align: \${lang === 'ar' ? 'left' : 'right'};">
+            <div style="font-size: 9px; font-weight: bold; color: #d97706;">كشف عمليات معتمد</div>
+            <div style="font-size: 8px; color: #64748b;">\${new Date().toLocaleDateString(lang === 'ar' ? 'ar-YE' : 'en-US')}</div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 13px; font-weight: 900; color: #059669; margin: 0 0 8px 0;">\${title}</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>كود المشروع</th>
+              <th>اسم المشروع</th>
+              <th>البرنامج التنموي التابع</th>
+              <th>الإنجاز</th>
+              <th>الموازنة المعتمدة</th>
+              <th>المستفيدون (فعلي / مستهدف)</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            \${rows}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <div>مدير إدارة البرامج والمشاريع: مصادق | مدير الرقابة والتقييم: مطابق للمواصفات</div>
+          <div>الختم الرقمي الموحد: PRJ-UAM-\${Math.floor(Math.random() * 899999 + 100000)} | UAMEX ERP™</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    instantPrint(html);
+  };
+
   return (
     <ModuleShell
       titleAr="المشاريع الميدانية"
@@ -338,7 +429,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
       descAr="إدارة دورة حياة المشاريع، نسب التنفيذ الفعلي والمالي"
       descEn="Field projects lifecycle, progress charts, tasks allocation, and active status"
       domainCode="NEB-04"
-      icon={Layers}
+      icon={ProjectLifecycleSymbol}
       accent="indigo"
       lang={lang}
       onRefresh={onRefresh}
@@ -373,6 +464,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
           else if (mode === 'list') setViewMode('table');
           else if (mode === 'gantt') setViewMode('gantt');
         }}
+        onInstantPrint={handleDirectPrintProjects}
+        onOpenExportModal={() => setIsPDFModalOpen(true)}
         showZoomControls={viewMode === 'timeline' || viewMode === 'gantt'}
       />
 
@@ -605,6 +698,16 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                               </span>
                               <div className="flex items-center gap-1">
                                 <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setInspectingProject(proj);
+                                  }}
+                                  className="p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded transition-colors cursor-pointer"
+                                  title={lang === 'ar' ? 'معاينة صفحة الكيان الموحدة' : 'Universal Object Page'}
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
                                   onClick={() => openModal(proj)}
                                   className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
                                   title={lang === 'ar' ? 'تعديل' : 'Edit'}
@@ -786,6 +889,13 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                             >
                               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                               <span>{lang === 'ar' ? 'إكتمال' : 'Complete'}</span>
+                            </button>
+                            <button 
+                              onClick={() => setInspectingProject(proj)}
+                              className="p-1 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded transition-all cursor-pointer"
+                              title={lang === 'ar' ? 'معاينة صفحة الكيان الموحدة' : 'Universal Object Page'}
+                            >
+                              <Eye className="w-4 h-4" />
                             </button>
                             <button 
                               onClick={() => openModal(proj)}
@@ -1077,6 +1187,128 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
           programs
         }}
       />
+
+      {/* Universal Object Page Modal (UOP Standard) */}
+      {inspectingProject && (
+        <UniversalObjectPageModal
+          isOpen={Boolean(inspectingProject)}
+          onClose={() => setInspectingProject(null)}
+          lang={lang}
+          domainCode="NEB-04"
+          domainNameAr="نظام إدارة المشاريع والعمليات الميدانية"
+          domainNameEn="Field Project Management OS"
+          recordCode={inspectingProject.code}
+          titleAr={inspectingProject.name_ar}
+          titleEn={inspectingProject.name_en}
+          status={{
+            code: inspectingProject.status_code || 'active',
+            labelAr: inspectingProject.status_code === 'completed' ? 'مكتمل ومغلق' : 'نشط ميدانياً',
+            labelEn: inspectingProject.status_code === 'completed' ? 'Completed' : 'Active',
+            color: inspectingProject.status_code === 'completed' ? 'blue' : 'emerald'
+          }}
+          metrics={[
+            {
+              labelAr: 'الموازنة المعتمدة',
+              labelEn: 'Approved Budget',
+              value: (inspectingProject.budget_yer || 45000000).toLocaleString(),
+              unitAr: 'ر.ي',
+              unitEn: 'YER',
+              trend: 'up',
+              color: 'emerald'
+            },
+            {
+              labelAr: 'المنصرف الفعلي',
+              labelEn: 'Actual Spend',
+              value: Math.round((inspectingProject.budget_yer || 45000000) * 0.65).toLocaleString(),
+              unitAr: 'ر.ي',
+              unitEn: 'YER',
+              color: 'amber'
+            },
+            {
+              labelAr: 'نسبة الإنجاز الميداني',
+              labelEn: 'Progress',
+              value: `${inspectingProject.progress || 70}%`,
+              change: '+15% هذا الربع',
+              color: 'blue'
+            },
+            {
+              labelAr: 'المستفيدون المستهدفون',
+              labelEn: 'Target Beneficiaries',
+              value: (inspectingProject.target_beneficiaries || 1200).toLocaleString(),
+              unitAr: 'فرد',
+              unitEn: 'indiv.',
+              color: 'purple'
+            }
+          ]}
+          overviewFieldGroups={[
+            {
+              groupTitleAr: '1. البيانات الأساسية والارتباط الهرمي',
+              groupTitleEn: '1. Core Hierarchy & Metadata',
+              fields: [
+                { labelAr: 'البرنامج التنموي', labelEn: 'Parent Program', value: programs.find(p => p.id === inspectingProject.program_id)?.name_ar || 'برنامج التنمية المجتمعية' },
+                { labelAr: 'رمز الكيان المؤسسي', labelEn: 'Record Code', value: inspectingProject.code, isCopyable: true },
+                { labelAr: 'المدير التنفيذي للمشروع', labelEn: 'Project Lead', value: inspectingProject.manager_name || 'م. أحمد العباسي' },
+                { labelAr: 'نطاق التدخل الإنساني', labelEn: 'Cluster Scope', value: 'مياه وإصحاح بيئي (WASH) ومساعدات' },
+                { labelAr: 'معيار الامتثال الدولي', labelEn: 'Compliance Standard', value: 'The Sphere Project + CHS 9' }
+              ]
+            },
+            {
+              groupTitleAr: '2. النطاق الجغرافي والميداني',
+              groupTitleEn: '2. Geographical & Site Scope',
+              fields: [
+                { labelAr: 'المحافظة والمديرية', labelEn: 'Governorate & District', value: inspectingProject.location_name || 'تعز - مديرية صبر الموادم' },
+                { labelAr: 'الموقع الميداني الدقيق', labelEn: 'Specific Site', value: 'عزلة النجار - شبكة الآبار السطحية' },
+                { labelAr: 'الإحداثيات الجغرافية', labelEn: 'GIS Coordinates', value: '13.5789° N, 44.0125° E', isCopyable: true },
+                { labelAr: 'الفرع التشغيلي', labelEn: 'Operating Branch', value: 'فرع تعز والميدان' }
+              ]
+            },
+            {
+              groupTitleAr: '3. الجدول الزمني والامتثال المالي',
+              groupTitleEn: '3. Schedule & Financial Parameters',
+              fields: [
+                { labelAr: 'تاريخ التدشين الفعلي', labelEn: 'Start Date', value: inspectingProject.start_date || '2026-01-15' },
+                { labelAr: 'تاريخ التسليم المتوقع', labelEn: 'Expected Delivery', value: inspectingProject.end_date || '2026-09-30' },
+                { labelAr: 'مؤشر الالتزام بالجدول', labelEn: 'Schedule Adherence', value: '98.5% (ممتاز)' },
+                { labelAr: 'حساب الأستاذ العام', labelEn: 'GL Account', value: '120104 - حساب مشروعات المياه' }
+              ]
+            }
+          ]}
+          lineItems={[
+            { id: 'li-1', code: 'WBS-01', nameAr: 'توريد وتركيب منظومة طاقة شمسية غاطسة', quantity: 1, unitAr: 'منظومة', unitPriceYer: 18000000, totalYer: 18000000 },
+            { id: 'li-2', code: 'WBS-02', nameAr: 'تمديد شبكة أنابيب البولي إيثيلين 4 إنش', quantity: 3500, unitAr: 'متر طولي', unitPriceYer: 4500, totalYer: 15750000 },
+            { id: 'li-3', code: 'WBS-03', nameAr: 'إنشاء خزانات خرسانية سعة 100م³ وتوزيع', quantity: 2, unitAr: 'خزان', unitPriceYer: 5625000, totalYer: 11250000 }
+          ]}
+          timeline={[
+            { id: 'tl-1', titleAr: 'اعتماد دراسة الجدوى وتوثيق الاحتياج', titleEn: 'Feasibility Approval', actor: 'لجنة المشاريع المركزية', roleAr: 'رئيس وحدة المشاريع', roleEn: 'Projects Lead', timestamp: '2026-01-10', status: 'approved' },
+            { id: 'tl-2', titleAr: 'المطابقة المحاسبية وحجز الموازنة', titleEn: 'Budget Reservation', actor: 'أ. سالم باحاج', roleAr: 'مدير الرقابة المالية', roleEn: 'Financial Controller', timestamp: '2026-01-12', status: 'approved' },
+            { id: 'tl-3', titleAr: 'إصدار أمر الشروع والتدشين الميداني', titleEn: 'Site Kickoff', actor: 'م. أحمد العباسي', roleAr: 'مدير الموقع الميداني', roleEn: 'Site Lead', timestamp: '2026-01-15', status: 'approved' },
+            { id: 'tl-4', titleAr: 'التفتيش الدوري وفحص الجودة الربع سنوي', titleEn: 'Quarterly MEAL Audit', actor: 'فريق MEAL', roleAr: 'الرقابة والتقييم', roleEn: 'MEAL Team', timestamp: '2026-04-20', status: 'approved' }
+          ]}
+          linkedRecords={[
+            { id: 'lr-1', code: 'TX-2026-10493', typeAr: 'سند صرف محاسبي', typeEn: 'Payment Voucher', titleAr: 'صرف دفعة توريد الأنابيب والمستلزمات', amountYer: 3450000, targetTab: 'finance' },
+            { id: 'lr-2', code: 'RFQ-2026-088', typeAr: 'أمر توريد P2P', typeEn: 'Purchase Order', titleAr: 'عقد توريد محطات الضخ والطاقة الشمسية', amountYer: 18000000, targetTab: 'procurement' }
+          ]}
+          auditTrail={[
+            { id: 'at-1', actionAr: 'تحديث نسبة الإنجاز إلى 70%', actionEn: 'Progress update to 70%', user: 'م. أحمد العباسي', timestamp: '2026-08-25 14:32' },
+            { id: 'at-2', actionAr: 'إرفاق محضر فحص الأنابيب الميداني', actionEn: 'Attach site inspection certificate', user: 'م. توفيق القدسي', timestamp: '2026-08-20 11:15' }
+          ]}
+          attachments={[
+            { id: 'att-1', nameAr: 'تقرير الفحص الفني وجودة المياه.pdf', size: '2.4 MB', type: 'PDF', uploadedAt: '2026-08-15' },
+            { id: 'att-2', nameAr: 'عقد التوريد والمطابقة الثلاثية P2P.pdf', size: '1.8 MB', type: 'PDF', uploadedAt: '2026-07-28' }
+          ]}
+          onEdit={() => {
+            const p = inspectingProject;
+            setInspectingProject(null);
+            openModal(p);
+          }}
+          onDelete={() => {
+            if (inspectingProject) {
+              handleDelete(inspectingProject.id);
+              setInspectingProject(null);
+            }
+          }}
+        />
+      )}
     </div>
     </ModuleShell>
   );

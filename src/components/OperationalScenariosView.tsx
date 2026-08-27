@@ -58,6 +58,9 @@ import {
 } from 'lucide-react';
 import { ModuleShell } from './enterprise/ModuleShell';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
+import { triggerHaptic } from '../helpers/hapticSwipe';
+import { instantPrint } from '../core/export';
+import { OrgHierarchySymbol } from './common/SovereignSystemIcons';
 
 interface OperationalScenariosViewProps {
   lang: 'ar' | 'en';
@@ -549,8 +552,8 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
           raci: { responsible: 'محاسب الصرف', accountable: 'المدير المالي', consulted: 'مدير المشروع', informed: 'المستفيد / المورد' },
           inputsAr: ['طلب الصرف المعتمد', 'الفاتورة أو سند الاستلام', 'المرفقات المؤيدة'],
           inputsEn: ['Approved Payment Requisition', 'Supplier Invoice', 'Supporting Documentation'],
-          systemActionsAr: ['مسح الفاتورة عبر Gemini OCR', 'توليد القيد المزدوج المتزن', 'تحديث أرصدة الحسابات ومراكز التكلفة فورياً'],
-          systemActionsEn: ['Scan invoice via Gemini OCR', 'Generate balanced double-entry voucher', 'Update ledger & cost center balances'],
+          systemActionsAr: ['مسح الفاتورة الذكي UAMEX OCR', 'توليد القيد المزدوج المتزن', 'تحديث أرصدة الحسابات ومراكز التكلفة فورياً'],
+          systemActionsEn: ['Scan invoice via UAMEX OCR', 'Generate balanced double-entry voucher', 'Update ledger & cost center balances'],
           outputAr: 'سند مالي معتمد وقيد مرحل إلى دفتر الأستاذ',
           outputEn: 'Approved financial voucher posted to General Ledger',
           auditRuleAr: 'تثبيت رقم السند غير القابل للحذف وتوثيق توقيع المحاسب.',
@@ -558,7 +561,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
           linkedScreen: 'finance',
           linkedDocTitleAr: 'سند صرف / قبض مالي معتمد مع قيد اليومية',
           linkedDocTitleEn: 'Official Payment/Receipt Voucher & Journal Posting',
-          aiGuidanceAr: 'يمكن استخدام مساح الفواتير الذكي Gemini لاستخراج بنود الفاتورة آلياً ومنع التكرار.',
+          aiGuidanceAr: 'يمكن استخدام مساح الفواتير الذكي يوماكس إي آي لاستخراج بنود الفاتورة آلياً ومنع التكرار.',
           aiGuidanceEn: 'Use Gemini AI Invoice Scanner to auto-extract line items and prevent duplicates.'
         }
       ]
@@ -2120,6 +2123,140 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
     }
   };
 
+  const handleInstantPrintTemplateDoc = (doc: OfficialDocumentTemplate) => {
+    triggerHaptic('light');
+    if (!doc) return;
+    const title = lang === 'ar' ? `وثيقة رسمية معتمدة - ${doc.titleAr} (${doc.code})` : `Official Template - ${doc.titleEn} (${doc.code})`;
+    const details = lang === 'ar' ? doc.sampleData.detailsAr : doc.sampleData.detailsEn;
+
+    const html = `
+      <!DOCTYPE html>
+      <html dir="${lang === 'ar' ? 'rtl' : 'ltr'}">
+      <head>
+        <meta charset="utf-8" />
+        <title>${title}</title>
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          body { font-family: Segoe UI, Tahoma, sans-serif; color: #0f172a; margin: 0; padding: 16px; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px double #059669; padding-bottom: 12px; margin-bottom: 20px; }
+          .badge { display: inline-block; padding: 4px 10px; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 6px; font-size: 11px; font-weight: bold; margin-bottom: 12px; }
+          .info-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 20px; }
+          .list { margin-top: 14px; }
+          .list-item { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-size: 11px; display: flex; align-items: center; gap: 8px; }
+          .footer { margin-top: 40px; border-top: 1px solid #cbd5e1; padding-top: 16px; display: flex; justify-content: space-between; font-size: 10px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="/UAMEX_ERPLOGO.png" style="height: 48px;" alt="UAMEX ERP" />
+            <img src="/LogoRohamaab.png" style="height: 48px;" alt="Rohamaab" />
+            <div>
+              <h2 style="margin: 0; font-size: 14px; font-weight: 800;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
+              <div style="font-size: 10px; color: #059669; font-weight: bold;">دليل الإجراءات والنماذج التشغيلية المعتمدة (NEB-05/11)</div>
+            </div>
+          </div>
+          <div style="text-align: ${lang === 'ar' ? 'left' : 'right'};">
+            <div style="font-size: 10px; font-weight: bold; color: #d97706;">وثيقة إجرائية رسمية</div>
+            <div style="font-size: 9px; color: #64748b;">${doc.sampleData.issueDate || new Date().toLocaleDateString(lang === 'ar' ? 'ar-YE' : 'en-US')}</div>
+          </div>
+        </div>
+
+        <div class="badge">${doc.standardReference} | ${lang === 'ar' ? doc.departmentAr : doc.departmentEn}</div>
+        <h3 style="font-size: 15px; font-weight: 900; color: #059669; margin: 0 0 8px 0;">${lang === 'ar' ? doc.titleAr : doc.titleEn}</h3>
+        <p style="font-size: 11px; color: #475569; margin-bottom: 16px;">${lang === 'ar' ? doc.descriptionAr : doc.descriptionEn}</p>
+
+        <div class="info-box">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; color: #334155; margin-bottom: 8px;">
+            <span>رقم الإشارة: ${doc.sampleData.refNumber}</span>
+            <span>الجهة المعتمدة: ${doc.sampleData.authorizer}</span>
+          </div>
+          <div style="font-size: 10px; color: #059669; font-weight: bold;">الحالة: ${lang === 'ar' ? doc.sampleData.statusAr : doc.sampleData.statusEn}</div>
+        </div>
+
+        <h4 style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 16px 0 8px 0;">بنود ومحددات التنفيذ المعتمدة:</h4>
+        <div class="list">
+          ${details.map((d, i) => `
+            <div class="list-item">
+              <span style="color: #059669; font-weight: bold;">✔</span>
+              <span>${d}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="footer">
+          <div>جهة الاعتماد: ${doc.sampleData.authorizer} | تدقيق الجودة والمساءلة: معتمد</div>
+          <div>رقم التحقق المشفر: DOC-UAM-${doc.code}-${Math.floor(Math.random() * 89999 + 10000)} | UAMEX ERP™</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    instantPrint(html);
+  };
+
+  const handleInstantPrintActiveDossier = () => {
+    triggerHaptic('light');
+    const title = lang === 'ar' 
+      ? 'الدليل التشغيلي واللوائح المؤسسية المعتمدة - جمعية رُحماء بينهم' 
+      : "Institutional Operational Playbook & Bylaws - Rohama'a Baynahum";
+
+    const html = `
+      <!DOCTYPE html>
+      <html dir="${lang === 'ar' ? 'rtl' : 'ltr'}">
+      <head>
+        <meta charset="utf-8" />
+        <title>${title}</title>
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          body { font-family: Segoe UI, Tahoma, sans-serif; color: #0f172a; margin: 0; padding: 16px; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px double #059669; padding-bottom: 12px; margin-bottom: 20px; }
+          .footer { margin-top: 40px; border-top: 1px solid #cbd5e1; padding-top: 16px; display: flex; justify-content: space-between; font-size: 10px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="/UAMEX_ERPLOGO.png" style="height: 48px;" alt="UAMEX ERP" />
+            <img src="/LogoRohamaab.png" style="height: 48px;" alt="Rohamaab" />
+            <div>
+              <h2 style="margin: 0; font-size: 14px; font-weight: 800;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
+              <div style="font-size: 10px; color: #059669; font-weight: bold;">الحقيبة التشغيلية واللوائح التنظيمية الرسمية (NEB-05/09/11)</div>
+            </div>
+          </div>
+          <div style="text-align: ${lang === 'ar' ? 'left' : 'right'};">
+            <div style="font-size: 10px; font-weight: bold; color: #d97706;">وثيقة رسمية معتمدة</div>
+            <div style="font-size: 9px; color: #64748b;">${new Date().toLocaleDateString(lang === 'ar' ? 'ar-YE' : 'en-US')}</div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 14px; font-weight: 900; color: #059669; margin: 0 0 10px 0;">${title}</h3>
+        <p style="font-size: 11px; color: #334155; line-height: 1.6;">
+          تتضمن هذه الحقيبة المعتمدة اللائحة التنظيمية الأساسية لجمعية رُحماء بينهم، معايير الحوكمة، بطاقات الوصف الوظيفي العشرة، مصفوفة المسؤوليات الميدانية، ودليل إجراءات الطوارئ والاستجابة السريعة، وفق معايير الجودة والمساءلة الإنسانية CHS وميثاق إسفير.
+        </p>
+
+        <div style="margin-top: 20px; padding: 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px;">
+          <h4 style="margin: 0 0 8px 0; font-size: 12px; color: #0f172a;">الأقسام والوحدات الرئيسية المشمولة:</h4>
+          <ul style="font-size: 11px; color: #475569; padding-right: 20px; margin: 0; line-height: 1.8;">
+            <li>الباب الأول: الأحكام العامة، الرؤية، والرسالة المؤسسية.</li>
+            <li>الباب الثاني: الهيكل التنظيمي، تدرج السلطات، ومستويات التفويض المالي الخمسة.</li>
+            <li>الباب الثالث: إدارة المشاريع الميدانية وهيكل الأنشطة WBS.</li>
+            <li>الباب الرابع: معايير حماية وخصوصية بيانات الأيتام والمستفيدين (المادة 1 من دستور يوماكس).</li>
+            <li>الباب الخامس: الرقابة والتقييم والجودة الإنسانية MEAL وميثاق إسفير.</li>
+          </ul>
+        </div>
+
+        <div class="footer">
+          <div>اعتماد مجلس الإدارة: ساري المفعول | المدير التنفيذي: مصادق عليه</div>
+          <div>الرقم التسلسلي المؤسسي: OPS-CHARTER-2026-RBDCYE | UAMEX ERP™</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    instantPrint(html);
+  };
+
   return (
     <ModuleShell
       lang={lang}
@@ -2145,12 +2282,12 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
           </button>
 
           <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-lg text-xs font-bold transition-colors border border-slate-300 dark:border-zinc-700 cursor-pointer"
-            title={lang === 'ar' ? 'طباعة عبر المتصفح' : 'Quick Browser Print'}
+            onClick={handleInstantPrintActiveDossier}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-600 hover:text-white text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold transition-all border border-emerald-500/30 cursor-pointer shadow-2xs"
+            title={lang === 'ar' ? 'طباعة الحقيبة التشغيلية واللوائح معتمدة مباشرة' : 'Instant Print Official Dossier'}
           >
             <Printer className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>{lang === 'ar' ? 'طباعة سريعة' : 'Quick Print'}</span>
+            <span>{lang === 'ar' ? 'طباعة الحقيبة [فوري]' : 'Instant Print'}</span>
           </button>
         </div>
       }
@@ -3169,11 +3306,11 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => window.print()}
-                    className="flex items-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-lg text-xs font-bold transition-colors"
+                    onClick={() => handleInstantPrintTemplateDoc(previewDoc!)}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
                   >
                     <Printer className="w-4 h-4" />
-                    <span>{lang === 'ar' ? 'طباعة' : 'Print'}</span>
+                    <span>{lang === 'ar' ? 'طباعة النموذج معتمد [فوري]' : 'Instant Print'}</span>
                   </button>
                   <button
                     onClick={() => setPreviewDoc(null)}
@@ -3213,7 +3350,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
               <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-500/20 rounded-xl space-y-2">
                 <span className="text-xs font-black text-amber-900 dark:text-amber-300 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>توجيهات محرك Gemini المؤسسي:</span>
+                  <span>توجيهات محرك يوماكس إي آي المؤسسي:</span>
                 </span>
                 <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
                   {lang === 'ar' ? activeStepAI.aiGuidanceAr : activeStepAI.aiGuidanceEn}

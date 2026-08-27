@@ -44,6 +44,14 @@ const DEFAULT_SHORTCUTS: ShortcutDefinition[] = [
     defaultKeys: ['Ctrl', '/']
   },
   {
+    id: 'cmd-system-map',
+    categoryAr: 'التنقل الرئيسي والبحث',
+    categoryEn: 'Navigation & Search',
+    descAr: 'خريطة المنظومة الشاملة واستكشاف الأنظمة الـ15 (Mode B)',
+    descEn: 'Enterprise System Map (Mode B - 15 Domains)',
+    defaultKeys: ['Alt', 'M']
+  },
+  {
     id: 'cmd-record-finder',
     categoryAr: 'الاسترجاع السريع للمستندات',
     categoryEn: 'Record Retrieval',

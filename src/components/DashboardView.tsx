@@ -9,7 +9,8 @@ import { useDashboardState } from './dashboard/useDashboardState';
 import { useDashboardData } from './dashboard/useDashboardData';
 import { DashboardViewProps } from './dashboard/types';
 import { ExecutiveQuantumCockpit } from './ExecutiveQuantumCockpit';
-import { Activity, RefreshCw, AlertTriangle } from 'lucide-react';
+import { QuantumWorkFirstCockpit } from './dashboard/QuantumWorkFirstCockpit';
+import { Activity, RefreshCw, AlertTriangle, Zap, LayoutDashboard } from 'lucide-react';
 
 // Error Boundary for graceful crash recovery
 class DashboardErrorBoundary extends Component<
@@ -95,9 +96,26 @@ export default function DashboardView({
   currentUser,
   activeOrg,
   orgName,
-  onOpenHelpers
+  onOpenHelpers,
+  onOpenSystemMap
 }: DashboardViewProps) {
   const state = useDashboardState(currentUser);
+  
+  // Multi-Cockpit Experience Mode State ('work_first' vs 'classic_analytics')
+  const [homeMode, setHomeMode] = React.useState<'work_first' | 'classic_analytics'>(() => {
+    try {
+      const saved = localStorage.getItem('uamex_home_experience_mode');
+      if (saved === 'classic_analytics' || saved === 'work_first') return saved;
+    } catch {}
+    return 'work_first'; // Default to next-gen Quantum Work-First Cockpit
+  });
+
+  const handleSetHomeMode = (mode: 'work_first' | 'classic_analytics') => {
+    setHomeMode(mode);
+    try {
+      localStorage.setItem('uamex_home_experience_mode', mode);
+    } catch {}
+  };
 
   const data = useDashboardData({
     stats,
@@ -249,51 +267,94 @@ export default function DashboardView({
             {loading ? (
               <DashboardSkeleton lang={lang} />
             ) : state.activeSubTab === 'overview' ? (
-              <>
-                <ExecutiveQuantumCockpit lang={lang} onNavigateTab={onNavigate} />
-                <DashboardOverviewTab
+              homeMode === 'work_first' ? (
+                <QuantumWorkFirstCockpit
                   lang={lang}
                   stats={stats}
-                  onRefresh={onRefresh}
-                  onNavigate={onNavigate}
-                  onDrillDown={onDrillDown}
-                  approvalRequests={approvalRequests}
+                  currentUser={currentUser}
                   programs={programs}
                   projects={projects}
-                  currentUser={currentUser}
-                  orgName={orgName}
-                  onOpenHelpers={onOpenHelpers}
-                  currentPreset={state.currentPreset}
-                  customPresets={state.customPresets}
-                  getSpacingClass={state.getSpacingClass}
-                  isCustomizerOpen={state.isCustomizerOpen}
-                  setIsCustomizerOpen={state.setIsCustomizerOpen}
-                  handleApplyPreset={state.handleApplyPreset}
-                  handleSaveCustomPreset={state.handleSaveCustomPreset}
-                  handleDeletePreset={state.handleDeletePreset}
-                  kpiLayout={state.kpiLayout}
-                  draggedCardId={state.draggedCardId}
-                  dragOverCardId={state.dragOverCardId}
-                  setDragOverCardId={state.setDragOverCardId}
-                  handleDragStart={state.handleDragStart}
-                  handleDragEnd={state.handleDragEnd}
-                  handleDragOver={state.handleDragOver}
-                  handleDrop={state.handleDrop}
-                  handleTogglePin={state.handleTogglePin}
-                  handleMoveLeft={state.handleMoveLeft}
-                  handleMoveRight={state.handleMoveRight}
-                  activeProgramsCount={data.activeProgramsCount}
-                  pendingApprovalsCount={data.pendingApprovalsCount}
-                  pendingApprovalsAmount={data.pendingApprovalsAmount}
-                  monthlyBeneficiaryReach={data.monthlyBeneficiaryReach}
-                  budgetUtilization={data.budgetUtilization}
-                  totalProjBudget={data.totalProjBudget}
-                  beneficiaryGrowthData={data.beneficiaryGrowthData}
-                  budgetDistributionData={data.budgetDistributionData}
-                  projectBudgetData={data.projectBudgetData}
-                  healthMetrics={data.healthMetrics}
+                  beneficiaries={beneficiaries}
+                  sponsorships={sponsorships}
+                  approvalRequests={approvalRequests}
+                  onNavigate={onNavigate}
+                  onDrillDown={onDrillDown}
+                  onOpenSystemMap={onOpenSystemMap}
+                  onSwitchToClassicAnalytics={() => handleSetHomeMode('classic_analytics')}
+                  onRefresh={onRefresh}
                 />
-              </>
+              ) : (
+                <>
+                  {/* Classic Mode Notification & Quick Switcher Back to Quantum Work-First */}
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 bg-amber-500/20 text-amber-500 rounded-xl">
+                        <LayoutDashboard className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-900 dark:text-white">
+                          {lang === 'ar' ? 'نمط لوحة القيادة الاستراتيجية والتحليلات الشاملة (Classic Strategic Hub)' : 'Classic Strategic Analytics Hub Mode'}
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                          {lang === 'ar' ? 'النمط التحليلي الموسع لكافة الكروت المخصصة والرسوم البيانية ومساحات العمل' : 'Full-card strategic analytics, customizable presets and workspace gateways'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleSetHomeMode('work_first')}
+                      className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>{lang === 'ar' ? 'التبديل إلى قمرة الإنجاز الفوري (Work-First)' : 'Switch to Quantum Work-First'}</span>
+                    </button>
+                  </div>
+
+                  <ExecutiveQuantumCockpit lang={lang} onNavigateTab={onNavigate} />
+                  <DashboardOverviewTab
+                    lang={lang}
+                    stats={stats}
+                    onRefresh={onRefresh}
+                    onNavigate={onNavigate}
+                    onDrillDown={onDrillDown}
+                    approvalRequests={approvalRequests}
+                    programs={programs}
+                    projects={projects}
+                    currentUser={currentUser}
+                    orgName={orgName}
+                    onOpenHelpers={onOpenHelpers}
+                    currentPreset={state.currentPreset}
+                    customPresets={state.customPresets}
+                    getSpacingClass={state.getSpacingClass}
+                    isCustomizerOpen={state.isCustomizerOpen}
+                    setIsCustomizerOpen={state.setIsCustomizerOpen}
+                    handleApplyPreset={state.handleApplyPreset}
+                    handleSaveCustomPreset={state.handleSaveCustomPreset}
+                    handleDeletePreset={state.handleDeletePreset}
+                    kpiLayout={state.kpiLayout}
+                    draggedCardId={state.draggedCardId}
+                    dragOverCardId={state.dragOverCardId}
+                    setDragOverCardId={state.setDragOverCardId}
+                    handleDragStart={state.handleDragStart}
+                    handleDragEnd={state.handleDragEnd}
+                    handleDragOver={state.handleDragOver}
+                    handleDrop={state.handleDrop}
+                    handleTogglePin={state.handleTogglePin}
+                    handleMoveLeft={state.handleMoveLeft}
+                    handleMoveRight={state.handleMoveRight}
+                    activeProgramsCount={data.activeProgramsCount}
+                    pendingApprovalsCount={data.pendingApprovalsCount}
+                    pendingApprovalsAmount={data.pendingApprovalsAmount}
+                    monthlyBeneficiaryReach={data.monthlyBeneficiaryReach}
+                    budgetUtilization={data.budgetUtilization}
+                    totalProjBudget={data.totalProjBudget}
+                    beneficiaryGrowthData={data.beneficiaryGrowthData}
+                    budgetDistributionData={data.budgetDistributionData}
+                    projectBudgetData={data.projectBudgetData}
+                    healthMetrics={data.healthMetrics}
+                  />
+                </>
+              )
             ) : state.activeSubTab === 'performance' ? (
               <div className="animate-fade-in">
                 <PerformanceMetricsView 

@@ -277,7 +277,7 @@ export const EnterpriseMenuStrip: React.FC<EnterpriseMenuStripProps> = ({
       options: [
         {
           labelAr: 'مساعد الذكاء الاصطناعي Copilot',
-          labelEn: 'Gemini AI Copilot',
+          labelEn: 'UAMEX AI™ Copilot',
           shortcut: 'Ctrl+AI',
           icon: Sparkles,
           action: onOpenCopilot
