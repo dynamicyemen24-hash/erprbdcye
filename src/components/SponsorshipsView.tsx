@@ -141,8 +141,8 @@ export default function SponsorshipsView({
           <div class="info-item"><span>اسم المستفيد / اليتيم</span><strong>${benName}</strong></div>
           <div class="info-item"><span>الكافل / الجهة المانحة</span><strong>${sponsorship.sponsor_name_ar || sponsorship.sponsor_name || 'فاعل خير'}</strong></div>
           <div class="info-item"><span>البرنامج التنموي</span><strong>${progName}</strong></div>
-          <div class="info-item"><span>مبلغ الكفالة الشهري</span><strong>${sponsorship.monthly_amount} ${sponsorship.currency_code}</strong></div>
-          <div class="info-item"><span>إجمالي المبلغ المسلم</span><strong>${sponsorship.paid_amount || sponsorship.total_amount} ${sponsorship.currency_code}</strong></div>
+          <div class="info-item"><span>مبلغ الكفالة الشهري</span><strong>${sponsorship.monthly_amount} ${sponsorship.currency_code === 'YER' ? 'ر.ي' : sponsorship.currency_code}</strong></div>
+          <div class="info-item"><span>إجمالي المبلغ المسلم</span><strong>${sponsorship.paid_amount || sponsorship.total_amount} ${sponsorship.currency_code === 'YER' ? 'ر.ي' : sponsorship.currency_code}</strong></div>
           <div class="info-item"><span>اسم المستلم / الولي</span><strong>${sponsorship.receiver_name || benName}</strong></div>
           <div class="info-item"><span>هاتف المستلم</span><strong>${sponsorship.receiver_phone || 'غير مدخل'}</strong></div>
           <div class="info-item"><span>الأخصائي الميداني</span><strong>${sponsorship.field_agent_name || 'مسؤول الكفالات'}</strong></div>
@@ -335,15 +335,15 @@ export default function SponsorshipsView({
             <div class="grid grid-cols-3 divide-x divide-slate-200 text-center">
               <div class="p-4 space-y-1">
                 <p class="text-slate-400 text-[10px]">${lang === 'ar' ? 'مبلغ الالتزام المالي الكلي' : 'Total Pledge Volume'}</p>
-                <p class="font-mono text-base font-black text-slate-900">${parseFloat(sp.total_amount).toLocaleString()} ${sp.currency_code}</p>
+                <p class="font-mono text-base font-black text-slate-900">${parseFloat(sp.total_amount).toLocaleString()} ${lang === 'ar' && sp.currency_code === 'YER' ? 'ر.ي' : sp.currency_code}</p>
               </div>
               <div class="p-4 space-y-1 border-r border-slate-200">
                 <p class="text-slate-400 text-[10px]">${lang === 'ar' ? 'المبلغ المحصل والمسلّم فعلياً' : 'Total Disbursed to Date'}</p>
-                <p class="font-mono text-base font-black text-emerald-600">${parseFloat(sp.paid_amount).toLocaleString()} ${sp.currency_code}</p>
+                <p class="font-mono text-base font-black text-emerald-600">${parseFloat(sp.paid_amount).toLocaleString()} ${lang === 'ar' && sp.currency_code === 'YER' ? 'ر.ي' : sp.currency_code}</p>
               </div>
               <div class="p-4 space-y-1 border-r border-slate-200">
                 <p class="text-slate-400 text-[10px]">${lang === 'ar' ? 'الرصيد المتبقي المستحق' : 'Outstanding Balance Due'}</p>
-                <p class="font-mono text-base font-black text-rose-600">${parseFloat(sp.remaining_amount).toLocaleString()} ${sp.currency_code}</p>
+                <p class="font-mono text-base font-black text-rose-600">${parseFloat(sp.remaining_amount).toLocaleString()} ${lang === 'ar' && sp.currency_code === 'YER' ? 'ر.ي' : sp.currency_code}</p>
               </div>
             </div>
           </div>
@@ -632,7 +632,7 @@ export default function SponsorshipsView({
           <div>
             <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'حجم الالتزامات الكلي' : 'Total Pledge Volume'}</span>
             <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
-              {loading ? '...' : `${totalsForPrimary.total.toLocaleString(undefined, {maximumFractionDigits:0})} ${displayCurrency}`}
+              {loading ? '...' : `${totalsForPrimary.total.toLocaleString(undefined, {maximumFractionDigits:0})} ${lang === 'ar' && displayCurrency === 'YER' ? 'ر.ي' : displayCurrency}`}
             </span>
           </div>
         </div>
@@ -644,7 +644,7 @@ export default function SponsorshipsView({
           <div>
             <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'إجمالي المبالغ المحصلة' : 'Collected / Received'}</span>
             <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
-              {loading ? '...' : `${totalsForPrimary.paid.toLocaleString(undefined, {maximumFractionDigits:0})} ${displayCurrency}`}
+              {loading ? '...' : `${totalsForPrimary.paid.toLocaleString(undefined, {maximumFractionDigits:0})} ${lang === 'ar' && displayCurrency === 'YER' ? 'ر.ي' : displayCurrency}`}
             </span>
           </div>
         </div>
@@ -656,7 +656,7 @@ export default function SponsorshipsView({
           <div>
             <span className="text-[10px] text-zinc-400 font-bold block uppercase">{lang === 'ar' ? 'المستحقات المتبقية' : 'Due / Remaining'}</span>
             <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
-              {loading ? '...' : `${totalsForPrimary.remain.toLocaleString(undefined, {maximumFractionDigits:0})} ${displayCurrency}`}
+              {loading ? '...' : `${totalsForPrimary.remain.toLocaleString(undefined, {maximumFractionDigits:0})} ${lang === 'ar' && displayCurrency === 'YER' ? 'ر.ي' : displayCurrency}`}
             </span>
           </div>
         </div>
@@ -830,7 +830,7 @@ export default function SponsorshipsView({
                         </div>
                       </td>
                       <td className="px-6 py-4 font-mono font-bold text-slate-800 whitespace-nowrap">
-                        {parseFloat(sp.monthly_amount || '0').toLocaleString(undefined, {maximumFractionDigits:2})} {sp.currency_code}
+                        {parseFloat(sp.monthly_amount || '0').toLocaleString(undefined, {maximumFractionDigits:2})} {lang === 'ar' && sp.currency_code === 'YER' ? 'ر.ي' : sp.currency_code}
                         <span className="text-[9px] text-zinc-400 font-sans block font-semibold">{lang === 'ar' ? 'شهرياً' : 'monthly'}</span>
                       </td>
                       <td className="px-6 py-4">
@@ -838,7 +838,7 @@ export default function SponsorshipsView({
                           <div className="flex justify-between text-[10px] font-mono font-bold text-slate-600">
                             <span>{paid.toLocaleString()}</span>
                             <span className="text-zinc-300">/</span>
-                            <span>{total.toLocaleString()} {sp.currency_code}</span>
+                            <span>{total.toLocaleString()} {lang === 'ar' && sp.currency_code === 'YER' ? 'ر.ي' : sp.currency_code}</span>
                           </div>
                           {/* Minimal progress bar */}
                           <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
@@ -932,7 +932,7 @@ export default function SponsorshipsView({
               labelAr: 'إجمالي الالتزام المالي',
               labelEn: 'Total Volume Pledge',
               value: `${parseFloat(viewingSponsorship.total_amount || '0').toLocaleString()}`,
-              unitAr: viewingSponsorship.currency_code,
+              unitAr: viewingSponsorship.currency_code === 'YER' ? 'ر.ي' : viewingSponsorship.currency_code,
               unitEn: viewingSponsorship.currency_code,
               color: 'blue'
             },
@@ -940,7 +940,7 @@ export default function SponsorshipsView({
               labelAr: 'المحصل الفعلي',
               labelEn: 'Paid to Date',
               value: `${parseFloat(viewingSponsorship.paid_amount || '0').toLocaleString()}`,
-              unitAr: viewingSponsorship.currency_code,
+              unitAr: viewingSponsorship.currency_code === 'YER' ? 'ر.ي' : viewingSponsorship.currency_code,
               unitEn: viewingSponsorship.currency_code,
               color: 'emerald'
             },
@@ -948,7 +948,7 @@ export default function SponsorshipsView({
               labelAr: 'المخصص الشهري',
               labelEn: 'Monthly Allowance',
               value: `${parseFloat(viewingSponsorship.monthly_amount || '0').toLocaleString()}`,
-              unitAr: viewingSponsorship.currency_code,
+              unitAr: viewingSponsorship.currency_code === 'YER' ? 'ر.ي' : viewingSponsorship.currency_code,
               unitEn: viewingSponsorship.currency_code,
               color: 'amber'
             },
@@ -956,7 +956,7 @@ export default function SponsorshipsView({
               labelAr: 'الرصيد المتبقي المستحق',
               labelEn: 'Balance Due',
               value: `${parseFloat(viewingSponsorship.remaining_amount || '0').toLocaleString()}`,
-              unitAr: viewingSponsorship.currency_code,
+              unitAr: viewingSponsorship.currency_code === 'YER' ? 'ر.ي' : viewingSponsorship.currency_code,
               unitEn: viewingSponsorship.currency_code,
               color: 'rose'
             }

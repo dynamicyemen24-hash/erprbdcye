@@ -240,7 +240,7 @@ export function buildProjectReportHTML(options: {
 
   const tableRowsHTML = projects.map((p, idx) => `
     <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0; font-size: 10px;">
-      <td style="padding: 10px; text-align: center; font-family: monospace; font-weight: 700; color: #475569;">${p.code || `PRJ-${idx + 1}`}</td>
+      <td style="padding: 10px; text-align: center; font-family: monospace; font-weight: 700; color: #475569;">${p.code || (isRtl ? `مشروع-${String(idx + 1).padStart(2, '0')}` : `PRJ-${idx + 1}`)}</td>
       <td style="padding: 10px; font-weight: 700; color: #0f172a;">${isRtl ? (p.name_ar || p.name) : (p.name_en || p.name)}</td>
       <td style="padding: 10px; color: #334155;">${p.location_name || (isRtl ? 'الجمهورية اليمنية' : 'Yemen')}</td>
       <td style="padding: 10px; text-align: right; font-family: monospace; font-weight: 700; color: #047857;">${parseFloat(p.budget || '0').toLocaleString()}</td>
@@ -281,7 +281,7 @@ export function buildProjectReportHTML(options: {
             <th style="padding: 10px;">${isRtl ? 'الموقع' : 'Location'}</th>
             <th style="padding: 10px; text-align: right;">${isRtl ? 'الموازنة (ر.ي)' : 'Budget (YER)'}</th>
             <th style="padding: 10px; text-align: center;">${isRtl ? 'نسبة الإنجاز' : 'Progress'}</th>
-            <th style="padding: 10px; text-align: center;">${isRtl ? 'المستفيدين' : 'Beneficiaries'}</th>
+            <th style="padding: 10px; text-align: center;">${isRtl ? 'عدد المستفيدين' : 'Beneficiaries'}</th>
             <th style="padding: 10px; text-align: center;">${isRtl ? 'الحالة' : 'Status'}</th>
           </tr>
         </thead>
@@ -1189,11 +1189,11 @@ export function buildStaffReportPDFHTML(options: {
 
   const tableRowsHTML = users.map((u, idx) => `
     <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0; font-size: 10px;">
-      <td style="padding: 8px; text-align: center; font-family: monospace; font-weight: 700; color: #475569;">${u.employee_number || (u.id && u.id.slice(0,6)) || `EMP-${idx + 1}`}</td>
-      <td style="padding: 8px; font-weight: 700; color: #0f172a;">${isRtl ? (u.full_name_ar || u.name_ar || u.name || 'موظف') : (u.full_name_en || u.name_en || u.name || 'Staff')}</td>
+      <td style="padding: 8px; text-align: center; font-family: monospace; font-weight: 700; color: #475569;">${u.employee_number || (isRtl ? `وظ-${String(idx + 1).padStart(3, '0')}` : `EMP-${String(idx + 1).padStart(3, '0')}`)}</td>
+      <td style="padding: 8px; font-weight: 700; color: #0f172a;">${isRtl ? (u.full_name_ar || u.name_ar || u.name || 'موظف معتمد') : (u.full_name_en || u.name_en || u.name || 'Staff')}</td>
       <td style="padding: 8px; color: #334155;">${u.role || (isRtl ? 'منسق ميداني' : 'Field Coordinator')}</td>
-      <td style="padding: 8px; text-align: center; font-family: monospace; color: #475569;">${u.branch_code || 'HQ'}</td>
-      <td style="padding: 8px; color: #334155; font-family: monospace;">${u.email || 'n/a'}</td>
+      <td style="padding: 8px; text-align: center; font-family: sans-serif; color: #475569;">${u.branch_code || (isRtl ? 'المقر الرئيسي' : 'HQ')}</td>
+      <td style="padding: 8px; color: #334155; font-family: monospace;">${u.email || '—'}</td>
       <td style="padding: 8px; text-align: center;">
         <span style="
           padding: 2px 6px;
@@ -1915,7 +1915,7 @@ export function buildActivitiesReportPDFHTML(options: {
   const displayActivities = activities.slice(0, 15);
   const tableRows = displayActivities.map((a, idx) => `
     <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0; font-size: 9.5px;">
-      <td style="padding: 8px; text-align: center; font-family: monospace; font-weight: 700; color: #475569;">${a.wbs_code || `WBS-${idx + 1}`}</td>
+      <td style="padding: 8px; text-align: center; font-family: monospace; font-weight: 700; color: #475569;">${a.wbs_code || (isRtl ? `حزمة-${String(idx + 1).padStart(2, '0')}` : `WBS-${idx + 1}`)}</td>
       <td style="padding: 8px; font-weight: 700; color: #0f172a;">${isRtl ? a.name_ar : a.name_en}</td>
       <td style="padding: 8px; color: #334155;">${isRtl ? (a.location_name_ar || a.location_name || 'اليمن') : (a.location_name || 'Yemen')}</td>
       <td style="padding: 8px; text-align: center; font-family: monospace;">${a.actual_beneficiaries || 0} / ${a.target_beneficiaries || 0}</td>
@@ -1940,7 +1940,7 @@ export function buildActivitiesReportPDFHTML(options: {
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1;">
         <thead>
           <tr style="background-color: #0f172a; color: #ffffff; font-size: 10px; font-weight: 800; text-align: ${isRtl ? 'right' : 'left'};">
-            <th style="padding: 8px; text-align: center; width: 90px;">${isRtl ? 'رمز العمل WBS' : 'WBS Code'}</th>
+            <th style="padding: 8px; text-align: center; width: 90px;">${isRtl ? 'رمز حزمة العمل (WBS)' : 'WBS Code'}</th>
             <th style="padding: 8px;">${isRtl ? 'النشاط الميداني' : 'Field Activity'}</th>
             <th style="padding: 8px;">${isRtl ? 'الموقع' : 'Location'}</th>
             <th style="padding: 8px; text-align: center;">${isRtl ? 'المنجز/المستهدف' : 'Beneficiaries'}</th>
@@ -2740,7 +2740,7 @@ export function buildRevenueInvestmentReportPDFHTML(options: {
         <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
           <div style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">${isRtl ? 'الامتثال الشرعي والمحاسبي' : 'Compliance Rating'}</div>
           <div style="font-size: 18px; font-weight: 900; color: #059669; margin-top: 4px;">100%</div>
-          <div style="font-size: 8px; color: #059669; font-weight: bold;">IPSAS / AAOIFI</div>
+          <div style="font-size: 8px; color: #059669; font-weight: bold;">${isRtl ? 'مطابق لمعايير IPSAS والأيوفي' : 'IPSAS / AAOIFI'}</div>
         </div>
       </div>
 

@@ -217,7 +217,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               </div>
               <div>
                 <p class="text-slate-400 text-[10px]">${lang === 'ar' ? 'رقم الحالة الكودي:' : 'Case ID Code:'}</p>
-                <p class="font-mono text-slate-900 font-black text-sm mt-0.5 bg-slate-100 px-2 py-0.5 rounded inline-block">${b.beneficiary_code || 'BEN-NEW'}</p>
+                <p class="font-mono text-slate-900 font-black text-sm mt-0.5 bg-slate-100 px-2 py-0.5 rounded inline-block">${b.beneficiary_code || (lang === 'ar' ? 'مستفيد-جديد' : 'BEN-NEW')}</p>
               </div>
               <div>
                 <p class="text-slate-400 text-[10px]">${lang === 'ar' ? 'تصنيف الاستحقاق:' : 'Eligibility Category:'}</p>
@@ -768,7 +768,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                   <tr key={ben.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
-                        {ben.beneficiary_code || 'BEN-NEW'}
+                        {ben.beneficiary_code || (lang === 'ar' ? 'مستفيد-معتمد' : 'BEN-NEW')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -869,7 +869,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
           domainCode="NEB-06"
           domainNameAr="نظام تقديم الخدمات والرعاية الاجتماعية"
           domainNameEn="Service Delivery & Beneficiary Care OS"
-          recordCode={viewingBeneficiary.beneficiary_code || 'BEN-ROHAMAA'}
+          recordCode={viewingBeneficiary.beneficiary_code || (lang === 'ar' ? 'مستفيد-رُحماء' : 'BEN-ROHAMAA')}
           titleAr={viewingBeneficiary.full_name_ar}
           titleEn={viewingBeneficiary.full_name_en || viewingBeneficiary.full_name_ar}
           status={{

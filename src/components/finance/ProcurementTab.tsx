@@ -612,8 +612,8 @@ export default function ProcurementTab({
           <td class="p-3 text-center font-bold">${idx + 1}</td>
           <td class="p-3 text-right font-black">${item.name}</td>
           <td class="p-3 text-center font-bold">${item.qty}</td>
-          <td class="p-3 text-left font-mono font-bold">${price.toLocaleString()} YER</td>
-          <td class="p-3 text-left font-mono font-bold">${(item.qty * price).toLocaleString()} YER</td>
+          <td class="p-3 text-left font-mono font-bold">${price.toLocaleString()} ر.ي</td>
+          <td class="p-3 text-left font-mono font-bold">${(item.qty * price).toLocaleString()} ر.ي</td>
         </tr>
       `;
     }).join('');
@@ -670,7 +670,7 @@ export default function ProcurementTab({
               </div>
               <div>
                 <p class="text-slate-400 font-bold">مجموع القيمة المعتمدة</p>
-                <p class="font-mono font-black text-emerald-700 mt-1">${po.total_amount.toLocaleString()} YER</p>
+                <p class="font-mono font-black text-emerald-700 mt-1">${po.total_amount.toLocaleString()} ر.ي</p>
               </div>
             </div>
 
@@ -685,15 +685,15 @@ export default function ProcurementTab({
                   <th class="p-3 border border-slate-200 text-center w-12">#</th>
                   <th class="p-3 border border-slate-200">المواد المطلوبة ومواصفاتها الفنية</th>
                   <th class="p-3 border border-slate-200 text-center w-24">الكمية</th>
-                  <th class="p-3 border border-slate-200 text-left w-32">السعر التقريبي</th>
-                  <th class="p-3 border border-slate-200 text-left w-32">الإجمالي</th>
+                  <th class="p-3 border border-slate-200 text-left w-32">السعر (ر.ي)</th>
+                  <th class="p-3 border border-slate-200 text-left w-32">الإجمالي (ر.ي)</th>
                 </tr>
               </thead>
               <tbody>
                 ${itemsHTML}
                 <tr class="bg-slate-100 font-black text-slate-900">
                   <td colspan="4" class="p-3 border border-slate-200 text-center">الإجمالي الكلي المعتمد</td>
-                  <td class="p-3 border border-slate-200 text-left font-mono">${po.total_amount.toLocaleString()} YER</td>
+                  <td class="p-3 border border-slate-200 text-left font-mono">${po.total_amount.toLocaleString()} ر.ي</td>
                 </tr>
               </tbody>
             </table>
@@ -816,7 +816,7 @@ export default function ProcurementTab({
             <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-[10px] text-zinc-400 uppercase font-black">{isRtl ? 'إجمالي الإنفاق المعتمد' : 'Total Spent Amount'}</p>
-                <h3 className="text-lg font-black text-slate-900 mt-1">{totalSpend.toLocaleString()} <span className="text-xs text-zinc-500">YER</span></h3>
+                <h3 className="text-lg font-black text-slate-900 mt-1">{totalSpend.toLocaleString()} <span className="text-xs text-zinc-500">{isRtl ? 'ر.ي' : 'YER'}</span></h3>
                 <p className="text-[9px] text-emerald-600 font-bold mt-0.5">✔ {isRtl ? 'مطابق ومرحل للدفاتر المساعدة' : 'Triple-matched & posted'}</p>
               </div>
               <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl">
@@ -1038,7 +1038,7 @@ export default function ProcurementTab({
                         <input 
                           type="number" 
                           required
-                          placeholder={isRtl ? 'سعر التقدير YER' : 'Est. Price'}
+                          placeholder={isRtl ? 'سعر التقدير (ر.ي)' : 'Est. Price'}
                           value={item.unit_price || ''}
                           onChange={(e) => handlePrItemChange(idx, 'unit_price', parseFloat(e.target.value) || 0)}
                           className="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-[11px] font-bold text-slate-800"
@@ -1098,14 +1098,14 @@ export default function ProcurementTab({
                             <span className="mx-1.5">|</span> 👤 {pr.requested_by}
                           </p>
                         </td>
-                        <td className="p-3 text-right font-mono text-slate-900 font-extrabold text-[11px]">{pr.estimated_cost.toLocaleString()} YER</td>
+                        <td className="p-3 text-right font-mono text-slate-900 font-extrabold text-[11px]">{pr.estimated_cost.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</td>
                         <td className="p-3 text-center">
                           <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${
                             pr.priority === 'high' ? 'bg-rose-50 text-rose-700 border border-rose-100 animate-pulse' :
                             pr.priority === 'medium' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
                             'bg-slate-100 text-slate-600'
                           }`}>
-                            {pr.priority.toUpperCase()}
+                            {isRtl ? (pr.priority === 'high' ? 'عالية' : pr.priority === 'medium' ? 'متوسطة' : 'عادية') : pr.priority.toUpperCase()}
                           </span>
                         </td>
                         <td className="p-3 text-center">
@@ -1302,7 +1302,7 @@ export default function ProcurementTab({
                         <span>{pr.title}</span>
                       </h5>
                       <p className="text-[9px] text-zinc-400 font-bold mt-0.5">
-                        💵 {isRtl ? 'ميزانية الاحتياج التقريبية' : 'Estimated budget'}: {pr.estimated_cost.toLocaleString()} YER
+                        💵 {isRtl ? 'ميزانية الاحتياج التقريبية' : 'Estimated budget'}: {pr.estimated_cost.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}
                       </p>
                     </div>
                     {prQuotes.length === 0 && (
@@ -1324,13 +1324,13 @@ export default function ProcurementTab({
                                 <span className={`px-1.5 py-0.5 rounded text-[8px] font-black ${
                                   isWinner ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
                                 }`}>
-                                  {quote.status}
+                                  {isRtl ? (isWinner ? 'العرض الفائز' : 'عرض بديل') : quote.status}
                                 </span>
                               </div>
                               <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-600">
                                 <div className="bg-slate-50 p-1.5 rounded">
                                   <span className="text-zinc-400 font-bold block">{isRtl ? 'إجمالي السعر' : 'Total Quote'}</span>
-                                  <span className="font-mono font-black text-slate-900">{quote.total_price.toLocaleString()} YER</span>
+                                  <span className="font-mono font-black text-slate-900">{quote.total_price.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</span>
                                 </div>
                                 <div className="bg-slate-50 p-1.5 rounded">
                                   <span className="text-zinc-400 font-bold block">{isRtl ? 'مدة التسليم' : 'Delivery'}</span>
@@ -1430,7 +1430,7 @@ export default function ProcurementTab({
                     required
                   >
                     {quotations.filter(q => q.pr_id === poForm.pr_id).map(q => (
-                      <option key={q.id} value={q.id}>{q.supplier_name} - {q.total_price.toLocaleString()} YER</option>
+                      <option key={q.id} value={q.id}>{q.supplier_name} - {q.total_price.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</option>
                     ))}
                   </select>
                 </div>
@@ -1509,7 +1509,7 @@ export default function ProcurementTab({
                             📄 {matchedPr?.title}
                           </p>
                         </td>
-                        <td className="p-3 text-right font-mono text-slate-900 font-extrabold text-[11px]">{po.total_amount.toLocaleString()} YER</td>
+                        <td className="p-3 text-right font-mono text-slate-900 font-extrabold text-[11px]">{po.total_amount.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</td>
                         <td className="p-3 text-center font-mono text-slate-600">{new Date(po.delivery_date).toLocaleDateString()}</td>
                         <td className="p-3 text-center">
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-black ${
@@ -1517,7 +1517,7 @@ export default function ProcurementTab({
                             po.status === 'RECEIVED' ? 'bg-cyan-50 text-cyan-700 border border-cyan-100' :
                             'bg-amber-50 text-amber-700 border border-amber-100'
                           }`}>
-                            {po.status}
+                            {isRtl ? (po.status === 'SETTLED' ? 'مسدد ومطابق' : po.status === 'RECEIVED' ? 'مستلم بالمخزن' : 'قيد التوريد') : po.status}
                           </span>
                         </td>
                         <td className="p-3 text-center">
@@ -1779,7 +1779,7 @@ export default function ProcurementTab({
                   {purchaseOrders.filter(po => po.status === 'RECEIVED').map(po => {
                     const pr = requisitions.find(p => p.id === po.pr_id);
                     return (
-                      <option key={po.id} value={po.id}>[{po.po_number}] - {po.supplier_name} ({po.total_amount.toLocaleString()} YER)</option>
+                      <option key={po.id} value={po.id}>[{po.po_number}] - {po.supplier_name} ({po.total_amount.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'})</option>
                     );
                   })}
                 </select>
@@ -1807,7 +1807,7 @@ export default function ProcurementTab({
                     >
                       <option value="">{isRtl ? '-- اختر حساب التكلفة (EXPENSE) --' : '-- Select Expense Account --'}</option>
                       {accounts.filter(a => a.account_type === 'EXPENSE' || a.account_type === 'ASSET').map(a => (
-                        <option key={a.id} value={a.id}>[{a.account_code}] {isRtl ? a.name_ar : (a.name_en || a.name_ar)} ({parseFloat(String(a.current_balance)).toLocaleString()} YER)</option>
+                        <option key={a.id} value={a.id}>[{a.account_code}] {isRtl ? a.name_ar : (a.name_en || a.name_ar)} ({parseFloat(String(a.current_balance)).toLocaleString()} {isRtl ? 'ر.ي' : 'YER'})</option>
                       ))}
                     </select>
                   </div>
@@ -1822,7 +1822,7 @@ export default function ProcurementTab({
                     >
                       <option value="">{isRtl ? '-- اختر حساب الالتزام (LIABILITY) --' : '-- Select Liabilities Account --'}</option>
                       {accounts.filter(a => a.account_type === 'LIABILITY' || a.account_type === 'EQUITY').map(a => (
-                        <option key={a.id} value={a.id}>[{a.account_code}] {isRtl ? a.name_ar : (a.name_en || a.name_ar)} ({parseFloat(String(a.current_balance)).toLocaleString()} YER)</option>
+                        <option key={a.id} value={a.id}>[{a.account_code}] {isRtl ? a.name_ar : (a.name_en || a.name_ar)} ({parseFloat(String(a.current_balance)).toLocaleString()} {isRtl ? 'ر.ي' : 'YER'})</option>
                       ))}
                     </select>
                   </div>
@@ -1905,9 +1905,9 @@ export default function ProcurementTab({
                             ✔ {isRtl ? 'مطابقة ثلاثية تامة (PR + PO + GRN)' : 'Complete 3-Way Match'}: {matchedPr?.title}
                           </p>
                         </td>
-                        <td className="p-3 text-right font-mono text-emerald-700 font-extrabold text-[11px]">{po.total_amount.toLocaleString()} YER</td>
+                        <td className="p-3 text-right font-mono text-emerald-700 font-extrabold text-[11px]">{po.total_amount.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</td>
                         <td className="p-3 text-center">
-                          <span className="text-[11px] text-slate-600 font-bold">BANK_TRANSFER</span>
+                          <span className="text-[11px] text-slate-600 font-bold">{isRtl ? 'تحويل بنكي' : 'Bank Transfer'}</span>
                         </td>
                         <td className="p-3 text-center">
                           <span className="px-1.5 py-0.5 rounded text-[8px] bg-emerald-600 text-white font-black flex items-center justify-center gap-1">

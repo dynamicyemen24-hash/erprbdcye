@@ -879,7 +879,7 @@ export default function ReportsView({
             <div className="flex justify-between items-center w-full">
               <Eye className="w-4 h-4 text-cyan-500" />
               <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-black bg-cyan-500/20 text-cyan-300">
-                {dbViews.length > 0 ? `${dbViews.length} RECORDS` : '97 RECORDS'}
+                {dbViews.length > 0 ? `${dbViews.length} ${lang === 'ar' ? 'سجل' : 'RECORDS'}` : (lang === 'ar' ? '97 سجلاً' : '97 RECORDS')}
               </span>
             </div>
             <span className="text-[11px] leading-tight">
@@ -2025,11 +2025,11 @@ export default function ReportsView({
                               <YAxis yAxisId="right" orientation="right" stroke="#d97706" tick={{ fontSize: 10 }} />
                               <Tooltip formatter={(val: any, name: string) => [
                                 typeof val === 'number' ? val.toLocaleString() : val,
-                                name === 'budget' ? (lang === 'ar' ? 'الموازنة (YER)' : 'Budget YER') : (lang === 'ar' ? 'عدد المستفيدين' : 'Beneficiaries Count')
+                                name === 'budget' ? (lang === 'ar' ? 'الموازنة (ر.ي)' : 'Budget YER') : (lang === 'ar' ? 'عدد المستفيدين' : 'Beneficiaries Count')
                               ]} />
                               <Legend />
-                              <Bar yAxisId="left" dataKey="budget" name={lang === 'ar' ? 'الموازنة (NEB-03 YER)' : 'Program Budget (NEB-03)'} fill="#059669" radius={[6, 6, 0, 0]} />
-                              <Line yAxisId="right" type="monotone" dataKey="beneficiaries" name={lang === 'ar' ? 'المستفيدون (NEB-13)' : 'Actual Impact Beneficiaries (NEB-13)'} stroke="#d97706" strokeWidth={3} dot={{ r: 5 }} />
+                              <Bar yAxisId="left" dataKey="budget" name={lang === 'ar' ? 'الموازنة (ر.ي)' : 'Budget (YER)'} fill="#059669" radius={[6, 6, 0, 0]} />
+                              <Line yAxisId="right" type="monotone" dataKey="beneficiaries" name={lang === 'ar' ? 'المستفيدون' : 'Beneficiaries'} stroke="#d97706" strokeWidth={3} dot={{ r: 5 }} />
                             </ComposedChart>
                           </ResponsiveContainer>
                         );
@@ -2042,7 +2042,7 @@ export default function ReportsView({
                               <YAxis tick={{ fontSize: 10 }} stroke="#a1a1aa" />
                               <Tooltip formatter={(val: any) => typeof val === 'number' ? val.toLocaleString() : val} />
                               <Legend />
-                              <Bar dataKey="budget" name={lang === 'ar' ? 'الموازنة YER' : 'Budget YER'} fill="#059669" radius={[4, 4, 0, 0]} />
+                              <Bar dataKey="budget" name={lang === 'ar' ? 'الموازنة (ر.ي)' : 'Budget (YER)'} fill="#059669" radius={[4, 4, 0, 0]} />
                               <Bar dataKey="beneficiaries" name={lang === 'ar' ? 'عدد المستفيدين' : 'Beneficiaries'} fill="#d97706" radius={[4, 4, 0, 0]} />
                             </RechartsBarChart>
                           </ResponsiveContainer>
@@ -2055,7 +2055,7 @@ export default function ReportsView({
                               <XAxis dataKey="shortName" tick={{ fontSize: 10 }} stroke="#a1a1aa" />
                               <YAxis tick={{ fontSize: 10 }} stroke="#a1a1aa" />
                               <Tooltip />
-                              <Area type="monotone" dataKey="budget" name={lang === 'ar' ? 'الموازنة YER' : 'Budget YER'} stroke="#059669" fill="#059669" fillOpacity={0.2} />
+                              <Area type="monotone" dataKey="budget" name={lang === 'ar' ? 'الموازنة (ر.ي)' : 'Budget (YER)'} stroke="#059669" fill="#059669" fillOpacity={0.2} />
                               <Area type="monotone" dataKey="beneficiaries" name={lang === 'ar' ? 'المستفيدون' : 'Beneficiaries'} stroke="#d97706" fill="#d97706" fillOpacity={0.2} />
                             </AreaChart>
                           </ResponsiveContainer>
@@ -2083,12 +2083,12 @@ export default function ReportsView({
                             <YAxis yAxisId="left" orientation="left" stroke="#059669" tick={{ fontSize: 10 }} />
                             <YAxis yAxisId="right" orientation="right" domain={[0, 100]} stroke="#7c3aed" tick={{ fontSize: 10 }} />
                             <Tooltip formatter={(val: any, name: string) => [
-                              name.includes('CHS') ? `${val}%` : `${val?.toLocaleString()} YER`,
+                              name.includes('CHS') || name.includes('إسفير') ? `${val}%` : `${val?.toLocaleString()} ${lang === 'ar' ? 'ر.ي' : 'YER'}`,
                               name
                             ]} />
                             <Legend />
-                            <Bar yAxisId="left" dataKey="budget" name={lang === 'ar' ? 'الموازنة المقدرة YER' : 'Budget YER'} fill="#059669" radius={[6, 6, 0, 0]} />
-                            <Line yAxisId="right" type="monotone" dataKey="impactScore" name={lang === 'ar' ? 'مؤشر جودة الأثر CHS/Sphere (%)' : 'Sphere/CHS Impact Score (%)'} stroke="#7c3aed" strokeWidth={3} dot={{ r: 6 }} />
+                            <Bar yAxisId="left" dataKey="budget" name={lang === 'ar' ? 'الموازنة (ر.ي)' : 'Budget (YER)'} fill="#059669" radius={[6, 6, 0, 0]} />
+                            <Line yAxisId="right" type="monotone" dataKey="impactScore" name={lang === 'ar' ? 'مؤشر جودة الأثر (إسفير/CHS) (%)' : 'Sphere/CHS Impact Score (%)'} stroke="#7c3aed" strokeWidth={3} dot={{ r: 6 }} />
                           </ComposedChart>
                         </ResponsiveContainer>
                       );
@@ -2131,10 +2131,10 @@ export default function ReportsView({
               <div className="flex items-center justify-between">
                 <h4 className="font-black text-sm text-slate-900 dark:text-zinc-100 flex items-center gap-2">
                   <Target className="w-4 h-4 text-emerald-600" />
-                  <span>{lang === 'ar' ? 'بطاقات التفصيل الدقيق للأثر لكل برنامج (Program Impact Drill-Down)' : 'Program Impact Drill-Down Breakdown'}</span>
+                  <span>{lang === 'ar' ? 'بطاقات التفصيل الدقيق للأثر الميداني لكل برنامج' : 'Program Impact Drill-Down Breakdown'}</span>
                 </h4>
                 <span className="text-xs text-zinc-400 font-bold font-mono">
-                  {selectedDrillProgramId === 'ALL' ? `${crossDomainCorrelationData.length} Programs` : 'Selected Focus'}
+                  {selectedDrillProgramId === 'ALL' ? (lang === 'ar' ? `${crossDomainCorrelationData.length} برامج معتمدة` : `${crossDomainCorrelationData.length} Programs`) : (lang === 'ar' ? 'البرنامج المختار' : 'Selected Focus')}
                 </span>
               </div>
 
@@ -2161,7 +2161,7 @@ export default function ReportsView({
                           </h5>
                         </div>
                         <span className="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                          {item.impactScore != null ? `${item.impactScore}% CHS` : (lang === 'ar' ? 'بيانات غير كافية' : 'Insufficient data')}
+                          {item.impactScore != null ? `${item.impactScore}% ${lang === 'ar' ? 'إسفير' : 'CHS'}` : (lang === 'ar' ? 'بيانات غير كافية' : 'Insufficient data')}
                         </span>
                       </div>
 

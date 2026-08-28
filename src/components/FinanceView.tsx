@@ -368,8 +368,8 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                     <th class="p-3 border border-slate-200 w-32">${lang === 'ar' ? 'رمز الحساب' : 'Code'}</th>
                     <th class="p-3 border border-slate-200 w-48">${lang === 'ar' ? 'اسم الحساب في الدليل' : 'Account Name'}</th>
                     <th class="p-3 border border-slate-200">${lang === 'ar' ? 'الشرح التفصيلي للسطر' : 'Line Description'}</th>
-                    <th class="p-3 border border-slate-200 text-right w-32">${lang === 'ar' ? 'مدين YER' : 'Debit'}</th>
-                    <th class="p-3 border border-slate-200 text-right w-32">${lang === 'ar' ? 'دائن YER' : 'Credit'}</th>
+                    <th class="p-3 border border-slate-200 text-right w-32">${lang === 'ar' ? 'مدين (ر.ي)' : 'Debit (YER)'}</th>
+                    <th class="p-3 border border-slate-200 text-right w-32">${lang === 'ar' ? 'دائن (ر.ي)' : 'Credit (YER)'}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -652,14 +652,20 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                             acc.account_type === 'REVENUE' ? 'bg-sky-50 text-sky-700 border border-sky-100' :
                             'bg-amber-50 text-amber-700 border border-amber-100'
                           }`}>
-                            {acc.account_type}
+                            {lang === 'ar' ? (
+                              acc.account_type === 'ASSET' ? 'أصول' :
+                              acc.account_type === 'EXPENSE' ? 'مصروفات' :
+                              acc.account_type === 'REVENUE' ? 'إيرادات' :
+                              acc.account_type === 'LIABILITY' ? 'التزامات' :
+                              acc.account_type === 'EQUITY' ? 'صافي أصول' : acc.account_type
+                            ) : acc.account_type}
                           </span>
                         </td>
                         <td className="p-3 text-right font-mono text-slate-600">
-                          {parseFloat(String(acc.opening_balance || 0)).toLocaleString()} YER
+                          {parseFloat(String(acc.opening_balance || 0)).toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
                         </td>
                         <td className="p-3 text-right font-mono text-zinc-950 font-extrabold">
-                          {parseFloat(String(acc.current_balance || 0)).toLocaleString()} YER
+                          {parseFloat(String(acc.current_balance || 0)).toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
                         </td>
                         <td className="p-3 text-center">
                           <span className={`w-2 h-2 inline-block rounded-full ${acc.is_active ? 'bg-emerald-500' : 'bg-zinc-300'}`}></span>

@@ -347,15 +347,15 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
       return `
         <tr style="background: \${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; text-align: center;">
           <td style="font-weight: bold; padding: 6px; border: 1px solid #cbd5e1;">\${idx + 1}</td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold;">\${p.code || p.project_code || 'PRJ'}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold;">\${p.code || p.project_code || (lang === 'ar' ? ('مشروع-' + (idx + 1)) : 'PRJ')}</td>
           <td style="text-align: \${lang === 'ar' ? 'right' : 'left'}; padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">
             \${lang === 'ar' ? p.name_ar : p.name_en}
           </td>
           <td style="padding: 6px; border: 1px solid #cbd5e1;">\${progName}</td>
           <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; color: #059669;">\${p.progress_percent || 0}%</td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace;">\${parseFloat(p.budget || 0).toLocaleString()} YER</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace;">\${parseFloat(p.budget || 0).toLocaleString()} \${lang === 'ar' ? 'ر.ي' : 'YER'}</td>
           <td style="padding: 6px; border: 1px solid #cbd5e1;">\${(p.actual_beneficiaries || 0).toLocaleString()} / \${(p.target_beneficiaries || 0).toLocaleString()}</td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">\${p.status_code || 'active'}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">\${p.status_code === 'completed' ? (lang === 'ar' ? 'مكتمل' : 'Completed') : (lang === 'ar' ? 'قيد التنفيذ' : 'Active')}</td>
         </tr>
       `;
     }).join('');
@@ -401,7 +401,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
               <th>اسم المشروع</th>
               <th>البرنامج التنموي التابع</th>
               <th>الإنجاز</th>
-              <th>الموازنة المعتمدة</th>
+              <th>الموازنة المعتمدة (ر.ي)</th>
               <th>المستفيدون (فعلي / مستهدف)</th>
               <th>الحالة</th>
             </tr>

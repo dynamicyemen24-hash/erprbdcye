@@ -443,19 +443,19 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           <div><strong>الجهة الشريكة:</strong> ${e(prt.partnerNameAr)}</div>
           <div><strong>نوع الشريحة والجهة:</strong> ${e(prt.partnerType)}</div>
           <div><strong>شكل الاتفاقية:</strong> ${e(prt.agreementType)}</div>
-          <div><strong>المبلغ الإجمالي للمنحة:</strong> ${e(prt.totalGrantYer.toLocaleString())} YER ($${e(prt.totalGrantUsd.toLocaleString())} USD)</div>
-          <div><strong>التمويل المقابل (Co-Funding):</strong> ${e(prt.matchFundingYer.toLocaleString())} YER (${e(String(prt.matchFundingPercent))}%)</div>
+          <div><strong>المبلغ الإجمالي للمنحة:</strong> ${e(prt.totalGrantYer.toLocaleString())} ر.ي ($${e(prt.totalGrantUsd.toLocaleString())})</div>
+          <div><strong>التمويل المقابل:</strong> ${e(prt.matchFundingYer.toLocaleString())} ر.ي (${e(String(prt.matchFundingPercent))}%)</div>
           <div><strong>مستوى التقييم المؤسسي PCA:</strong> ${e(String(prt.pcaScore))}% (مستوى أمان مرتفع)</div>
           <div><strong>تاريخ السريان والانتهاء:</strong> من ${e(prt.startDate)} إلى ${e(prt.endDate)}</div>
         </div>
 
-        <h3 style="color: #059669; font-size: 14px; font-weight: bold; margin-bottom: 8px;">جدول الدفعات والاقساط التمويلية (Tranches Schedule)</h3>
+        <h3 style="color: #059669; font-size: 14px; font-weight: bold; margin-bottom: 8px;">جدول الدفعات والأقساط التمويلية المعتمدة</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 25px;">
           <thead>
             <tr style="background: #059669; color: white;">
               <th style="padding: 6px; border: 1px solid #059669;">رقم الدفعة</th>
               <th style="padding: 6px; border: 1px solid #059669;">البيان والمرحلة</th>
-              <th style="padding: 6px; border: 1px solid #059669;">المبلغ (YER)</th>
+              <th style="padding: 6px; border: 1px solid #059669;">المبلغ (ر.ي)</th>
               <th style="padding: 6px; border: 1px solid #059669;">تاريخ الاستحقاق</th>
               <th style="padding: 6px; border: 1px solid #059669;">حالة الصرف والاعتماد</th>
             </tr>
@@ -702,7 +702,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               {isRtl ? 'إجمالي المشتريات الملتزم بها' : 'Committed Procurement'}
             </span>
             <p className="text-xl font-black text-slate-900 dark:text-white font-mono">
-              {totalProcurementCommitted.toLocaleString()} <span className="text-xs text-slate-500 font-sans">YER</span>
+              {totalProcurementCommitted.toLocaleString()} <span className="text-xs text-slate-500 font-sans">{isRtl ? 'ر.ي' : 'YER'}</span>
             </p>
             <span className="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1">
               <ShoppingCart className="w-3 h-3" />
@@ -720,11 +720,11 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               {isRtl ? 'إجمالي فواتير المبيعات والدعم' : 'Invoiced Revenue'}
             </span>
             <p className="text-xl font-black text-blue-600 font-mono">
-              {totalSalesRevenueInvoiced.toLocaleString()} <span className="text-xs text-blue-500 font-sans">YER</span>
+              {totalSalesRevenueInvoiced.toLocaleString()} <span className="text-xs text-blue-500 font-sans">{isRtl ? 'ر.ي' : 'YER'}</span>
             </p>
             <span className="text-[10px] text-blue-600 font-extrabold flex items-center gap-1">
               <Receipt className="w-3 h-3" />
-              {isRtl ? `المحصل: ${totalSalesRevenueCollected.toLocaleString()} YER` : `Collected: YER ${totalSalesRevenueCollected.toLocaleString()}`}
+              {isRtl ? `المحصل: ${totalSalesRevenueCollected.toLocaleString()} ر.ي` : `Collected: YER ${totalSalesRevenueCollected.toLocaleString()}`}
             </span>
           </div>
           <div className="p-3 bg-blue-50 dark:bg-blue-950/40 text-blue-600 rounded-xl border border-blue-200 dark:border-blue-800">
@@ -738,7 +738,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               {isRtl ? 'عقود الموردين النشطة' : 'Active Vendor Contracts'}
             </span>
             <p className="text-xl font-black text-slate-900 dark:text-white font-mono">
-              {totalContractVal.toLocaleString()} <span className="text-xs text-slate-500 font-sans">YER</span>
+              {totalContractVal.toLocaleString()} <span className="text-xs text-slate-500 font-sans">{isRtl ? 'ر.ي' : 'YER'}</span>
             </p>
             <span className="text-[10px] text-amber-600 font-extrabold flex items-center gap-1">
               <FileCheck className="w-3 h-3" />
@@ -893,7 +893,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                 {isRtl ? 'محفظة التمويل والمنح الإجمالية' : 'Total Grant Portfolio'}
               </span>
               <p className="text-lg font-black text-violet-600 dark:text-violet-400 font-mono mt-1">
-                {(totalGrantPortfolioYer / 1000000).toFixed(1)}M YER
+                {isRtl ? `${(totalGrantPortfolioYer / 1000000).toFixed(1)} مليون ر.ي` : `${(totalGrantPortfolioYer / 1000000).toFixed(1)}M YER`}
               </p>
               <span className="text-[10px] text-slate-400 font-mono">
                 ~${Math.round(totalGrantPortfolioYer / 1500).toLocaleString()} USD
@@ -905,7 +905,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                 {isRtl ? 'الدفعات المستلمة والمودعة' : 'Disbursed Funds'}
               </span>
               <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">
-                {(totalGrantReceivedYer / 1000000).toFixed(1)}M YER
+                {isRtl ? `${(totalGrantReceivedYer / 1000000).toFixed(1)} مليون ر.ي` : `${(totalGrantReceivedYer / 1000000).toFixed(1)}M YER`}
               </p>
               <span className="text-[10px] text-emerald-600 font-bold">
                 {totalGrantPortfolioYer > 0 ? `${Math.round((totalGrantReceivedYer / totalGrantPortfolioYer) * 100)}% تحصيل` : '0%'}
@@ -1067,7 +1067,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                     <div className="bg-slate-50 dark:bg-zinc-800/60 p-3 rounded-xl border border-slate-200/60 dark:border-zinc-800 space-y-2">
                       <div className="flex justify-between items-center text-xs font-mono font-black">
                         <span className="text-slate-600 dark:text-zinc-400 text-[11px] font-sans">إجمالي المنحة والتمويل:</span>
-                        <span className="text-violet-700 dark:text-violet-400">{prt.totalGrantYer.toLocaleString()} YER (${prt.totalGrantUsd.toLocaleString()})</span>
+                        <span className="text-violet-700 dark:text-violet-400">{prt.totalGrantYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'} (${prt.totalGrantUsd.toLocaleString()})</span>
                       </div>
 
                       <div className="w-full bg-slate-200 dark:bg-zinc-700 h-2 rounded-full overflow-hidden">
@@ -1075,10 +1075,10 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                       </div>
 
                       <div className="flex justify-between items-center text-[11px] text-slate-500 dark:text-zinc-400">
-                        <span>المستلم: <strong className="text-emerald-600">{prt.receivedAmountYer.toLocaleString()} YER</strong> ({recPercent}%)</span>
+                        <span>المستلم: <strong className="text-emerald-600">{prt.receivedAmountYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</strong> ({recPercent}%)</span>
                         {prt.matchFundingPercent > 0 && (
                           <span className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2 py-0.5 rounded text-[10px] font-bold">
-                            Co-Funding: {prt.matchFundingPercent}% ({prt.matchFundingYer.toLocaleString()} YER)
+                            {isRtl ? `تمويل مقابل: ${prt.matchFundingPercent}% (${prt.matchFundingYer.toLocaleString()} ر.ي)` : `Co-Funding: ${prt.matchFundingPercent}% (${prt.matchFundingYer.toLocaleString()} YER)`}
                           </span>
                         )}
                       </div>
@@ -1125,7 +1125,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                             </div>
 
                             <div className="flex items-center gap-2 font-mono text-[11px]">
-                              <span>{tr.amountYer.toLocaleString()} YER</span>
+                              <span>{tr.amountYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</span>
                               {tr.disbursementStatus === 'DISBURSED' ? (
                                 <span className="text-emerald-600 text-[10px] font-black">✓ تم الصرف</span>
                               ) : (
@@ -1233,7 +1233,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                 <div className="bg-emerald-50/60 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-200/60 dark:border-emerald-800/60 space-y-1">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-slate-500 text-[10px]">{isRtl ? 'قيمة أمر الشراء:' : 'PO Amount:'}</span>
-                    <span className="font-mono text-emerald-700 dark:text-emerald-400 font-black">{po.totalAmountYer.toLocaleString()} YER</span>
+                    <span className="font-mono text-emerald-700 dark:text-emerald-400 font-black">{po.totalAmountYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-slate-500">
                     <span>{isRtl ? `طلب الشراء: ${po.requisitionRef}` : `PR Ref: ${po.requisitionRef}`}</span>
@@ -1343,10 +1343,10 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                 <div className="bg-blue-50/60 dark:bg-blue-950/40 p-3 rounded-xl border border-blue-200/60 dark:border-blue-800/60 space-y-1">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-slate-500 text-[10px]">{isRtl ? 'إجمالي مبلغ الفاتورة:' : 'Invoice Total:'}</span>
-                    <span className="font-mono text-blue-700 dark:text-blue-400 font-black">{inv.totalAmountYer.toLocaleString()} YER</span>
+                    <span className="font-mono text-blue-700 dark:text-blue-400 font-black">{inv.totalAmountYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-slate-500">
-                    <span>{isRtl ? `المحصل: ${inv.paidAmountYer.toLocaleString()} YER` : `Collected: YER ${inv.paidAmountYer.toLocaleString()}`}</span>
+                    <span>{isRtl ? `المحصل: ${inv.paidAmountYer.toLocaleString()} ر.ي` : `Collected: YER ${inv.paidAmountYer.toLocaleString()}`}</span>
                     <span className="font-mono text-slate-400">{isRtl ? `الاستحقاق: ${inv.dueDate}` : `Due: ${inv.dueDate}`}</span>
                   </div>
                 </div>
@@ -1475,7 +1475,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                     <div className="space-y-1.5 pt-1">
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-[10px] font-extrabold text-slate-500 uppercase">{isRtl ? 'قيمة العقد الإجمالية:' : 'Contract Value:'}</span>
-                        <span className="font-mono font-black text-slate-900 dark:text-white">{contract.totalValueYer.toLocaleString()} YER</span>
+                        <span className="font-mono font-black text-slate-900 dark:text-white">{contract.totalValueYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</span>
                       </div>
 
                       <div className="w-full h-2 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -1486,8 +1486,8 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                       </div>
 
                       <div className="flex justify-between items-center text-[10px] text-slate-500">
-                        <span>{isRtl ? `تم صرف: ${contract.paidValueYer.toLocaleString()} YER (${paidPercent}%)` : `Paid: YER ${contract.paidValueYer.toLocaleString()} (${paidPercent}%)`}</span>
-                        <span className="font-black text-amber-600">{isRtl ? `المتبقي: ${remainingVal.toLocaleString()} YER` : `Rem: YER ${remainingVal.toLocaleString()}`}</span>
+                        <span>{isRtl ? `تم صرف: ${contract.paidValueYer.toLocaleString()} ر.ي (${paidPercent}%)` : `Paid: YER ${contract.paidValueYer.toLocaleString()} (${paidPercent}%)`}</span>
+                        <span className="font-black text-amber-600">{isRtl ? `المتبقي: ${remainingVal.toLocaleString()} ر.ي` : `Rem: YER ${remainingVal.toLocaleString()}`}</span>
                       </div>
                     </div>
 
@@ -1583,8 +1583,8 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12px;">
                                 <div><strong>عنوان العقد:</strong> ${e(contract.titleAr)}</div>
                                 <div><strong>المورد / المقاول:</strong> ${e(contract.vendorNameAr)}</div>
-                                <div><strong>قيمة العقد الإجمالية:</strong> ${e(contract.totalValueYer.toLocaleString())} YER</div>
-                                <div><strong>المبلغ المدفوع:</strong> ${e(contract.paidValueYer.toLocaleString())} YER</div>
+                                <div><strong>قيمة العقد الإجمالية:</strong> ${e(contract.totalValueYer.toLocaleString())} ر.ي</div>
+                                <div><strong>المبلغ المدفوع:</strong> ${e(contract.paidValueYer.toLocaleString())} ر.ي</div>
                                 <div><strong>تاريخ البداية:</strong> ${e(contract.startDate)}</div>
                                 <div><strong>تاريخ الانتهاء:</strong> ${e(contract.endDate)}</div>
                                 <div><strong>رقم أمر الشراء المرتبط:</strong> ${e(contract.procurementPoRef)}</div>
@@ -1714,9 +1714,9 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                         <p className="font-black text-slate-900 dark:text-white">{link.activityNameAr}</p>
                         <span className="text-[10px] text-slate-400 font-normal">{link.projectNameAr}</span>
                       </td>
-                      <td className="p-3.5 font-mono font-bold">{link.budgetAllocatedYer.toLocaleString()} YER</td>
-                      <td className="p-3.5 font-mono font-bold text-amber-600">{link.committedProcurementYer.toLocaleString()} YER</td>
-                      <td className="p-3.5 font-mono font-bold text-blue-600">{link.generatedRevenueYer.toLocaleString()} YER</td>
+                      <td className="p-3.5 font-mono font-bold">{link.budgetAllocatedYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</td>
+                      <td className="p-3.5 font-mono font-bold text-amber-600">{link.committedProcurementYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</td>
+                      <td className="p-3.5 font-mono font-bold text-blue-600">{link.generatedRevenueYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}</td>
                       <td className="p-3.5">
                         <div className="flex flex-wrap gap-1">
                           {link.procurementPOs.map(po => (
@@ -1831,7 +1831,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي (YER)' : 'Total Amount (YER)'}</label>
+                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي (ر.ي)' : 'Total Amount (YER)'}</label>
                   <input type="number" required placeholder="0" value={newPoForm.totalAmountYer} onChange={e => setNewPoForm(p => ({ ...p, totalAmountYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono font-bold text-emerald-600" />
                 </div>
                 <div>
@@ -1894,7 +1894,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي (YER)' : 'Total Amount (YER)'}</label>
+                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي (ر.ي)' : 'Total Amount (YER)'}</label>
                   <input type="number" required placeholder="0" value={newInvoiceForm.totalAmountYer} onChange={e => setNewInvoiceForm(p => ({ ...p, totalAmountYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono font-bold text-blue-600" />
                 </div>
                 <div>
@@ -2007,7 +2007,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'إجمالي المنحة (YER)' : 'Total Grant (YER)'}</label>
+                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'إجمالي المنحة (ر.ي)' : 'Total Grant (YER)'}</label>
                   <input type="number" required placeholder="100000000" value={newPartnershipForm.totalGrantYer} onChange={e => setNewPartnershipForm(p => ({ ...p, totalGrantYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono text-violet-600 font-black" />
                 </div>
                 <div>
