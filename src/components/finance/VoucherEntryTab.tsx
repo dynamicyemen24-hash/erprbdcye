@@ -3,6 +3,7 @@ import { Plus, X, RefreshCw, CheckCircle, AlertCircle, Coins, Building, Zap, Sca
 import { Account, Project, Program } from './FinanceTypes';
 import { handleApiResponse, PolicyViolationError, type PolicyViolation } from '../../core/utils/apiHelpers';
 import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
+import { STANDARD_COST_CENTERS } from '../../core/data/costCentersData';
 
 interface AccountSearchSelectProps {
   accounts: Account[];
@@ -375,7 +376,7 @@ export default function VoucherEntryTab({
     sponsor_donor: '',
     disburser_cashier: '',
     recipient_beneficiary: '',
-    cost_center_code: 'CC-GEN',
+    cost_center_code: STANDARD_COST_CENTERS[0]?.code || 'CC-PRG-FOOD-01',
     prepared_by: '',
     reviewed_by: '',
     approved_by: ''
@@ -1272,13 +1273,13 @@ export default function VoucherEntryTab({
                   <select
                     value={entryForm.cost_center_code}
                     onChange={(e) => setEntryForm(p => ({ ...p, cost_center_code: e.target.value }))}
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-emerald-600 dark:text-emerald-400"
+                    className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-emerald-600 dark:text-emerald-400 text-xs"
                   >
-                    <option value="CC-GEN">{lang === 'ar' ? 'CC-GEN | الإدارة العامة والتشغيل' : 'CC-GEN | General Admin'}</option>
-                    <option value="CC-ORPHAN">{lang === 'ar' ? 'CC-ORPHAN | قطاع كفالات الأيتام' : 'CC-ORPHAN | Orphan Welfare'}</option>
-                    <option value="CC-RELIEF">{lang === 'ar' ? 'CC-RELIEF | التدخلات الإغاثية الطارئة' : 'CC-RELIEF | Emergency Relief'}</option>
-                    <option value="CC-WASH">{lang === 'ar' ? 'CC-WASH | مشاريع المياه والإصحاح' : 'CC-WASH | WASH Projects'}</option>
-                    <option value="CC-ENDOWMENT">{lang === 'ar' ? 'CC-ENDOWMENT | الاستثمارات والأوقاف' : 'CC-ENDOWMENT | Investments'}</option>
+                    {STANDARD_COST_CENTERS.map(cc => (
+                      <option key={cc.code} value={cc.code}>
+                        {cc.code} | {lang === 'ar' ? cc.name_ar : cc.name_en}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

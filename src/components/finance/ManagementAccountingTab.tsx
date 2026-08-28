@@ -52,6 +52,7 @@ import {
 import { Account, Transaction, TransactionLine } from './FinanceTypes';
 import { Project } from '../../types';
 import { printHTML } from '../../lib/printUtils';
+import CostCentersManagementView from './CostCentersManagementView';
 
 interface ManagementAccountingTabProps {
   accounts: Account[];
@@ -824,6 +825,13 @@ export default function ManagementAccountingTab({
             </div>
 
           </div>
+        </div>
+      )}
+
+      {/* MODULE 4: RESPONSIBILITY ACCOUNTING & COST CENTERS */}
+      {activeModule === 'responsibility' && (
+        <div className="space-y-4">
+          <CostCentersManagementView lang={lang} />
         </div>
       )}
 

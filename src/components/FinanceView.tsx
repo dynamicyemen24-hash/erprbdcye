@@ -45,6 +45,7 @@ import { printHTML, createPrintDocument } from '../lib/printUtils';
 
 // Subcomponents
 import ChartOfAccountsTreeView from './finance/ChartOfAccountsTreeView';
+import CostCentersManagementView from './finance/CostCentersManagementView';
 import OpeningBalancesTab from './finance/OpeningBalancesTab';
 import AccountStatementTab from './finance/AccountStatementTab';
 import FinancialClosingsTab from './finance/FinancialClosingsTab';
@@ -79,7 +80,7 @@ interface FinanceViewProps {
   onNavigate?: (tab: string) => void;
 }
 
-type FinanceSubTab = 'coa' | 'opening_balances' | 'data_exchange' | 'entry' | 'payment_vouchers' | 'receipt_vouchers' | 'document_workflow' | 'ledger' | 'statement_query' | 'statements' | 'closings' | 'ai_parser' | 'bi_analytics' | 'governance_settings' | 'procurement' | 'currency_conversion' | 'budget_variance' | 'management_accounting' | 'e_invoicing' | 'batch_automation' | 'cfo_audit_suite' | 'endowment_governance' | 'consolidated_statements';
+type FinanceSubTab = 'coa' | 'cost_centers' | 'opening_balances' | 'data_exchange' | 'entry' | 'payment_vouchers' | 'receipt_vouchers' | 'document_workflow' | 'ledger' | 'statement_query' | 'statements' | 'closings' | 'ai_parser' | 'bi_analytics' | 'governance_settings' | 'procurement' | 'currency_conversion' | 'budget_variance' | 'management_accounting' | 'e_invoicing' | 'batch_automation' | 'cfo_audit_suite' | 'endowment_governance' | 'consolidated_statements';
 
 export default function FinanceView({ currencies, lang, onRefresh, onNavigate }: FinanceViewProps) {
   const [activeSubTab, setActiveSubTab] = useState<FinanceSubTab>('coa');
@@ -529,6 +530,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       <div className="flex flex-wrap gap-2 bg-slate-100 dark:bg-zinc-900/60 p-2 rounded-2xl overflow-x-auto border border-slate-200 dark:border-zinc-800">
         {[
           { id: 'coa', label: lang === 'ar' ? 'دليل الحسابات' : 'Chart of Accounts', icon: FolderTree },
+          { id: 'cost_centers', label: lang === 'ar' ? 'مراكز التكلفة ومحاسبة الأنشطة' : 'Cost Centers & Activity OS', icon: Calculator },
           { id: 'payment_vouchers', label: lang === 'ar' ? '💸 شاشة سندات الصرف المالي' : 'Payment Vouchers Workspace', icon: TrendingDown },
           { id: 'receipt_vouchers', label: lang === 'ar' ? '💰 شاشة سندات التوريد والقبض' : 'Receipt Vouchers Workspace', icon: TrendingUp },
           { id: 'opening_balances', label: lang === 'ar' ? 'الأرصدة الافتتاحية' : 'Opening Balances', icon: DollarSign },
@@ -545,7 +547,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
           { id: 'endowment_governance', label: lang === 'ar' ? 'الأوقاف وأسقف وموازنات الإنفاق' : 'Endowments & Spending Limits', icon: Building2 },
           { id: 'consolidated_statements', label: lang === 'ar' ? 'القوائم المالية المجمعة للفروع' : 'Multi-Branch Consolidation', icon: Layers },
           { id: 'bi_analytics', label: lang === 'ar' ? 'الرسوم البيانية ومؤشرات الأداء' : 'Financial Charts & Analytics', icon: Activity },
-          { id: 'management_accounting', label: lang === 'ar' ? 'المحاسبة الإدارية ومراكز التكلفة' : 'Management Accounting & Costs', icon: Calculator },
+          { id: 'management_accounting', label: lang === 'ar' ? 'المحاسبة الإدارية وهامش الأمان' : 'Management Accounting & CVP', icon: Calculator },
           { id: 'e_invoicing', label: lang === 'ar' ? 'الفواتير والسندات الإلكترونية' : 'E-Invoicing & Receipts', icon: QrCode },
           { id: 'batch_automation', label: lang === 'ar' ? 'المعالجة المجمعة التلقائية' : 'Batch Operations Engine', icon: Zap },
           { id: 'budget_variance', label: lang === 'ar' ? 'تحليل التباين ومقارنة الموازنة' : 'Budget Variance Analysis', icon: Scale },
@@ -557,13 +559,13 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
             return ['payment_vouchers', 'receipt_vouchers', 'entry', 'ledger', 'document_workflow'].includes(tab.id);
           }
           if (accountingPillar === 'ledger') {
-            return ['coa', 'opening_balances', 'statement_query', 'data_exchange'].includes(tab.id);
+            return ['coa', 'cost_centers', 'opening_balances', 'statement_query', 'data_exchange'].includes(tab.id);
           }
           if (accountingPillar === 'statements') {
             return ['statements', 'consolidated_statements', 'closings', 'cfo_audit_suite', 'bi_analytics'].includes(tab.id);
           }
           if (accountingPillar === 'cost_budget') {
-            return ['management_accounting', 'budget_variance', 'endowment_governance', 'currency_conversion'].includes(tab.id);
+            return ['cost_centers', 'management_accounting', 'budget_variance', 'endowment_governance', 'currency_conversion'].includes(tab.id);
           }
           if (accountingPillar === 'automation') {
             return ['e_invoicing', 'batch_automation', 'ai_parser', 'procurement', 'governance_settings'].includes(tab.id);
@@ -606,6 +608,19 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
           }}
           onSaveAccounts={(updated) => {
             setAccounts(updated);
+          }}
+        />
+      )}
+
+      {/* SUBTAB: STANDARDIZED COST CENTERS MANAGEMENT */}
+      {activeSubTab === 'cost_centers' && (
+        <CostCentersManagementView
+          lang={lang}
+          onSelectCostCenterForVoucher={(ccCode) => {
+            setActiveSubTab('entry');
+          }}
+          onNavigateToTab={(tab) => {
+            setActiveSubTab(tab as any);
           }}
         />
       )}
