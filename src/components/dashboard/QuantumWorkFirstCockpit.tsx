@@ -54,6 +54,7 @@ interface QuantumWorkFirstCockpitProps {
   onDrillDown?: (tabId: string, filters: any) => void;
   onOpenSystemMap?: () => void;
   onSwitchToClassicAnalytics?: () => void;
+  onOpenExperienceModeModal?: () => void;
   onRefresh?: () => void;
 }
 
@@ -70,6 +71,7 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
   onDrillDown,
   onOpenSystemMap,
   onSwitchToClassicAnalytics,
+  onOpenExperienceModeModal,
   onRefresh
 }) => {
   const isRtl = lang === 'ar';
@@ -308,6 +310,16 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
             >
               <LayoutDashboard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
               <span>{isRtl ? 'النمط التحليلي الكلاسيكي' : 'Classic Analytics'}</span>
+            </button>
+          )}
+
+          {onOpenExperienceModeModal && (
+            <button
+              onClick={onOpenExperienceModeModal}
+              className="p-1.5 rounded-xl border border-slate-200 dark:border-zinc-700/80 bg-white dark:bg-zinc-800/80 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+              title={isRtl ? 'مركز إدارة أنماط بيئة العمل والتوصيات الذكية (Alt + X)' : 'Experience Mode Settings (Alt + X)'}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

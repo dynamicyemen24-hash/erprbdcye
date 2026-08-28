@@ -58,6 +58,7 @@ export function useAppUIStore() {
   const [isRecordRetrievalOpen, setIsRecordRetrievalOpen] = useState(false);
   const [globalToolStripSearch, setGlobalToolStripSearch] = useState('');
   const [showSystemMapModal, setShowSystemMapModal] = useState(false);
+  const [showExperienceModeModal, setShowExperienceModeModal] = useState(false);
   const [homeExperienceMode, setHomeExperienceMode] = useState<'work_first' | 'classic_analytics'>(() => {
     try {
       const saved = localStorage.getItem('uamex_home_experience_mode');
@@ -86,6 +87,7 @@ export function useAppUIStore() {
     setIsMobileMenuOpen(false);
     setIsRecordRetrievalOpen(false);
     setShowSystemMapModal(false);
+    setShowExperienceModeModal(false);
   }, []);
 
   return {
@@ -107,6 +109,7 @@ export function useAppUIStore() {
     isRecordRetrievalOpen,
     globalToolStripSearch,
     showSystemMapModal,
+    showExperienceModeModal,
     homeExperienceMode,
     activeRolePerspective,
     organizationId,
@@ -129,6 +132,7 @@ export function useAppUIStore() {
     setIsRecordRetrievalOpen,
     setGlobalToolStripSearch,
     setShowSystemMapModal,
+    setShowExperienceModeModal,
     setHomeExperienceMode,
     setActiveRolePerspective,
     setOrganizationId,

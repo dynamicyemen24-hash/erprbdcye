@@ -52,6 +52,14 @@ const DEFAULT_SHORTCUTS: ShortcutDefinition[] = [
     defaultKeys: ['Alt', 'M']
   },
   {
+    id: 'cmd-experience-mode',
+    categoryAr: 'التنقل والبحث المباشر',
+    categoryEn: 'Navigation & Search',
+    descAr: 'تخصيص وتبديل نمط بيئة العمل المؤسسية (قمرة الإنجاز / النمط التحليلي)',
+    descEn: 'Enterprise Experience Modes Controller',
+    defaultKeys: ['Alt', 'X']
+  },
+  {
     id: 'cmd-record-finder',
     categoryAr: 'الاسترجاع السريع للمستندات',
     categoryEn: 'Record Retrieval',

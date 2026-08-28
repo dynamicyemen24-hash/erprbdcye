@@ -83,6 +83,9 @@ export interface TabContentRendererProps {
   onRefreshData: () => void;
   onOpenHelpers?: () => void;
   onOpenSystemMap?: () => void;
+  homeExperienceMode?: 'work_first' | 'classic_analytics';
+  onSetHomeExperienceMode?: (mode: 'work_first' | 'classic_analytics') => void;
+  onOpenExperienceModeModal?: () => void;
 }
 
 export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
@@ -109,7 +112,10 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   onDrillDown,
   onRefreshData,
   onOpenHelpers,
-  onOpenSystemMap
+  onOpenSystemMap,
+  homeExperienceMode: propHomeExperienceMode,
+  onSetHomeExperienceMode,
+  onOpenExperienceModeModal
 }) => {
   const isRtl = lang === 'ar';
   const activeOrg = (organizations && organizations.length > 0) ? (organizations.find(o => o.id === 'hq') || organizations[0]) : null;
@@ -218,7 +224,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', domainCode: 'NEB-13', desc_ar: 'ذكاء الأثر ومصفوفة الارتباط التكاملي الموزع على الوحدات التشغيلية وفق معايير CHS وإسفير وSROI.', desc_en: 'Cross-domain impact intelligence matrix distributed across operational units based on CHS, Sphere & SROI standards.' }
   };
 
-  const [homeExperienceMode, setHomeExperienceMode] = useState<'work_first' | 'classic_analytics'>(() => {
+  const [internalHomeMode, setInternalHomeMode] = useState<'work_first' | 'classic_analytics'>(() => {
     try {
       const saved = localStorage.getItem('uamex_home_experience_mode');
       if (saved === 'classic_analytics' || saved === 'work_first') return saved;
@@ -226,8 +232,11 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     return 'work_first';
   });
 
+  const effectiveHomeMode = propHomeExperienceMode ?? internalHomeMode;
+
   const handleToggleHomeMode = (mode: 'work_first' | 'classic_analytics') => {
-    setHomeExperienceMode(mode);
+    setInternalHomeMode(mode);
+    onSetHomeExperienceMode?.(mode);
     try {
       localStorage.setItem('uamex_home_experience_mode', mode);
     } catch {}
@@ -236,7 +245,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   const renderSingleTabContent = (tabKey: ActiveTab) => {
     switch (tabKey) {
       case 'dashboard':
-        if (homeExperienceMode === 'work_first') {
+        if (effectiveHomeMode === 'work_first') {
           return (
             <QuantumWorkFirstCockpit
               lang={lang}
@@ -251,44 +260,33 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
               onDrillDown={(t, f) => safeDrillDown(t, f)}
               onOpenSystemMap={onOpenSystemMap}
               onSwitchToClassicAnalytics={() => handleToggleHomeMode('classic_analytics')}
+              onOpenExperienceModeModal={onOpenExperienceModeModal}
               onRefresh={onRefreshData}
             />
           );
         }
         return (
-          <div className="space-y-4">
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-amber-500/20 text-amber-500 rounded-xl">
-                  <Layout className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="font-black text-slate-900 dark:text-white">
-                    {lang === 'ar' ? 'نمط لوحة القيادة الاستراتيجية والتحليلات الشاملة (Classic Strategic Hub)' : 'Classic Strategic Analytics Hub Mode'}
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    {lang === 'ar' ? 'النمط التحليلي الموسع لكافة الكروت المخصصة ومساحات العمل وبطاقة الأداء BSC' : 'Full-card strategic analytics, role workspaces, BSC and SWOT'}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleToggleHomeMode('work_first')}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{lang === 'ar' ? 'التبديل إلى قمرة الإنجاز الفوري (Work-First)' : 'Switch to Quantum Work-First'}</span>
-              </button>
-            </div>
-
-            <InstitutionalRoleWorkspaces
-              lang={lang}
-              currentUserRole={currentUser?.role}
-              activeTab={activeTab}
-              setActiveTab={safeNavigate as any}
-              onNavigateToTab={safeNavigate as any}
-            />
-          </div>
+          <DashboardView
+            stats={dashboardStats}
+            loading={loading}
+            onNavigate={safeNavigate}
+            onDrillDown={(t, f) => safeDrillDown(t, f)}
+            lang={lang}
+            onRefresh={onRefreshData}
+            programs={programs}
+            projects={projects}
+            beneficiaries={beneficiaries}
+            sponsorships={sponsorships}
+            approvalRequests={approvalRequests}
+            currentUser={currentUser}
+            activeOrg={activeOrg}
+            orgName={orgName}
+            onOpenHelpers={onOpenHelpers}
+            onOpenSystemMap={onOpenSystemMap}
+            initialExperienceMode="classic_analytics"
+            onSwitchToWorkFirst={() => handleToggleHomeMode('work_first')}
+            onOpenExperienceModeModal={onOpenExperienceModeModal}
+          />
         );
       case 'workspaces':
         return (

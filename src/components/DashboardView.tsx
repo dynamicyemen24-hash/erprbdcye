@@ -10,7 +10,7 @@ import { useDashboardData } from './dashboard/useDashboardData';
 import { DashboardViewProps } from './dashboard/types';
 import { ExecutiveQuantumCockpit } from './ExecutiveQuantumCockpit';
 import { QuantumWorkFirstCockpit } from './dashboard/QuantumWorkFirstCockpit';
-import { Activity, RefreshCw, AlertTriangle, Zap, LayoutDashboard } from 'lucide-react';
+import { Activity, RefreshCw, AlertTriangle, Zap, LayoutDashboard, SlidersHorizontal } from 'lucide-react';
 
 // Error Boundary for graceful crash recovery
 class DashboardErrorBoundary extends Component<
@@ -97,17 +97,21 @@ export default function DashboardView({
   activeOrg,
   orgName,
   onOpenHelpers,
-  onOpenSystemMap
+  onOpenSystemMap,
+  initialExperienceMode,
+  onSwitchToWorkFirst,
+  onOpenExperienceModeModal
 }: DashboardViewProps) {
   const state = useDashboardState(currentUser);
   
   // Multi-Cockpit Experience Mode State ('work_first' vs 'classic_analytics')
   const [homeMode, setHomeMode] = React.useState<'work_first' | 'classic_analytics'>(() => {
+    if (initialExperienceMode) return initialExperienceMode;
     try {
       const saved = localStorage.getItem('uamex_home_experience_mode');
       if (saved === 'classic_analytics' || saved === 'work_first') return saved;
     } catch {}
-    return 'work_first'; // Default to next-gen Quantum Work-First Cockpit
+    return 'classic_analytics';
   });
 
   const handleSetHomeMode = (mode: 'work_first' | 'classic_analytics') => {
@@ -115,6 +119,9 @@ export default function DashboardView({
     try {
       localStorage.setItem('uamex_home_experience_mode', mode);
     } catch {}
+    if (mode === 'work_first' && onSwitchToWorkFirst) {
+      onSwitchToWorkFirst();
+    }
   };
 
   const data = useDashboardData({
@@ -281,6 +288,7 @@ export default function DashboardView({
                   onDrillDown={onDrillDown}
                   onOpenSystemMap={onOpenSystemMap}
                   onSwitchToClassicAnalytics={() => handleSetHomeMode('classic_analytics')}
+                  onOpenExperienceModeModal={onOpenExperienceModeModal}
                   onRefresh={onRefresh}
                 />
               ) : (
@@ -301,13 +309,25 @@ export default function DashboardView({
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleSetHomeMode('work_first')}
-                      className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
-                    >
-                      <Zap className="w-3.5 h-3.5" />
-                      <span>{lang === 'ar' ? 'التبديل إلى قمرة الإنجاز الفوري (Work-First)' : 'Switch to Quantum Work-First'}</span>
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleSetHomeMode('work_first')}
+                        className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>{lang === 'ar' ? 'التبديل إلى قمرة الإنجاز الفوري (Work-First)' : 'Switch to Quantum Work-First'}</span>
+                      </button>
+
+                      {onOpenExperienceModeModal && (
+                        <button
+                          onClick={onOpenExperienceModeModal}
+                          className="p-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                          title={lang === 'ar' ? 'مركز إدارة أنماط بيئة العمل (Alt+X)' : 'Experience Mode Settings (Alt+X)'}
+                        >
+                          <SlidersHorizontal className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <ExecutiveQuantumCockpit lang={lang} onNavigateTab={onNavigate} />

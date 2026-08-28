@@ -72,6 +72,7 @@ const BiometricSecurityGate = lazyWithRetry(() => import('./components/Biometric
 const NexoraAICopilotDrawer = lazyWithRetry(() => import('./components/NexoraAICopilotDrawer'), 'NexoraAICopilotDrawer');
 const AppMatrixLauncherModal = lazyWithRetry(() => import('./components/AppMatrixLauncherModal'), 'AppMatrixLauncherModal');
 const EnterpriseSystemMapModal = lazyWithRetry(() => import('./components/navigation/EnterpriseSystemMapModal'), 'EnterpriseSystemMapModal');
+const EnterpriseExperienceModeModal = lazyWithRetry(() => import('./components/navigation/EnterpriseExperienceModeModal'), 'EnterpriseExperienceModeModal');
 const UniversalCommandCenter = lazyWithRetry(() => import('./components/UniversalCommandCenter'), 'UniversalCommandCenter');
 const CustomizableShortcutsModal = lazyWithRetry(() => import('./components/shortcuts/CustomizableShortcutsManagerModal'), 'CustomizableShortcutsModal');
 const FastRecordRetrievalDrawer = lazyWithRetry(() => import('./components/records/FastRecordRetrievalDrawer'), 'FastRecordRetrievalDrawer');
@@ -135,6 +136,8 @@ export default function App() {
     showAboutSystemModal, showUserProfilePopover, isSystemsDockPinned,
     isMobileMenuOpen, isRecordRetrievalOpen, globalToolStripSearch,
     showSystemMapModal, setShowSystemMapModal,
+    showExperienceModeModal, setShowExperienceModeModal,
+    homeExperienceMode, setHomeExperienceMode,
     activeRolePerspective, organizationId, fiscalYear, setLang, setTheme,
     setLayoutDensity, setShowDocsModal, setShowExportModal, setShowScenariosModal,
     setShowHelpersModal, setShowCopilotDrawer, setShowAppLauncherModal,
@@ -375,6 +378,9 @@ export default function App() {
       } else if (e.altKey && (e.key === 'm' || e.key === 'M' || e.key === 'ة')) {
         e.preventDefault();
         setShowSystemMapModal(prev => !prev);
+      } else if (e.altKey && (e.key === 'x' || e.key === 'X' || e.key === 'ء')) {
+        e.preventDefault();
+        setShowExperienceModeModal(prev => !prev);
       } else if (e.key === 'F1') {
         e.preventDefault();
         setShowDocsModal(prev => !prev);
@@ -747,6 +753,22 @@ export default function App() {
         onOpenExportModal={() => setShowExportModal(true)}
         onOpenCopilot={() => setShowCopilotDrawer(true)}
         organizationName={organizations.find(o => o.id === organizationId)?.[lang === 'ar' ? 'name_ar' : 'name_en']}
+        homeExperienceMode={homeExperienceMode}
+        onSetHomeExperienceMode={(mode) => {
+          setHomeExperienceMode(mode);
+          try {
+            localStorage.setItem('uamex_home_experience_mode', mode);
+          } catch {}
+          showToast({
+            type: 'success',
+            title: lang === 'ar' ? 'تم تبديل نمط العمل' : 'Experience Mode Switched',
+            message: lang === 'ar' 
+              ? `تم تفعيل [${mode === 'work_first' ? 'قمرة الإنجاز الفوري المؤسسي' : 'النمط الاستراتيجي التحليلي الكلاسيكي'}]`
+              : `Active Mode: [${mode === 'work_first' ? 'Quantum Work-First' : 'Classic Analytics'}]`,
+            duration: 3500
+          });
+        }}
+        onOpenExperienceModeModal={() => setShowExperienceModeModal(true)}
       />
 
       {/* LAYER 3: MAIN WORKSPACE + SIDE PANELS */}
@@ -845,6 +867,9 @@ export default function App() {
                   onRefreshData={fetchAllData}
                   onOpenHelpers={() => setShowHelpersModal(true)}
                   onOpenSystemMap={() => setShowSystemMapModal(true)}
+                  homeExperienceMode={homeExperienceMode}
+                  onSetHomeExperienceMode={setHomeExperienceMode}
+                  onOpenExperienceModeModal={() => setShowExperienceModeModal(true)}
                 />
             )}
           </div>
@@ -870,6 +895,26 @@ export default function App() {
               setShowSystemMapModal(false);
               handleSelectTab(tab as ActiveTab);
             }}
+          />
+        </React.Suspense>
+      )}
+
+      {showExperienceModeModal && (
+        <React.Suspense fallback={<SuspenseFallback />}>
+          <EnterpriseExperienceModeModal
+            isOpen={showExperienceModeModal}
+            onClose={() => setShowExperienceModeModal(false)}
+            lang={lang}
+            currentMode={homeExperienceMode}
+            onSelectMode={(mode, persist) => {
+              setHomeExperienceMode(mode);
+              if (persist) {
+                try {
+                  localStorage.setItem('uamex_home_experience_mode', mode);
+                } catch {}
+              }
+            }}
+            currentUserRole={currentUser?.role_name || (lang === 'ar' ? 'مدير عام / مسؤول تنفيذي' : 'General Director')}
           />
         </React.Suspense>
       )}

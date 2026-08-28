@@ -19,6 +19,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
       shortcuts: [
         { keys: ['Ctrl', 'K'], descAr: 'فتح مركز الأوامر الشامل (Command Center)', descEn: 'Open Universal Command Center' },
         { keys: ['Alt', 'M'], descAr: 'خريطة المنظومة الشاملة واستكشاف الأنظمة الـ15 (Mode B)', descEn: 'Enterprise System Map (Mode B - 15 Domains)' },
+        { keys: ['Alt', 'X'], descAr: 'تخصيص وتبديل نمط بيئة العمل المؤسسية (قمرة الإنجاز / النمط التحليلي)', descEn: 'Enterprise Experience Modes Controller' },
         { keys: ['Ctrl', '/'], descAr: 'البحث السريع المباشر في النظام', descEn: 'Quick Global Search' },
         { keys: ['?'], descAr: 'عرض قائمة اختصارات لوحة التحكم الحالية', descEn: 'Show Shortcuts Help' },
         { keys: ['Esc'], descAr: 'إغلاق النوافذ واللوائح المفتوحة', descEn: 'Close Modal / Dialog / Overlay' },

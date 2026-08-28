@@ -18,6 +18,9 @@ export interface DashboardViewProps {
   orgName?: string;
   onOpenHelpers?: () => void;
   onOpenSystemMap?: () => void;
+  initialExperienceMode?: 'work_first' | 'classic_analytics';
+  onSwitchToWorkFirst?: () => void;
+  onOpenExperienceModeModal?: () => void;
 }
 
 export interface KPILayoutItem {

@@ -32,16 +32,20 @@ import {
   Lock,
   Award,
   ChevronDown,
-  Target
+  Target,
+  Zap,
+  LayoutDashboard,
+  SlidersHorizontal
 } from 'lucide-react';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ActiveTab } from '../core/types';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 
 export interface TabConfigItem {
-  icon: any;
+  id: ActiveTab;
   title_ar: string;
   title_en: string;
+  icon: any;
   category_ar?: string;
   category_en?: string;
 }
@@ -61,6 +65,9 @@ interface UnifiedContextRibbonProps {
   onOpenExportModal: () => void;
   onOpenCopilot: () => void;
   organizationName?: string;
+  homeExperienceMode?: 'work_first' | 'classic_analytics';
+  onSetHomeExperienceMode?: (mode: 'work_first' | 'classic_analytics') => void;
+  onOpenExperienceModeModal?: () => void;
 }
 
 const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
@@ -77,7 +84,10 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
   onResetFilters,
   onOpenExportModal,
   onOpenCopilot,
-  organizationName
+  organizationName,
+  homeExperienceMode = 'work_first',
+  onSetHomeExperienceMode,
+  onOpenExperienceModeModal
 }) => {
   const isRtl = lang === 'ar';
   const currentConfig = tabConfig[activeTab] || tabConfig['dashboard'];
@@ -235,15 +245,57 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
         
         {/* Left Side: Context Breadcrumb on Home, or Search & Primary Action on Work Area */}
         {activeTab === 'dashboard' ? (
-          <div className="flex items-center gap-2 text-xs py-0.5">
-            <span className="font-semibold text-slate-500 dark:text-zinc-400">
-              {isRtl ? 'المنظومة' : 'System'}
-            </span>
-            <span className="text-slate-300 dark:text-zinc-600">/</span>
-            <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>{isRtl ? 'قمرة الإنجاز الفوري المؤسسي (Work-First Cockpit™)' : 'Quantum Work-First Cockpit™'}</span>
-            </span>
+          <div className="flex items-center flex-wrap gap-3 text-xs py-0.5">
+            <div className="flex items-center gap-1.5 text-slate-500 dark:text-zinc-400 font-semibold">
+              <span>{isRtl ? 'المنظومة' : 'System'}</span>
+              <span className="text-slate-300 dark:text-zinc-600">/</span>
+              <span className="font-extrabold text-slate-700 dark:text-zinc-200">
+                {isRtl ? 'بيئة العمل' : 'Workspace'}
+              </span>
+            </div>
+
+            {/* Smart Segmented Mode Switcher Pill */}
+            <div className="flex items-center bg-slate-200/80 dark:bg-zinc-800 p-0.5 rounded-xl border border-slate-300/80 dark:border-zinc-700 text-xs shadow-2xs">
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  onSetHomeExperienceMode?.('work_first');
+                }}
+                className={`px-2.5 py-1 rounded-lg font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+                  homeExperienceMode === 'work_first'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title={isRtl ? 'قمرة الإنجاز الفوري المؤسسي (نمط العمل السريع)' : 'Quantum Work-First Cockpit'}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>{isRtl ? 'قمرة الإنجاز الفوري' : 'Work-First'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  onSetHomeExperienceMode?.('classic_analytics');
+                }}
+                className={`px-2.5 py-1 rounded-lg font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+                  homeExperienceMode === 'classic_analytics'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title={isRtl ? 'النمط الاستراتيجي التحليلي الكلاسيكي' : 'Classic Strategic Analytics Hub'}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>{isRtl ? 'النمط التحليلي الكلاسيكي' : 'Classic Analytics'}</span>
+              </button>
+
+              <button
+                onClick={onOpenExperienceModeModal}
+                className="p-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer border-r border-slate-300 dark:border-zinc-700 pr-1.5 mr-0.5"
+                title={isRtl ? 'تخصيص أنماط بيئة العمل والتوصيات الذكية (Alt + X)' : 'Customize Experience Modes (Alt + X)'}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         ) : (
           <div className="flex items-center flex-wrap gap-2">
