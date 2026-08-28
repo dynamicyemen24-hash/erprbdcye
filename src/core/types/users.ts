@@ -16,6 +16,7 @@ export interface User {
   can_approve: boolean | null;
   max_approval_amount: string | null;
   role?: string;
+  role_name?: string;
 }
 
 export interface HrStaff {

@@ -41,7 +41,8 @@ import {
   Star,
   CheckCircle2,
   FileSpreadsheet,
-  Activity
+  Activity,
+  LayoutDashboard
 } from 'lucide-react';
 
 import { Project, User as UserType, TabId } from '../types';
@@ -74,6 +75,9 @@ interface UniversalCommandCenterProps {
   onOpenCopilot?: () => void;
   onOpenPrintModal?: () => void;
   onOpenScenariosModal?: () => void;
+  onOpenExperienceModeModal?: () => void;
+  onOpenSystemMapModal?: () => void;
+  onSetHomeExperienceMode?: (mode: 'work_first' | 'classic_analytics') => void;
 }
 
 type CategoryType = 'ALL' | 'FREQUENT' | 'DOMAINS' | 'REPORTS' | 'ACTIONS' | 'RECORDS' | 'SETTINGS';
@@ -115,7 +119,10 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
   onOpenHelpers,
   onOpenCopilot,
   onOpenPrintModal,
-  onOpenScenariosModal
+  onOpenScenariosModal,
+  onOpenExperienceModeModal,
+  onOpenSystemMapModal,
+  onSetHomeExperienceMode
 }) => {
   if (!isOpen) return null;
   const isRtl = lang === 'ar';
@@ -219,6 +226,70 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
 
   // 2. High-Frequency Direct Operational Actions (1-Click Execution)
   const actionCommands: CommandItem[] = useMemo(() => [
+    {
+      id: 'act-mode-workfirst',
+      category: 'ACTIONS',
+      titleAr: 'قمرة الإنجاز الفوري (Quantum Work-First Cockpit™)',
+      titleEn: 'Quantum Work-First Cockpit™',
+      subAr: 'نمط العمل السريع والإنتاجية، طابور الاعتمادات العاجلة، والمهام الميدانية أولاً',
+      subEn: 'High-speed execution mode, urgent approvals & field tasks first',
+      icon: Zap,
+      badge: 'WORK-FIRST',
+      badgeColor: 'bg-emerald-500/15 text-emerald-600',
+      action: () => { 
+        onSetHomeExperienceMode?.('work_first'); 
+        onNavigate('dashboard'); 
+        onClose(); 
+      }
+    },
+    {
+      id: 'act-mode-analytics',
+      category: 'ACTIONS',
+      titleAr: 'النمط الاستراتيجي التحليلي الكلاسيكي (Classic Analytics Hub™)',
+      titleEn: 'Classic Strategic Analytics Hub™',
+      subAr: 'لوحة القيادة الاستراتيجية الشاملة، بطاقات الأداء المتوازن (BSC)، ومصفوفة SWOT',
+      subEn: 'Holistic strategic dashboard, Balanced Scorecard (BSC) & SWOT analysis',
+      icon: LayoutDashboard,
+      badge: 'ANALYTICS',
+      badgeColor: 'bg-amber-500/15 text-amber-600',
+      action: () => { 
+        onSetHomeExperienceMode?.('classic_analytics'); 
+        onNavigate('dashboard'); 
+        onClose(); 
+      }
+    },
+    {
+      id: 'act-mode-controller',
+      category: 'ACTIONS',
+      titleAr: 'مركز إدارة أنماط بيئة العمل والتوصيات الذكية',
+      titleEn: 'Enterprise Experience Mode Controller',
+      subAr: 'تخصيص نمط بيئة العمل، تفعيل الجدولة التكيفية الذكية، وتثبيت النمط الافتراضي',
+      subEn: 'Customize experience mode, smart adaptive cadence & startup defaults',
+      icon: Sliders,
+      shortcut: 'Alt + X',
+      badge: 'CONTROLLER',
+      badgeColor: 'bg-teal-500/15 text-teal-600',
+      action: () => { 
+        onOpenExperienceModeModal?.(); 
+        onClose(); 
+      }
+    },
+    {
+      id: 'act-system-map',
+      category: 'ACTIONS',
+      titleAr: 'خريطة المنظومة الشاملة للأنظمة السيادية الـ15',
+      titleEn: 'Interactive Enterprise 15-Domain System Map',
+      subAr: 'استعراض الهيكل المعماري والأنظمة الـ15 التابعة لمؤسسة رحماء بينهم',
+      subEn: 'Interactive architectural map of all 15 sovereign enterprise domains',
+      icon: Compass,
+      shortcut: 'Alt + M',
+      badge: 'SYSTEM MAP',
+      badgeColor: 'bg-indigo-500/15 text-indigo-600',
+      action: () => { 
+        onOpenSystemMapModal?.(); 
+        onClose(); 
+      }
+    },
     {
       id: 'act-tool-zakat',
       category: 'ACTIONS',
@@ -411,7 +482,7 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
       badgeColor: 'bg-blue-500/10 text-blue-600',
       action: () => { onNavigate('scenarios' as TabId); onClose(); }
     }
-  ], [onNavigate, onRefreshData, onOpenHelpers, onOpenCopilot, onOpenPrintModal, onClose]);
+  ], [onNavigate, onRefreshData, onOpenHelpers, onOpenCopilot, onOpenPrintModal, onSetHomeExperienceMode, onOpenExperienceModeModal, onOpenSystemMapModal, onClose]);
 
   // 3. Direct Deep Links to Reports
   const reportCommands: CommandItem[] = useMemo(() => [

@@ -1210,7 +1210,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
             {
               labelAr: 'الموازنة المعتمدة',
               labelEn: 'Approved Budget',
-              value: (inspectingProject.budget_yer || 45000000).toLocaleString(),
+              value: (parseFloat(String(inspectingProject.budget_yer || inspectingProject.budget || 45000000))).toLocaleString(),
               unitAr: 'ر.ي',
               unitEn: 'YER',
               trend: 'up',
@@ -1219,7 +1219,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
             {
               labelAr: 'المنصرف الفعلي',
               labelEn: 'Actual Spend',
-              value: Math.round((inspectingProject.budget_yer || 45000000) * 0.65).toLocaleString(),
+              value: Math.round(parseFloat(String(inspectingProject.budget_yer || inspectingProject.budget || 45000000)) * 0.65).toLocaleString(),
               unitAr: 'ر.ي',
               unitEn: 'YER',
               color: 'amber'
@@ -1227,7 +1227,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
             {
               labelAr: 'نسبة الإنجاز الميداني',
               labelEn: 'Progress',
-              value: `${inspectingProject.progress || 70}%`,
+              value: `${inspectingProject.progress_percent || inspectingProject.progress || 70}%`,
               change: '+15% هذا الربع',
               color: 'blue'
             },

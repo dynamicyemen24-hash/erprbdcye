@@ -39,9 +39,11 @@ import {
   HelpCircle,
   Send,
   CheckSquare,
-  Square
+  Square,
+  ArrowUpRight
 } from 'lucide-react';
-import { ActiveTab, User } from '../../core/types/dashboard';
+import { ActiveTab } from '../../core/types/dashboard';
+import { User } from '../../core/types/users';
 import { useResumeIntelligence } from '../../core/services/resumeIntelligence';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
 import { UniversalObjectPageModal } from '../common/UniversalObjectPageModal';
@@ -202,8 +204,8 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
     });
   }, [approvalRequests, rawDecisions, streamFilter, processedTasks]);
 
-  const handleQuickApprove = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleQuickApprove = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     triggerHaptic('medium');
     setProcessedTasks(prev => [...prev, id]);
   };

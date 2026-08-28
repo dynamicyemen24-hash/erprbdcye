@@ -1164,6 +1164,14 @@ export default function App() {
           onOpenCopilot={() => setShowCopilotDrawer(true)}
           onOpenPrintModal={() => setShowExportModal(true)}
           onOpenScenariosModal={() => setShowScenariosModal(true)}
+          onOpenExperienceModeModal={() => setShowExperienceModeModal(true)}
+          onOpenSystemMapModal={() => setShowSystemMapModal(true)}
+          onSetHomeExperienceMode={(mode) => {
+            setHomeExperienceMode(mode);
+            try {
+              localStorage.setItem('uamex_home_experience_mode', mode);
+            } catch {}
+          }}
         />
       </React.Suspense>
 

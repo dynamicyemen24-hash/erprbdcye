@@ -42,7 +42,7 @@ import { ActiveTab } from '../core/types';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 
 export interface TabConfigItem {
-  id: ActiveTab;
+  id?: ActiveTab;
   title_ar: string;
   title_en: string;
   icon: any;

@@ -12,8 +12,11 @@ export interface Project {
   start_date: string | null;
   end_date: string | null;
   budget: string | null;
+  budget_yer?: number | string | null;
   currency_code: string | null;
   progress_percent: string | null;
+  progress?: number | string | null;
+  manager_name?: string | null;
   target_beneficiaries: number | null;
   actual_beneficiaries: number | null;
   location_name: string | null;

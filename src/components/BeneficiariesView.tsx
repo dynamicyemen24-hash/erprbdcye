@@ -18,7 +18,10 @@ import {
   UserCheck,
   Printer,
   FileSpreadsheet,
-  Download
+  Download,
+  Eye,
+  EyeOff,
+  Shield
 } from 'lucide-react';
 import ExportToolsModal from './ExportToolsModal';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
@@ -48,6 +51,15 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   const [filterGender, setFilterGender] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState(initialStatusFilter || 'ALL');
   const [showFilters, setShowFilters] = useState(false);
+  const [maskSensitivePII, setMaskSensitivePII] = useState(true);
+
+  const maskPhone = (phone?: string) => {
+    if (!phone) return '—';
+    if (!maskSensitivePII) return phone;
+    const clean = phone.trim();
+    if (clean.length <= 4) return '****';
+    return clean.slice(0, 2) + '****' + clean.slice(-3);
+  };
 
   useEffect(() => {
     if (initialCategoryFilter) {
@@ -608,6 +620,32 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
           </div>
 
           <div className="flex items-center gap-2">
+            {/* PII Privacy Masking Toggle */}
+            <button
+              onClick={() => {
+                setMaskSensitivePII(prev => !prev);
+                showToast({
+                  type: maskSensitivePII ? 'warning' : 'success',
+                  title: lang === 'ar' ? (maskSensitivePII ? 'كشف البيانات الشخصية' : 'تفعيل حماية الخصوصية PII') : (maskSensitivePII ? 'PII Unmasked' : 'Privacy Protection Enabled'),
+                  message: lang === 'ar' 
+                    ? (maskSensitivePII ? 'تم كشف أرقام الهواتف مؤقتاً للتحقق الميداني والاتصال' : 'تم تشفير وحجب أرقام الهواتف والبيانات الشخصية') 
+                    : (maskSensitivePII ? 'Phone numbers visible for field verification' : 'Sensitive phone numbers masked for data privacy'),
+                  duration: 3500
+                });
+              }}
+              className={`px-3 py-2 border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                maskSensitivePII
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                  : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+              }`}
+              title={lang === 'ar' ? 'حماية بيانات المستفيدين الشخصية وفق معايير إسفير الدولية' : 'Toggle PII data protection under Sphere/CHS standards'}
+            >
+              {maskSensitivePII ? <Shield className="w-3.5 h-3.5 text-emerald-600" /> : <Eye className="w-3.5 h-3.5 text-amber-600" />}
+              <span className="hidden sm:inline">
+                {lang === 'ar' ? (maskSensitivePII ? 'حماية الخصوصية نشطة' : 'كشف الهواتف') : (maskSensitivePII ? 'PII Protected' : 'PII Revealed')}
+              </span>
+            </button>
+
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`px-3 py-2 border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
@@ -767,13 +805,13 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-mono text-[11px] text-slate-600">
+                    <td className="px-6 py-4 whitespace-nowrap font-mono text-[11px] text-slate-600 dark:text-zinc-300">
                       {ben.phone_primary ? (
                         <div className="flex items-center gap-1.5">
                           <Phone className="w-3 h-3 text-zinc-400" />
-                          <span>{ben.phone_primary}</span>
+                          <span>{maskPhone(ben.phone_primary)}</span>
                         </div>
-                      ) : '-'}
+                      ) : '—'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
