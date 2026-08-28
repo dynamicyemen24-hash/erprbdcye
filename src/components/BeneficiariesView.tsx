@@ -23,6 +23,7 @@ import {
   EyeOff,
   Shield,
   Building2,
+  Globe,
   Sparkles,
   AlertTriangle,
   GitCommit
@@ -47,7 +48,9 @@ import {
   normalizePhoneNumber
 } from '../core/utils/dataIntegrityEngine';
 import SmartAutocompleteInput from './common/SmartAutocompleteInput';
+import GlobalAddressCascadePicker from './common/GlobalAddressCascadePicker';
 import CrossEntityLineageView from '../features/traceability/CrossEntityLineageView';
+import GlobalAddressManagerView from '../features/organization/GlobalAddressManagerView';
 
 interface BeneficiariesViewProps {
   beneficiaries: any[];
@@ -135,6 +138,9 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   // Lineage modal state
   const [showLineageModal, setShowLineageModal] = useState(false);
   const [lineageTargetBeneficiary, setLineageTargetBeneficiary] = useState<any | null>(null);
+
+  // Global Address & Maps Workspace modal state
+  const [showAddressManagerModal, setShowAddressManagerModal] = useState(false);
 
   // Dynamic districts based on selected governorate for smart autocomplete
   const currentGovernorateData = useMemo(() => {
@@ -700,6 +706,14 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         </div>
         
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setShowAddressManagerModal(true)}
+            className="bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            title={lang === 'ar' ? 'منظومة إدارة العناوين والتقسيمات والخرائط العالمية' : 'Global Addresses & Maps OS'}
+          >
+            <Globe className="w-4 h-4 text-teal-200" />
+            <span>{lang === 'ar' ? 'دليل العناوين والخرائط' : 'Addresses & Maps'}</span>
+          </button>
           <button
             onClick={() => setShowLineageModal(true)}
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
@@ -1522,76 +1536,26 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                   </div>
                 )}
 
-                {/* Tab: Demographics & Smart Autocomplete */}
+                {/* Tab: Demographics & Smart Multi-Country Cascade Address with Global Map */}
                 {activeFormTab === 'demographic' && (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <SmartAutocompleteInput
-                        label={lang === 'ar' ? 'المحافظة' : 'Governorate'}
-                        value={governorate}
-                        onChange={(val) => {
-                          setGovernorate(val);
-                          setDistrict(''); // auto-reset district when governorate changes for zero friction
-                        }}
-                        options={availableGovernorates}
-                        placeholder={lang === 'ar' ? 'اختر أو اكتب المحافظة...' : 'Select governorate'}
-                        required
-                        isRtl={lang === 'ar'}
-                      />
-
-                      <SmartAutocompleteInput
-                        label={lang === 'ar' ? 'المديرية' : 'District'}
-                        value={district}
-                        onChange={(val) => setDistrict(val)}
-                        options={availableDistricts}
-                        placeholder={lang === 'ar' ? 'اختر المديرية التابعة...' : 'Select district'}
-                        badgeText={governorate}
-                        isRtl={lang === 'ar'}
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'العنوان التفصيلي (القرية / الحارة / المعلم البارز)' : 'Detailed Address'}</label>
-                      <textarea 
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        placeholder="مثال: قرية المشرعة، بجوار المركز الصحي القديم"
-                        className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none h-16 resize-none" 
-                      />
-                    </div>
-
-                    {/* Community Entity GPS Coordinates */}
-                    {archetype === 'COMMUNITY_ENTITY' && (
-                      <div className="p-3 bg-slate-50 dark:bg-zinc-950 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-2">
-                        <div className="text-[10px] font-black text-slate-500 uppercase">
-                          {lang === 'ar' ? 'الإحداثيات الجغرافية للموقع (GPS - منع التكرار المكاني)' : 'Geographic GPS Coordinates'}
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-400">خط العرض (Latitude)</label>
-                            <input
-                              type="number"
-                              step="any"
-                              value={gpsLatitude}
-                              onChange={(e) => setGpsLatitude(e.target.value)}
-                              placeholder="13.5795"
-                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-400">خط الطول (Longitude)</label>
-                            <input
-                              type="number"
-                              step="any"
-                              value={gpsLongitude}
-                              onChange={(e) => setGpsLongitude(e.target.value)}
-                              placeholder="44.0201"
-                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <GlobalAddressCascadePicker
+                      countryCode="YE"
+                      stateGovernorate={governorate}
+                      district={district}
+                      detailedAddress={address}
+                      gpsLatitude={gpsLatitude}
+                      gpsLongitude={gpsLongitude}
+                      lang={lang}
+                      showGpsFields={archetype === 'COMMUNITY_ENTITY' || !!gpsLatitude}
+                      onChange={(res) => {
+                        setGovernorate(res.stateGovernorate);
+                        setDistrict(res.district);
+                        setAddress(res.detailedAddress);
+                        if (res.gpsLatitude) setGpsLatitude(String(res.gpsLatitude));
+                        if (res.gpsLongitude) setGpsLongitude(String(res.gpsLongitude));
+                      }}
+                    />
 
                     {archetype !== 'COMMUNITY_ENTITY' && (
                       <div className="space-y-1">
@@ -1818,6 +1782,21 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               <X className="w-4 h-4" />
             </button>
             <CrossEntityLineageView lang={lang} />
+          </div>
+        </div>
+      )}
+
+      {/* Global Addresses & Maps Manager Modal */}
+      {showAddressManagerModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 max-w-6xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowAddressManagerModal(false)}
+              className="absolute top-5 left-5 p-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-full text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer z-20"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <GlobalAddressManagerView lang={lang} />
           </div>
         </div>
       )}
