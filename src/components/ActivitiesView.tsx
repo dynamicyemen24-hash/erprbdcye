@@ -1959,7 +1959,7 @@ export default function ActivitiesView({
                     }}
                     className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-black text-[10px] rounded-xl shadow-sm transition cursor-pointer shrink-0"
                   >
-                    {isRtl ? 'فتح محرك الصرف المتعدد 🚀' : 'Open Multi-SKU Engine'}
+                    {isRtl ? 'فتح محرك الصرف المتعدد' : 'Open Multi-SKU Engine'}
                   </button>
                 </div>
               )}

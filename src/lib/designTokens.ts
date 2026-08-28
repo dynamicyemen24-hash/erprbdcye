@@ -1,3 +1,5 @@
+export { enterpriseTokens } from '../core/theme/enterpriseDesignTokens';
+
 export const designTokens = {
   spacing: {
     xs: 'p-1',
@@ -18,7 +20,7 @@ export const designTokens = {
     sectionTitle: 'text-lg font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400',
     cardTitle: 'text-[11px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400',
     body: 'text-sm text-zinc-700 dark:text-zinc-300',
-    numeric: 'font-mono font-black',
+    numeric: 'font-mono font-black tabular-nums',
     buttonText: 'text-[10px] font-bold tracking-tight',
   },
   colors: {

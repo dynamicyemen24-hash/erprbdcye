@@ -188,11 +188,11 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
         <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
           {[
             { id: 'all', ar: 'الكل (جميع الفئات)', en: 'All Categories' },
-            { id: 'permanent', ar: '👔 كادر دائم (Core FTE)', en: 'Permanent Staff' },
-            { id: 'volunteer', ar: '🤝 متطوعون ميدانيون', en: 'Volunteers' },
-            { id: 'cooperator', ar: '🛠️ متعاونون بأجر يومي', en: 'Cooperators / Daily' },
-            { id: 'delegate', ar: '🌐 مندوبو المحافظات', en: 'Field Delegates' },
-            { id: 'consultant', ar: '💼 استشاريون وخبراء', en: 'External Consultants' },
+            { id: 'permanent', ar: 'كادر دائم (Core FTE)', en: 'Permanent Staff' },
+            { id: 'volunteer', ar: 'متطوعون ميدانيون', en: 'Volunteers' },
+            { id: 'cooperator', ar: 'متعاونون بأجر يومي', en: 'Cooperators / Daily' },
+            { id: 'delegate', ar: 'مندوبو المحافظات', en: 'Field Delegates' },
+            { id: 'consultant', ar: 'استشاريون وخبراء', en: 'External Consultants' },
           ].map((cat) => (
             <button
               key={cat.id}

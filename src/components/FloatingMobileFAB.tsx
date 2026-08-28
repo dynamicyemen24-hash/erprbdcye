@@ -918,13 +918,13 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
   ];
 
   const emergencyTypes = [
-    { code: 'flood', ar: 'السيول والفيضانات 🌧️', en: 'Floods & Rains 🌧️' },
-    { code: 'earthquake', ar: 'هزات أرضية/زلازل 🫨', en: 'Earthquakes 🫨' },
-    { code: 'epidemic', ar: 'تفشي وباء صحي 🦠', en: 'Epidemic Outbreak 🦠' },
-    { code: 'famine', ar: 'انعدام غذاء حرج ⚠️', en: 'Critical Food Insecurity ⚠️' },
-    { code: 'water', ar: 'جفاف وانقطاع مياه حاد 🏜️', en: 'Severe Water Scarcity 🏜️' },
-    { code: 'fire', ar: 'حرائق غابات ومخيمات 🔥', en: 'Camp/Forest Fires 🔥' },
-    { code: 'other', ar: 'أخرى (اكتب في التفاصيل) 📝', en: 'Other (Specify below) 📝' }
+    { code: 'flood', ar: 'السيول والفيضانات والأمطار', en: 'Floods & Heavy Rains' },
+    { code: 'earthquake', ar: 'هزات أرضية وزلازل', en: 'Earthquakes & Tremors' },
+    { code: 'epidemic', ar: 'تفشي وباء صحي', en: 'Epidemic Outbreak' },
+    { code: 'famine', ar: 'انعدام أمن غذائي حرج', en: 'Critical Food Insecurity' },
+    { code: 'water', ar: 'جفاف وانقطاع مياه حاد', en: 'Severe Water Scarcity' },
+    { code: 'fire', ar: 'حرائق مخيمات أو منشآت', en: 'Camp & Facility Fires' },
+    { code: 'other', ar: 'حالة طوارئ أخرى (مفصلة أدناه)', en: 'Other Emergency (Specify below)' }
   ];
 
   return (
@@ -1151,7 +1151,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                           onClick={() => setActiveScanTab('simulation')}
                           className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs rounded-lg transition-all"
                         >
-                          {isRtl ? 'الانتقال إلى محاكي المسح الذكي 🚀' : 'Switch to Smart Simulator 🚀'}
+                          {isRtl ? 'الانتقال إلى محاكي المسح الذكي' : 'Switch to Smart Simulator'}
                         </button>
                       </div>
                     ) : (
@@ -1367,8 +1367,8 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>
                           {scannedType === 'project' 
-                            ? (isRtl ? 'تطبيق وإنشاء مشروع جديد 🚀' : 'Create Prefilled Project 🚀')
-                            : (isRtl ? 'تطبيق وإضافة مستفيد جديد 🚀' : 'Create Prefilled Beneficiary 🚀')
+                            ? (isRtl ? 'تطبيق وإنشاء مشروع جديد' : 'Create Prefilled Project')
+                            : (isRtl ? 'تطبيق وإضافة مستفيد جديد' : 'Create Prefilled Beneficiary')
                           }
                         </span>
                       </button>
@@ -1934,7 +1934,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                             ))}
                           </select>
                           <p className="text-[10px] text-slate-400 font-bold mt-1 px-1">
-                            {isRtl ? '💡 نصيحة: حدد أو افتح مشروعاً في لوحة التحكم ليتم اختياره تلقائياً هنا.' : '💡 Tip: Open a project in the workspace to select it automatically.'}
+                            {isRtl ? 'تلميح: حدد أو افتح مشروعاً في لوحة التحكم ليتم اختياره تلقائياً هنا.' : 'Tip: Open a project in the workspace to select it automatically.'}
                           </p>
                         </div>
                       )}
@@ -1971,7 +1971,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                             ))}
                           </select>
                           <p className="text-[10px] text-slate-400 font-bold mt-1 px-1">
-                            {isRtl ? '💡 نصيحة: حدد أو افتح تفاصيل مستفيد ليتم اختياره تلقائياً هنا.' : '💡 Tip: View a beneficiary detailed card to select them automatically.'}
+                            {isRtl ? 'تلميح: حدد أو افتح تفاصيل مستفيد ليتم اختياره تلقائياً هنا.' : 'Tip: View a beneficiary detailed card to select them automatically.'}
                           </p>
                         </div>
                       )}

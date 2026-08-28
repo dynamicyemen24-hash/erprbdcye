@@ -572,7 +572,7 @@ export const EnterpriseExperienceModeModal: React.FC<EnterpriseExperienceModeMod
 
             <div className="pt-2 border-t border-slate-200/60 dark:border-zinc-700/60 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
               <span>
-                {isRtl ? '💡 اختصار لوحة المفاتيح المباشر للتبديل اللحظي:' : 'Direct global keyboard shortcut:'}
+                {isRtl ? 'اختصار لوحة المفاتيح المباشر للتبديل اللحظي:' : 'Direct global keyboard shortcut:'}
               </span>
               <kbd className="px-2 py-0.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-md font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                 Alt + X

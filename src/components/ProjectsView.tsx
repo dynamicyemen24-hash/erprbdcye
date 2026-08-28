@@ -714,8 +714,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                         {lang === 'ar' ? col.titleAr : col.titleEn}
                       </h3>
                     </div>
-                    <span className="text-[10px] text-zinc-400 font-mono">
-                      👈 👉 {lang === 'ar' ? 'قابل للسحب' : 'Swipeable'}
+                    <span className="text-[10px] text-zinc-400 font-medium">
+                      {lang === 'ar' ? 'سحب سريع للإجراء' : 'Swipeable'}
                     </span>
                   </div>
 

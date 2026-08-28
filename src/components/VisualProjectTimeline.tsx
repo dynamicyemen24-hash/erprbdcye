@@ -800,8 +800,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
             </span>
           </div>
 
-          <div className="text-[10px] font-mono text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-            💡 {isRtl ? 'انقر أي خلية في الخريطة الحرارية لتبديل وتعديل التخصيص فوراً' : 'Click any heatmap cell to toggle FTE allocation'}
+          <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/20">
+            {isRtl ? 'انقر أي خلية في الخريطة الحرارية لتبديل وتعديل التخصيص فوراً' : 'Click any heatmap cell to toggle FTE allocation'}
           </div>
         </div>
       )}
@@ -1360,8 +1360,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
             )}
           </div>
 
-          <div className="text-[9px] text-amber-400/80 font-mono text-center pt-1 border-t border-slate-800">
-            {isRtl ? '💡 انقر على المشروع لعرض السجل الميداني والمعالم' : '💡 Click to open full details & milestones'}
+          <div className="text-[9px] text-amber-500/90 font-medium text-center pt-1 border-t border-slate-800">
+            {isRtl ? 'انقر على المشروع لعرض السجل الميداني والمعالم' : 'Click to open full details & milestones'}
           </div>
         </div>
       )}

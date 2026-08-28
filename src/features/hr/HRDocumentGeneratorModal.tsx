@@ -100,12 +100,12 @@ export default function HRDocumentGeneratorModal({
         {/* DOCUMENT TYPE SELECTOR STRIP */}
         <div className="p-2 bg-slate-50 dark:bg-zinc-900/60 border-b border-slate-200 dark:border-zinc-800 flex items-center gap-1.5 overflow-x-auto text-xs font-bold shrink-0 no-print">
           {[
-            { id: 'volunteer', ar: '🤝 اتفاقية تطوع ميداني (VOL_FIELD)', en: 'Volunteer Agreement' },
-            { id: 'permanent', ar: '👔 عقد عمل دائم (PERM_FULL)', en: 'Permanent Employment Contract' },
-            { id: 'consultant', ar: '💼 عقد خدمات استشارية (EXT_CONSULT)', en: 'Consultancy Services' },
-            { id: 'daily_wage', ar: '🛠️ اتفاقية تعاون بأجر يومي (DAILY_WAGE)', en: 'Daily Wage Work' },
-            { id: 'coi', ar: '🛡️ إقرار النزاهة والسلوك', en: 'Integrity & COI Policy' },
-            { id: 'clearance', ar: '📋 إخلاء طرف واستلام عهدة', en: 'Asset Clearance Form' },
+            { id: 'volunteer', ar: 'اتفاقية تطوع ميداني (VOL_FIELD)', en: 'Volunteer Agreement' },
+            { id: 'permanent', ar: 'عقد عمل دائم (PERM_FULL)', en: 'Permanent Employment Contract' },
+            { id: 'consultant', ar: 'عقد خدمات استشارية (EXT_CONSULT)', en: 'Consultancy Services' },
+            { id: 'daily_wage', ar: 'اتفاقية تعاون بأجر يومي (DAILY_WAGE)', en: 'Daily Wage Work' },
+            { id: 'coi', ar: 'إقرار النزاهة ومدونة السلوك', en: 'Integrity & COI Policy' },
+            { id: 'clearance', ar: 'إخلاء طرف واستلام عهدة', en: 'Asset Clearance Form' },
           ].map((type) => (
             <button
               key={type.id}

@@ -372,7 +372,7 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                <span>{isRtl ? 'بؤر المستفيدين 🔥' : 'Beneficiary Hotspots'}</span>
+                <span>{isRtl ? 'بؤر المستفيدين' : 'Beneficiary Hotspots'}</span>
               </button>
 
               <button
@@ -587,7 +587,7 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
                     {/* Hotspot Center Marker */}
                     <Marker
                       position={[hs.lat, hs.lng]}
-                      icon={createCustomMarkerIcon(color, '🔥')}
+                      icon={createCustomMarkerIcon(color, '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>')}
                       eventHandlers={{
                         click: () => {
                           triggerHaptic('medium');

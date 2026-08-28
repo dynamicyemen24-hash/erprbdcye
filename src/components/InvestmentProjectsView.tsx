@@ -1557,7 +1557,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
                   {cnt.notes_ar && (
                     <p className="text-[10px] text-slate-500 italic bg-white dark:bg-zinc-900 p-2 rounded-lg border border-slate-100 dark:border-zinc-800">
-                      💡 {cnt.notes_ar}
+                      {cnt.notes_ar}
                     </p>
                   )}
                 </div>

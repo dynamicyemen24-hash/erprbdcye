@@ -636,7 +636,7 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
         </div>
 
         <p className="text-xs text-slate-600 dark:text-zinc-300 font-medium bg-slate-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-slate-100 dark:border-zinc-800">
-          💡 {isRtl ? selectedTemplate.descriptionAr : selectedTemplate.descriptionEn}
+          {isRtl ? selectedTemplate.descriptionAr : selectedTemplate.descriptionEn}
         </p>
       </div>
 

@@ -1684,8 +1684,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     setSelectedAssetForProjectMap(null);
 
     const title = mapProjectForm.projectId
-      ? (isRtl ? `🎯 تم تخصيص الأصل (${updatedAsset.asset_code}) لمشروع (${projName})` : `🎯 Asset (${updatedAsset.asset_code}) Mapped to Project (${projName})`)
-      : (isRtl ? `🔄 تم فك ربط وإعادة الأصل (${updatedAsset.asset_code}) للمستودع المركزي` : `🔄 Asset (${updatedAsset.asset_code}) Returned to Central Depot`);
+      ? (isRtl ? `تم تخصيص الأصل (${updatedAsset.asset_code}) لمشروع (${projName})` : `Asset (${updatedAsset.asset_code}) Mapped to Project (${projName})`)
+      : (isRtl ? `تم فك ربط وإعادة الأصل (${updatedAsset.asset_code}) للمستودع المركزي` : `Asset (${updatedAsset.asset_code}) Returned to Central Depot`);
 
     const body = isRtl
       ? `أمين العهدة الميدانية: ${updatedAsset.assigned_custodian_hr || 'غير محدد'} | الموقع: ${updatedAsset.location_name || 'ميداني'}`
@@ -5701,7 +5701,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
-                    🎯 {isRtl ? 'المشروع المستهدف' : 'Target Project'}
+                    {isRtl ? 'المشروع المستهدف' : 'Target Project'}
                   </label>
                   <select
                     value={materialIssueForm.projectId}
@@ -5956,7 +5956,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-black uppercase text-purple-600 dark:text-purple-400 mb-1">
-                    🎯 {isRtl ? 'نشاط المشروع المرتبط' : 'Project Activity'}
+                    {isRtl ? 'نشاط المشروع المرتبط' : 'Project Activity'}
                   </label>
                   <input
                     type="text"
@@ -6033,7 +6033,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
-                    🎯 {isRtl ? 'المشروع المستهدف' : 'Target Project'}
+                    {isRtl ? 'المشروع المستهدف' : 'Target Project'}
                   </label>
                   <select
                     value={materialIssueForm.projectId}
@@ -6307,7 +6307,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                     <div>
                       <label className="block text-[11px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1.5">
-                        🎯 {isRtl ? 'المشروع والنشاط الميداني المعتمد' : 'WBS Project Activity'}
+                        {isRtl ? 'المشروع والنشاط الميداني المعتمد' : 'WBS Project Activity'}
                       </label>
                       <select
                         value={multiProjectActivity}

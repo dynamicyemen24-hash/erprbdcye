@@ -2568,7 +2568,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                         }}
                         className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
                       >
-                        <span>{lang === 'ar' ? '🚀 فتح الشاشة الآن' : '🚀 Open Screen'}</span>
+                        <span>{lang === 'ar' ? 'فتح الشاشة الآن' : 'Open Screen'}</span>
                         <ArrowUpRight className="w-3.5 h-3.5" />
                       </button>
 
@@ -2833,7 +2833,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                               className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
                             >
                               <ArrowUpRight className="w-3.5 h-3.5" />
-                              <span>{lang === 'ar' ? `🚀 تنفيذ الإجراء في شاشة (${step.linkedScreen})` : `Execute in ${step.linkedScreen}`}</span>
+                              <span>{lang === 'ar' ? `تنفيذ الإجراء في شاشة (${step.linkedScreen})` : `Execute in ${step.linkedScreen}`}</span>
                             </button>
 
                             <button
@@ -3087,7 +3087,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                       className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black flex items-center gap-1 shrink-0 transition-colors"
                     >
                       <ArrowUpRight className="w-3.5 h-3.5" />
-                      <span>{lang === 'ar' ? '🚀 نفّذ الإجراء الآن' : 'Execute Now'}</span>
+                      <span>{lang === 'ar' ? 'نفّذ الإجراء الآن' : 'Execute Now'}</span>
                     </button>
                   </div>
                 );
@@ -3301,7 +3301,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                   className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
                 >
                   <ArrowUpRight className="w-4 h-4" />
-                  <span>{lang === 'ar' ? '🚀 الانتقال للشاشة وإصدار المعاملة' : 'Open Screen to Issue Live Voucher'}</span>
+                  <span>{lang === 'ar' ? 'الانتقال للشاشة وإصدار المعاملة' : 'Open Screen to Issue Live Voucher'}</span>
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -3371,7 +3371,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                   }}
                   className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-black"
                 >
-                  {lang === 'ar' ? '🚀 الانتقال للشاشة والتنفيذ' : 'Open Screen'}
+                  {lang === 'ar' ? 'الانتقال للشاشة والتنفيذ' : 'Open Screen'}
                 </button>
                 <button
                   onClick={() => setActiveStepAI(null)}

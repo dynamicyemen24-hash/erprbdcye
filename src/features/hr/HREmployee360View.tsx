@@ -84,7 +84,7 @@ export default function HREmployee360View({
                         ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' 
                         : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                     }`}>
-                      {idx % 3 === 0 ? (isRtl ? '👔 كادر دائم' : 'Permanent FTE') : idx % 3 === 1 ? (isRtl ? '🤝 متطوع ميداني' : 'Volunteer') : (isRtl ? '💼 استشاري خبير' : 'Consultant')}
+                      {idx % 3 === 0 ? (isRtl ? 'كادر دائم' : 'Permanent FTE') : idx % 3 === 1 ? (isRtl ? 'متطوع ميداني' : 'Volunteer') : (isRtl ? 'استشاري خبير' : 'Consultant')}
                     </span>
                   </td>
                   <td className="p-3 font-mono font-bold text-slate-700 dark:text-zinc-300">

@@ -1432,8 +1432,8 @@ export default function ReportsView({
 
             {/* 15 HIERARCHICAL REPORT SECTIONS GRID (CLICK TO DRILL-DOWN) */}
             <div className="space-y-6">
-              <p className="text-xs text-slate-500 dark:text-zinc-400 italic">
-                {lang === 'ar' ? '💡 انقر على أي باب أدناه لعرض التفاصيل الكاملة، مسار التدقيق، وتحليل الفروقات (Variance).' : '💡 Click on any report part below to view complete details, audit trails, and variance analysis.'}
+              <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                {lang === 'ar' ? 'انقر على أي باب أدناه لعرض التفاصيل الكاملة، مسار التدقيق، وتحليل الفروقات (Variance).' : 'Click on any report part below to view complete details, audit trails, and variance analysis.'}
               </p>
 
               {/* PART 1 & 2: Executive Summary & Organizational Health */}

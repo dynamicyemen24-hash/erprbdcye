@@ -598,13 +598,13 @@ This draft shows your prompt only. It will be replaced with real analysis once t
 
   const suiteFilterOptions = [
     { key: 'all', labelAr: 'جميع الأنظمة المؤسسية (15)', labelEn: 'All Enterprise Systems (15)' },
-    { key: 'strategic', labelAr: '🎯 الاستراتيجية (NEB 01-02)', labelEn: '🎯 Strategic (NEB 01-02)' },
-    { key: 'operations', labelAr: '⚡ العمليات والمشتريات (NEB 03-05, 14)', labelEn: '⚡ Operations & Proc. (NEB 03-05, 14)' },
-    { key: 'social', labelAr: '🤝 الاجتماعية (NEB 06-07)', labelEn: '🤝 Social Services (NEB 06-07)' },
-    { key: 'finance', labelAr: '💰 المالية والإيرادات (NEB 08, 10, 15)', labelEn: '💰 Finance & Revenue (NEB 08, 10, 15)' },
-    { key: 'governance', labelAr: '🛡️ الحوكمة والأصول (NEB 09, 11)', labelEn: '🛡️ Governance & Assets (NEB 09, 11)' },
-    { key: 'tech', labelAr: '🌐 التقنية والتكامل (NEB 12)', labelEn: '🌐 Tech & Data (NEB 12)' },
-    { key: 'intelligence', labelAr: '🧠 الذكاء والأثر (NEB 13)', labelEn: '🧠 AI & Impact (NEB 13)' },
+    { key: 'strategic', labelAr: 'الاستراتيجية والأداء (NEB 01-02)', labelEn: 'Strategic & Portfolio (NEB 01-02)' },
+    { key: 'operations', labelAr: 'العمليات والمشتريات (NEB 03-05, 14)', labelEn: 'Operations & Proc. (NEB 03-05, 14)' },
+    { key: 'social', labelAr: 'الرعاية والخدمات الاجتماعية (NEB 06-07)', labelEn: 'Social Services (NEB 06-07)' },
+    { key: 'finance', labelAr: 'المالية والإيرادات والشراكات (NEB 08, 10, 15)', labelEn: 'Finance, Revenue & Grants (NEB 08, 10, 15)' },
+    { key: 'governance', labelAr: 'الحوكمة والأصول والمعرفة (NEB 09, 11)', labelEn: 'Governance & Assets (NEB 09, 11)' },
+    { key: 'tech', labelAr: 'التقنية والتكامل الرقمي (NEB 12)', labelEn: 'Tech & Integration (NEB 12)' },
+    { key: 'intelligence', labelAr: 'الذكاء الاصطناعي والأثر (NEB 13)', labelEn: 'AI & Impact OS (NEB 13)' },
   ];
 
   return (

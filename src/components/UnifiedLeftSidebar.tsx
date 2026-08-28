@@ -199,39 +199,45 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
               <span>{isRtl ? 'منظور الدور والصلاحيات:' : 'Role Perspective:'}</span>
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-zinc-900 p-1 rounded-lg border border-slate-200 dark:border-zinc-800 text-[10px] font-bold">
+          <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-zinc-900 p-1 rounded-xl border border-slate-200 dark:border-zinc-800 text-[10px] font-bold">
             <button
+              type="button"
               onClick={() => setActiveRolePerspective('executive')}
-              className={`py-1 rounded text-center truncate transition-all cursor-pointer ${
+              className={`py-1.5 px-1 rounded-lg text-center truncate transition-all cursor-pointer flex items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeRolePerspective === 'executive'
-                  ? 'bg-emerald-600 text-white font-black shadow-sm'
+                  ? 'bg-emerald-600 text-white font-black shadow-xs'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
               title={isRtl ? 'المنظور القيادي والتنفيذي' : 'Executive Perspective'}
             >
-              {isRtl ? '👔 قيادي' : 'Exec'}
+              <Briefcase className="w-3 h-3 shrink-0" />
+              <span>{isRtl ? 'قيادي' : 'Exec'}</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveRolePerspective('manager')}
-              className={`py-1 rounded text-center truncate transition-all cursor-pointer ${
+              className={`py-1.5 px-1 rounded-lg text-center truncate transition-all cursor-pointer flex items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeRolePerspective === 'manager'
-                  ? 'bg-emerald-600 text-white font-black shadow-sm'
+                  ? 'bg-emerald-600 text-white font-black shadow-xs'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
               title={isRtl ? 'المنظور المحاسبي والمالي' : 'Financial Perspective'}
             >
-              {isRtl ? '🏛️ مالي' : 'Finance'}
+              <Coins className="w-3 h-3 shrink-0" />
+              <span>{isRtl ? 'مالي' : 'Finance'}</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveRolePerspective('field')}
-              className={`py-1 rounded text-center truncate transition-all cursor-pointer ${
+              className={`py-1.5 px-1 rounded-lg text-center truncate transition-all cursor-pointer flex items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 activeRolePerspective === 'field'
-                  ? 'bg-emerald-600 text-white font-black shadow-sm'
+                  ? 'bg-emerald-600 text-white font-black shadow-xs'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
               title={isRtl ? 'المنظور الميداني والرعاية' : 'Field & Welfare Perspective'}
             >
-              {isRtl ? '🚀 ميداني' : 'Field'}
+              <Compass className="w-3 h-3 shrink-0" />
+              <span>{isRtl ? 'ميداني' : 'Field'}</span>
             </button>
           </div>
         </div>

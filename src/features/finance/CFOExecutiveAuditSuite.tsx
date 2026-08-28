@@ -67,11 +67,11 @@ export default function CFOExecutiveAuditSuite({ lang }: CFOExecutiveAuditSuiteP
       {/* STAKEHOLDER ROLE SELECTOR SWITCHER */}
       <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar p-1.5 bg-slate-100 dark:bg-zinc-950 rounded-2xl text-xs font-bold">
         {[
-          { id: 'cfo', labelAr: '👔 مدير المالية (CFO)', labelEn: 'Chief Financial Officer', icon: Coins },
-          { id: 'chief_accountant', labelAr: '📊 مدير الحسابات (Chief Accountant)', labelEn: 'Chief Accountant', icon: Scale },
-          { id: 'cpa_auditor', labelAr: '🛡️ المدقق والمراجع القانوني (CPA)', labelEn: 'CPA External Auditor', icon: ShieldCheck },
-          { id: 'revenue_director', labelAr: '📈 مدير الإيرادات والمنح', labelEn: 'Revenue & Grants Director', icon: TrendingUp },
-          { id: 'expense_director', labelAr: '📉 مدير المصروفات والنفقات', labelEn: 'Expenditure Director', icon: TrendingDown },
+          { id: 'cfo', labelAr: 'المدير المالي (CFO)', labelEn: 'Chief Financial Officer', icon: Coins },
+          { id: 'chief_accountant', labelAr: 'مدير الحسابات العامة', labelEn: 'Chief Accountant', icon: Scale },
+          { id: 'cpa_auditor', labelAr: 'المراجع القانوني المعتمد', labelEn: 'CPA External Auditor', icon: ShieldCheck },
+          { id: 'revenue_director', labelAr: 'مدير الإيرادات والمنح', labelEn: 'Revenue & Grants Director', icon: TrendingUp },
+          { id: 'expense_director', labelAr: 'مدير المصروفات والمدفوعات', labelEn: 'Expenditure Director', icon: TrendingDown },
         ].map((role) => {
           const IconComp = role.icon;
           const isActive = selectedRole === role.id;
