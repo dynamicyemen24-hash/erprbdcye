@@ -22,7 +22,8 @@ import {
   Sparkles,
   ArrowRightLeft,
   Printer,
-  Eye
+  Eye,
+  Globe
 } from 'lucide-react';
 import { Project, Program } from '../types';
 import { SwipeGestureContainer } from './helpers/SwipeGestureContainer';
@@ -38,6 +39,8 @@ import { ModuleShell } from './enterprise/ModuleShell';
 import { instantPrint } from '../core/export';
 import { ProjectLifecycleSymbol } from './common/SovereignSystemIcons';
 import { UniversalObjectPageModal } from './common/UniversalObjectPageModal';
+import GlobalAddressCascadePicker from './common/GlobalAddressCascadePicker';
+import GlobalAddressManagerView from '../features/organization/GlobalAddressManagerView';
 
 interface ProjectsViewProps {
   projects: Project[];
@@ -123,6 +126,13 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
   const [targetBeneficiaries, setTargetBeneficiaries] = useState('0');
   const [actualBeneficiaries, setActualBeneficiaries] = useState('0');
   const [locationName, setLocationName] = useState('');
+  const [projectCountry, setProjectCountry] = useState('YE');
+  const [projectGov, setProjectGov] = useState('تعز');
+  const [projectDistrict, setProjectDistrict] = useState('صبر الموادم');
+  const [projectSubDistrict, setProjectSubDistrict] = useState('');
+  const [projectLat, setProjectLat] = useState('');
+  const [projectLng, setProjectLng] = useState('');
+  const [showAddressManagerModal, setShowAddressManagerModal] = useState(false);
   const [priorityCode, setPriorityCode] = useState('medium');
   const [riskLevel, setRiskLevel] = useState('medium');
 
@@ -144,6 +154,12 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
       setTargetBeneficiaries(String(project.target_beneficiaries || '0'));
       setActualBeneficiaries(String(project.actual_beneficiaries || '0'));
       setLocationName(project.location_name || '');
+      setProjectCountry((project as any).country_code || (project as any).country || 'YE');
+      setProjectGov((project as any).governorate || 'تعز');
+      setProjectDistrict((project as any).district || 'صبر الموادم');
+      setProjectSubDistrict((project as any).sub_district || '');
+      setProjectLat((project as any).gps_latitude ? String((project as any).gps_latitude) : '');
+      setProjectLng((project as any).gps_longitude ? String((project as any).gps_longitude) : '');
       setPriorityCode(project.priority_code || 'medium');
       setRiskLevel(project.risk_level || 'medium');
     } else {
@@ -155,13 +171,30 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
       setDescription(prefilledData?.description || '');
       setStatusCode('active');
       setStartDate(new Date().toISOString().substring(0, 10));
+      setEndDate('');
+      setBudget('0');
+      setCurrencyCode('YER');
+      setProgressPercent('0');
+      setTargetBeneficiaries('0');
+      setActualBeneficiaries('0');
+      setLocationName('');
+      setProjectCountry('YE');
+      setProjectGov('تعز');
+      setProjectDistrict('صبر الموادم');
+      setProjectSubDistrict('');
       setEndDate(new Date(Date.now() + 180*24*60*60*1000).toISOString().substring(0, 10));
       setBudget(prefilledData?.budget || '500000');
       setCurrencyCode('YER');
       setProgressPercent('0');
-      setTargetBeneficiaries('200');
+      setTargetBeneficiaries(prefilledData?.targetBeneficiaries || '200');
       setActualBeneficiaries('0');
       setLocationName(prefilledData?.locationName || '');
+      setProjectCountry('YE');
+      setProjectGov(prefilledData?.governorate || 'تعز');
+      setProjectDistrict(prefilledData?.district || 'صبر الموادم');
+      setProjectSubDistrict(prefilledData?.subDistrict || '');
+      setProjectLat('');
+      setProjectLng('');
       setPriorityCode('medium');
       setRiskLevel('medium');
     }
@@ -198,7 +231,14 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
       progress_percent: progressPercent,
       target_beneficiaries: parseInt(targetBeneficiaries) || 0,
       actual_beneficiaries: parseInt(actualBeneficiaries) || 0,
-      location_name: locationName,
+      location_name: locationName || `${projectGov} - ${projectDistrict}`,
+      country: projectCountry,
+      country_code: projectCountry,
+      governorate: projectGov,
+      district: projectDistrict,
+      sub_district: projectSubDistrict,
+      gps_latitude: projectLat ? parseFloat(projectLat) : null,
+      gps_longitude: projectLng ? parseFloat(projectLng) : null,
       priority_code: priorityCode,
       risk_level: riskLevel,
       security_level: 2,
@@ -482,6 +522,15 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
         </div>
 
         <div className="flex items-center gap-2.5 self-start md:self-auto">
+          <button
+            onClick={() => setShowAddressManagerModal(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-bold shadow transition-all duration-150 cursor-pointer"
+            title={lang === 'ar' ? 'منظومة إدارة العناوين والتقسيمات والخرائط العالمية' : 'Global Addresses & Maps OS'}
+          >
+            <Globe className="w-4 h-4 text-teal-200" />
+            <span>{lang === 'ar' ? 'دليل العناوين والخرائط' : 'Addresses & Maps'}</span>
+          </button>
+
           <button
             onClick={() => setIsPDFModalOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow transition-all duration-150 cursor-pointer"
@@ -1031,20 +1080,31 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                 </div>
               </div>
 
-              {/* Status and Location */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'موقع التنفيذ ميدانياً' : 'Execution Location'}</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={locationName}
-                    onChange={(e) => setLocationName(e.target.value)}
-                    placeholder="e.g. صنعاء - مديرية السبعين"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none font-semibold text-slate-700"
-                  />
-                </div>
+              {/* Hierarchical Multi-Country Location with Global Maps Integration */}
+              <div className="bg-slate-50 dark:bg-zinc-950 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-3">
+                <GlobalAddressCascadePicker
+                  countryCode={projectCountry}
+                  stateGovernorate={projectGov}
+                  district={projectDistrict}
+                  detailedAddress={locationName}
+                  gpsLatitude={projectLat}
+                  gpsLongitude={projectLng}
+                  showGpsFields={true}
+                  lang={lang}
+                  onChange={(addr) => {
+                    setProjectCountry(addr.countryCode);
+                    setProjectGov(addr.stateGovernorate);
+                    setProjectDistrict(addr.district);
+                    setProjectSubDistrict(addr.subDistrict);
+                    setLocationName(addr.detailedAddress);
+                    if (addr.gpsLatitude) setProjectLat(String(addr.gpsLatitude));
+                    if (addr.gpsLongitude) setProjectLng(String(addr.gpsLongitude));
+                  }}
+                />
+              </div>
 
+              {/* Status and Priority */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'حالة العمل الحالية' : 'Operational Status'}</label>
                   <select 
@@ -1308,6 +1368,21 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
             }
           }}
         />
+      )}
+
+      {/* Global Addresses & Maps Manager Modal */}
+      {showAddressManagerModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 max-w-6xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowAddressManagerModal(false)}
+              className="absolute top-5 left-5 p-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-full text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer z-20"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <GlobalAddressManagerView lang={lang} />
+          </div>
+        </div>
       )}
     </div>
     </ModuleShell>

@@ -25,7 +25,10 @@ router.get('/beneficiaries', async (req: AuthenticatedRequest, res: Response) =>
     }, {
       status: req.query.status as string,
       gender: req.query.gender as string,
+      country: req.query.country as string,
       governorate: req.query.governorate as string,
+      district: req.query.district as string,
+      archetype: req.query.archetype as string,
       vulnerabilityStatus: req.query.vulnerabilityStatus as string,
       search: req.query.search as string,
     });

@@ -3800,6 +3800,9 @@ export function buildOfficialBeneficiaryAidCardPDFHTML(options: {
   reliefPackageAr?: string;
   dateGregorian?: string;
   distributorName?: string;
+  country?: string;
+  gpsCoordinates?: string;
+  archetype?: string;
   accentColor?: string;
   orgNameAr?: string;
 }): string {
@@ -3809,9 +3812,11 @@ export function buildOfficialBeneficiaryAidCardPDFHTML(options: {
   const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
   const benName = options.beneficiaryName || 'عبدالسلام محمد هزاع القادري';
   const idNo = options.nationalIdOrSurvey || 'بطاقة شخصية رقم: 0401029481 • مسح ميداني رقم 841';
+  const country = options.country || 'الجمهورية اليمنية';
   const gov = options.governorate || 'محافظة تعز';
   const dist = options.district || 'مديرية صبر الموادم';
   const village = options.village || 'عزلة النجار - قرية الحصن';
+  const gpsCoords = options.gpsCoordinates || '13.579500° N, 44.020100° E';
   const familyCount = options.familyMembersCount || 7;
   const category = options.vulnerabilityCategory || 'أسر أشد فقراً ومعيلة لأيتام';
   const reliefPkg = options.reliefPackageAr || 'سلة غذائية متكاملة مطابقة لمعايير ميثاق إسفير الإنساني (دقيق 50 كجم، أرز 20 كجم، سكر 10 كجم، زيت 8 لتر، بقوليات)';
@@ -3864,9 +3869,13 @@ export function buildOfficialBeneficiaryAidCardPDFHTML(options: {
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 10.5px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 10px;">
           <div>
-            <span style="color: #64748b; font-weight: bold;">النطاق الجغرافي: </span>
+            <span style="color: #64748b; font-weight: bold;">الدولة: </span>
+            <span style="color: #1e293b; font-weight: 700;">${country}</span>
+          </div>
+          <div>
+            <span style="color: #64748b; font-weight: bold;">المحافظة والمديرية: </span>
             <span style="color: #1e293b;">${gov} - ${dist}</span>
           </div>
           <div>
@@ -3879,11 +3888,18 @@ export function buildOfficialBeneficiaryAidCardPDFHTML(options: {
           </div>
         </div>
 
-        <div style="margin-top: 6px;">
-          <span style="color: #64748b; font-weight: bold;">فئة الاستحقاق والاحتياج: </span>
-          <span style="background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 10px;">
-            ${category}
-          </span>
+        <div style="margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+          <div>
+            <span style="color: #64748b; font-weight: bold;">فئة الاستحقاق والاحتياج: </span>
+            <span style="background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 10px;">
+              ${category}
+            </span>
+          </div>
+          <div>
+            <span style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 9.5px; font-family: monospace;">
+              📍 إحداثيات GPS الموثقة: ${gpsCoords}
+            </span>
+          </div>
         </div>
       </div>
 

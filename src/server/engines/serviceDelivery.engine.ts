@@ -22,7 +22,10 @@ export class BeneficiaryEngine {
   static async list(orgId: string, pagination: PaginationParams = {}, filters?: {
     status?: string;
     gender?: string;
+    country?: string;
     governorate?: string;
+    district?: string;
+    archetype?: string;
     vulnerabilityStatus?: string;
     search?: string;
   }): Promise<PaginatedResult<any>> {
@@ -32,7 +35,10 @@ export class BeneficiaryEngine {
 
     if (filters?.status) { conditions.push(`b.status = $${idx++}`); params.push(filters.status); }
     if (filters?.gender) { conditions.push(`b.gender = $${idx++}`); params.push(filters.gender); }
+    if (filters?.country) { conditions.push(`(b.country = $${idx} OR b.country_code = $${idx})`); params.push(filters.country); idx++; }
     if (filters?.governorate) { conditions.push(`b.governorate = $${idx++}`); params.push(filters.governorate); }
+    if (filters?.district) { conditions.push(`b.district = $${idx++}`); params.push(filters.district); }
+    if (filters?.archetype) { conditions.push(`b.archetype = $${idx++}`); params.push(filters.archetype); }
     if (filters?.vulnerabilityStatus) { conditions.push(`b.vulnerability_status = $${idx++}`); params.push(filters.vulnerabilityStatus); }
     if (filters?.search) {
       conditions.push(`(b.full_name_ar ILIKE $${idx} OR b.full_name_en ILIKE $${idx} OR b.beneficiary_code ILIKE $${idx})`);
@@ -147,8 +153,10 @@ export class BeneficiaryEngine {
         `INSERT INTO beneficiaries
          (organization_id, party_id, beneficiary_code, full_name_ar, full_name_en,
           gender, birth_date, family_members_count, vulnerability_status,
-          governorate, district, national_id, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ACTIVE')
+          country, country_code, governorate, district, sub_district, address,
+          gps_latitude, gps_longitude, archetype, entity_subtype,
+          national_id, phone_primary, metadata, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, 'ACTIVE')
          RETURNING *`,
         [
           data.organizationId,
@@ -160,9 +168,19 @@ export class BeneficiaryEngine {
           data.birthDate || null,
           data.familyMembersCount || 1,
           optionalString(data.vulnerabilityStatus),
+          optionalString(data.country) || 'اليمن',
+          optionalString(data.countryCode) || 'YE',
           optionalString(data.governorate),
           optionalString(data.district),
+          optionalString(data.subDistrict),
+          optionalString(data.address),
+          data.gpsLatitude || null,
+          data.gpsLongitude || null,
+          optionalString(data.archetype) || 'INDIVIDUAL',
+          optionalString(data.entitySubtype),
           optionalString(data.nationalId),
+          optionalString(data.phonePrimary || data.phone),
+          data.metadata ? JSON.stringify(data.metadata) : '{}',
         ]
       );
 
@@ -188,8 +206,19 @@ export class BeneficiaryEngine {
     gender: string;
     familyMembersCount: number;
     vulnerabilityStatus: string;
+    country: string;
+    countryCode: string;
     governorate: string;
     district: string;
+    subDistrict: string;
+    address: string;
+    gpsLatitude: number;
+    gpsLongitude: number;
+    archetype: string;
+    entitySubtype: string;
+    nationalId: string;
+    phonePrimary: string;
+    metadata: any;
     status: string;
   }>, auth: AuthContext) {
     const sets: string[] = [];
@@ -201,8 +230,19 @@ export class BeneficiaryEngine {
     if (data.gender !== undefined) { sets.push(`gender = $${idx++}`); values.push(data.gender); }
     if (data.familyMembersCount !== undefined) { sets.push(`family_members_count = $${idx++}`); values.push(data.familyMembersCount); }
     if (data.vulnerabilityStatus !== undefined) { sets.push(`vulnerability_status = $${idx++}`); values.push(data.vulnerabilityStatus); }
+    if (data.country !== undefined) { sets.push(`country = $${idx++}`); values.push(data.country); }
+    if (data.countryCode !== undefined) { sets.push(`country_code = $${idx++}`); values.push(data.countryCode); }
     if (data.governorate !== undefined) { sets.push(`governorate = $${idx++}`); values.push(data.governorate); }
     if (data.district !== undefined) { sets.push(`district = $${idx++}`); values.push(data.district); }
+    if (data.subDistrict !== undefined) { sets.push(`sub_district = $${idx++}`); values.push(data.subDistrict); }
+    if (data.address !== undefined) { sets.push(`address = $${idx++}`); values.push(data.address); }
+    if (data.gpsLatitude !== undefined) { sets.push(`gps_latitude = $${idx++}`); values.push(data.gpsLatitude); }
+    if (data.gpsLongitude !== undefined) { sets.push(`gps_longitude = $${idx++}`); values.push(data.gpsLongitude); }
+    if (data.archetype !== undefined) { sets.push(`archetype = $${idx++}`); values.push(data.archetype); }
+    if (data.entitySubtype !== undefined) { sets.push(`entity_subtype = $${idx++}`); values.push(data.entitySubtype); }
+    if (data.nationalId !== undefined) { sets.push(`national_id = $${idx++}`); values.push(data.nationalId); }
+    if (data.phonePrimary !== undefined) { sets.push(`phone_primary = $${idx++}`); values.push(data.phonePrimary); }
+    if (data.metadata !== undefined) { sets.push(`metadata = $${idx++}`); values.push(JSON.stringify(data.metadata)); }
     if (data.status !== undefined) { sets.push(`status = $${idx++}`); values.push(data.status); }
 
     if (sets.length === 0) return null;

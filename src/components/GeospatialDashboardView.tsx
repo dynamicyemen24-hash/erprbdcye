@@ -158,6 +158,15 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
   // Map projects to coordinates
   const mappedProjects = useMemo(() => {
     return projects.map((proj, idx) => {
+      // Check if project has exact GPS coordinates in database
+      const pAny = proj as any;
+      if (pAny.gps_latitude && pAny.gps_longitude && !isNaN(Number(pAny.gps_latitude)) && !isNaN(Number(pAny.gps_longitude))) {
+        return {
+          ...proj,
+          coords: { lat: Number(pAny.gps_latitude), lng: Number(pAny.gps_longitude) }
+        };
+      }
+
       // Find lat lng from location_name or governorate or fallback
       const locationKey = (proj.location_name || '').toLowerCase();
       let coords = { lat: 13.5795 + (idx % 5) * 0.25, lng: 44.0209 + (idx % 4) * 0.35 };

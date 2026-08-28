@@ -171,9 +171,20 @@ export interface BeneficiaryCreate {
   birthDate?: string;
   familyMembersCount?: number;
   vulnerabilityStatus?: string;
+  country?: string;
+  countryCode?: string;
   governorate?: string;
   district?: string;
+  subDistrict?: string;
+  address?: string;
+  gpsLatitude?: number | string;
+  gpsLongitude?: number | string;
+  archetype?: string;
+  entitySubtype?: string;
   nationalId?: string;
+  phonePrimary?: string;
+  phone?: string;
+  metadata?: any;
 }
 
 export interface ServiceDeliveryCreate {
