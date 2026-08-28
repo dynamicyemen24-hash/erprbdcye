@@ -44,6 +44,7 @@ import { Account, Transaction, TransactionLine } from './finance/FinanceTypes';
 import { printHTML, createPrintDocument } from '../lib/printUtils';
 
 // Subcomponents
+import ChartOfAccountsTreeView from './finance/ChartOfAccountsTreeView';
 import OpeningBalancesTab from './finance/OpeningBalancesTab';
 import AccountStatementTab from './finance/AccountStatementTab';
 import FinancialClosingsTab from './finance/FinancialClosingsTab';
@@ -96,6 +97,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
 
   const [coaSearch, setCoaSearch] = useState('');
   const [selectedType, setSelectedType] = useState('all');
+  const [statementAccountId, setStatementAccountId] = useState<string>('');
 
   // Operational Control Bar State & Reverse Entry Modal
   const [showReverseModal, setShowReverseModal] = useState(false);
@@ -585,99 +587,27 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         })}
       </div>
 
-      {/* SUBTAB 1: CHART OF ACCOUNTS TREE */}
+      {/* SUBTAB 1: CHART OF ACCOUNTS HIERARCHICAL TREEVIEW */}
       {activeSubTab === 'coa' && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 shadow-xs">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" 
-                      style={lang === 'en' ? { right: 'auto', left: '12px' } : {}} />
-              <input
-                type="text"
-                placeholder={lang === 'ar' ? 'بحث بكود الحساب أو الاسم المالي...' : 'Search accounts by code or ledger title...'}
-                value={coaSearch}
-                onChange={(e) => setCoaSearch(e.target.value)}
-                className="w-full pr-9 pl-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-500 transition-all text-slate-800 dark:text-zinc-100 placeholder-slate-400"
-                style={lang === 'en' ? { paddingRight: '12px', paddingLeft: '36px' } : {}}
-              />
-            </div>
-
-            <div className="w-full md:w-56">
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-200 focus:outline-none"
-              >
-                <option value="all">{lang === 'ar' ? 'كل أنواع الدليل' : 'All Account Types'}</option>
-                <option value="ASSET">{lang === 'ar' ? 'الأصول (Assets)' : 'Assets'}</option>
-                <option value="LIABILITY">{lang === 'ar' ? 'الخصوم (Liabilities)' : 'Liabilities'}</option>
-                <option value="EQUITY">{lang === 'ar' ? 'حقوق الملكية (Equity)' : 'Equity'}</option>
-                <option value="REVENUE">{lang === 'ar' ? 'الإيرادات (Revenue)' : 'Revenues'}</option>
-                <option value="EXPENSE">{lang === 'ar' ? 'المصروفات (Expense)' : 'Expenses'}</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
-                <thead>
-                  <tr className="bg-zinc-900 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                    <th className="p-3 w-32">{lang === 'ar' ? 'كود الحساب' : 'Account Code'}</th>
-                    <th className="p-3">{lang === 'ar' ? 'اسم الحساب في الدليل' : 'Account Title'}</th>
-                    <th className="p-3 w-36">{lang === 'ar' ? 'النوع الرئيسي' : 'Type'}</th>
-                    <th className="p-3 text-right w-40">{lang === 'ar' ? 'الرصيد الافتتاحي' : 'Opening Bal'}</th>
-                    <th className="p-3 text-right w-44">{lang === 'ar' ? 'الرصيد الحالي' : 'Current Balance'}</th>
-                    <th className="p-3 text-center w-20">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 text-slate-700">
-                  {loading ? (
-                    <EnterpriseSkeletonTable rows={6} columns={6} colWidths={['w-28', 'w-56', 'w-24', 'w-32', 'w-36', 'w-16']} />
-                  ) : filteredAccounts.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-zinc-400 font-bold">
-                        {lang === 'ar' ? 'لا توجد حسابات مطابقة للبحث' : 'No chart accounts found matching search'}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredAccounts.map((acc) => (
-                      <tr key={acc.id} className="hover:bg-slate-50/50 transition-all font-semibold">
-                        <td className="p-3 font-mono text-slate-900 font-black tracking-wide text-[11px]">{acc.account_code}</td>
-                        <td className="p-3 text-slate-800">{lang === 'ar' ? acc.name_ar : (acc.name_en || acc.name_ar)}</td>
-                        <td className="p-3">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            acc.account_type === 'ASSET' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                            acc.account_type === 'EXPENSE' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                            acc.account_type === 'REVENUE' ? 'bg-sky-50 text-sky-700 border border-sky-100' :
-                            'bg-amber-50 text-amber-700 border border-amber-100'
-                          }`}>
-                            {lang === 'ar' ? (
-                              acc.account_type === 'ASSET' ? 'أصول' :
-                              acc.account_type === 'EXPENSE' ? 'مصروفات' :
-                              acc.account_type === 'REVENUE' ? 'إيرادات' :
-                              acc.account_type === 'LIABILITY' ? 'التزامات' :
-                              acc.account_type === 'EQUITY' ? 'صافي أصول' : acc.account_type
-                            ) : acc.account_type}
-                          </span>
-                        </td>
-                        <td className="p-3 text-right font-mono text-slate-600">
-                          {parseFloat(String(acc.opening_balance || 0)).toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
-                        </td>
-                        <td className="p-3 text-right font-mono text-zinc-950 font-extrabold">
-                          {parseFloat(String(acc.current_balance || 0)).toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
-                        </td>
-                        <td className="p-3 text-center">
-                          <span className={`w-2 h-2 inline-block rounded-full ${acc.is_active ? 'bg-emerald-500' : 'bg-zinc-300'}`}></span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <ChartOfAccountsTreeView 
+          accounts={accounts} 
+          lang={lang} 
+          onRefresh={fetchFinanceData} 
+          onSelectAccountForStatement={(accId) => {
+            setStatementAccountId(accId);
+            setActiveSubTab('statement_query');
+          }}
+          onNavigateToTab={(tab) => {
+            if (tab === 'statement_query') {
+              setActiveSubTab('statement_query');
+            } else if (onNavigate) {
+              onNavigate(tab);
+            }
+          }}
+          onSaveAccounts={(updated) => {
+            setAccounts(updated);
+          }}
+        />
       )}
 
       {/* SUBTAB 2: OPENING BALANCES */}
@@ -840,6 +770,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
           transactions={transactions} 
           lines={lines} 
           lang={lang} 
+          initialAccountId={statementAccountId}
         />
       )}
 

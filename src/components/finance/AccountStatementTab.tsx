@@ -8,10 +8,17 @@ interface AccountStatementTabProps {
   transactions: Transaction[];
   lines: TransactionLine[];
   lang: 'ar' | 'en';
+  initialAccountId?: string;
 }
 
-export default function AccountStatementTab({ accounts, transactions, lines, lang }: AccountStatementTabProps) {
-  const [selectedAccountId, setSelectedAccountId] = useState('');
+export default function AccountStatementTab({ accounts, transactions, lines, lang, initialAccountId }: AccountStatementTabProps) {
+  const [selectedAccountId, setSelectedAccountId] = useState(initialAccountId || '');
+
+  React.useEffect(() => {
+    if (initialAccountId) {
+      setSelectedAccountId(initialAccountId);
+    }
+  }, [initialAccountId]);
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 1);
