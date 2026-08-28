@@ -1,5 +1,5 @@
 import { showToast } from './enterprise/EnterpriseToastContainer';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, 
   Search, 
@@ -21,7 +21,11 @@ import {
   Download,
   Eye,
   EyeOff,
-  Shield
+  Shield,
+  Building2,
+  Sparkles,
+  AlertTriangle,
+  GitCommit
 } from 'lucide-react';
 import ExportToolsModal from './ExportToolsModal';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
@@ -32,6 +36,18 @@ import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
 import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
 import { UniversalObjectPageModal } from './common/UniversalObjectPageModal';
+import {
+  BeneficiaryArchetype,
+  YEMEN_ADMINISTRATIVE_DIVISIONS,
+  generateNextBeneficiaryCode
+} from '../core/data/universalBeneficiaryTypes';
+import {
+  checkBeneficiaryDuplicates,
+  validateYemeniNationalId,
+  normalizePhoneNumber
+} from '../core/utils/dataIntegrityEngine';
+import SmartAutocompleteInput from './common/SmartAutocompleteInput';
+import CrossEntityLineageView from '../features/traceability/CrossEntityLineageView';
 
 interface BeneficiariesViewProps {
   beneficiaries: any[];
@@ -83,7 +99,9 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [activeFormTab, setActiveFormTab] = useState<'personal' | 'demographic' | 'support'>('personal');
 
-  // Fields
+  // Fields: Universal Beneficiary Master Model
+  const [archetype, setArchetype] = useState<BeneficiaryArchetype>('INDIVIDUAL');
+  const [entitySubtype, setEntitySubtype] = useState<string>('MOSQUE');
   const [fullNameAr, setFullNameAr] = useState('');
   const [beneficiaryCode, setBeneficiaryCode] = useState('');
   const [categoryCode, setCategoryCode] = useState('ORPHAN');
@@ -91,16 +109,69 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   const [genderCode, setGenderCode] = useState('MALE');
   const [age, setAge] = useState('');
   const [phonePrimary, setPhonePrimary] = useState('');
-  const [governorate, setGovernorate] = useState('');
+  const [nationalId, setNationalId] = useState('');
+  const [guardianName, setGuardianName] = useState('');
+  const [headOfFamilyName, setHeadOfFamilyName] = useState('');
+  const [supervisorName, setSupervisorName] = useState('');
+  const [supervisorPhone, setSupervisorPhone] = useState('');
+  const [capacityCount, setCapacityCount] = useState('');
+  const [wellDepth, setWellDepth] = useState('');
+  const [solarPump, setSolarPump] = useState('');
+  const [caravansCount, setCaravansCount] = useState('');
+  const [gpsLatitude, setGpsLatitude] = useState('');
+  const [gpsLongitude, setGpsLongitude] = useState('');
+  const [governorate, setGovernorate] = useState('صنعاء');
   const [district, setDistrict] = useState('');
   const [address, setAddress] = useState('');
   const [housingStatus, setHousingStatus] = useState('owned');
   const [familySize, setFamilySize] = useState('1');
+  const [isDisplaced, setIsDisplaced] = useState(false);
   const [educationLevel, setEducationLevel] = useState('');
   const [quranMemorization, setQuranMemorization] = useState('');
   const [financialStatus, setFinancialStatus] = useState('poor');
   const [deathCertificate, setDeathCertificate] = useState(false);
   const [notes, setNotes] = useState('');
+
+  // Lineage modal state
+  const [showLineageModal, setShowLineageModal] = useState(false);
+  const [lineageTargetBeneficiary, setLineageTargetBeneficiary] = useState<any | null>(null);
+
+  // Dynamic districts based on selected governorate for smart autocomplete
+  const currentGovernorateData = useMemo(() => {
+    return YEMEN_ADMINISTRATIVE_DIVISIONS.find(
+      g => g.governorate_ar === governorate || g.governorate_en.toLowerCase() === (governorate || '').toLowerCase()
+    );
+  }, [governorate]);
+
+  const availableDistricts = useMemo(() => {
+    if (currentGovernorateData) {
+      return currentGovernorateData.districts;
+    }
+    return Array.from(new Set(YEMEN_ADMINISTRATIVE_DIVISIONS.flatMap(g => g.districts)));
+  }, [currentGovernorateData]);
+
+  const availableGovernorates = useMemo(() => {
+    return YEMEN_ADMINISTRATIVE_DIVISIONS.map(g => g.governorate_ar);
+  }, []);
+
+  // Real-time instant duplicate checking (Zero-Friction: Instant & Non-blocking for warnings)
+  const duplicateCheck = useMemo(() => {
+    if (!isModalOpen) return { hasExactDuplicate: false, hasWarningDuplicate: false };
+    return checkBeneficiaryDuplicates(
+      {
+        id: selectedBeneficiary?.id,
+        archetype,
+        full_name_ar: fullNameAr,
+        phone_primary: phonePrimary,
+        national_id: nationalId,
+        governorate,
+        district,
+        gps_lat: gpsLatitude ? parseFloat(gpsLatitude) : undefined,
+        gps_lng: gpsLongitude ? parseFloat(gpsLongitude) : undefined
+      },
+      beneficiaries
+    );
+  }, [isModalOpen, selectedBeneficiary, archetype, fullNameAr, phonePrimary, nationalId, governorate, district, gpsLatitude, gpsLongitude, beneficiaries]);
 
   // Detailed view modal
   const [viewingBeneficiary, setViewingBeneficiary] = useState<any | null>(null);
@@ -181,18 +252,18 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
           <!-- Official Header Letterhead -->
           <div class="flex justify-between items-start pb-6 border-b-2 border-slate-900 gap-6">
             <div class="text-right space-y-1">
-              <h1 class="font-black text-lg text-slate-900">مؤسسة رحماء الخيرية للتنمية</h1>
+              <h1 class="font-black text-lg text-slate-900">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
               <p class="text-xs font-bold text-slate-500">إدارة الرعاية الاجتماعية والبحث الميداني</p>
               <p class="text-[10px] text-slate-400">صنعاء - الجمهورية اليمنية</p>
             </div>
             <div class="text-center shrink-0">
               <div class="border-2 border-slate-900 px-3 py-1.5 rounded-xl font-black text-sm tracking-widest bg-emerald-50">
-                NEXORA CASE
+                UAMEX CASE
               </div>
               <p class="text-[9px] font-bold text-slate-400 mt-1">وثيقة البحث الاجتماعي الموحدة</p>
             </div>
             <div class="text-left space-y-1">
-              <h1 class="font-black text-lg text-slate-900">Rohamaa Charity Foundation</h1>
+              <h1 class="font-black text-lg text-slate-900">Rohamā'a Baynahum Charity Foundation</h1>
               <p class="text-xs font-bold text-slate-500">Social Welfare & Field Research Dept</p>
               <p class="text-[10px] text-slate-400">Sanaa, Republic of Yemen</p>
             </div>
@@ -341,6 +412,16 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
     setFormError(null);
     setActiveFormTab('personal');
     if (beneficiary) {
+      const detectedArchetype: BeneficiaryArchetype = beneficiary.archetype || 
+        (beneficiary.category_code?.includes('FAMILY') || beneficiary.family_size > 1 ? 'FAMILY' :
+        (beneficiary.category_code === 'MOSQUE' || beneficiary.category_code === 'WATER_WELL' || beneficiary.beneficiary_code?.includes('MOSQ') || beneficiary.beneficiary_code?.includes('WELL') || beneficiary.beneficiary_code?.includes('SHEL')) ? 'COMMUNITY_ENTITY' : 'INDIVIDUAL');
+      
+      const detectedSubtype = beneficiary.community_entity_details?.entity_subtype || 
+        (beneficiary.beneficiary_code?.includes('WELL') ? 'WATER_WELL' : 
+         beneficiary.beneficiary_code?.includes('SHEL') ? 'SHELTER_CARAVAN' : 'MOSQUE');
+
+      setArchetype(detectedArchetype);
+      setEntitySubtype(detectedSubtype);
       setFullNameAr(beneficiary.full_name_ar || '');
       setBeneficiaryCode(beneficiary.beneficiary_code || '');
       setCategoryCode(beneficiary.category_code || 'ORPHAN');
@@ -348,31 +429,63 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       setGenderCode(beneficiary.gender_code || 'MALE');
       setAge(beneficiary.age ? String(beneficiary.age) : '');
       setPhonePrimary(beneficiary.phone_primary || '');
-      setGovernorate(beneficiary.governorate || '');
+      setNationalId(beneficiary.national_id || beneficiary.individual_details?.national_id || beneficiary.family_details?.head_national_id || '');
+      setGuardianName(beneficiary.individual_details?.guardian_name || '');
+      setHeadOfFamilyName(beneficiary.family_details?.head_of_family_name || beneficiary.full_name_ar || '');
+      setSupervisorName(beneficiary.community_entity_details?.supervisor_name || '');
+      setSupervisorPhone(beneficiary.community_entity_details?.supervisor_phone || '');
+      setCapacityCount(beneficiary.community_entity_details?.capacity_beneficiaries_count ? String(beneficiary.community_entity_details.capacity_beneficiaries_count) : '');
+      setWellDepth(beneficiary.community_entity_details?.technical_specs?.well_depth_meters ? String(beneficiary.community_entity_details.technical_specs.well_depth_meters) : '');
+      setSolarPump(beneficiary.community_entity_details?.technical_specs?.solar_pump_wattage ? String(beneficiary.community_entity_details.technical_specs.solar_pump_wattage) : '');
+      setCaravansCount(beneficiary.community_entity_details?.technical_specs?.caravans_count ? String(beneficiary.community_entity_details.technical_specs.caravans_count) : '');
+      setGpsLatitude(beneficiary.community_entity_details?.gps_latitude ? String(beneficiary.community_entity_details.gps_latitude) : '');
+      setGpsLongitude(beneficiary.community_entity_details?.gps_longitude ? String(beneficiary.community_entity_details.gps_longitude) : '');
+      setGovernorate(beneficiary.governorate || 'صنعاء');
       setDistrict(beneficiary.district || '');
       setAddress(beneficiary.address || '');
       setHousingStatus(beneficiary.housing_status || 'owned');
       setFamilySize(beneficiary.family_size ? String(beneficiary.family_size) : '1');
+      setIsDisplaced(!!beneficiary.family_details?.is_displaced);
       setEducationLevel(beneficiary.education_level || '');
       setQuranMemorization(beneficiary.quran_memorization || '');
       setFinancialStatus(beneficiary.financial_status || 'poor');
       setDeathCertificate(!!beneficiary.death_certificate);
       setNotes(beneficiary.notes || '');
     } else {
-      // Auto-generate code
-      const nextNum = beneficiaries.length + 101;
-      setBeneficiaryCode(prefilledData?.beneficiaryCode || `BEN-${String(nextNum).padStart(6, '0')}`);
+      const initialArchetype: BeneficiaryArchetype = prefilledData?.archetype || 'INDIVIDUAL';
+      const initialSubtype = prefilledData?.entitySubtype || 'MOSQUE';
+      setArchetype(initialArchetype);
+      setEntitySubtype(initialSubtype);
+      
+      const nextCode = generateNextBeneficiaryCode(
+        initialArchetype,
+        initialSubtype,
+        beneficiaries.map(b => b.beneficiary_code || '')
+      );
+      setBeneficiaryCode(prefilledData?.beneficiaryCode || nextCode);
       setFullNameAr(prefilledData?.fullNameAr || '');
       setCategoryCode(prefilledData?.categoryCode || 'ORPHAN');
       setStatusCode('active');
       setGenderCode(prefilledData?.genderCode || 'MALE');
       setAge(prefilledData?.age || '');
       setPhonePrimary(prefilledData?.phonePrimary || '');
+      setNationalId(prefilledData?.nationalId || '');
+      setGuardianName(prefilledData?.guardianName || '');
+      setHeadOfFamilyName(prefilledData?.headOfFamilyName || '');
+      setSupervisorName(prefilledData?.supervisorName || '');
+      setSupervisorPhone(prefilledData?.supervisorPhone || '');
+      setCapacityCount(prefilledData?.capacityCount || '');
+      setWellDepth(prefilledData?.wellDepth || '');
+      setSolarPump(prefilledData?.solarPump || '');
+      setCaravansCount(prefilledData?.caravansCount || '');
+      setGpsLatitude(prefilledData?.gpsLatitude || '');
+      setGpsLongitude(prefilledData?.gpsLongitude || '');
       setGovernorate(prefilledData?.governorate || 'صنعاء');
       setDistrict(prefilledData?.district || '');
       setAddress(prefilledData?.address || '');
       setHousingStatus('owned');
       setFamilySize(prefilledData?.familySize || '3');
+      setIsDisplaced(false);
       setEducationLevel(prefilledData?.educationLevel || '');
       setQuranMemorization('-');
       setFinancialStatus(prefilledData?.financialStatus || 'poor');
@@ -398,14 +511,33 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
     setFormSubmitting(true);
     setFormError(null);
 
-    const payload = {
+    // 1. Zero-Friction: Block confirmed exact duplicates to safeguard data integrity
+    if (duplicateCheck.hasExactDuplicate) {
+      setFormError(duplicateCheck.reasonAr || (lang === 'ar' ? 'تطابق مؤكد يمنع تكرار تسجيل نفس المستفيد.' : 'Duplicate record detected.'));
+      setFormSubmitting(false);
+      return;
+    }
+
+    // 2. Validate National ID format if provided
+    if (nationalId && nationalId.trim() !== '') {
+      const idValidation = validateYemeniNationalId(nationalId);
+      if (!idValidation.isValid) {
+        setFormError(idValidation.messageAr || (lang === 'ar' ? 'الرقم الوطني غير صحيح.' : 'Invalid National ID'));
+        setFormSubmitting(false);
+        return;
+      }
+    }
+
+    const payload: any = {
       full_name_ar: fullNameAr,
       beneficiary_code: beneficiaryCode,
-      category_code: categoryCode,
+      archetype,
+      category_code: archetype === 'COMMUNITY_ENTITY' ? entitySubtype : categoryCode,
       status_code: statusCode,
       gender_code: genderCode,
       age: age ? parseInt(age) : null,
       phone_primary: phonePrimary,
+      national_id: nationalId,
       governorate,
       district,
       address,
@@ -416,6 +548,35 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       financial_status: financialStatus,
       death_certificate: deathCertificate,
       notes,
+      individual_details: archetype === 'INDIVIDUAL' ? {
+        national_id: nationalId,
+        gender: genderCode as any,
+        guardian_name: guardianName
+      } : undefined,
+      family_details: archetype === 'FAMILY' ? {
+        head_of_family_name: headOfFamilyName || fullNameAr,
+        head_national_id: nationalId,
+        family_members_count: familySize ? parseInt(familySize) : 1,
+        males_count: 1,
+        females_count: 1,
+        children_under_5_count: 0,
+        is_displaced: isDisplaced,
+        housing_status: housingStatus as any
+      } : undefined,
+      community_entity_details: archetype === 'COMMUNITY_ENTITY' ? {
+        entity_subtype: entitySubtype as any,
+        supervisor_name: supervisorName,
+        supervisor_phone: supervisorPhone,
+        capacity_beneficiaries_count: capacityCount ? parseInt(capacityCount) : 0,
+        village_or_neighborhood: address,
+        gps_latitude: gpsLatitude ? parseFloat(gpsLatitude) : undefined,
+        gps_longitude: gpsLongitude ? parseFloat(gpsLongitude) : undefined,
+        technical_specs: {
+          well_depth_meters: wellDepth ? parseFloat(wellDepth) : undefined,
+          solar_pump_wattage: solarPump ? parseFloat(solarPump) : undefined,
+          caravans_count: caravansCount ? parseInt(caravansCount) : undefined
+        }
+      } : undefined
     };
 
     try {
@@ -436,6 +597,15 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         }
         throw new Error(errData.error || 'Failed to save beneficiary record.');
       }
+
+      showToast({
+        type: 'success',
+        title: lang === 'ar' ? 'تم الحفظ بنجاح' : 'Saved Successfully',
+        message: lang === 'ar' 
+          ? `تم اعتماد وحفظ سجل المستفيد (${beneficiaryCode}) في قاعدة البيانات الموحدة.` 
+          : `Beneficiary record (${beneficiaryCode}) committed to unified database.`,
+        duration: 3500
+      });
 
       onRefresh();
       setIsModalOpen(false);
@@ -530,6 +700,14 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         </div>
         
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setShowLineageModal(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            title={lang === 'ar' ? 'سلسلة التتبع والتكامل المؤسسي الشامل' : 'Cross-Entity Lineage & Traceability'}
+          >
+            <GitCommit className="w-4 h-4 text-indigo-200" />
+            <span>{lang === 'ar' ? 'التتبع المؤسسي' : 'Cross Lineage'}</span>
+          </button>
           <button
             onClick={() => setIsPDFModalOpen(true)}
             className="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
@@ -993,40 +1171,118 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
               </button>
             </div>
 
+            {/* Universal Master Archetype Selector */}
+            <div className="p-4 bg-slate-50 dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 space-y-2.5">
+              <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase">
+                <span>{lang === 'ar' ? 'نمط سجل المستفيد الموحد (Universal Archetype)' : 'Beneficiary Master Archetype'}</span>
+                <span className="font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                  {beneficiaryCode}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'INDIVIDUAL', labelAr: 'فرد / شخص', labelEn: 'Individual Person', icon: Users, desc: 'أيتام، معاقين، أرامل، مرضى' },
+                  { id: 'FAMILY', labelAr: 'أسرة معيلة', labelEn: 'Vulnerable Family', icon: Heart, desc: 'أسر أيتام، نازحين، أشد فقراً' },
+                  { id: 'COMMUNITY_ENTITY', labelAr: 'كيان / مرفق نفع عام', labelEn: 'Community Facility', icon: Building2, desc: 'مسجد، بئر ماء، كرفانات' }
+                ].map(arch => (
+                  <button
+                    key={arch.id}
+                    type="button"
+                    onClick={() => {
+                      setArchetype(arch.id as any);
+                      if (!selectedBeneficiary) {
+                        const newCode = generateNextBeneficiaryCode(
+                          arch.id as any,
+                          entitySubtype,
+                          beneficiaries.map(b => b.beneficiary_code || '')
+                        );
+                        setBeneficiaryCode(newCode);
+                      }
+                    }}
+                    className={`p-2.5 rounded-2xl border text-right transition-all cursor-pointer ${
+                      archetype === arch.id
+                        ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm'
+                        : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-black text-xs">
+                      <arch.icon className="w-3.5 h-3.5" />
+                      <span>{lang === 'ar' ? arch.labelAr : arch.labelEn}</span>
+                    </div>
+                    <div className={`text-[9px] mt-0.5 ${archetype === arch.id ? 'text-emerald-100' : 'text-slate-400'}`}>
+                      {arch.desc}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Tabs selector */}
             <div className="flex border-b border-slate-200 bg-slate-50/50">
               <button
                 type="button"
                 onClick={() => setActiveFormTab('personal')}
                 className={`flex-1 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
-                  activeFormTab === 'personal' ? 'border-amber-500 text-amber-700 bg-white' : 'border-transparent text-zinc-400 hover:text-slate-600'
+                  activeFormTab === 'personal' ? 'border-emerald-600 text-emerald-700 bg-white dark:bg-zinc-900' : 'border-transparent text-zinc-400 hover:text-slate-600'
                 }`}
               >
-                {lang === 'ar' ? 'البيانات الشخصية' : 'Personal Info'}
+                {lang === 'ar' ? (archetype === 'COMMUNITY_ENTITY' ? 'بيانات المرفق والمسؤول' : 'البيانات الأساسية') : 'Core Info'}
               </button>
               <button
                 type="button"
                 onClick={() => setActiveFormTab('demographic')}
                 className={`flex-1 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
-                  activeFormTab === 'demographic' ? 'border-amber-500 text-amber-700 bg-white' : 'border-transparent text-zinc-400 hover:text-slate-600'
+                  activeFormTab === 'demographic' ? 'border-emerald-600 text-emerald-700 bg-white dark:bg-zinc-900' : 'border-transparent text-zinc-400 hover:text-slate-600'
                 }`}
               >
-                {lang === 'ar' ? 'التفاصيل الديموغرافية والمنطقة' : 'Demographics'}
+                {lang === 'ar' ? 'الموقع الجغرافي والإدارة' : 'Location & Region'}
               </button>
               <button
                 type="button"
                 onClick={() => setActiveFormTab('support')}
                 className={`flex-1 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
-                  activeFormTab === 'support' ? 'border-amber-500 text-amber-700 bg-white' : 'border-transparent text-zinc-400 hover:text-slate-600'
+                  activeFormTab === 'support' ? 'border-emerald-600 text-emerald-700 bg-white dark:bg-zinc-900' : 'border-transparent text-zinc-400 hover:text-slate-600'
                 }`}
               >
-                {lang === 'ar' ? 'الوضع المالي والملاحظات' : 'Financial Details'}
+                {lang === 'ar' ? 'التقييم الاجتماعي والملاحظات' : 'Welfare & Specs'}
               </button>
             </div>
 
+            {/* Live Deduplication Alerts (Zero-Friction: Instant & Non-blocking for soft matches) */}
+            {duplicateCheck.hasExactDuplicate && (
+              <div className="m-4 p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 rounded-2xl text-rose-800 dark:text-rose-200 text-xs font-bold flex items-center justify-between gap-2 shadow-xs">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{duplicateCheck.reasonAr}</span>
+                </div>
+                {duplicateCheck.matchedBeneficiaryId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const matched = beneficiaries.find(b => b.id === duplicateCheck.matchedBeneficiaryId);
+                      if (matched) {
+                        setIsModalOpen(false);
+                        setViewingBeneficiary(matched);
+                      }
+                    }}
+                    className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-black cursor-pointer shrink-0"
+                  >
+                    {lang === 'ar' ? 'فتح السجل المسجل' : 'Open Record'}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {duplicateCheck.hasWarningDuplicate && !duplicateCheck.hasExactDuplicate && (
+              <div className="mx-4 mt-3 p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl text-amber-800 dark:text-amber-200 text-xs font-semibold flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>{duplicateCheck.reasonAr}</span>
+              </div>
+            )}
+
             {/* Error Banner inside form */}
             {formError && (
-              <div className="m-4 p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-600 text-xs font-bold flex items-center gap-2">
+              <div className="m-4 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-xs font-bold flex items-center gap-2">
                 <span>⚠️</span>
                 <span>{formError}</span>
               </div>
@@ -1044,205 +1300,410 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
             {/* Form */}
             <form onSubmit={handleSave}>
-              <div className="p-6 max-h-[400px] overflow-y-auto space-y-4">
+              <div className="p-6 max-h-[440px] overflow-y-auto space-y-4">
                 
-                {/* Tab: Personal */}
+                {/* Tab: Core Info */}
                 {activeFormTab === 'personal' && (
                   <div className="space-y-3">
+                    {/* Entity Subtype Selector if COMMUNITY_ENTITY */}
+                    {archetype === 'COMMUNITY_ENTITY' && (
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'نوع المرفق المجتمعي أو الكيان' : 'Facility Type'}</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { id: 'MOSQUE', labelAr: 'مسجد / جامع', icon: '🕌' },
+                            { id: 'WATER_WELL', labelAr: 'بئر ماء / محطة', icon: '💧' },
+                            { id: 'SHELTER_CARAVAN', labelAr: 'مخيم / كرفانات', icon: '🏕️' }
+                          ].map(sub => (
+                            <button
+                              key={sub.id}
+                              type="button"
+                              onClick={() => {
+                                setEntitySubtype(sub.id);
+                                if (!selectedBeneficiary) {
+                                  const newCode = generateNextBeneficiaryCode('COMMUNITY_ENTITY', sub.id, beneficiaries.map(b => b.beneficiary_code || ''));
+                                  setBeneficiaryCode(newCode);
+                                }
+                              }}
+                              className={`p-2 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
+                                entitySubtype === sub.id
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-black'
+                                  : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400'
+                              }`}
+                            >
+                              <span>{sub.icon} {sub.labelAr}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'كود الحالة (تلقائي)' : 'Case Code'}</label>
+                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'كود السجل (تلقائي ذكي)' : 'Master Code'}</label>
                         <input 
                           type="text" 
                           required 
                           readOnly
                           value={beneficiaryCode}
-                          className="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
+                          className="w-full bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-black text-emerald-700 dark:text-emerald-400 focus:outline-none" 
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'تصنيف الحالة المستحقة' : 'Category'}</label>
-                        <select 
-                          value={categoryCode}
-                          onChange={(e) => setCategoryCode(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        >
-                          <option value="ORPHAN">{lang === 'ar' ? 'يتيم (Orphan)' : 'Orphan'}</option>
-                          <option value="POOR_FAMILY">{lang === 'ar' ? 'أسرة فقيرة (Poor Family)' : 'Poor Family'}</option>
-                          <option value="DISABLED">{lang === 'ar' ? 'ذوي الاحتياجات الخاصة (Disabled)' : 'Disabled'}</option>
-                          <option value="WIDOW">{lang === 'ar' ? 'أرملة (Widow)' : 'Widow'}</option>
-                          <option value="SICK">{lang === 'ar' ? 'مريض مزمن (Chronic Sick)' : 'Chronic Sick'}</option>
-                        </select>
-                      </div>
+
+                      {archetype === 'INDIVIDUAL' && (
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'تصنيف الحالة المستحقة' : 'Category'}</label>
+                          <select 
+                            value={categoryCode}
+                            onChange={(e) => setCategoryCode(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none"
+                          >
+                            <option value="ORPHAN">{lang === 'ar' ? 'يتيم (Orphan)' : 'Orphan'}</option>
+                            <option value="POOR_FAMILY">{lang === 'ar' ? 'أسرة فقيرة (Poor Family)' : 'Poor Family'}</option>
+                            <option value="DISABLED">{lang === 'ar' ? 'ذوي الاحتياجات الخاصة (Disabled)' : 'Disabled'}</option>
+                            <option value="WIDOW">{lang === 'ar' ? 'أرملة (Widow)' : 'Widow'}</option>
+                            <option value="SICK">{lang === 'ar' ? 'مريض مزمن (Chronic Sick)' : 'Chronic Sick'}</option>
+                            <option value="STUDENT">{lang === 'ar' ? 'طالب علم (Student)' : 'Student'}</option>
+                          </select>
+                        </div>
+                      )}
+
+                      {archetype === 'FAMILY' && (
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عدد أفراد الأسرة' : 'Family Size'}</label>
+                          <input 
+                            type="number" 
+                            value={familySize}
+                            onChange={(e) => setFamilySize(e.target.value)}
+                            placeholder="مثال: 6"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
+                          />
+                        </div>
+                      )}
+
+                      {archetype === 'COMMUNITY_ENTITY' && (
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">
+                            {entitySubtype === 'MOSQUE' ? (lang === 'ar' ? 'سعة المصلين التقريبية' : 'Capacity') :
+                             entitySubtype === 'WATER_WELL' ? (lang === 'ar' ? 'عدد الأسر المستفيدة' : 'Beneficiary Families') :
+                             (lang === 'ar' ? 'عدد الأسر بالمخيم' : 'Camp Families')}
+                          </label>
+                          <input 
+                            type="number" 
+                            value={capacityCount}
+                            onChange={(e) => setCapacityCount(e.target.value)}
+                            placeholder="مثال: 250"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'الاسم الكامل باللغة العربية رباعياً' : 'Full Name (Arabic)'}</label>
+                      <label className="text-[11px] font-extrabold text-slate-500">
+                        {archetype === 'INDIVIDUAL' ? (lang === 'ar' ? 'الاسم الرباعي للشخص المستفيد' : 'Full Name (Arabic)') :
+                         archetype === 'FAMILY' ? (lang === 'ar' ? 'اسم رب الأسرة المعيل رباعياً' : 'Family Head Name') :
+                         (lang === 'ar' ? 'اسم المسجد / بئر الماء / المخيم رسمياً' : 'Facility Official Name')}
+                      </label>
                       <input 
                         type="text" 
                         required 
                         value={fullNameAr}
                         onChange={(e) => setFullNameAr(e.target.value)}
-                        placeholder="مثال: صالح محمد أحمد الرازحي"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500" 
+                        placeholder={
+                          archetype === 'COMMUNITY_ENTITY'
+                            ? (entitySubtype === 'MOSQUE' ? 'جامع الإحسان والتقوى الكبير' : entitySubtype === 'WATER_WELL' ? 'بئر مياه الرحمة ومحطة الطاقة الشمسية' : 'مخيم الأمل للكرفانات السكنية')
+                            : 'مثال: محمد عبد الله قاسم الشرعبي'
+                        }
+                        className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none focus:border-emerald-500" 
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'الجنس' : 'Gender'}</label>
-                        <select 
-                          value={genderCode}
-                          onChange={(e) => setGenderCode(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none"
-                        >
-                          <option value="MALE">{lang === 'ar' ? 'ذكر' : 'Male'}</option>
-                          <option value="FEMALE">{lang === 'ar' ? 'أنثى' : 'Female'}</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'العمر بالسنوات' : 'Age'}</label>
-                        <input 
-                          type="number" 
-                          value={age}
-                          onChange={(e) => setAge(e.target.value)}
-                          placeholder="مثال: 12"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
-                        />
-                      </div>
-                    </div>
+                    {/* National ID for Individual and Family */}
+                    {archetype !== 'COMMUNITY_ENTITY' && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">
+                            {lang === 'ar' ? 'الرقم الوطني للبطاقة الشخصية (11 رقم)' : 'National ID (11 digits)'}
+                          </label>
+                          <input 
+                            type="text" 
+                            value={nationalId}
+                            maxLength={11}
+                            onChange={(e) => setNationalId(e.target.value)}
+                            placeholder="010100XXXXX"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500" 
+                          />
+                        </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'رقم الهاتف الأساسي للتواصل' : 'Primary Phone'}</label>
-                      <div className="relative">
-                        <Phone className="absolute top-2.5 left-3 w-4 h-4 text-zinc-400" />
-                        <input 
-                          type="text" 
-                          required
-                          value={phonePrimary}
-                          onChange={(e) => setPhonePrimary(e.target.value)}
-                          placeholder="77XXXXXXX"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 pl-9 text-xs font-mono font-bold focus:outline-none" 
-                        />
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">
+                            {archetype === 'INDIVIDUAL' ? (lang === 'ar' ? 'اسم الوصي / ولي الأمر' : 'Guardian Name') : (lang === 'ar' ? 'حالة النزوح' : 'Displaced Status')}
+                          </label>
+                          {archetype === 'INDIVIDUAL' ? (
+                            <input 
+                              type="text" 
+                              value={guardianName}
+                              onChange={(e) => setGuardianName(e.target.value)}
+                              placeholder="اسم ولي أمر اليتيم"
+                              className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none" 
+                            />
+                          ) : (
+                            <label className="flex items-center gap-2 mt-2 cursor-pointer font-bold text-xs text-slate-600 dark:text-zinc-300">
+                              <input 
+                                type="checkbox" 
+                                checked={isDisplaced}
+                                onChange={(e) => setIsDisplaced(e.target.checked)}
+                                className="w-4 h-4 text-emerald-600 border-zinc-300 rounded focus:ring-emerald-500" 
+                              />
+                              <span>{lang === 'ar' ? 'أسرة نازحة من مناطق الصراع' : 'Displaced Family'}</span>
+                            </label>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* Community Entity Supervisor Details */}
+                    {archetype === 'COMMUNITY_ENTITY' && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">
+                            {entitySubtype === 'MOSQUE' ? (lang === 'ar' ? 'اسم إمام / ناظر المسجد' : 'Imam/Supervisor Name') :
+                             entitySubtype === 'WATER_WELL' ? (lang === 'ar' ? 'مسؤول لجنة البئر / المهندس' : 'Well Manager') :
+                             (lang === 'ar' ? 'مشرف المخيم الميداني' : 'Camp Coordinator')}
+                          </label>
+                          <input 
+                            type="text" 
+                            value={supervisorName}
+                            onChange={(e) => setSupervisorName(e.target.value)}
+                            placeholder="الاسم الثلاثي للمشرف"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'هاتف المشرف للتواصل' : 'Supervisor Phone'}</label>
+                          <input 
+                            type="text" 
+                            value={supervisorPhone}
+                            onChange={(e) => setSupervisorPhone(e.target.value)}
+                            placeholder="77XXXXXXX"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Phone Number for Individual / Family */}
+                    {archetype !== 'COMMUNITY_ENTITY' && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'رقم الهاتف الأساسي' : 'Primary Phone'}</label>
+                          <input 
+                            type="text" 
+                            required
+                            value={phonePrimary}
+                            onChange={(e) => setPhonePrimary(e.target.value)}
+                            placeholder="77XXXXXXX"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'العمر بالسنوات' : 'Age'}</label>
+                          <input 
+                            type="number" 
+                            value={age}
+                            onChange={(e) => setAge(e.target.value)}
+                            placeholder="مثال: 12"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Tab: Demographics */}
+                {/* Tab: Demographics & Smart Autocomplete */}
                 {activeFormTab === 'demographic' && (
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المحافظة' : 'Governorate'}</label>
-                        <input 
-                          type="text" 
-                          required 
-                          value={governorate}
-                          onChange={(e) => setGovernorate(e.target.value)}
-                          placeholder="مثال: صنعاء، ذمار"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none" 
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المديرية / العزلة' : 'District'}</label>
-                        <input 
-                          type="text" 
-                          value={district}
-                          onChange={(e) => setDistrict(e.target.value)}
-                          placeholder="مثال: السبعين، عتمة"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none" 
-                        />
-                      </div>
-                    </div>
+                      <SmartAutocompleteInput
+                        label={lang === 'ar' ? 'المحافظة' : 'Governorate'}
+                        value={governorate}
+                        onChange={(val) => {
+                          setGovernorate(val);
+                          setDistrict(''); // auto-reset district when governorate changes for zero friction
+                        }}
+                        options={availableGovernorates}
+                        placeholder={lang === 'ar' ? 'اختر أو اكتب المحافظة...' : 'Select governorate'}
+                        required
+                        isRtl={lang === 'ar'}
+                      />
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'العنوان التفصيلي' : 'Detail Address'}</label>
-                      <textarea 
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        placeholder="مثال: حارة النصر، بجوار مدرسة خالد بن الوليد"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none h-16 resize-none" 
+                      <SmartAutocompleteInput
+                        label={lang === 'ar' ? 'المديرية' : 'District'}
+                        value={district}
+                        onChange={(val) => setDistrict(val)}
+                        options={availableDistricts}
+                        placeholder={lang === 'ar' ? 'اختر المديرية التابعة...' : 'Select district'}
+                        badgeText={governorate}
+                        isRtl={lang === 'ar'}
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'العنوان التفصيلي (القرية / الحارة / المعلم البارز)' : 'Detailed Address'}</label>
+                      <textarea 
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="مثال: قرية المشرعة، بجوار المركز الصحي القديم"
+                        className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none h-16 resize-none" 
+                      />
+                    </div>
+
+                    {/* Community Entity GPS Coordinates */}
+                    {archetype === 'COMMUNITY_ENTITY' && (
+                      <div className="p-3 bg-slate-50 dark:bg-zinc-950 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-2">
+                        <div className="text-[10px] font-black text-slate-500 uppercase">
+                          {lang === 'ar' ? 'الإحداثيات الجغرافية للموقع (GPS - منع التكرار المكاني)' : 'Geographic GPS Coordinates'}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-slate-400">خط العرض (Latitude)</label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={gpsLatitude}
+                              onChange={(e) => setGpsLatitude(e.target.value)}
+                              placeholder="13.5795"
+                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-slate-400">خط الطول (Longitude)</label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={gpsLongitude}
+                              onChange={(e) => setGpsLongitude(e.target.value)}
+                              placeholder="44.0201"
+                              className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {archetype !== 'COMMUNITY_ENTITY' && (
                       <div className="space-y-1">
                         <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'حالة السكن' : 'Housing Status'}</label>
                         <select 
                           value={housingStatus}
                           onChange={(e) => setHousingStatus(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none"
                         >
                           <option value="owned">{lang === 'ar' ? 'ملك (Owned)' : 'Owned'}</option>
                           <option value="rented">{lang === 'ar' ? 'إيجار (Rented)' : 'Rented'}</option>
-                          <option value="displaced">{lang === 'ar' ? 'نازح / خيمة' : 'Displaced / Tent'}</option>
+                          <option value="displaced">{lang === 'ar' ? 'نازح / خيمة / كرفانة' : 'Displaced / Shelter'}</option>
                         </select>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عدد أفراد الأسرة' : 'Family Size'}</label>
-                        <input 
-                          type="number" 
-                          value={familySize}
-                          onChange={(e) => setFamilySize(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
-                        />
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
-                {/* Tab: Support */}
+                {/* Tab: Support & Technical Specs */}
                 {activeFormTab === 'support' && (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                    {archetype === 'COMMUNITY_ENTITY' && entitySubtype === 'WATER_WELL' && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عمق البئر بالأمتار' : 'Well Depth (Meters)'}</label>
+                          <input 
+                            type="number" 
+                            value={wellDepth}
+                            onChange={(e) => setWellDepth(e.target.value)}
+                            placeholder="مثال: 120"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'قدرة منظومة الطاقة الشمسية (وات)' : 'Solar System (Watts)'}</label>
+                          <input 
+                            type="number" 
+                            value={solarPump}
+                            onChange={(e) => setSolarPump(e.target.value)}
+                            placeholder="مثال: 15000"
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {archetype === 'COMMUNITY_ENTITY' && entitySubtype === 'SHELTER_CARAVAN' && (
                       <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المستوى التعليمي الحالي' : 'Education Level'}</label>
+                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عدد الكرفانات / الوحدات السكنية' : 'Caravans Count'}</label>
                         <input 
-                          type="text" 
-                          value={educationLevel}
-                          onChange={(e) => setEducationLevel(e.target.value)}
-                          placeholder="أول متوسط، ابتدائي..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none" 
+                          type="number" 
+                          value={caravansCount}
+                          onChange={(e) => setCaravansCount(e.target.value)}
+                          placeholder="مثال: 45"
+                          className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-mono font-bold focus:outline-none" 
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'مستوى حفظ القرآن' : 'Quran Memorization'}</label>
-                        <input 
-                          type="text" 
-                          value={quranMemorization}
-                          onChange={(e) => setQuranMemorization(e.target.value)}
-                          placeholder="جزء عم، 5 أجزاء..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none" 
-                        />
+                    )}
+
+                    {archetype === 'INDIVIDUAL' && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المستوى التعليمي' : 'Education Level'}</label>
+                          <input 
+                            type="text" 
+                            value={educationLevel}
+                            onChange={(e) => setEducationLevel(e.target.value)}
+                            placeholder="أساسي، إعدادي..."
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'مستوى حفظ القرآن' : 'Quran Memorization'}</label>
+                          <input 
+                            type="text" 
+                            value={quranMemorization}
+                            onChange={(e) => setQuranMemorization(e.target.value)}
+                            placeholder="جزء عم، 5 أجزاء..."
+                            className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none" 
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'الوضع المعيشي والمادي' : 'Financial Status'}</label>
+                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المستوى المعيشي والاحتياج' : 'Need Level'}</label>
                         <select 
                           value={financialStatus}
                           onChange={(e) => setFinancialStatus(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none"
                         >
-                          <option value="poor">{lang === 'ar' ? 'فقير (Poor)' : 'Poor'}</option>
-                          <option value="very_poor">{lang === 'ar' ? 'معدم / شديد الفقر' : 'Destitute'}</option>
-                          <option value="medium">{lang === 'ar' ? 'مستور / متوسط' : 'Medium'}</option>
+                          <option value="very_poor">{lang === 'ar' ? 'معدم / أشد احتياجاً (Extreme)' : 'Extreme Need'}</option>
+                          <option value="poor">{lang === 'ar' ? 'فقير / مستحق (High)' : 'High Need'}</option>
+                          <option value="medium">{lang === 'ar' ? 'متوسط / مستور (Medium)' : 'Medium'}</option>
                         </select>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'حالة شهادة وفاة الأب (للأيتام)' : 'Death Certificate'}</label>
-                        <label className="flex items-center gap-2 mt-2 cursor-pointer font-bold text-xs text-slate-600">
-                          <input 
-                            type="checkbox" 
-                            checked={deathCertificate}
-                            onChange={(e) => setDeathCertificate(e.target.checked)}
-                            className="w-4 h-4 text-amber-600 border-zinc-300 rounded focus:ring-amber-500" 
-                          />
-                          <span>{lang === 'ar' ? 'شهادة الوفاة متوفرة' : 'Available'}</span>
-                        </label>
-                      </div>
+
+                      {archetype === 'INDIVIDUAL' && categoryCode === 'ORPHAN' && (
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'شهادة وفاة الأب' : 'Death Certificate'}</label>
+                          <label className="flex items-center gap-2 mt-2 cursor-pointer font-bold text-xs text-slate-600 dark:text-zinc-300">
+                            <input 
+                              type="checkbox" 
+                              checked={deathCertificate}
+                              onChange={(e) => setDeathCertificate(e.target.checked)}
+                              className="w-4 h-4 text-emerald-600 border-zinc-300 rounded focus:ring-emerald-500" 
+                            />
+                            <span>{lang === 'ar' ? 'شهادة الوفاة متوفرة ومعتمدة' : 'Verified Certificate'}</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-1">
@@ -1250,13 +1711,12 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                       <textarea 
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        placeholder="اكتب أي معلومات إضافية كحالة المرض، الاحتياجات الصحية الفورية..."
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none h-20 resize-none" 
+                        placeholder="توصيات الباحث الميداني..."
+                        className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none h-16 resize-none" 
                       />
                     </div>
                   </div>
                 )}
-
               </div>
 
               {/* Actions Footer */}
@@ -1346,6 +1806,21 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         fileName="NexoraOS_Beneficiaries_Registry"
         lang={lang}
       />
+
+      {/* Cross-Entity Lineage Modal */}
+      {showLineageModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800 max-w-6xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowLineageModal(false)}
+              className="absolute top-5 left-5 p-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-full text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer z-20"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <CrossEntityLineageView lang={lang} />
+          </div>
+        </div>
+      )}
 
     </div>
     </ModuleShell>

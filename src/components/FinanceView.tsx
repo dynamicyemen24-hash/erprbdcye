@@ -36,12 +36,14 @@ import {
   ShieldCheck,
   Building2,
   Layers,
-  Zap
+  Zap,
+  GitCommit
 } from 'lucide-react';
 
 import { Currency, Project } from '../types';
 import { Account, Transaction, TransactionLine } from './finance/FinanceTypes';
 import { printHTML, createPrintDocument } from '../lib/printUtils';
+import CrossEntityLineageView from '../features/traceability/CrossEntityLineageView';
 
 // Subcomponents
 import ChartOfAccountsTreeView from './finance/ChartOfAccountsTreeView';
@@ -80,7 +82,7 @@ interface FinanceViewProps {
   onNavigate?: (tab: string) => void;
 }
 
-type FinanceSubTab = 'coa' | 'cost_centers' | 'opening_balances' | 'data_exchange' | 'entry' | 'payment_vouchers' | 'receipt_vouchers' | 'document_workflow' | 'ledger' | 'statement_query' | 'statements' | 'closings' | 'ai_parser' | 'bi_analytics' | 'governance_settings' | 'procurement' | 'currency_conversion' | 'budget_variance' | 'management_accounting' | 'e_invoicing' | 'batch_automation' | 'cfo_audit_suite' | 'endowment_governance' | 'consolidated_statements';
+type FinanceSubTab = 'coa' | 'cost_centers' | 'lineage' | 'opening_balances' | 'data_exchange' | 'entry' | 'payment_vouchers' | 'receipt_vouchers' | 'document_workflow' | 'ledger' | 'statement_query' | 'statements' | 'closings' | 'ai_parser' | 'bi_analytics' | 'governance_settings' | 'procurement' | 'currency_conversion' | 'budget_variance' | 'management_accounting' | 'e_invoicing' | 'batch_automation' | 'cfo_audit_suite' | 'endowment_governance' | 'consolidated_statements';
 
 export default function FinanceView({ currencies, lang, onRefresh, onNavigate }: FinanceViewProps) {
   const [activeSubTab, setActiveSubTab] = useState<FinanceSubTab>('coa');
@@ -531,6 +533,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         {[
           { id: 'coa', label: lang === 'ar' ? 'دليل الحسابات' : 'Chart of Accounts', icon: FolderTree },
           { id: 'cost_centers', label: lang === 'ar' ? 'مراكز التكلفة ومحاسبة الأنشطة' : 'Cost Centers & Activity OS', icon: Calculator },
+          { id: 'lineage', label: lang === 'ar' ? 'سلسلة التتبع والتكامل المؤسسي' : 'Cross-Entity Lineage & Traceability', icon: GitCommit },
           { id: 'payment_vouchers', label: lang === 'ar' ? '💸 شاشة سندات الصرف المالي' : 'Payment Vouchers Workspace', icon: TrendingDown },
           { id: 'receipt_vouchers', label: lang === 'ar' ? '💰 شاشة سندات التوريد والقبض' : 'Receipt Vouchers Workspace', icon: TrendingUp },
           { id: 'opening_balances', label: lang === 'ar' ? 'الأرصدة الافتتاحية' : 'Opening Balances', icon: DollarSign },
@@ -556,7 +559,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         ].filter((tab) => {
           if (accountingPillar === 'all') return true;
           if (accountingPillar === 'operations') {
-            return ['payment_vouchers', 'receipt_vouchers', 'entry', 'ledger', 'document_workflow'].includes(tab.id);
+            return ['lineage', 'payment_vouchers', 'receipt_vouchers', 'entry', 'ledger', 'document_workflow'].includes(tab.id);
           }
           if (accountingPillar === 'ledger') {
             return ['coa', 'cost_centers', 'opening_balances', 'statement_query', 'data_exchange'].includes(tab.id);
@@ -565,7 +568,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
             return ['statements', 'consolidated_statements', 'closings', 'cfo_audit_suite', 'bi_analytics'].includes(tab.id);
           }
           if (accountingPillar === 'cost_budget') {
-            return ['cost_centers', 'management_accounting', 'budget_variance', 'endowment_governance', 'currency_conversion'].includes(tab.id);
+            return ['cost_centers', 'lineage', 'management_accounting', 'budget_variance', 'endowment_governance', 'currency_conversion'].includes(tab.id);
           }
           if (accountingPillar === 'automation') {
             return ['e_invoicing', 'batch_automation', 'ai_parser', 'procurement', 'governance_settings'].includes(tab.id);
@@ -621,6 +624,17 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
           }}
           onNavigateToTab={(tab) => {
             setActiveSubTab(tab as any);
+          }}
+        />
+      )}
+
+      {/* SUBTAB: CROSS-ENTITY LINEAGE & TRACEABILITY SUITE */}
+      {activeSubTab === 'lineage' && (
+        <CrossEntityLineageView
+          lang={lang}
+          onNavigateToEntity={(domain, id) => {
+            if (domain === 'vouchers') setActiveSubTab('payment_vouchers');
+            else if (domain === 'ledger') setActiveSubTab('ledger');
           }}
         />
       )}
