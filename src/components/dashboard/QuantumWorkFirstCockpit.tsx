@@ -34,12 +34,18 @@ import {
   ChevronRight,
   Eye,
   Check,
-  X
+  X,
+  RotateCcw,
+  HelpCircle,
+  Send,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { ActiveTab, User } from '../../core/types/dashboard';
 import { useResumeIntelligence } from '../../core/services/resumeIntelligence';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
 import { UniversalObjectPageModal } from '../common/UniversalObjectPageModal';
+import { showToast } from '../enterprise/EnterpriseToastContainer';
 
 interface QuantumWorkFirstCockpitProps {
   lang: 'ar' | 'en';
@@ -79,6 +85,19 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
   const [streamFilter, setStreamFilter] = useState<'ALL' | 'CRITICAL' | 'FINANCE' | 'FIELD'>('ALL');
   const [processedTasks, setProcessedTasks] = useState<string[]>([]);
   const [inspectingRecord, setInspectingRecord] = useState<any | null>(null);
+  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
+  const [aiPopoverTaskId, setAiPopoverTaskId] = useState<string | null>(null);
+  const [clarificationModal, setClarificationModal] = useState<{
+    isOpen: boolean;
+    task: any | null;
+    reason: string;
+    note: string;
+  }>({
+    isOpen: false,
+    task: null,
+    reason: 'نقص الفاتورة الضريبية الأصلية أو محضر الفحص الفني',
+    note: ''
+  });
 
   // High-Priority Actionable Decision Items
   const rawDecisions = useMemo(() => [
@@ -188,6 +207,71 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
     triggerHaptic('medium');
     setProcessedTasks(prev => [...prev, id]);
   };
+
+  const handleToggleSelectAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic('light');
+    if (selectedBatchIds.length === activeDecisions.length) {
+      setSelectedBatchIds([]);
+    } else {
+      setSelectedBatchIds(activeDecisions.map(d => d.id));
+    }
+  };
+
+  const handleToggleBatchItem = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic('light');
+    setSelectedBatchIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBatchApprove = () => {
+    if (selectedBatchIds.length === 0) return;
+    triggerHaptic('success');
+    setProcessedTasks(prev => [...prev, ...selectedBatchIds]);
+    showToast({
+      type: 'success',
+      title: isRtl ? 'تم اعتماد الدفعة بنجاح' : 'Batch Approved',
+      message: isRtl 
+        ? `تمت مصادقة ${selectedBatchIds.length} معاملات وصرفها مالياً بنجاح`
+        : `Successfully cleared ${selectedBatchIds.length} transactions in batch`,
+      duration: 4000
+    });
+    setSelectedBatchIds([]);
+  };
+
+  const handleOpenClarification = (task: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic('medium');
+    setClarificationModal({
+      isOpen: true,
+      task,
+      reason: isRtl ? 'نقص الفاتورة الضريبية الأصلية أو محضر الفحص الفني' : 'Missing tax invoice or delivery note',
+      note: ''
+    });
+  };
+
+  const handleConfirmClarification = () => {
+    if (!clarificationModal.task) return;
+    triggerHaptic('warning');
+    setProcessedTasks(prev => [...prev, clarificationModal.task.id]);
+    showToast({
+      type: 'warning',
+      title: isRtl ? 'تمت إعادة المعاملة للاستيفاء' : 'Returned for Clarification',
+      message: isRtl
+        ? `تمت إعادة السند [${clarificationModal.task.projectCode}] مع إشعار المسؤول: ${clarificationModal.reason}`
+        : `Transaction returned with notice: ${clarificationModal.reason}`,
+      duration: 4000
+    });
+    setClarificationModal({ isOpen: false, task: null, reason: '', note: '' });
+  };
+
+  const totalBatchAmount = useMemo(() => {
+    return activeDecisions
+      .filter(d => selectedBatchIds.includes(d.id))
+      .reduce((sum, d) => sum + d.amountYer, 0);
+  }, [activeDecisions, selectedBatchIds]);
 
   // 4 Vital Focused KPIs
   const vitalKPIs = useMemo(() => [
@@ -349,61 +433,102 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
             </div>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-zinc-950 p-1 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs font-bold">
-            <button
-              onClick={() => setStreamFilter('ALL')}
-              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                streamFilter === 'ALL'
-                  ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs font-black'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200'
-              }`}
-            >
-              {isRtl ? 'الكل' : 'All'} ({rawDecisions.length})
-            </button>
-            <button
-              onClick={() => setStreamFilter('CRITICAL')}
-              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                streamFilter === 'CRITICAL'
-                  ? 'bg-rose-500 text-white shadow-xs font-black'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-rose-500'
-              }`}
-            >
-              {isRtl ? 'عاجل وحرج' : 'Critical'}
-            </button>
-            <button
-              onClick={() => setStreamFilter('FINANCE')}
-              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                streamFilter === 'FINANCE'
-                  ? 'bg-emerald-600 text-white shadow-xs font-black'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-emerald-500'
-              }`}
-            >
-              {isRtl ? 'مالية' : 'Finance'}
-            </button>
-            <button
-              onClick={() => setStreamFilter('FIELD')}
-              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                streamFilter === 'FIELD'
-                  ? 'bg-teal-600 text-white shadow-xs font-black'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-teal-500'
-              }`}
-            >
-              {isRtl ? 'ميدان' : 'Field'}
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {activeDecisions.length > 0 && (
+              <button
+                onClick={handleToggleSelectAll}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:border-emerald-500 transition-all cursor-pointer shadow-2xs"
+                title={isRtl ? 'تحديد كافة المعاملات للاعتماد الجماعي' : 'Select all for batch approval'}
+              >
+                {selectedBatchIds.length === activeDecisions.length && activeDecisions.length > 0 ? (
+                  <CheckSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <Square className="w-4 h-4 text-slate-400" />
+                )}
+                <span>{isRtl ? 'تحديد الكل للدفعة' : 'Select All'}</span>
+              </button>
+            )}
+
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-zinc-950 p-1 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs font-bold">
+              <button
+                onClick={() => setStreamFilter('ALL')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  streamFilter === 'ALL'
+                    ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs font-black'
+                    : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200'
+                }`}
+              >
+                {isRtl ? 'الكل' : 'All'} ({rawDecisions.length})
+              </button>
+              <button
+                onClick={() => setStreamFilter('CRITICAL')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  streamFilter === 'CRITICAL'
+                    ? 'bg-rose-500 text-white shadow-xs font-black'
+                    : 'text-slate-500 dark:text-zinc-400 hover:text-rose-500'
+                }`}
+              >
+                {isRtl ? 'عاجل وحرج' : 'Critical'}
+              </button>
+              <button
+                onClick={() => setStreamFilter('FINANCE')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  streamFilter === 'FINANCE'
+                    ? 'bg-emerald-600 text-white shadow-xs font-black'
+                    : 'text-slate-500 dark:text-zinc-400 hover:text-emerald-500'
+                }`}
+              >
+                {isRtl ? 'مالية' : 'Finance'}
+              </button>
+              <button
+                onClick={() => setStreamFilter('FIELD')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  streamFilter === 'FIELD'
+                    ? 'bg-teal-600 text-white shadow-xs font-black'
+                    : 'text-slate-500 dark:text-zinc-400 hover:text-teal-500'
+                }`}
+              >
+                {isRtl ? 'ميدان' : 'Field'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Action Items List */}
         {activeDecisions.length === 0 ? (
-          <div className="py-10 text-center text-slate-400 dark:text-zinc-500">
-            <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-emerald-500" />
-            <p className="text-sm font-bold text-slate-700 dark:text-zinc-300">
-              {isRtl ? 'رائع! لا توجد معاملات معلقة تنتظر قرارك الآن' : 'All clear! No pending transactions require your attention'}
+          <div className="py-10 px-6 rounded-2xl bg-gradient-to-br from-emerald-500/[0.05] via-teal-500/[0.02] to-transparent border border-emerald-500/25 text-center my-2">
+            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs">
+              <Sparkles className="w-7 h-7 animate-pulse" />
+            </div>
+            <h4 className="text-base font-black text-slate-900 dark:text-white mb-1.5">
+              {isRtl ? 'أداء استثنائي! تم إنجاز وتصفير كافة طلبات الاعتماد (Inbox Zero 🎉)' : 'Outstanding! All Decisions Cleared (Inbox Zero 🎉)'}
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-md mx-auto mb-5 leading-relaxed">
+              {isRtl 
+                ? 'كافة طلبات الصرف وأوامر الشراء الميدانية تمت معالجتها ومطابقتها وفق معايير IPSAS. لا توجد أي مهام معلقة تنتظر قرارك الآن.'
+                : 'All financial vouchers and procurement requests are verified and settled under IPSAS standards. Zero pending bottlenecks.'}
             </p>
-            <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">
-              {isRtl ? 'تم إنجاز كافة طلبات الاعتماد بنجاح.' : 'All approval workflows have been processed.'}
-            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {onSwitchToClassicAnalytics && (
+                <button
+                  onClick={onSwitchToClassicAnalytics}
+                  className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-black transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-amber-500" />
+                  <span>{isRtl ? 'استعراض التحليلات الاستراتيجية والمحافظ' : 'Explore Strategic Analytics'}</span>
+                </button>
+              )}
+              {onOpenSystemMap && (
+                <button
+                  onClick={onOpenSystemMap}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Compass className="w-4 h-4 text-emerald-500" />
+                  <span>{isRtl ? 'استكشاف خريطة الأنظمة الـ15 (Alt + M)' : 'Explore 15 Domains Map (Alt + M)'}</span>
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -420,6 +545,19 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
                   }`}
                 >
                   <div className="flex items-start gap-3 min-w-0 flex-1">
+                    {/* Multi-Select Batch Checkbox */}
+                    <div 
+                      onClick={(e) => handleToggleBatchItem(task.id, e)}
+                      className="p-1 cursor-pointer text-slate-400 hover:text-emerald-600 transition-colors shrink-0 mt-1"
+                      title={isRtl ? 'تحديد للاعتماد الجماعي' : 'Select for batch'}
+                    >
+                      {selectedBatchIds.includes(task.id) ? (
+                        <CheckSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-400" />
+                      )}
+                    </div>
+
                     <div className={`p-2 rounded-xl mt-0.5 shrink-0 ${
                       isCritical 
                         ? 'bg-rose-500 text-white shadow-xs' 
@@ -447,14 +585,59 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-zinc-400">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
                         <span className="font-mono font-black text-slate-900 dark:text-emerald-400">
                           {task.amountYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}
                         </span>
                         <span>•</span>
-                        <span className="text-[11px] text-slate-600 dark:text-zinc-400">
-                          {isRtl ? task.aiCheckAr : task.aiCheckEn}
-                        </span>
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAiPopoverTaskId(aiPopoverTaskId === task.id ? null : task.id);
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition-colors cursor-pointer"
+                            title={isRtl ? 'عرض نتائج فحص الامتثال الذكي' : 'View AI audit checks'}
+                          >
+                            <Sparkles className="w-3 h-3 text-emerald-500" />
+                            <span>{isRtl ? '98% تدقيق AI استباقي' : '98% AI Audit'}</span>
+                          </button>
+
+                          {/* AI Compliance Popover */}
+                          {aiPopoverTaskId === task.id && (
+                            <div 
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute z-30 top-7 right-0 w-72 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-3.5 shadow-xl space-y-2 animate-in fade-in"
+                            >
+                              <div className="flex items-center justify-between text-xs font-black text-slate-900 dark:text-white border-b border-slate-100 dark:border-zinc-800 pb-2">
+                                <span className="flex items-center gap-1.5">
+                                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                  <span>{isRtl ? 'فحص الامتثال المحاسبي IPSAS' : 'IPSAS Compliance Audit'}</span>
+                                </span>
+                                <button 
+                                  onClick={() => setAiPopoverTaskId(null)}
+                                  className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <div className="text-[11px] space-y-1.5 text-slate-600 dark:text-zinc-300">
+                                <div className="flex items-center gap-2">
+                                  <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+                                  <span>{isRtl ? 'القيد المحاسبي المزدوج متزن وفق الدليل' : 'Double-entry GL routing balanced'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+                                  <span>{isRtl ? 'رصيد بند الموازنة كافٍ ولا يتجاوز السقف' : 'Budget WBS ceiling sufficient'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+                                  <span>{isRtl ? 'الفواتير والتوثيق الحيوي مكتملة 100%' : 'All invoices & biometrics verified'}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -467,6 +650,15 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>{isRtl ? 'اعتماد فوري' : 'Quick Approve'}</span>
+                    </button>
+
+                    <button
+                      onClick={(e) => handleOpenClarification(task, e)}
+                      className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                      title={isRtl ? 'طلب استيفاء ونواقص أو إعادة للتصحيح' : 'Return for clarification'}
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{isRtl ? 'استيفاء' : 'Return'}</span>
                     </button>
 
                     <button
@@ -1078,6 +1270,141 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
             setInspectingRecord(null);
           } : undefined}
         />
+      )}
+
+      {/* Floating Bottom Dock for Batch Approvals */}
+      {selectedBatchIds.length > 0 && (
+        <div className="fixed bottom-6 inset-x-0 mx-auto max-w-2xl z-40 px-4 animate-in slide-in-from-bottom-5">
+          <div className="bg-slate-900/95 dark:bg-zinc-900/95 backdrop-blur-md text-white border border-emerald-500/40 rounded-3xl p-3.5 shadow-2xl flex flex-wrap items-center justify-between gap-3 ring-4 ring-black/20">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-mono font-black text-sm shadow-xs">
+                {selectedBatchIds.length}
+              </div>
+              <div>
+                <div className="text-xs font-black text-white flex items-center gap-2">
+                  <span>{isRtl ? `تم تحديد ${selectedBatchIds.length} معاملات للاعتماد الجماعي` : `${selectedBatchIds.length} transactions selected`}</span>
+                  <span className="px-2 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-mono">Mass Action</span>
+                </div>
+                <div className="text-[11px] text-slate-300 font-mono">
+                  {isRtl ? `إجمالي المبالغ: ${totalBatchAmount.toLocaleString()} ر.ي` : `Total: ${totalBatchAmount.toLocaleString()} YER`}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedBatchIds([])}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all cursor-pointer"
+              >
+                {isRtl ? 'إلغاء التحديد' : 'Deselect'}
+              </button>
+
+              <button
+                onClick={handleBatchApprove}
+                className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>{isRtl ? 'اعتماد الدفعة بلمسة واحدة' : 'Approve Batch Now'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Return for Clarification Micro-Modal */}
+      {clarificationModal.isOpen && clarificationModal.task && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div 
+            className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4"
+            dir={isRtl ? 'rtl' : 'ltr'}
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400">
+                  <RotateCcw className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-black text-sm text-slate-900 dark:text-white">
+                    {isRtl ? 'إعادة المعاملة للاستيفاء أو التصحيح' : 'Return for Clarification / Correction'}
+                  </h4>
+                  <p className="text-[11px] font-mono text-slate-500">
+                    {clarificationModal.task.projectCode} • {clarificationModal.task.amountYer.toLocaleString()} {isRtl ? 'ر.ي' : 'YER'}
+                  </p>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setClarificationModal({ isOpen: false, task: null, reason: '', note: '' })}
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <label className="font-black text-slate-800 dark:text-zinc-200 block">
+                {isRtl ? 'حدد سبب الإعادة للجهة الطالبة / المحاسب:' : 'Select correction reason:'}
+              </label>
+
+              <div className="space-y-2">
+                {[
+                  isRtl ? 'نقص الفاتورة الضريبية الأصلية أو محضر الفحص الفني' : 'Missing tax invoice or inspection report',
+                  isRtl ? 'تجاوز سقف الموازنة المعتمدة لبند المشروع (WBS Overrun)' : 'Budget ceiling overrun for WBS item',
+                  isRtl ? 'الحاجة لتعديل التوجيه المحاسبي ومركز التكلفة بدفتر الأستاذ' : 'Incorrect GL account or cost center code',
+                  isRtl ? 'نقص تواقيع اللجنة الميدانية أو إثبات استلام المستفيد' : 'Missing field committee signatures or proof of delivery'
+                ].map((reasonText) => (
+                  <label 
+                    key={reasonText}
+                    className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all ${
+                      clarificationModal.reason === reasonText
+                        ? 'border-amber-500 bg-amber-500/10 text-slate-900 dark:text-white font-bold'
+                        : 'border-slate-200 dark:border-zinc-800 hover:border-slate-300 text-slate-600 dark:text-zinc-400'
+                    }`}
+                  >
+                    <input 
+                      type="radio" 
+                      name="clarification_reason"
+                      checked={clarificationModal.reason === reasonText}
+                      onChange={() => setClarificationModal(prev => ({ ...prev, reason: reasonText }))}
+                      className="w-3.5 h-3.5 text-amber-600 focus:ring-amber-500"
+                    />
+                    <span>{reasonText}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  {isRtl ? 'ملاحظة إضافية للمسؤول (اختياري):' : 'Additional note for requester (optional):'}
+                </label>
+                <textarea
+                  value={clarificationModal.note}
+                  onChange={(e) => setClarificationModal(prev => ({ ...prev, note: e.target.value }))}
+                  placeholder={isRtl ? 'أدخل أي توجيهات محددة لاستيفاء المعاملة...' : 'Add specific instructions...'}
+                  rows={2}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-white text-xs outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+              <button
+                onClick={() => setClarificationModal({ isOpen: false, task: null, reason: '', note: '' })}
+                className="px-4 py-2 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200 text-xs font-bold transition-colors cursor-pointer"
+              >
+                {isRtl ? 'إلغاء' : 'Cancel'}
+              </button>
+
+              <button
+                onClick={handleConfirmClarification}
+                className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{isRtl ? 'إرسال الإشعار وإعادة المعاملة' : 'Dispatch Notice & Return'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

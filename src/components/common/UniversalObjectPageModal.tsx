@@ -202,6 +202,47 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
     window.print();
   };
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (e.key === '1') {
+        setActiveTab('overview');
+        triggerHaptic('light');
+      } else if (e.key === '2' && lineItems.length > 0) {
+        setActiveTab('line_items');
+        triggerHaptic('light');
+      } else if (e.key === '3' && timeline.length > 0) {
+        setActiveTab('workflow');
+        triggerHaptic('light');
+      } else if (e.key === '4' && linkedRecords.length > 0) {
+        setActiveTab('linked');
+        triggerHaptic('light');
+      } else if (e.key === '5' && auditTrail.length > 0) {
+        setActiveTab('audit');
+        triggerHaptic('light');
+      } else if (e.key === '6' && attachments.length > 0) {
+        setActiveTab('attachments');
+        triggerHaptic('light');
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        handlePrint();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e' && onEdit) {
+        e.preventDefault();
+        onEdit();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, lineItems.length, timeline.length, linkedRecords.length, auditTrail.length, attachments.length, onEdit, onClose]);
+
   const getStatusBadge = () => {
     const colorMap = {
       emerald: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
@@ -260,6 +301,7 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
                   >
                     <Edit className="w-3.5 h-3.5 text-amber-400" />
                     <span className="hidden sm:inline">{isRtl ? 'تعديل السجل' : 'Edit'}</span>
+                    <kbd className="hidden sm:inline text-[9px] px-1 py-0.5 rounded bg-slate-700 font-mono text-slate-300">Ctrl+E</kbd>
                   </button>
                 )}
 
@@ -270,6 +312,7 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
                 >
                   <Printer className="w-3.5 h-3.5 text-emerald-400" />
                   <span className="hidden sm:inline">{isRtl ? 'طباعة' : 'Print'}</span>
+                  <kbd className="hidden sm:inline text-[9px] px-1 py-0.5 rounded bg-slate-700 font-mono text-slate-300">Ctrl+P</kbd>
                 </button>
 
                 {onApprove && (
@@ -371,6 +414,7 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
           >
             <FileText className="w-4 h-4" />
             <span>{isRtl ? 'نظرة عامة والبيانات الأساسية' : 'Overview & Data'}</span>
+            <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-500 font-bold">1</kbd>
           </button>
 
           {lineItems.length > 0 && (
@@ -384,6 +428,7 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
             >
               <Layers className="w-4 h-4" />
               <span>{isRtl ? `بنود العمل والموازنة (${lineItems.length})` : `Line Items (${lineItems.length})`}</span>
+              <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-500 font-bold">2</kbd>
             </button>
           )}
 
@@ -398,6 +443,7 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
             >
               <Activity className="w-4 h-4" />
               <span>{isRtl ? 'مسار وسجل الاعتمادات' : 'Approval Workflow'}</span>
+              <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-500 font-bold">3</kbd>
             </button>
           )}
 
@@ -412,6 +458,7 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
             >
               <Coins className="w-4 h-4" />
               <span>{isRtl ? `السجلات والمعاملات المرتبطة (${linkedRecords.length})` : `Linked Records (${linkedRecords.length})`}</span>
+              <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-500 font-bold">4</kbd>
             </button>
           )}
 
@@ -426,6 +473,7 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
             >
               <History className="w-4 h-4" />
               <span>{isRtl ? 'سجل التدقيق الزمني' : 'Audit Trail'}</span>
+              <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-500 font-bold">5</kbd>
             </button>
           )}
 
@@ -440,6 +488,7 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
             >
               <Paperclip className="w-4 h-4" />
               <span>{isRtl ? `المرفقات والوثائق (${attachments.length})` : `Documents (${attachments.length})`}</span>
+              <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-500 font-bold">6</kbd>
             </button>
           )}
         </div>
@@ -505,6 +554,16 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
                     </tr>
                   ))}
                 </tbody>
+                <tfoot className="border-t-2 border-slate-300 dark:border-zinc-700 bg-slate-100/70 dark:bg-zinc-900/60 font-black">
+                  <tr>
+                    <td colSpan={5} className="py-2.5 px-3 text-slate-700 dark:text-zinc-300">
+                      {isRtl ? 'إجمالي بنود الموازنة المعتمدة (WBS Total):' : 'Total Approved Budget:'}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-emerald-600 dark:text-emerald-400">
+                      {lineItems.reduce((acc, it) => acc + (it.totalYer || 0), 0).toLocaleString()} YER
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           )}
