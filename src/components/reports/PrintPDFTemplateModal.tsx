@@ -32,6 +32,12 @@ import {
   buildSponsorshipReportPDFHTML,
   buildRevenueInvestmentReportPDFHTML,
   buildAuditReportPDFHTML,
+  buildOfficialPaymentVoucherPDFHTML,
+  buildOfficialReceiptVoucherPDFHTML,
+  buildOfficialJournalVoucherPDFHTML,
+  buildOfficialGoodsReceiptIssuePDFHTML,
+  buildOfficialPurchaseOrderPDFHTML,
+  buildOfficialBeneficiaryAidCardPDFHTML,
   generateAndDownloadPDF, 
   printPDFHTML,
   safeArray 
@@ -43,7 +49,7 @@ interface PrintPDFTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
   lang: 'ar' | 'en';
-  type: 'project' | 'financial' | 'executive' | 'beneficiary' | 'predictive' | 'evaluation' | 'interconnected' | 'strategy' | 'programs' | 'projects' | 'activities' | 'staff' | 'operational_manual' | 'user_manual' | 'procurement' | 'inventory' | 'sponsorship' | 'revenue_investments' | 'audit_trail';
+  type: 'project' | 'financial' | 'executive' | 'beneficiary' | 'predictive' | 'evaluation' | 'interconnected' | 'strategy' | 'programs' | 'projects' | 'activities' | 'staff' | 'operational_manual' | 'user_manual' | 'procurement' | 'inventory' | 'sponsorship' | 'revenue_investments' | 'audit_trail' | 'payment_voucher' | 'receipt_voucher' | 'journal_voucher' | 'goods_voucher' | 'purchase_order' | 'beneficiary_aid_card';
   data: {
     projects?: any[];
     programs?: any[];
@@ -64,6 +70,46 @@ interface PrintPDFTemplateModalProps {
     financialType?: 'trial' | 'income' | 'balance_sheet' | 'cash_flow';
     title?: string;
     subtitle?: string;
+    voucherNumber?: string;
+    payeeName?: string;
+    amountYer?: number;
+    donorName?: string;
+    programName?: string;
+    paymentMethodAr?: string;
+    bankReference?: string;
+    purposeAr?: string;
+    collectorName?: string;
+    voucherTypeAr?: string;
+    voucherType?: 'receipt' | 'issue';
+    memoAr?: string;
+    lines?: any[];
+    warehouseName?: string;
+    supplierOrReceiver?: string;
+    referencePO?: string;
+    items?: any[];
+    poNumber?: string;
+    vendorName?: string;
+    tenderReference?: string;
+    deliveryPeriodDays?: number;
+    deliveryLocation?: string;
+    cardNumber?: string;
+    beneficiaryName?: string;
+    nationalIdOrSurvey?: string;
+    governorate?: string;
+    district?: string;
+    village?: string;
+    familyMembersCount?: number;
+    vulnerabilityCategory?: string;
+    reliefPackageAr?: string;
+    distributorName?: string;
+    dateGregorian?: string;
+    dateHijri?: string;
+    projectName?: string;
+    projectCode?: string;
+    costCenter?: string;
+    referenceDocNumber?: string;
+    descriptionAr?: string;
+    preparedBy?: string;
   };
 }
 
@@ -79,7 +125,12 @@ export default function PrintPDFTemplateModal({
 
   // State customization
   const getDefaultTitle = () => {
-    if (data.title) return data.title;
+    if (type === 'payment_voucher') return isRtl ? 'سند صرف مالي رسمي معتمد' : 'Official Payment Voucher';
+    if (type === 'receipt_voucher') return isRtl ? 'سند قبض وتبرعات مالي معتمد' : 'Official Receipt Voucher';
+    if (type === 'journal_voucher') return isRtl ? 'سند قيد يومية محاسبي وتسوية معتمدة' : 'Official Journal Voucher';
+    if (type === 'goods_voucher') return isRtl ? 'سند استلام وصرف مواد مخزنية معتمد' : 'Goods Receipt & Issue Voucher';
+    if (type === 'purchase_order') return isRtl ? 'أمر شراء وتوريد رسمي معتمد' : 'Official Purchase Order';
+    if (type === 'beneficiary_aid_card') return isRtl ? 'سند تسليم مساعدات إغاثية وبطاقة صرف معتمدة' : 'Beneficiary Aid Delivery Card';
     if (type === 'procurement') return isRtl ? 'تقرير المشتريات والمناقصات وسلاسل الإمداد المعتمد' : 'Certified Procurement & Supply Chain Report';
     if (type === 'inventory') return isRtl ? 'تقرير المخزون والمستودعات المركزية المعتمد' : 'Certified Inventory & Central Warehouses Report';
     if (type === 'sponsorship') return isRtl ? 'تقرير كفالات الأيتام والرعاية التكافلية المعتمد' : 'Certified Orphans Sponsorships & Social Care Report';
@@ -97,6 +148,12 @@ export default function PrintPDFTemplateModal({
 
   const getDefaultSubtitle = () => {
     if (data.subtitle) return data.subtitle;
+    if (type === 'payment_voucher') return isRtl ? 'معتمد وفق نظام الرقابة والتدقيق الداخلي ومعايير IPSAS' : 'IPSAS Double-Entry Compliance Verified';
+    if (type === 'receipt_voucher') return isRtl ? 'توثيق الإيداعات والتبرعات الموجهة وفق لوائح الحوكمة المالية' : 'Official Donor Deposit & Earmarked Fund Receipt';
+    if (type === 'journal_voucher') return isRtl ? 'سند قيود الأستاذ العام والتسويات المحاسبية المتزنة' : 'Balanced Double-Entry Journal Entry';
+    if (type === 'goods_voucher') return isRtl ? 'فحص واستلام وصرف المواد والمستلزمات الإغاثية المستودعية' : 'Warehouse Stock In/Out Verification';
+    if (type === 'purchase_order') return isRtl ? 'أمر تعميد شراء وتوريد ملزم قانونياً وفق محضر المناقصات' : 'Legally Binding Purchase Order & Supplier Contract';
+    if (type === 'beneficiary_aid_card') return isRtl ? 'توثيق تسليم الحصص الإغاثية الميدانية وفق معايير ميثاق إسفير الدولي' : 'Field Aid Dispatch & Sphere Compliance Verification';
     if (type === 'procurement') return isRtl ? 'سجل أوامر الشراء P2P، تقييم الموردين، والمطابقة المحاسبية الثلاثية' : 'P2P Purchase Orders, Vendor Vetting & 3-Way Match Audit';
     if (type === 'inventory') return isRtl ? 'حركة المواد الإغاثية، الطاقة الاستيعابية للمستودعات، وتقييم المخزون المتاح' : 'Relief Stock Balances, Warehouse Capacities & Stock Valuation';
     if (type === 'sponsorship') return isRtl ? 'سجل الحالات المكفولة، المخصصات الشهرية، وبيانات المتابعة التعليمية والصحية' : 'Sponsored Orphans Dossier, Monthly Stipends, Health & Education Welfare';
@@ -327,6 +384,92 @@ export default function PrintPDFTemplateModal({
         includeSignatures,
         orgNameAr: activeOrg?.name_ar || orgName,
         orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'payment_voucher') {
+      return buildOfficialPaymentVoucherPDFHTML({
+        voucherNumber: data.voucherNumber,
+        payeeName: data.payeeName,
+        amountYer: data.amountYer,
+        dateGregorian: data.dateGregorian,
+        dateHijri: data.dateHijri,
+        projectName: data.projectName,
+        projectCode: data.projectCode,
+        costCenter: data.costCenter,
+        paymentMethodAr: data.paymentMethodAr,
+        referenceDocNumber: data.referenceDocNumber,
+        descriptionAr: data.descriptionAr,
+        preparedBy: data.preparedBy,
+        lines: data.lines,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName
+      });
+    } else if (type === 'receipt_voucher') {
+      return buildOfficialReceiptVoucherPDFHTML({
+        receiptNumber: data.voucherNumber,
+        donorName: data.donorName,
+        amountYer: data.amountYer,
+        dateGregorian: data.dateGregorian,
+        dateHijri: data.dateHijri,
+        programName: data.programName,
+        paymentMethodAr: data.paymentMethodAr,
+        bankReference: data.bankReference,
+        purposeAr: data.purposeAr,
+        collectorName: data.collectorName,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName
+      });
+    } else if (type === 'journal_voucher') {
+      return buildOfficialJournalVoucherPDFHTML({
+        voucherNumber: data.voucherNumber,
+        dateGregorian: data.dateGregorian,
+        voucherTypeAr: data.voucherTypeAr,
+        memoAr: data.memoAr,
+        preparedBy: data.preparedBy,
+        lines: data.lines,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName
+      });
+    } else if (type === 'goods_voucher') {
+      return buildOfficialGoodsReceiptIssuePDFHTML({
+        voucherNumber: data.voucherNumber,
+        voucherType: data.voucherType || 'receipt',
+        warehouseName: data.warehouseName,
+        projectName: data.projectName,
+        dateGregorian: data.dateGregorian,
+        supplierOrReceiver: data.supplierOrReceiver,
+        referencePO: data.referencePO,
+        items: data.items,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName
+      });
+    } else if (type === 'purchase_order') {
+      return buildOfficialPurchaseOrderPDFHTML({
+        poNumber: data.poNumber,
+        vendorName: data.vendorName,
+        dateGregorian: data.dateGregorian,
+        tenderReference: data.tenderReference,
+        projectName: data.projectName,
+        deliveryPeriodDays: data.deliveryPeriodDays,
+        deliveryLocation: data.deliveryLocation,
+        items: data.items,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName
+      });
+    } else if (type === 'beneficiary_aid_card') {
+      return buildOfficialBeneficiaryAidCardPDFHTML({
+        cardNumber: data.cardNumber,
+        beneficiaryName: data.beneficiaryName,
+        nationalIdOrSurvey: data.nationalIdOrSurvey,
+        governorate: data.governorate,
+        district: data.district,
+        village: data.village,
+        familyMembersCount: data.familyMembersCount,
+        vulnerabilityCategory: data.vulnerabilityCategory,
+        reliefPackageAr: data.reliefPackageAr,
+        dateGregorian: data.dateGregorian,
+        distributorName: data.distributorName,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName
       });
     } else {
       return buildFinancialStatementPDFHTML({

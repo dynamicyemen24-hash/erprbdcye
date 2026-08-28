@@ -1114,6 +1114,43 @@ export default function ReportsView({
             <option value="bi">{lang === 'ar' ? 'ذكاء الأعمال' : 'BI Intelligence'}</option>
           </select>
 
+          {/* Sovereign Official Vouchers Quick Selector */}
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val) {
+                setCustomPDFType(val);
+                setIsPDFModalOpen(true);
+                e.target.value = "";
+              }
+            }}
+            className="px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 rounded-xl text-[11px] font-black text-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
+            title={lang === 'ar' ? 'طباعة السندات والوثائق الرسمية المعتمدة A4' : 'Official Sovereign Vouchers & Contracts A4'}
+          >
+            <option value="" disabled className="bg-zinc-900 text-zinc-300">
+              {lang === 'ar' ? '📄 السندات والوثائق الرسمية A4' : '📄 Official Documents A4'}
+            </option>
+            <option value="payment_voucher" className="bg-zinc-900 text-white">
+              {lang === 'ar' ? 'سند صرف مالي معتمد (صرف)' : 'Official Payment Voucher'}
+            </option>
+            <option value="receipt_voucher" className="bg-zinc-900 text-white">
+              {lang === 'ar' ? 'سند قبض وتبرعات معتمد (قبض)' : 'Official Receipt Voucher'}
+            </option>
+            <option value="journal_voucher" className="bg-zinc-900 text-white">
+              {lang === 'ar' ? 'سند قيد يومية وتسوية (قيد)' : 'Official Journal Voucher'}
+            </option>
+            <option value="goods_voucher" className="bg-zinc-900 text-white">
+              {lang === 'ar' ? 'سند استلام / صرف مخزني' : 'Goods Receipt / Issue Voucher'}
+            </option>
+            <option value="purchase_order" className="bg-zinc-900 text-white">
+              {lang === 'ar' ? 'أمر شراء وتوريد رسمي (PO)' : 'Official Purchase Order (PO)'}
+            </option>
+            <option value="beneficiary_aid_card" className="bg-zinc-900 text-white">
+              {lang === 'ar' ? 'سند تسليم معونات وبطاقة صرف مستفيد' : 'Beneficiary Aid Delivery Card'}
+            </option>
+          </select>
+
           <button
             onClick={() => { setCustomPDFType(null); setIsPDFModalOpen(true); }}
             className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5"
@@ -3337,19 +3374,19 @@ export default function ReportsView({
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         titleAr="جناح تصدير التقارير الذكية والمؤشرات الموحدة"
-        titleEn="NexoraOS? Unified Intelligence & Reports Export Suite"
+        titleEn="UAMEX ERP™ Unified Intelligence & Reports Export Suite"
         data={crossDomainCorrelationData.map(c => ({
-          'كود البرنامج / Program ID': c.id,
-          'اسم البرنامج / Program Name': c.name,
-          'الفئة / Category': c.category,
-          'الموازنة (YER) / Budget YER': c.budget,
-          'عدد المستفيدين / Beneficiaries': c.beneficiaries,
-          'الكفالات / Sponsorships': c.sponsoredOrphans,
-          'عدد المشاريع / Projects': c.projectCount,
-          'مؤشر الأثر (%) / CHS Impact Index': c.impactScore,
-          'تكلفة المستفيد (YER) / Cost per Beneficiary': c.costPerBen
+          [lang === 'ar' ? 'الرمز المؤسسي للبرنامج' : 'Program ID']: c.id,
+          [lang === 'ar' ? 'اسم البرنامج الاستراتيجي' : 'Program Name']: c.name,
+          [lang === 'ar' ? 'القطاع التنموي' : 'Category']: c.category,
+          [lang === 'ar' ? 'الموازنة المعتمدة (ر.ي)' : 'Budget (YER)']: c.budget,
+          [lang === 'ar' ? 'عدد المستفيدين' : 'Beneficiaries']: c.beneficiaries,
+          [lang === 'ar' ? 'الأيتام المكفولين' : 'Sponsorships']: c.sponsoredOrphans,
+          [lang === 'ar' ? 'عدد المشاريع المنفذة' : 'Projects']: c.projectCount,
+          [lang === 'ar' ? 'مؤشر الأثر الإنساني (%)' : 'CHS Impact Index (%)']: c.impactScore,
+          [lang === 'ar' ? 'تكلفة المستفيد (ر.ي)' : 'Cost per Beneficiary (YER)']: c.costPerBen
         }))}
-        fileName="NexoraOS_Impact_Intelligence_Report"
+        fileName={lang === 'ar' ? 'تقرير_الأثر_والذكاء_المؤسسي_UAMEX' : 'UAMEX_Impact_Intelligence_Report'}
         lang={lang}
       />
 
@@ -3387,7 +3424,19 @@ export default function ReportsView({
           plans: [],
           goals: [],
           financialType: customFinancialStatementType,
-          title: customPDFType === 'staff'
+          title: customPDFType === 'payment_voucher'
+            ? (lang === 'ar' ? 'سند صرف مالي رسمي معتمد' : 'Official Payment Voucher')
+            : customPDFType === 'receipt_voucher'
+            ? (lang === 'ar' ? 'سند قبض وتبرعات مالي معتمد' : 'Official Receipt Voucher')
+            : customPDFType === 'journal_voucher'
+            ? (lang === 'ar' ? 'سند قيد يومية وتسوية محاسبية معتمدة' : 'Official Journal Voucher')
+            : customPDFType === 'goods_voucher'
+            ? (lang === 'ar' ? 'سند استلام وصرف مواد مخزنية معتمد' : 'Goods Receipt & Issue Voucher')
+            : customPDFType === 'purchase_order'
+            ? (lang === 'ar' ? 'أمر شراء وتوريد رسمي معتمد (PO)' : 'Official Purchase Order (PO)')
+            : customPDFType === 'beneficiary_aid_card'
+            ? (lang === 'ar' ? 'سند تسليم مساعدات إغاثية وبطاقة صرف معتمدة' : 'Beneficiary Aid Delivery Card')
+            : customPDFType === 'staff'
             ? (lang === 'ar' ? 'كشف سجل كوادر المؤسسة والفرق الميدانية' : 'Official HR Staff & Field Personnel Registry')
             : customPDFType === 'operational_manual'
             ? (lang === 'ar' ? 'الدليل التشغيلي المؤسسي واللوائح والتوصيف الوظيفي' : 'Enterprise SOP, Governance Bylaws & Job Taxonomy')

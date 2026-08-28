@@ -1,5 +1,6 @@
 import { sanitizeHtml } from './htmlSanitizer';
 import { generateNumericCode } from './idGenerator';
+import { tafqeetArabicRials } from '../core/security/financialSafetyGuardian';
 
 export function safeArray<T = any>(input: any): T[] {
   if (Array.isArray(input)) return input;
@@ -999,7 +1000,7 @@ export function buildExecutiveReportPDFHTML(options: {
       ${summaryHTML}
       <div style="margin-bottom: 20px;">
         <h3 style="font-size: 12px; font-weight: 800; color: ${accentColor}; margin-bottom: 10px; border-right: ${isRtl ? `4px solid ${accentColor}` : 'none'}; border-left: ${!isRtl ? `4px solid ${accentColor}` : 'none'}; padding: 0 8px;">
-          ${isRtl ? 'الأبواب المعمارية الخمسة عشر (15 Architectural Parts)' : 'Comprehensive 15 Architectural Parts Summary'}
+          ${isRtl ? 'أبواب الإنجاز والرقابة المؤسسية الـ 15 المعمارية الشاملة' : 'Comprehensive 15 Architectural Parts Summary'}
         </h3>
         ${partsHTML}
       </div>
@@ -1071,7 +1072,7 @@ export function buildBeneficiaryReportPDFHTML(options: {
       <td style="padding: 8px; text-align: center; font-family: monospace; font-weight: 700; color: #475569;">${s.code || `SPN-${idx + 1}`}</td>
       <td style="padding: 8px; font-weight: 700; color: #0f172a;">${isRtl ? (s.beneficiary_name_ar || s.name_ar || s.beneficiary_name || 'كفالة يتيم') : (s.beneficiary_name_en || s.name_en || s.beneficiary_name || 'Orphan Support')}</td>
       <td style="padding: 8px; color: #334155;">${isRtl ? (s.category_ar || 'أيتام ورعاية اجتماعية') : (s.category_en || 'Social Care')}</td>
-      <td style="padding: 8px; text-align: right; font-family: monospace; font-weight: 700; color: #047857;">${parseFloat(s.amount || '15000').toLocaleString()} ${s.currency_code || 'YER'}</td>
+      <td style="padding: 8px; text-align: right; font-family: monospace; font-weight: 700; color: #047857;">${parseFloat(s.amount || '15000').toLocaleString()} ${isRtl ? 'ر.ي' : (s.currency_code || 'YER')}</td>
       <td style="padding: 8px; text-align: center;">
         <span style="
           padding: 2px 6px;
@@ -2341,16 +2342,16 @@ export function buildProcurementReportPDFHTML(options: {
         </div>
 
         <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
-          <div style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">${isRtl ? 'المطابقة الثلاثية (3-Way Match)' : '3-Way Match Rate'}</div>
+          <div style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">${isRtl ? 'المطابقة الثلاثية المعيارية' : '3-Way Match Rate'}</div>
           <div style="font-size: 18px; font-weight: 900; color: #059669; margin-top: 4px;">${matchRate}%</div>
-          <div style="font-size: 8px; color: #059669; font-weight: bold;">${isRtl ? 'PO = GRN = Invoice' : 'Zero Discrepancy'}</div>
+          <div style="font-size: 8px; color: #059669; font-weight: bold;">${isRtl ? 'أمر شراء = استلام مخزني = فاتورة' : 'Zero Discrepancy'}</div>
         </div>
       </div>
 
       <!-- Orders Table -->
       <div style="margin-bottom: 24px;">
         <div style="font-size: 12px; font-weight: 800; color: ${accentColor}; margin-bottom: 8px; border-bottom: 2px solid ${accentColor}; padding-bottom: 4px;">
-          ${isRtl ? 'سجل أوامر الشراء والتوريد المعتمدة (P2P Orders Ledger)' : 'Purchase Orders & Contracts Ledger'}
+          ${isRtl ? 'سجل أوامر الشراء والتوريد المعتمدة ومطابقة الفواتير' : 'Purchase Orders & Contracts Ledger'}
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
           <thead>
@@ -2922,6 +2923,1018 @@ export function buildAuditReportPDFHTML(options: {
       ${bodyHTML}
       ${signaturesHTML}
       ${footerHTML}
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// منظومة الوثائق والمستندات والسندات الرسمية المعتمدة A4 (Sovereign Document Suite)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * 1. سند صرف مالي رسمي معتمد A4 (Payment Voucher)
+ */
+export function buildOfficialPaymentVoucherPDFHTML(options: {
+  voucherNumber?: string;
+  payeeName?: string;
+  amountYer?: number;
+  dateGregorian?: string;
+  dateHijri?: string;
+  projectName?: string;
+  projectCode?: string;
+  costCenter?: string;
+  paymentMethodAr?: string;
+  referenceDocNumber?: string;
+  descriptionAr?: string;
+  preparedBy?: string;
+  lines?: Array<{ accountCode: string; accountName: string; debitYer: number; creditYer: number; noteAr?: string }>;
+  accentColor?: string;
+  orgNameAr?: string;
+}): string {
+  const accentColor = options.accentColor || '#059669';
+  const orgName = options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية';
+  const vNo = options.voucherNumber || `ص/2026/08-101`;
+  const amount = options.amountYer || 4500000;
+  const tafqeet = tafqeetArabicRials(amount);
+  const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
+  const dateHij = options.dateHijri || '1448 هـ';
+  const payee = options.payeeName || 'شركة الأمل للمقاولات والتوريدات الهندسية';
+  const project = options.projectName || 'مشروع مياه وإصحاح ريف تعز (صبر الموادم)';
+  const projectCode = options.projectCode || 'PRJ-WASH-2026';
+  const costCenter = options.costCenter || 'إدارة البرامج التنموية والإصحاح البيئي';
+  const paymentMethod = options.paymentMethodAr || 'تحويل بنكي رسمي عبر بنك الكريمي الإسلامي';
+  const refDoc = options.referenceDocNumber || 'مستخلص إنجاز رقم (2) + محضر فحص وتوريد رقم 18';
+  const desc = options.descriptionAr || 'صرف مستحقات المرحلة الثانية لتوريد ومد شبكة أنابيب مياه الشرب النقية وخزان التوزيع سعة 100م3';
+  const preparedBy = options.preparedBy || 'عبدالرحمن قاسم (المحاسب المالي)';
+
+  const lines = options.lines && options.lines.length > 0 ? options.lines : [
+    { accountCode: '50102', accountName: 'مصاريف مشاريع المياه والإصحاح البيئي', debitYer: amount, creditYer: 0, noteAr: 'مستخلص أعمال مدنية وشبكات مياه' },
+    { accountCode: '10201', accountName: 'البنك - حساب جاري بنك الكريمي الإسلامي', debitYer: 0, creditYer: amount, noteAr: 'إشعار تحويل بنكي رسمي نافذ' }
+  ];
+
+  const totalDebit = lines.reduce((s, l) => s + (l.debitYer || 0), 0);
+  const totalCredit = lines.reduce((s, l) => s + (l.creditYer || 0), 0);
+
+  return `
+    <div style="background-color: #ffffff; padding: 28px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+      
+      <!-- ترويسة الشعارين الرسمية المزدوجة -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double ${accentColor}; padding-bottom: 16px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="/LogoRohamaab.png" style="height: 56px; max-width: 75px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+          <div>
+            <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${orgName}</h1>
+            <div style="font-size: 10px; color: ${accentColor}; font-weight: bold; margin-top: 2px;">الإدارة المالية والمحاسبية • الرقابة والتدقيق الداخلي IPSAS</div>
+            <div style="font-size: 9px; color: #64748b;">الجمهورية اليمنية • تعز</div>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <div style="display: inline-block; background-color: #ecfdf5; border: 1.5px solid ${accentColor}; padding: 4px 14px; border-radius: 8px; font-weight: 900; font-size: 14px; color: #065f46;">
+            سند صرف مالي معتمد
+          </div>
+          <div style="font-size: 11px; font-weight: 900; font-family: monospace; color: #0f172a; margin-top: 4px;">
+            رقم السند: <span style="color: ${accentColor};">${vNo}</span>
+          </div>
+          <div style="font-size: 9px; color: #64748b; margin-top: 2px;">
+            ${dateHij} • ${dateGreg}
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+          <div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">ENTERPRISE OS</div>
+            <div style="font-size: 8px; color: #94a3b8;">IPSAS-24 GAAP</div>
+          </div>
+          <img src="/UAMEX_ERPLOGO.png" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+        </div>
+      </div>
+
+      <!-- شبكة البيانات المؤسسية -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 10.5px;">
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">يصرف للأخ / الجهة:</span>
+          <strong style="color: #0f172a; font-size: 12px;">${payee}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">المشروع التنموي (WBS):</span>
+          <strong style="color: #047857;">${project}</strong>
+          <span style="font-family: monospace; font-size: 9px; color: #64748b; margin-right: 6px;">[${projectCode}]</span>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">مركز التكلفة / الإدارة:</span>
+          <span style="color: #334155;">${costCenter}</span>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">طريقة الصرف والمستند المرجعي:</span>
+          <span style="color: #047857; font-weight: bold;">${paymentMethod}</span>
+          <div style="font-size: 9.5px; color: #475569;">مرجع: ${refDoc}</div>
+        </div>
+      </div>
+
+      <!-- شريط المبلغ بالأرقام والتفقيط بالعربية -->
+      <div style="background-color: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 900; color: #065f46;">المبلغ بالأرقام:</span>
+          <span style="font-size: 16px; font-weight: 900; font-family: monospace; color: #047857; background: #ffffff; padding: 2px 10px; border-radius: 6px; border: 1px solid #a7f3d0;">
+            ${amount.toLocaleString()} ر.ي
+          </span>
+        </div>
+        <div style="font-size: 11px; font-weight: 900; color: #0f172a;">
+          ${tafqeet}
+        </div>
+      </div>
+
+      <!-- البيان التفصيلي -->
+      <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 10.5px;">
+        <span style="color: #64748b; font-weight: bold;">البيان والشرح الإجرائي: </span>
+        <span style="color: #1e293b; font-weight: 600;">${desc}</span>
+      </div>
+
+      <!-- جدول القيد المحاسبي المزدوج المتزن -->
+      <div style="margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 10px;">
+          <thead>
+            <tr style="background-color: #0f172a; color: #ffffff; font-weight: 800;">
+              <th style="padding: 8px; width: 90px; text-align: center;">رقم الحساب</th>
+              <th style="padding: 8px; text-align: right;">اسم الحساب بدفتر الأستاذ العام</th>
+              <th style="padding: 8px; width: 110px; text-align: left;">مدين (ر.ي)</th>
+              <th style="padding: 8px; width: 110px; text-align: left;">دائن (ر.ي)</th>
+              <th style="padding: 8px; text-align: right;">البيان المحاسبي</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lines.map((l, idx) => `
+              <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 7px; text-align: center; font-family: monospace; font-weight: 700; color: #0f172a;">${l.accountCode}</td>
+                <td style="padding: 7px; font-weight: 700; color: #1e293b;">${l.accountName}</td>
+                <td style="padding: 7px; text-align: left; font-family: monospace; font-weight: 900; color: #047857;">${l.debitYer > 0 ? l.debitYer.toLocaleString() : '—'}</td>
+                <td style="padding: 7px; text-align: left; font-family: monospace; font-weight: 900; color: #d97706;">${l.creditYer > 0 ? l.creditYer.toLocaleString() : '—'}</td>
+                <td style="padding: 7px; color: #475569;">${l.noteAr || desc}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f1f5f9; font-weight: 900; border-top: 2px solid #0f172a; font-size: 10.5px;">
+              <td colspan="2" style="padding: 8px; text-align: center;">إجمالي القيد المحاسبي المتوازن:</td>
+              <td style="padding: 8px; text-align: left; font-family: monospace; color: #047857;">${totalDebit.toLocaleString()}</td>
+              <td style="padding: 8px; text-align: left; font-family: monospace; color: #d97706;">${totalCredit.toLocaleString()}</td>
+              <td style="padding: 8px; font-size: 9px; color: #047857; font-weight: bold;">✓ قيد متزن مطابق لمعيار IPSAS</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- مصفوفة التوقيعات الخماسية المعتمدة وختم الجمعية الرسمي -->
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center; margin-bottom: 20px; font-size: 9.5px;">
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">إعداد المحاسب</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">${preparedBy}</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">المراجعة والتدقيق</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">المراجع الداخلي</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">المدير المالي</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">صالح العريقي</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #047857; font-weight: bold;">المدير التنفيذي</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">د. فؤاد هزاع</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">الاعتماد الرسمي</div>
+        </div>
+
+        <div style="border: 1.5px dashed ${accentColor}; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f0fdf4;">
+          <div style="width: 44px; height: 44px; border: 2px dashed ${accentColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${accentColor}; font-size: 7.5px; font-weight: 900; text-align: center; line-height: 1.1;">
+            ختم الجمعية<br/>الرسمي
+          </div>
+          <div style="font-size: 8px; color: ${accentColor}; font-weight: bold; margin-top: 4px;">معتمد وموثق</div>
+        </div>
+      </div>
+
+      <!-- تذييل السند -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+        <div>${orgName} • ص.ب: تعز - الجمهورية اليمنية • وثيقة مالية رسمية صادرة آلياً</div>
+        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ IPSAS VERIFIED • صفحة 1 من 1</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 2. سند قبض وتبرعات مالي رسمي معتمد A4 (Receipt Voucher)
+ */
+export function buildOfficialReceiptVoucherPDFHTML(options: {
+  receiptNumber?: string;
+  donorName?: string;
+  amountYer?: number;
+  dateGregorian?: string;
+  dateHijri?: string;
+  programName?: string;
+  paymentMethodAr?: string;
+  bankReference?: string;
+  purposeAr?: string;
+  collectorName?: string;
+  accentColor?: string;
+  orgNameAr?: string;
+}): string {
+  const accentColor = options.accentColor || '#059669';
+  const orgName = options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية';
+  const rNo = options.receiptNumber || `ق/2026/08-204`;
+  const amount = options.amountYer || 1200000;
+  const tafqeet = tafqeetArabicRials(amount);
+  const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
+  const dateHij = options.dateHijri || '1448 هـ';
+  const donor = options.donorName || 'فاعل خير (كفالة أيتام سنوية)';
+  const program = options.programName || 'برنامج كفالة ورعاية الأيتام والأسر المتعففة';
+  const paymentMethod = options.paymentMethodAr || 'إيداع بنكي مباشر في حساب الجمعية';
+  const bankRef = options.bankReference || 'إشعار إيداع بنك التضامن رقم 94821-2026';
+  const purpose = options.purposeAr || 'كفالة شاملة لعدد (4) أيتام لمدة عام كامل تشمل المخصصات المعيشية والحقيبة المدرسية';
+  const collector = options.collectorName || 'أمين الصندوق / وحدة تنمية الموارد';
+
+  return `
+    <div style="background-color: #ffffff; padding: 28px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+      
+      <!-- ترويسة الشعارين الرسمية المزدوجة -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double ${accentColor}; padding-bottom: 16px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="/LogoRohamaab.png" style="height: 56px; max-width: 75px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+          <div>
+            <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${orgName}</h1>
+            <div style="font-size: 10px; color: ${accentColor}; font-weight: bold; margin-top: 2px;">إدارة الموارد المالية والتبرعات • قطاع الكفالات والرعاية</div>
+            <div style="font-size: 9px; color: #64748b;">الجمهورية اليمنية • تعز</div>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <div style="display: inline-block; background-color: #ecfdf5; border: 1.5px solid ${accentColor}; padding: 4px 14px; border-radius: 8px; font-weight: 900; font-size: 14px; color: #065f46;">
+            سند قبض وتبرعات معتمد
+          </div>
+          <div style="font-size: 11px; font-weight: 900; font-family: monospace; color: #0f172a; margin-top: 4px;">
+            رقم السند: <span style="color: ${accentColor};">${rNo}</span>
+          </div>
+          <div style="font-size: 9px; color: #64748b; margin-top: 2px;">
+            ${dateHij} • ${dateGreg}
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+          <div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">FINANCE OS</div>
+            <div style="font-size: 8px; color: #94a3b8;">IPSAS SECURE</div>
+          </div>
+          <img src="/UAMEX_ERPLOGO.png" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+        </div>
+      </div>
+
+      <!-- تفاصيل سند القبض -->
+      <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 11px; line-height: 2;">
+        <div>
+          <span style="color: #64748b; font-weight: bold;">استلمنا من الأخ / الجهة المانحة: </span>
+          <strong style="color: #0f172a; font-size: 13px; border-bottom: 1px dashed #94a3b8; padding-bottom: 2px;">${donor}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+          <div>
+            <span style="color: #64748b; font-weight: bold;">مبلغاً وقدره بالأرقام: </span>
+            <span style="font-size: 16px; font-weight: 900; font-family: monospace; color: #047857; background: #ffffff; padding: 2px 10px; border-radius: 6px; border: 1px solid #a7f3d0;">
+              ${amount.toLocaleString()} ر.ي
+            </span>
+          </div>
+        </div>
+        <div style="margin-top: 4px;">
+          <span style="color: #64748b; font-weight: bold;">المبلغ كتابةً (تفقيط): </span>
+          <strong style="color: #0f172a;">${tafqeet}</strong>
+        </div>
+        <div style="margin-top: 4px;">
+          <span style="color: #64748b; font-weight: bold;">وذلك عن: </span>
+          <span style="color: #1e293b; font-weight: 600;">${purpose}</span>
+        </div>
+        <div style="margin-top: 4px; display: flex; justify-content: space-between;">
+          <div>
+            <span style="color: #64748b; font-weight: bold;">البرنامج الموجه إليه: </span>
+            <span style="color: #047857; font-weight: bold;">${program}</span>
+          </div>
+          <div>
+            <span style="color: #64748b; font-weight: bold;">طريقة القبض: </span>
+            <span style="color: #0f172a; font-weight: bold;">${paymentMethod}</span> (${bankRef})
+          </div>
+        </div>
+      </div>
+
+      <!-- الأثر المحاسبي وفق IPSAS -->
+      <div style="margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 10px;">
+          <thead>
+            <tr style="background-color: #0f172a; color: #ffffff;">
+              <th style="padding: 7px; width: 90px; text-align: center;">رقم الحساب</th>
+              <th style="padding: 7px; text-align: right;">اسم الحساب المحاسبي</th>
+              <th style="padding: 7px; width: 120px; text-align: left;">مدين (ر.ي)</th>
+              <th style="padding: 7px; width: 120px; text-align: left;">دائن (ر.ي)</th>
+              <th style="padding: 7px; text-align: right;">شرح الحركة</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 7px; text-align: center; font-family: monospace; font-weight: bold;">10202</td>
+              <td style="padding: 7px; font-weight: bold;">حساب البنك - بنك التضامن الإسلامي</td>
+              <td style="padding: 7px; text-align: left; font-family: monospace; font-weight: 900; color: #047857;">${amount.toLocaleString()}</td>
+              <td style="padding: 7px; text-align: left; font-family: monospace;">—</td>
+              <td style="padding: 7px; color: #64748b;">إيداع تبرعات نقدية مقيدة</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0; background-color: #f8fafc;">
+              <td style="padding: 7px; text-align: center; font-family: monospace; font-weight: bold;">40102</td>
+              <td style="padding: 7px; font-weight: bold;">إيرادات تبرعات وكفالات الأيتام المقيدة</td>
+              <td style="padding: 7px; text-align: left; font-family: monospace;">—</td>
+              <td style="padding: 7px; text-align: left; font-family: monospace; font-weight: 900; color: #d97706;">${amount.toLocaleString()}</td>
+              <td style="padding: 7px; color: #64748b;">قيد إيراد تبرعات لصالح الأيتام</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- التوقيعات الرسمية والختم -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; margin-bottom: 20px; font-size: 9.5px;">
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">المستلم / أمين الصندوق</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">${collector}</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">المحاسب المالي</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">عبدالرحمن قاسم</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #047857; font-weight: bold;">المدير المالي</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">صالح العريقي</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1.5px dashed ${accentColor}; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f0fdf4;">
+          <div style="width: 44px; height: 44px; border: 2px dashed ${accentColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${accentColor}; font-size: 7.5px; font-weight: 900; text-align: center; line-height: 1.1;">
+            ختم الجمعية<br/>الرسمي
+          </div>
+          <div style="font-size: 8px; color: ${accentColor}; font-weight: bold; margin-top: 4px;">سند قبض نافذ</div>
+        </div>
+      </div>
+
+      <!-- التذييل -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+        <div>${orgName} • ص.ب: تعز - الجمهورية اليمنية • سند رسمي معتمد خاضع للرقابة المحاسبية</div>
+        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ REVENUE SAFEGUARD</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 3. سند قيد يومية وتسوية محاسبية A4 (Journal Voucher)
+ */
+export function buildOfficialJournalVoucherPDFHTML(options: {
+  voucherNumber?: string;
+  dateGregorian?: string;
+  voucherTypeAr?: string;
+  memoAr?: string;
+  preparedBy?: string;
+  lines?: Array<{ accountCode: string; accountName: string; costCenter?: string; debitYer: number; creditYer: number; noteAr: string }>;
+  accentColor?: string;
+  orgNameAr?: string;
+}): string {
+  const accentColor = options.accentColor || '#059669';
+  const orgName = options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية';
+  const jvNo = options.voucherNumber || `ق-ي/2026/08-055`;
+  const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
+  const jvType = options.voucherTypeAr || 'قيد تسوية وتعديل مالي وإثبات استحقاقات دورية';
+  const memo = options.memoAr || 'إثبات استحقاق مصاريف تشغيل المشاريع الميدانية لشهر أغسطس 2026 وإقفال المستخلصات المؤقتة';
+  const preparedBy = options.preparedBy || 'عبدالرحمن قاسم (المحاسب المالي)';
+
+  const lines = options.lines && options.lines.length > 0 ? options.lines : [
+    { accountCode: '50101', accountName: 'مصاريف برنامج الأمن الغذائي والطوارئ', costCenter: 'قطاع الإغاثة', debitYer: 3200000, creditYer: 0, noteAr: 'توزيع سلال غذائية بالريف' },
+    { accountCode: '50201', accountName: 'مصاريف الرعاية التعليمية للأيتام', costCenter: 'قطاع الأيتام', debitYer: 1800000, creditYer: 0, noteAr: 'الحقيبة والزي المدرسي للعام الجديد' },
+    { accountCode: '20101', accountName: 'موردون ومقاولون معتمدون تحت الصرف', costCenter: 'الإدارة المالية', debitYer: 0, creditYer: 5000000, noteAr: 'إثبات استحقاق فواتير التوريد' }
+  ];
+
+  const totalDebit = lines.reduce((s, l) => s + (l.debitYer || 0), 0);
+  const totalCredit = lines.reduce((s, l) => s + (l.creditYer || 0), 0);
+
+  return `
+    <div style="background-color: #ffffff; padding: 28px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+      
+      <!-- ترويسة سند القيد -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double ${accentColor}; padding-bottom: 16px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="/LogoRohamaab.png" style="height: 56px; max-width: 75px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+          <div>
+            <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${orgName}</h1>
+            <div style="font-size: 10px; color: ${accentColor}; font-weight: bold; margin-top: 2px;">نظام الأستاذ العام والقيود المزدوجة • معيار IPSAS-24</div>
+            <div style="font-size: 9px; color: #64748b;">الجمهورية اليمنية • تعز</div>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <div style="display: inline-block; background-color: #f1f5f9; border: 1.5px solid #334155; padding: 4px 14px; border-radius: 8px; font-weight: 900; font-size: 14px; color: #0f172a;">
+            سند قيد يومية محاسبي (JV)
+          </div>
+          <div style="font-size: 11px; font-weight: 900; font-family: monospace; color: #0f172a; margin-top: 4px;">
+            رقم القيد: <span style="color: ${accentColor};">${jvNo}</span>
+          </div>
+          <div style="font-size: 9px; color: #64748b; margin-top: 2px;">تاريخ القيد: ${dateGreg}</div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+          <div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">LEDGER CORE</div>
+            <div style="font-size: 8px; color: #94a3b8;">DOUBLE ENTRY</div>
+          </div>
+          <img src="/UAMEX_ERPLOGO.png" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+        </div>
+      </div>
+
+      <!-- تفاصيل سند القيد -->
+      <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 11px;">
+        <div style="margin-bottom: 4px;">
+          <span style="color: #64748b; font-weight: bold;">نوع القيد المحاسبي: </span>
+          <strong style="color: #0f172a;">${jvType}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold;">موضوع وبيان القيد: </span>
+          <span style="color: #1e293b; font-weight: 600;">${memo}</span>
+        </div>
+      </div>
+
+      <!-- جدول القيد المزدوج الشامل -->
+      <div style="margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 10px;">
+          <thead>
+            <tr style="background-color: #0f172a; color: #ffffff; font-weight: 800;">
+              <th style="padding: 8px; width: 85px; text-align: center;">رقم الحساب</th>
+              <th style="padding: 8px; text-align: right;">اسم الحساب بدفتر الأستاذ</th>
+              <th style="padding: 8px; width: 100px; text-align: center;">مركز التكلفة</th>
+              <th style="padding: 8px; width: 115px; text-align: left;">مدين (ر.ي)</th>
+              <th style="padding: 8px; width: 115px; text-align: left;">دائن (ر.ي)</th>
+              <th style="padding: 8px; text-align: right;">البيان والشرح</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lines.map((l, idx) => `
+              <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 7px; text-align: center; font-family: monospace; font-weight: 700; color: #0f172a;">${l.accountCode}</td>
+                <td style="padding: 7px; font-weight: 700; color: #1e293b;">${l.accountName}</td>
+                <td style="padding: 7px; text-align: center; color: #64748b;">${l.costCenter || 'عام'}</td>
+                <td style="padding: 7px; text-align: left; font-family: monospace; font-weight: 900; color: #047857;">${l.debitYer > 0 ? l.debitYer.toLocaleString() : '—'}</td>
+                <td style="padding: 7px; text-align: left; font-family: monospace; font-weight: 900; color: #d97706;">${l.creditYer > 0 ? l.creditYer.toLocaleString() : '—'}</td>
+                <td style="padding: 7px; color: #475569;">${l.noteAr}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f1f5f9; font-weight: 900; border-top: 2px solid #0f172a; font-size: 11px;">
+              <td colspan="3" style="padding: 8px; text-align: center;">المجموع الكلي للقيد المزدوج:</td>
+              <td style="padding: 8px; text-align: left; font-family: monospace; color: #047857;">${totalDebit.toLocaleString()}</td>
+              <td style="padding: 8px; text-align: left; font-family: monospace; color: #d97706;">${totalCredit.toLocaleString()}</td>
+              <td style="padding: 8px; font-size: 9.5px; color: #047857; font-weight: 900;">✓ قيد متزن (Debit = Credit)</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- توقيعات الاعتماد الثلاثية -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-bottom: 20px; font-size: 10px;">
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">إعداد المحاسب المختص</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">${preparedBy}</div>
+          <div style="margin-top: 24px; border-bottom: 1px dashed #94a3b8; width: 70%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع والتاريخ</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">مراجعة رئيس الحسابات</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">عمر الشميري</div>
+          <div style="margin-top: 24px; border-bottom: 1px dashed #94a3b8; width: 70%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع والتاريخ</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; background-color: #f8fafc;">
+          <div style="color: #047857; font-weight: bold;">اعتماد المدير المالي</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">صالح العريقي</div>
+          <div style="margin-top: 24px; border-bottom: 1px dashed #94a3b8; width: 70%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">الاعتماد والختم</div>
+        </div>
+      </div>
+
+      <!-- التذييل -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+        <div>${orgName} • نظام يو امكس المؤسسي الشامل • سجل قيد الأستاذ العام المعتمد</div>
+        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ JOURNAL VOUCHER • صفحة 1 من 1</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 4. سند استلام وصرف مواد مخزنية A4 معتمد (Goods Receipt & Issue Voucher)
+ */
+export function buildOfficialGoodsReceiptIssuePDFHTML(options: {
+  voucherNumber?: string;
+  voucherType?: 'receipt' | 'issue';
+  warehouseName?: string;
+  projectName?: string;
+  dateGregorian?: string;
+  supplierOrReceiver?: string;
+  referencePO?: string;
+  items?: Array<{ code: string; name: string; unit: string; qty: number; notes: string }>;
+  accentColor?: string;
+  orgNameAr?: string;
+}): string {
+  const accentColor = options.accentColor || '#059669';
+  const orgName = options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية';
+  const isReceipt = (options.voucherType || 'receipt') === 'receipt';
+  const titleAr = isReceipt ? 'سند استلام وتوريد مخزني معتمد (GRN)' : 'سند صرف مواد ومستلزمات مخزنية (GIN)';
+  const vNo = options.voucherNumber || (isReceipt ? `توريد/2026/08-301` : `صرف-مخ/2026/08-112`);
+  const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
+  const warehouse = options.warehouseName || 'مستودع تعز المركزي - الحصب';
+  const project = options.projectName || 'مشروع السلال الغذائية الطارئة للأسر المتعففة';
+  const party = options.supplierOrReceiver || (isReceipt ? 'شركة الأمل للتوريدات والتجارة' : 'فريق التوزيع الميداني - قطاع الإغاثة');
+  const refPO = options.referencePO || 'أمر شراء رسمي رقم PO-2026-0041';
+
+  const items = options.items && options.items.length > 0 ? options.items : [
+    { code: 'FOOD-01', name: 'أكياس دقيق أبيض ممتاز (عبوة 50 كجم)', unit: 'كيس', qty: 500, notes: 'مطابق للمواصفات القياسية وتاريخ إنتاج حديث' },
+    { code: 'FOOD-02', name: 'أرز بسمتي درجة أولى (عبوة 20 كجم)', unit: 'كيس', qty: 500, notes: 'تم الفحص المخبري وخلوه من أي شوائب' },
+    { code: 'FOOD-03', name: 'زيت طبخ نباتي نقي (عبوة 8 لتر)', unit: 'كرتون', qty: 250, notes: 'تغليف سليم ومطابق لشروط التخزين' },
+    { code: 'FOOD-04', name: 'سكر أبيض ناعم (عبوة 10 كجم)', unit: 'كيس', qty: 500, notes: 'مفحوص ومستلم بالكامل' }
+  ];
+
+  const totalQty = items.reduce((s, it) => s + (it.qty || 0), 0);
+
+  return `
+    <div style="background-color: #ffffff; padding: 28px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+      
+      <!-- ترويسة السند المخزني -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double ${accentColor}; padding-bottom: 16px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="/LogoRohamaab.png" style="height: 56px; max-width: 75px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+          <div>
+            <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${orgName}</h1>
+            <div style="font-size: 10px; color: ${accentColor}; font-weight: bold; margin-top: 2px;">إدارة سلاسل الإمداد والخدمات اللوجستية • المستودعات المركزية</div>
+            <div style="font-size: 9px; color: #64748b;">الجمهورية اليمنية • تعز</div>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <div style="display: inline-block; background-color: #ecfdf5; border: 1.5px solid ${accentColor}; padding: 4px 14px; border-radius: 8px; font-weight: 900; font-size: 13px; color: #065f46;">
+            ${titleAr}
+          </div>
+          <div style="font-size: 11px; font-weight: 900; font-family: monospace; color: #0f172a; margin-top: 4px;">
+            رقم السند: <span style="color: ${accentColor};">${vNo}</span>
+          </div>
+          <div style="font-size: 9px; color: #64748b; margin-top: 2px;">تاريخ الحركة: ${dateGreg}</div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+          <div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">INVENTORY OS</div>
+            <div style="font-size: 8px; color: #94a3b8;">LOGISTICS CORE</div>
+          </div>
+          <img src="/UAMEX_ERPLOGO.png" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+        </div>
+      </div>
+
+      <!-- تفاصيل المستودع والجهة -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 10.5px;">
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">المستودع المركزي:</span>
+          <strong style="color: #0f172a;">${warehouse}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">المشروع التنموي المستفيد:</span>
+          <strong style="color: #047857;">${project}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">${isReceipt ? 'الجهة الموردة:' : 'الجهة المستلمة:'}</span>
+          <span style="color: #1e293b; font-weight: 700;">${party}</span>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">المستند المرجعي:</span>
+          <span style="color: #047857; font-weight: bold;">${refPO}</span>
+        </div>
+      </div>
+
+      <!-- جدول المواد المسجلة -->
+      <div style="margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 10px;">
+          <thead>
+            <tr style="background-color: #0f172a; color: #ffffff; font-weight: 800;">
+              <th style="padding: 8px; width: 35px; text-align: center;">#</th>
+              <th style="padding: 8px; width: 85px; text-align: center;">كود الصنف</th>
+              <th style="padding: 8px; text-align: right;">اسم الصنف والمواصفات القياسية</th>
+              <th style="padding: 8px; width: 75px; text-align: center;">الوحدة</th>
+              <th style="padding: 8px; width: 85px; text-align: center;">الكمية ${isReceipt ? 'المستلمة' : 'المصروفة'}</th>
+              <th style="padding: 8px; text-align: right;">تقرير الفحص والملاحظات</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map((it, idx) => `
+              <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 7px; text-align: center; font-weight: bold; color: #64748b;">${idx + 1}</td>
+                <td style="padding: 7px; text-align: center; font-family: monospace; font-weight: bold; color: #047857;">${it.code}</td>
+                <td style="padding: 7px; font-weight: 700; color: #0f172a;">${it.name}</td>
+                <td style="padding: 7px; text-align: center; color: #475569;">${it.unit}</td>
+                <td style="padding: 7px; text-align: center; font-family: monospace; font-weight: 900; font-size: 11px; color: #0f172a;">${it.qty.toLocaleString()}</td>
+                <td style="padding: 7px; color: #047857; font-weight: 600;">✓ ${it.notes}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f1f5f9; font-weight: 900; border-top: 2px solid #0f172a;">
+              <td colspan="4" style="padding: 8px; text-align: center;">إجمالي الكميات المسلمة دفترياً وميدانياً:</td>
+              <td style="padding: 8px; text-align: center; font-family: monospace; font-size: 12px; color: #047857;">${totalQty.toLocaleString()}</td>
+              <td style="padding: 8px; font-size: 9px; color: #047857; font-weight: bold;">مطابقة تامة لكشوفات التوزيع</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- توقيعات الاستلام والفحص المخزني -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; margin-bottom: 20px; font-size: 9.5px;">
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">أمين المستودع</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">محمد الحكيمي</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">رئيس لجنة الفحص الفني</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">م. طارق الصبري</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">المطابقة الفنية</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">${isReceipt ? 'مندوب المورد' : 'المستلم الميداني'}</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">عصام القدسي</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع والاستلام</div>
+        </div>
+
+        <div style="border: 1.5px dashed ${accentColor}; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f0fdf4;">
+          <div style="width: 44px; height: 44px; border: 2px dashed ${accentColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${accentColor}; font-size: 7.5px; font-weight: 900; text-align: center; line-height: 1.1;">
+            ختم المستودعات<br/>المركزية
+          </div>
+          <div style="font-size: 8px; color: ${accentColor}; font-weight: bold; margin-top: 4px;">سند مخزني معتمد</div>
+        </div>
+      </div>
+
+      <!-- التذييل -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+        <div>${orgName} • إدارة سلاسل الإمداد والمخازن • وثيقة استلام وصرف مخزني موثقة</div>
+        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ LOGISTICS OS • صفحة 1 من 1</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 5. أمر شراء وتوريد رسمي معتمد A4 (Official Purchase Order - PO)
+ */
+export function buildOfficialPurchaseOrderPDFHTML(options: {
+  poNumber?: string;
+  vendorName?: string;
+  dateGregorian?: string;
+  tenderReference?: string;
+  projectName?: string;
+  deliveryPeriodDays?: number;
+  deliveryLocation?: string;
+  items?: Array<{ desc: string; qty: number; unit: string; unitPriceYer: number }>;
+  accentColor?: string;
+  orgNameAr?: string;
+}): string {
+  const accentColor = options.accentColor || '#059669';
+  const orgName = options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية';
+  const poNo = options.poNumber || `أمر-شراء/2026/08-089`;
+  const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
+  const vendor = options.vendorName || 'شركة الأمل للتجارة والمقاولات العامة';
+  const tenderRef = options.tenderReference || 'محضر لجنة المشتريات والمناقصات رقم (14) لعام 2026';
+  const project = options.projectName || 'مشروع مياه وإصحاح صبر الموادم (ريف تعز)';
+  const deliveryDays = options.deliveryPeriodDays || 7;
+  const deliveryLoc = options.deliveryLocation || 'موقع المشروع الميداني - محافظة تعز - صبر الموادم';
+
+  const items = options.items && options.items.length > 0 ? options.items : [
+    { desc: 'أنابيب بولي إيثيلين ضغط عالي HDPE قطر 3 إنش (ضغط 16 بار)', qty: 1200, unit: 'متر', unitPriceYer: 4500 },
+    { desc: 'مضخة مياه غاطسة طاقة شمسية قدرة 15 حصان مع ملحقاتها', qty: 2, unit: 'طقم', unitPriceYer: 3800000 },
+    { desc: 'محابس بوابية ومحابس هواء ووصلات نحاسية معتمدة', qty: 24, unit: 'حبة', unitPriceYer: 35000 }
+  ];
+
+  const totalAmount = items.reduce((s, it) => s + (it.qty * it.unitPriceYer), 0);
+  const tafqeet = tafqeetArabicRials(totalAmount);
+
+  return `
+    <div style="background-color: #ffffff; padding: 28px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+      
+      <!-- ترويسة أمر الشراء -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double ${accentColor}; padding-bottom: 16px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="/LogoRohamaab.png" style="height: 56px; max-width: 75px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+          <div>
+            <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${orgName}</h1>
+            <div style="font-size: 10px; color: ${accentColor}; font-weight: bold; margin-top: 2px;">إدارة المشتريات والمناقصات والعقود • سلاسل الإمداد P2P</div>
+            <div style="font-size: 9px; color: #64748b;">الجمهورية اليمنية • تعز</div>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <div style="display: inline-block; background-color: #ecfdf5; border: 1.5px solid ${accentColor}; padding: 4px 14px; border-radius: 8px; font-weight: 900; font-size: 14px; color: #065f46;">
+            أمر شراء وتوريد رسمي معتمد (PO)
+          </div>
+          <div style="font-size: 11px; font-weight: 900; font-family: monospace; color: #0f172a; margin-top: 4px;">
+            رقم الأمر: <span style="color: ${accentColor};">${poNo}</span>
+          </div>
+          <div style="font-size: 9px; color: #64748b; margin-top: 2px;">تاريخ الإصدار: ${dateGreg}</div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+          <div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">P2P ENGINE</div>
+            <div style="font-size: 8px; color: #94a3b8;">PROCUREMENT</div>
+          </div>
+          <img src="/UAMEX_ERPLOGO.png" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+        </div>
+      </div>
+
+      <!-- بيانات المورد والشروط -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 10.5px;">
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">السادة / المورد المعتمد:</span>
+          <strong style="color: #0f172a; font-size: 12px;">${vendor}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">المشروع التنموي المرتبط:</span>
+          <strong style="color: #047857;">${project}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">المرجع الإجرائي والتعميد:</span>
+          <span style="color: #334155; font-weight: 700;">${tenderRef}</span>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">مدة ومكان التسليم:</span>
+          <span style="color: #0f172a; font-weight: bold;">خلال ${deliveryDays} أيام عمل — ${deliveryLoc}</span>
+        </div>
+      </div>
+
+      <!-- جدول بنود التوريد والأسعار -->
+      <div style="margin-bottom: 16px;">
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 10px;">
+          <thead>
+            <tr style="background-color: #0f172a; color: #ffffff; font-weight: 800;">
+              <th style="padding: 8px; width: 35px; text-align: center;">#</th>
+              <th style="padding: 8px; text-align: right;">بيان المواد والمواصفات الفنية المعتمدة</th>
+              <th style="padding: 8px; width: 65px; text-align: center;">الوحدة</th>
+              <th style="padding: 8px; width: 65px; text-align: center;">الكمية</th>
+              <th style="padding: 8px; width: 110px; text-align: left;">سعر الوحدة (ر.ي)</th>
+              <th style="padding: 8px; width: 125px; text-align: left;">الإجمالي (ر.ي)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map((it, idx) => {
+              const lineTotal = it.qty * it.unitPriceYer;
+              return `
+                <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
+                  <td style="padding: 7px; text-align: center; font-weight: bold; color: #64748b;">${idx + 1}</td>
+                  <td style="padding: 7px; font-weight: 700; color: #0f172a;">${it.desc}</td>
+                  <td style="padding: 7px; text-align: center; color: #475569;">${it.unit}</td>
+                  <td style="padding: 7px; text-align: center; font-family: monospace; font-weight: bold;">${it.qty.toLocaleString()}</td>
+                  <td style="padding: 7px; text-align: left; font-family: monospace; font-weight: 700; color: #334155;">${it.unitPriceYer.toLocaleString()}</td>
+                  <td style="padding: 7px; text-align: left; font-family: monospace; font-weight: 900; color: #047857;">${lineTotal.toLocaleString()}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f1f5f9; font-weight: 900; border-top: 2px solid #0f172a; font-size: 11px;">
+              <td colspan="5" style="padding: 8px; text-align: center;">إجمالي القيمة الإجمالية لأمر الشراء:</td>
+              <td style="padding: 8px; text-align: left; font-family: monospace; color: #047857;">${totalAmount.toLocaleString()} ر.ي</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- التفقيط والشروط -->
+      <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 10.5px;">
+        <span style="font-weight: 900; color: #065f46;">المبلغ بالحروف: </span>
+        <strong style="color: #0f172a;">${tafqeet}</strong>
+      </div>
+
+      <!-- التوقيعات والتعميدات الرسمية -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; margin-bottom: 20px; font-size: 9.5px;">
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">مدير إدارة المشتريات</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">م. كمال الحمادي</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">المدير المالي</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">صالح العريقي</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التأكيد المالي</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #047857; font-weight: bold;">المدير التنفيذي</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">د. فؤاد هزاع</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التعميد والختم</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">قبول والتزام المورد</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">الاسم والصفة</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع والختم</div>
+        </div>
+      </div>
+
+      <!-- التذييل -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+        <div>${orgName} • أمر شراء ملزم قانونياً وفق لوائح المشتريات المعيارية • صادر عبر UAMEX ERP™</div>
+        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ P2P ENGINE • صفحة 1 من 1</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 6. سند تسليم مساعدات إغاثية وبطاقة صرف مستفيد A4 (Beneficiary Aid Delivery Card)
+ */
+export function buildOfficialBeneficiaryAidCardPDFHTML(options: {
+  cardNumber?: string;
+  beneficiaryName?: string;
+  nationalIdOrSurvey?: string;
+  governorate?: string;
+  district?: string;
+  village?: string;
+  familyMembersCount?: number;
+  vulnerabilityCategory?: string;
+  reliefPackageAr?: string;
+  dateGregorian?: string;
+  distributorName?: string;
+  accentColor?: string;
+  orgNameAr?: string;
+}): string {
+  const accentColor = options.accentColor || '#059669';
+  const orgName = options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية';
+  const cNo = options.cardNumber || `إغاثة/2026/08-842`;
+  const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
+  const benName = options.beneficiaryName || 'عبدالسلام محمد هزاع القادري';
+  const idNo = options.nationalIdOrSurvey || 'بطاقة شخصية رقم: 0401029481 • مسح ميداني رقم 841';
+  const gov = options.governorate || 'محافظة تعز';
+  const dist = options.district || 'مديرية صبر الموادم';
+  const village = options.village || 'عزلة النجار - قرية الحصن';
+  const familyCount = options.familyMembersCount || 7;
+  const category = options.vulnerabilityCategory || 'أسر أشد فقراً ومعيلة لأيتام';
+  const reliefPkg = options.reliefPackageAr || 'سلة غذائية متكاملة مطابقة لمعايير ميثاق إسفير الإنساني (دقيق 50 كجم، أرز 20 كجم، سكر 10 كجم، زيت 8 لتر، بقوليات)';
+  const distributor = options.distributorName || 'أحمد المقطري (ضابط التوزيع الميداني)';
+
+  return `
+    <div style="background-color: #ffffff; padding: 28px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+      
+      <!-- ترويسة سند تسليم المساعدات -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double ${accentColor}; padding-bottom: 16px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="/LogoRohamaab.png" style="height: 56px; max-width: 75px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+          <div>
+            <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${orgName}</h1>
+            <div style="font-size: 10px; color: ${accentColor}; font-weight: bold; margin-top: 2px;">قطاع الرعاية الاجتماعية والإغاثة الإنسانية • معايير Sphere / CHS</div>
+            <div style="font-size: 9px; color: #64748b;">الجمهورية اليمنية • تعز</div>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <div style="display: inline-block; background-color: #ecfdf5; border: 1.5px solid ${accentColor}; padding: 4px 14px; border-radius: 8px; font-weight: 900; font-size: 13px; color: #065f46;">
+            سند تسليم مساعدات إغاثية معتمد
+          </div>
+          <div style="font-size: 11px; font-weight: 900; font-family: monospace; color: #0f172a; margin-top: 4px;">
+            رقم السند: <span style="color: ${accentColor};">${cNo}</span>
+          </div>
+          <div style="font-size: 9px; color: #64748b; margin-top: 2px;">تاريخ الصرف: ${dateGreg}</div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+          <div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">AID DISPATCH</div>
+            <div style="font-size: 8px; color: #94a3b8;">SPHERE COMPLIANT</div>
+          </div>
+          <img src="/UAMEX_ERPLOGO.png" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+        </div>
+      </div>
+
+      <!-- تفاصيل المستفيد وموقع الصرف -->
+      <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 11px; line-height: 1.9;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 6px;">
+          <div>
+            <span style="color: #64748b; font-weight: bold;">اسم المستفيد الرباعي: </span>
+            <strong style="color: #0f172a; font-size: 13px;">${benName}</strong>
+          </div>
+          <div>
+            <span style="color: #64748b; font-weight: bold;">إثبات الهوية والمسح: </span>
+            <span style="font-weight: 700; color: #0f172a;">${idNo}</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 10.5px;">
+          <div>
+            <span style="color: #64748b; font-weight: bold;">النطاق الجغرافي: </span>
+            <span style="color: #1e293b;">${gov} - ${dist}</span>
+          </div>
+          <div>
+            <span style="color: #64748b; font-weight: bold;">العزلة / القرية: </span>
+            <span style="color: #1e293b;">${village}</span>
+          </div>
+          <div>
+            <span style="color: #64748b; font-weight: bold;">عدد أفراد الأسرة: </span>
+            <strong style="color: #047857;">${familyCount} أفراد</strong>
+          </div>
+        </div>
+
+        <div style="margin-top: 6px;">
+          <span style="color: #64748b; font-weight: bold;">فئة الاستحقاق والاحتياج: </span>
+          <span style="background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 10px;">
+            ${category}
+          </span>
+        </div>
+      </div>
+
+      <!-- طرد المساعدة المصروف -->
+      <div style="background-color: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 20px;">
+        <span style="font-weight: 900; color: #065f46; display: block; margin-bottom: 4px; font-size: 11.5px;">بيان المساعدة الإغاثية المستلمة:</span>
+        <div style="font-size: 11px; color: #0f172a; font-weight: 700; line-height: 1.6;">
+          ${reliefPkg}
+        </div>
+        <div style="font-size: 9.5px; color: #047857; font-weight: bold; margin-top: 6px;">
+          ✓ تم فحص ووزن الطرد الإغاثي، وهو مطابق تماماً للمواصفات الغذائية والاشتراطات الصحية لميثاق إسفير الإنساني الدولي.
+        </div>
+      </div>
+
+      <!-- إقرار الاستلام وتوقيعات اللجان الميدانية -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; margin-bottom: 20px; font-size: 9.5px;">
+        <div style="border: 1.5px solid #0f172a; border-radius: 8px; padding: 8px; background-color: #ffffff;">
+          <div style="color: #0f172a; font-weight: 900;">بصمة وإقرار المستلم</div>
+          <div style="height: 38px; width: 38px; border: 1.5px dashed #94a3b8; border-radius: 4px; margin: 6px auto 0 auto; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 7.5px;">
+            مكان البصمة
+          </div>
+          <div style="color: #64748b; font-size: 8.5px; margin-top: 3px;">توقيع / بصمة المستلم</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">ضابط التوزيع الميداني</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">${distributor}</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">اللجنة المجتمعية الميدانية</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">رئيس اللجنة المشرفة</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">المصادقة</div>
+        </div>
+
+        <div style="border: 1.5px dashed ${accentColor}; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f0fdf4;">
+          <div style="width: 44px; height: 44px; border: 2px dashed ${accentColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${accentColor}; font-size: 7.5px; font-weight: 900; text-align: center; line-height: 1.1;">
+            ختم الصرف<br/>الميداني
+          </div>
+          <div style="font-size: 8px; color: ${accentColor}; font-weight: bold; margin-top: 4px;">معتمد إنسانياً</div>
+        </div>
+      </div>
+
+      <!-- التذييل -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+        <div>${orgName} • قطاع الإغاثة والمساعدات الإنسانية • وثيقة صرف معتمدة تخضع للمساءلة والشفافية</div>
+        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ SPHERE & CHS CERTIFIED</div>
+      </div>
     </div>
   `;
 }

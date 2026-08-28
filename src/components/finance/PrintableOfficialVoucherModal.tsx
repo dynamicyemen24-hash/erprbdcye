@@ -65,13 +65,13 @@ export const PrintableOfficialVoucherModal: React.FC<PrintableOfficialVoucherMod
 
   // Digital verification QR content
   const qrVerificationPayload = JSON.stringify({
-    org: 'Rohamāa Baynahum Charity Foundation',
-    system: 'UAMEX ERP v3.5',
-    vNo: voucher.voucherNumber,
-    amt: voucher.amountYer,
-    cur: 'YER',
+    org: 'جمعية رُحماء بينهم للعمل الإنساني والتنمية',
+    system: 'UAMEX ERP™',
+    voucherNo: voucher.voucherNumber,
+    amount: voucher.amountYer,
+    currency: 'ر.ي',
     date: voucher.dateGregorian,
-    ipsas: 'COMPLIANT'
+    standard: 'IPSAS-24'
   });
 
   return (
@@ -302,7 +302,7 @@ export const PrintableOfficialVoucherModal: React.FC<PrintableOfficialVoucherMod
                 className="mx-auto"
               />
               <span className="text-[8px] font-mono font-bold text-slate-500 block mt-1">
-                VERIFIED SEAL
+                ختم التحقق الرقمي
               </span>
             </div>
           </div>
