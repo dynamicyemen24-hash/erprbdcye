@@ -41,6 +41,9 @@ export interface Transaction {
   payment_method?: string;
   reference_number?: string | null;
   branch_code?: string;
+  project_id?: string | null;
+  party_name?: string | null;
+  cost_center?: string | null;
   security_level?: number;
   created_at: string;
 }

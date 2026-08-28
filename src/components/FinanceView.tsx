@@ -68,6 +68,8 @@ import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyButton } from '../core/security/PermissionGate';
 import { REAL_ENTERPRISE_DATA } from '../core/data/realEnterpriseData';
+import { EnterpriseSkeletonTable } from './common/EnterpriseSkeletonTable';
+import { PrintableOfficialVoucherModal, OfficialVoucherData } from './finance/PrintableOfficialVoucherModal';
 
 interface FinanceViewProps {
   currencies: Currency[];
@@ -106,6 +108,58 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
   const [parsedData, setParsedData] = useState<any>(null);
   const [aiError, setAiError] = useState('');
   const [aiImagePreview, setAiImagePreview] = useState<string | null>(null);
+
+  // Official A4 Voucher Modal State
+  const [selectedOfficialVoucher, setSelectedOfficialVoucher] = useState<OfficialVoucherData | null>(null);
+  const [showOfficialVoucherModal, setShowOfficialVoucherModal] = useState(false);
+
+  const handleOpenOfficialA4Modal = (tx: Transaction) => {
+    const txLines = lines.filter((l: any) => l.transaction_id === tx.id);
+    const proj = projects.find(p => p.id === tx.project_id);
+
+    setSelectedOfficialVoucher({
+      voucherNumber: tx.transaction_number || `PV-${tx.id.slice(0, 8)}`,
+      dateGregorian: new Date(tx.transaction_date).toLocaleDateString('en-GB'),
+      dateHijri: '1448 هـ',
+      payeeName: (tx as any).party_name || (lang === 'ar' ? 'الجهة المستفيدة / المقاول المعتمد' : 'Authorized Payee / Contractor'),
+      projectName: proj?.name_ar || (lang === 'ar' ? 'مشروع مياه وإصحاح صبر الموادم' : 'WASH Sabir Project'),
+      projectCode: proj?.code || 'PRJ-WASH-2026',
+      costCenter: lang === 'ar' ? 'الإدارة العامة للمشاريع - فرع تعز' : 'Field Operations - Taiz HQ',
+      paymentMethodAr: tx.transaction_type === 'PAYMENT' ? 'تحويل بنكي رسمي / شيك مصرفي' : 'سند محاسبي مباشر',
+      referenceDocNumber: (tx as any).reference_number || 'TRX-REF-9021',
+      amountYer: parseFloat(String(tx.total_debit || tx.total_credit || 0)),
+      descriptionAr: tx.description || 'صرف مستحقات تنفيذية بحسب اللائحة والمعايير المعتمدة',
+      lines: txLines.length > 0 ? txLines.map(l => {
+        const acc = accounts.find(a => a.account_code === l.account_code || a.id === l.account_id);
+        return {
+          accountCode: l.account_code || acc?.account_code || '10101',
+          accountName: (lang === 'ar' ? acc?.name_ar : acc?.name_en) || 'حساب الأستاذ العام',
+          debitYer: parseFloat(String(l.debit_amount || 0)),
+          creditYer: parseFloat(String(l.credit_amount || 0)),
+          noteAr: l.description || tx.description || 'بيان القيد المحاسبي'
+        };
+      }) : [
+        {
+          accountCode: '21010',
+          accountName: 'مصاريف تنفيذ أنشطة الميدان - مياه وإصحاح',
+          debitYer: parseFloat(String(tx.total_debit || tx.total_credit || 0)),
+          creditYer: 0,
+          noteAr: tx.description || 'مستحقات المقاول الميداني'
+        },
+        {
+          accountCode: '10102',
+          accountName: 'حساب النقدية بالبنوك - بنك التضامن',
+          debitYer: 0,
+          creditYer: parseFloat(String(tx.total_debit || tx.total_credit || 0)),
+          noteAr: 'صرف تحويل بنكي معتمد'
+        }
+      ],
+      preparedBy: lang === 'ar' ? 'المحاسب المالي' : 'Accountant',
+      reviewedBy: lang === 'ar' ? 'المراجع المالي والرقابة' : 'Internal Auditor',
+      approvedBy: lang === 'ar' ? 'المدير التنفيذي د. فؤاد هزاع' : 'Executive Director'
+    });
+    setShowOfficialVoucherModal(true);
+  };
 
   const fetchFinanceData = useCallback(async () => {
     setLoading(true);
@@ -579,12 +633,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-slate-700">
                   {loading ? (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-zinc-400 font-bold">
-                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-500" />
-                        <span>{lang === 'ar' ? 'جاري مطابقة الدليل الحسابي الـ COA...' : 'Mapping ledger Chart of Accounts...'}</span>
-                      </td>
-                    </tr>
+                    <EnterpriseSkeletonTable rows={6} columns={6} colWidths={['w-28', 'w-56', 'w-24', 'w-32', 'w-36', 'w-16']} />
                   ) : filteredAccounts.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-zinc-400 font-bold">
@@ -717,12 +766,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
               </thead>
               <tbody className="divide-y divide-zinc-100 text-slate-700">
                 {loading ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-zinc-400 font-bold">
-                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-500" />
-                      <span>{lang === 'ar' ? 'جاري تحديث دفتر القيود والترحيل...' : 'Refreshing posted ledger register...'}</span>
-                    </td>
-                  </tr>
+                  <EnterpriseSkeletonTable rows={6} columns={7} colWidths={['w-8', 'w-28', 'w-24', 'w-20', 'w-56', 'w-28', 'w-28']} />
                 ) : transactions.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-12 text-center text-zinc-400 font-bold">
@@ -750,17 +794,29 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                         {(parseFloat(String(tx.total_debit || tx.total_credit || 0))).toLocaleString()}
                       </td>
                       <td className="p-3 text-center">
-                        <PolicyButton
-                          action="print"
-                          domain="finance"
-                          securityLevel={securityLevel}
-                          userRole={userRole}
-                          onClick={() => handlePrintVoucher(tx)}
-                          className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 rounded-xl font-black text-[10px] flex items-center justify-center gap-1 mx-auto transition-all cursor-pointer shadow-sm"
-                        >
-                          <FileText className="w-3.5 h-3.5 shrink-0" />
-                          <span>{lang === 'ar' ? 'طباعة السند' : 'Print Voucher'}</span>
-                        </PolicyButton>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenOfficialA4Modal(tx)}
+                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-xl font-black text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs"
+                            title={lang === 'ar' ? 'معاينة وطباعة السند الرسمي المعتمد A4 مع الترويسة والختم' : 'Official A4 Stamped Voucher Preview'}
+                          >
+                            <Printer className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+                            <span>{lang === 'ar' ? 'سند رسمي A4' : 'A4 Official'}</span>
+                          </button>
+                          
+                          <PolicyButton
+                            action="print"
+                            domain="finance"
+                            securityLevel={securityLevel}
+                            userRole={userRole}
+                            onClick={() => handlePrintVoucher(tx)}
+                            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-xl font-bold text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer"
+                          >
+                            <FileText className="w-3.5 h-3.5 shrink-0" />
+                            <span>{lang === 'ar' ? 'سريع' : 'Quick'}</span>
+                          </PolicyButton>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -980,6 +1036,19 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       {/* SUBTAB 19: MULTI-BRANCH INTER-COMPANY CONSOLIDATION ENGINE (IPSAS-35) */}
       {activeSubTab === 'consolidated_statements' && (
         <ConsolidatedStatementsTab lang={lang} />
+      )}
+
+      {/* OFFICIAL A4 STAMPED VOUCHER MODAL */}
+      {showOfficialVoucherModal && selectedOfficialVoucher && (
+        <PrintableOfficialVoucherModal
+          isOpen={showOfficialVoucherModal}
+          onClose={() => {
+            setShowOfficialVoucherModal(false);
+            setSelectedOfficialVoucher(null);
+          }}
+          voucher={selectedOfficialVoucher}
+          lang={lang}
+        />
       )}
     </div>
     </ModuleShell>

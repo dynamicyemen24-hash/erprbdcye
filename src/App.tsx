@@ -79,6 +79,7 @@ const FastRecordRetrievalDrawer = lazyWithRetry(() => import('./components/recor
 import { EnvironmentModeBanner } from './components/EnvironmentModeBanner';
 import { FloatingEnterpriseDock } from './components/FloatingEnterpriseDock';
 import { EnterpriseToastContainer, showToast } from './components/enterprise/EnterpriseToastContainer';
+import { OfflineSyncTelemetryBar } from './components/common/OfflineSyncTelemetryBar';
 
 import { 
   EnterpriseLogo,
@@ -1226,6 +1227,9 @@ export default function App() {
       <React.Suspense fallback={<SuspenseFallback />}>
         <FloatingMobileFAB onNavigate={handleSelectTab} />
       </React.Suspense>
+
+      {/* Offline-First Resilience & Sync Telemetry Bar */}
+      <OfflineSyncTelemetryBar lang={lang} onSyncNow={fetchAllData} />
 
       {/* Dynamic Toast System */}
       <div className={`fixed bottom-6 ${lang === 'ar' ? 'left-6' : 'right-6'} z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none`}>
