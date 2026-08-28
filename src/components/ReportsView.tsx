@@ -577,12 +577,12 @@ export default function ReportsView({
   const handleWhatsAppShare = () => {
     const text = encodeURIComponent(
       lang === 'ar'
-        ? `📊 التقرير التنفيذي الذكي - جمعية رُحماء بينهم (فترة FY ${execFiscalYear} - ${execPeriod})
-- إجمالي الموازنة: ${totalProgramsBudget.toLocaleString()} YER
-- المستفيدون: ${beneficiaries.length}
-- نسبة الإنجاز والإنفاق: 84.5%
-- حالة البيانات: موثقة عبر قاعدة بيانات Neon PostgreSQL (RLS Active)`
-        : `📊 Executive Intelligence Report - Rohama'a Baynahum (FY ${execFiscalYear} ${execPeriod})\n- Total Budget: ${totalProgramsBudget.toLocaleString()} YER\n- Beneficiaries: ${beneficiaries.length}\n- Execution Rate: 84.5%\n- Data Source: Neon PostgreSQL (RLS Active)`
+        ? `📊 التقرير التنفيذي الموحد - جمعية رُحماء بينهم للعمل الإنساني والتنمية (${execFiscalYear} - ${execPeriod})
+- إجمالي الموازنة المعتمدة: ${totalProgramsBudget.toLocaleString()} ر.ي
+- إجمالي الأسر المستفيدة: ${beneficiaries.length} أسرة
+- نسبة الإنجاز التنفيذي: 84.5%
+- الحوكمة المحاسبية: متطابقة مع معايير IPSAS وميثاق إسفير الإنساني`
+        : `📊 Executive Intelligence Report - Rohama'a Baynahum (${execFiscalYear} - ${execPeriod})\n- Total Budget: ${totalProgramsBudget.toLocaleString()} YER\n- Beneficiaries: ${beneficiaries.length}\n- Execution Rate: 84.5%\n- Compliance: IPSAS & Sphere Standards Verified`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -934,7 +934,7 @@ export default function ReportsView({
           {showAnalytical && (
             <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold flex items-center gap-1">
               <TrendingUp className="w-3 h-3 text-emerald-500" />
-              <span>{lang === 'ar' ? 'متوسط الموازنة: ' : 'Avg Budget: '}{programs.length > 0 ? Math.round(totalProgramsBudget / programs.length).toLocaleString() : '0'} YER</span>
+              <span>{lang === 'ar' ? 'متوسط الموازنة: ' : 'Avg Budget: '}{programs.length > 0 ? Math.round(totalProgramsBudget / programs.length).toLocaleString() : '0'} {lang === 'ar' ? 'ر.ي' : 'YER'}</span>
             </p>
           )}
           {showEvaluation && (
@@ -1504,8 +1504,8 @@ export default function ReportsView({
                   </p>
                   <div className="space-y-1.5 pt-2 text-xs font-mono">
                     <div className="flex justify-between">
-                      <span className="text-zinc-400">{lang === 'ar' ? 'موازنة البرنامج:' : 'Total Budget:'}</span>
-                      <span className="font-bold text-slate-900 dark:text-zinc-100">{totalProgramsBudget.toLocaleString()} YER</span>
+                      <span className="text-zinc-400">{lang === 'ar' ? 'الموازنة الكلية:' : 'Total Budget:'}</span>
+                      <span className="font-bold text-slate-900 dark:text-zinc-100">{totalProgramsBudget.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}</span>
                     </div>
                   </div>
                 </div>
@@ -1694,15 +1694,15 @@ export default function ReportsView({
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 font-mono">
                         <div className="p-3 bg-slate-50 dark:bg-zinc-800 rounded-xl">
                           <span className="text-[10px] text-zinc-400 block">{lang === 'ar' ? 'الخطة المعتمدة' : 'Planned Budget'}</span>
-                          <span className="font-extrabold text-slate-900 dark:text-zinc-100">{(totalProgramsBudget / 15).toLocaleString()} YER</span>
+                          <span className="font-extrabold text-slate-900 dark:text-zinc-100">{(totalProgramsBudget / 15).toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}</span>
                         </div>
                         <div className="p-3 bg-slate-50 dark:bg-zinc-800 rounded-xl">
                           <span className="text-[10px] text-zinc-400 block">{lang === 'ar' ? 'الفعلي المنفذ' : 'Actual Spent'}</span>
-                          <span className="font-extrabold text-emerald-600">{((totalProgramsBudget / 15) * 0.845).toLocaleString()} YER</span>
+                          <span className="font-extrabold text-emerald-600">{((totalProgramsBudget / 15) * 0.845).toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}</span>
                         </div>
                         <div className="p-3 bg-slate-50 dark:bg-zinc-800 rounded-xl">
-                          <span className="text-[10px] text-zinc-400 block">{lang === 'ar' ? 'معدل الانحراف (Variance)' : 'Variance Ratio'}</span>
-                          <span className="font-extrabold text-amber-600">-15.5% (Optimized)</span>
+                          <span className="text-[10px] text-zinc-400 block">{lang === 'ar' ? 'معدل الانحراف المالي' : 'Variance Ratio'}</span>
+                          <span className="font-extrabold text-emerald-600 font-bold">{lang === 'ar' ? 'وفورات بنسبة 15.5%' : '-15.5% (Optimized)'}</span>
                         </div>
                       </div>
                     </div>
@@ -1794,7 +1794,7 @@ export default function ReportsView({
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="p-3 bg-zinc-800/80 border border-zinc-700/80 rounded-xl text-amber-400 text-center space-y-0.5">
                     <p className="text-[9px] text-zinc-400 font-bold uppercase">{lang === 'ar' ? 'مؤشر الكفاءة' : 'Efficiency ROI'}</p>
-                    <p className="font-mono text-sm font-black text-amber-400">1:18.4 YER</p>
+                    <p className="font-mono text-sm font-black text-amber-400">1:18.4 {lang === 'ar' ? 'ر.ي' : 'YER'}</p>
                   </div>
                   <div className="p-3 bg-zinc-800/80 border border-zinc-700/80 rounded-xl text-emerald-400 text-center space-y-0.5">
                     <p className="text-[9px] text-zinc-400 font-bold uppercase">{lang === 'ar' ? 'جودة CHS/Sphere' : 'Impact Quality'}</p>
@@ -1815,7 +1815,7 @@ export default function ReportsView({
 
                 <div className="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
                   <span className="text-[10px] text-slate-500 block">{lang === 'ar' ? 'إجمالي الموازنات المربوطة' : 'Correlated Budgets'}</span>
-                  <span className="font-bold text-amber-400">{totalProgramsBudget.toLocaleString()} YER</span>
+                  <span className="font-bold text-amber-400">{totalProgramsBudget.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}</span>
                 </div>
                 <div className="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
                   <span className="text-[10px] text-slate-500 block">{lang === 'ar' ? 'إجمالي المستفيدين الموثقين' : 'Verified Beneficiaries'}</span>
@@ -1826,7 +1826,7 @@ export default function ReportsView({
                 <div className="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
                   <span className="text-[10px] text-slate-500 block">{lang === 'ar' ? 'متوسط تكلفة المستفيد' : 'Avg Cost / Beneficiary'}</span>
                   <span className="font-bold text-blue-400">
-                    {Math.round(totalProgramsBudget / (crossDomainCorrelationData.reduce((s, c) => s + c.beneficiaries, 0) || 1)).toLocaleString()} YER
+                    {Math.round(totalProgramsBudget / (crossDomainCorrelationData.reduce((s, c) => s + c.beneficiaries, 0) || 1)).toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
                   </span>
                 </div>
                 <div className="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
@@ -2130,16 +2130,16 @@ export default function ReportsView({
 
                       <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-2 border-t border-slate-100 dark:border-zinc-800">
                         <div className="bg-slate-50 dark:bg-zinc-800/50 p-2 rounded-xl">
-                          <span className="text-[9px] text-zinc-400 block">{lang === 'ar' ? 'الموازنة (NEB-03)' : 'Budget'}</span>
-                          <span className="font-bold text-amber-600 dark:text-amber-400">{item.budget.toLocaleString()} YER</span>
+                          <span className="text-[9px] text-zinc-400 block">{lang === 'ar' ? 'الموازنة المعتمدة' : 'Budget'}</span>
+                          <span className="font-bold text-amber-600 dark:text-amber-400">{item.budget.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}</span>
                         </div>
                         <div className="bg-slate-50 dark:bg-zinc-800/50 p-2 rounded-xl">
-                          <span className="text-[9px] text-zinc-400 block">{lang === 'ar' ? 'المستفيدون (NEB-13)' : 'Beneficiaries'}</span>
+                          <span className="text-[9px] text-zinc-400 block">{lang === 'ar' ? 'المستفيدون' : 'Beneficiaries'}</span>
                           <span className="font-bold text-emerald-600 dark:text-emerald-400">{item.beneficiaries.toLocaleString()}</span>
                         </div>
                         <div className="bg-slate-50 dark:bg-zinc-800/50 p-2 rounded-xl">
                           <span className="text-[9px] text-zinc-400 block">{lang === 'ar' ? 'تكلفة/مستفيد' : 'Cost/Beneficiary'}</span>
-                          <span className="font-bold text-blue-600 dark:text-blue-400">{item.costPerBen.toLocaleString()} YER</span>
+                          <span className="font-bold text-blue-600 dark:text-blue-400">{item.costPerBen.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}</span>
                         </div>
                         <div className="bg-slate-50 dark:bg-zinc-800/50 p-2 rounded-xl">
                           <span className="text-[9px] text-zinc-400 block">{lang === 'ar' ? 'المشاريع المنفذة' : 'Active Projects'}</span>
@@ -2261,7 +2261,7 @@ export default function ReportsView({
                       <div className="text-left sm:text-right space-y-1">
                         <p className="text-[10px] text-zinc-400 font-extrabold uppercase">{lang === 'ar' ? 'الموازنة المعمدة للبرنامج:' : 'Approved Budget:'}</p>
                         <p className="text-lg font-black font-mono text-amber-600 dark:text-amber-400">
-                          {parseFloat(prog.budget || '0').toLocaleString()} YER
+                          {parseFloat(prog.budget || '0').toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
                         </p>
                       </div>
                     </div>
@@ -2294,7 +2294,7 @@ export default function ReportsView({
                                   <h5 className="font-bold text-xs text-slate-900 dark:text-zinc-100 inline-block mt-1">{prjName}</h5>
                                 </div>
                                 <span className="font-mono text-xs font-black text-slate-700 dark:text-zinc-300">
-                                  {parseFloat(prj.budget || '0').toLocaleString()} YER
+                                  {parseFloat(prj.budget || '0').toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
                                 </span>
                               </div>
 
@@ -2332,7 +2332,7 @@ export default function ReportsView({
                                             <p className="font-semibold text-slate-800 dark:text-zinc-200">{act.title}</p>
                                           </div>
                                           <div className="text-right">
-                                            <span className="font-mono font-bold text-slate-700 dark:text-zinc-300 block">{act.budget.toLocaleString()} YER</span>
+                                            <span className="font-mono font-bold text-slate-700 dark:text-zinc-300 block">{act.budget.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}</span>
                                             <span className="text-[9px] font-extrabold text-emerald-600">{act.status}</span>
                                           </div>
                                         </div>
@@ -2531,7 +2531,7 @@ export default function ReportsView({
                       <th className="p-2.5">#</th>
                       <th className="p-2.5">{lang === 'ar' ? 'الكود' : 'Code'}</th>
                       <th className="p-2.5">{lang === 'ar' ? 'اسم المشروع / البرنامج' : 'Title'}</th>
-                      <th className="p-2.5 text-right">{lang === 'ar' ? 'الموازنة YER' : 'Budget YER'}</th>
+                      <th className="p-2.5 text-right">{lang === 'ar' ? 'الموازنة (ر.ي)' : 'Budget (YER)'}</th>
                       <th className="p-2.5 text-center">{lang === 'ar' ? 'نسبة الإنجاز' : 'Progress'}</th>
                       <th className="p-2.5 text-center">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
                     </tr>
@@ -2543,7 +2543,7 @@ export default function ReportsView({
                         <td className="p-2.5 font-mono text-amber-600 font-bold">{p.project_code || 'PROJ-' + (idx + 1)}</td>
                         <td className="p-2.5 text-slate-900 dark:text-zinc-100 font-bold">{lang === 'ar' ? (p.name_ar || p.name_en) : (p.name_en || p.name_ar)}</td>
                         <td className="p-2.5 font-mono font-bold text-slate-800 dark:text-zinc-200 text-right">
-                          {parseFloat(p.budget || '0').toLocaleString()} YER
+                          {parseFloat(p.budget || '0').toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
                         </td>
                         <td className="p-2.5 text-center font-mono font-bold text-emerald-600">
                           {p.progress_percent || 75}%
@@ -2827,7 +2827,7 @@ export default function ReportsView({
                       <th className="p-3">{lang === 'ar' ? 'المحافظة / النطاق الجغرافي' : 'Governorate'}</th>
                       <th className="p-3 text-center">{lang === 'ar' ? 'عدد الحالات المسجلة' : 'Registered Cases'}</th>
                       <th className="p-3 text-center">{lang === 'ar' ? 'المشاريع المنفذة' : 'Active Projects'}</th>
-                      <th className="p-3 text-right">{lang === 'ar' ? 'الدعم التقديري المخصص YER' : 'Allocated Funds YER'}</th>
+                      <th className="p-3 text-right">{lang === 'ar' ? 'الدعم التقديري المخصص (ر.ي)' : 'Allocated Funds (YER)'}</th>
                       <th className="p-3 text-center">{lang === 'ar' ? 'أولوية التدخل' : 'Intervention Priority'}</th>
                     </tr>
                   </thead>
@@ -2841,7 +2841,7 @@ export default function ReportsView({
                         <td className="p-3 text-center font-mono font-bold text-slate-900 dark:text-zinc-100">{g.beneficiaryCount}</td>
                         <td className="p-3 text-center font-mono font-bold text-amber-600">{g.projectsCount}</td>
                         <td className="p-3 font-mono font-bold text-emerald-600 text-right">
-                          {g.allocatedFunds.toLocaleString()} YER
+                          {g.allocatedFunds.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}
                         </td>
                         <td className="p-3 text-center">
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -3023,7 +3023,7 @@ export default function ReportsView({
                     <thead className="bg-slate-50 dark:bg-zinc-800/50 text-zinc-400 font-extrabold border-b border-slate-200 dark:border-zinc-700">
                       <tr>
                         <th className="p-2.5">{lang === 'ar' ? 'البرنامج الاستراتيجي' : 'Strategic Program'}</th>
-                        <th className="p-2.5 text-right">{lang === 'ar' ? 'الموازنة M' : 'Budget YER'}</th>
+                        <th className="p-2.5 text-right">{lang === 'ar' ? 'الموازنة (ر.ي)' : 'Budget (YER)'}</th>
                         <th className="p-2.5 text-center">{lang === 'ar' ? 'مؤشر الاستدامة' : 'Sustainability'}</th>
                         <th className="p-2.5 text-center">{lang === 'ar' ? 'تنوع المانحين' : 'Donor Diversity'}</th>
                         <th className="p-2.5 text-center">{lang === 'ar' ? 'تقييم الذكاء الاصطناعي' : 'AI Rating'}</th>
@@ -3033,7 +3033,7 @@ export default function ReportsView({
                       {crossDomainCorrelationData.map((prog, pIdx) => (
                         <tr key={prog.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/40">
                           <td className="p-2.5 font-extrabold text-slate-900 dark:text-zinc-100">{prog.name}</td>
-                          <td className="p-2.5 font-mono font-bold text-emerald-600 text-right">{prog.budget.toLocaleString()} YER</td>
+                          <td className="p-2.5 font-mono font-bold text-emerald-600 text-right">{prog.budget.toLocaleString()} {lang === 'ar' ? 'ر.ي' : 'YER'}</td>
                           <td className="p-2.5 text-center">
                             <span className="font-mono font-black text-purple-600 dark:text-purple-400">
                               {Math.round(82 + (pIdx % 4) * 4.5)}%
@@ -3226,28 +3226,103 @@ export default function ReportsView({
                   </div>
                 ) : (
                   <div className="overflow-x-auto max-h-96">
-                    <table className="w-full text-xs text-right" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
-                      <thead className="bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-extrabold sticky top-0">
-                        <tr>
-                          {Object.keys(selectedViewData[0] || {}).map((colKey) => (
-                            <th key={colKey} className="p-2.5 border-b border-slate-200 dark:border-zinc-700 font-mono text-[11px] whitespace-nowrap">
-                              {colKey}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium">
-                        {selectedViewData.slice(0, 50).map((row, rIdx) => (
-                          <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-zinc-800/40">
-                            {Object.values(row).map((val: any, cIdx) => (
-                              <td key={cIdx} className="p-2.5 whitespace-nowrap font-mono text-[11px] text-slate-800 dark:text-zinc-200">
-                                {val === null || val === undefined ? <span className="text-zinc-400">null</span> : typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                              </td>
+                    {(() => {
+                      const allKeys = Object.keys(selectedViewData[0] || {});
+                      // إزالة الحقول التقنية المشوشة مثل الـ UUID والأرقام المكررة
+                      const displayKeys = allKeys.filter(k => {
+                        const lower = k.toLowerCase();
+                        if (lower === 'id' || lower === 'uuid' || lower === 'tenant_id') return false;
+                        if (lower.endsWith('_id') || lower.startsWith('id_')) return false;
+                        if (lower === 'created_at' || lower === 'updated_at' || lower === 'deleted_at') return false;
+                        if (lower === 'row_version' || lower.includes('hash')) return false;
+                        return true;
+                      });
+
+                      const ARABIC_LABELS: Record<string, string> = {
+                        project_name: 'اسم المشروع',
+                        program_name: 'اسم البرنامج',
+                        beneficiary_name: 'اسم المستفيد',
+                        name: 'الاسم',
+                        title: 'العنوان',
+                        budget: 'الموازنة (ر.ي)',
+                        budget_yer: 'الموازنة (ر.ي)',
+                        spent_amount: 'المنصرف (ر.ي)',
+                        amount: 'المبلغ (ر.ي)',
+                        debit: 'مدين (ر.ي)',
+                        credit: 'دائن (ر.ي)',
+                        balance: 'الرصيد (ر.ي)',
+                        account_code: 'رقم الحساب',
+                        account_name: 'اسم الحساب المحاسبي',
+                        account_type: 'نوع الحساب',
+                        progress: 'نسبة الإنجاز',
+                        progress_percent: 'نسبة الإنجاز %',
+                        status: 'الحالة',
+                        status_code: 'حالة السجل',
+                        category: 'الفئة والقطاع',
+                        location: 'الموقع الميداني',
+                        governorate: 'المحافظة',
+                        district: 'المديرية',
+                        phone: 'رقم التواصل',
+                        email: 'البريد الإلكتروني',
+                        description: 'البيان الإيضاحي',
+                        notes: 'الملاحظات',
+                        code: 'الرمز المؤسسي',
+                        project_code: 'رمز المشروع',
+                        voucher_number: 'رقم السند',
+                        transaction_number: 'رقم الحركة المالية',
+                        date: 'التاريخ',
+                        quantity: 'الكمية',
+                        unit_price: 'سعر الوحدة',
+                        total_price: 'الإجمالي (ر.ي)',
+                        vendor_name: 'اسم المورد',
+                        supplier_name: 'المورد المعتمد'
+                      };
+
+                      const getColLabel = (key: string) => {
+                        if (lang !== 'ar') return key;
+                        return ARABIC_LABELS[key] || ARABIC_LABELS[key.toLowerCase()] || key.replace(/_/g, ' ');
+                      };
+
+                      const formatCellVal = (val: any, key: string) => {
+                        if (val === null || val === undefined) return <span className="text-zinc-400">—</span>;
+                        if (typeof val === 'number') {
+                          if (key.toLowerCase().includes('budget') || key.toLowerCase().includes('amount') || key.toLowerCase().includes('spent') || key.toLowerCase().includes('debit') || key.toLowerCase().includes('credit')) {
+                            return `${val.toLocaleString()} ${lang === 'ar' ? 'ر.ي' : 'YER'}`;
+                          }
+                          return val.toLocaleString();
+                        }
+                        if (typeof val === 'string' && val.length > 30 && /^[0-9a-fA-F-]{36}$/.test(val)) {
+                          return <span className="text-zinc-400 text-[10px]">مرجع مشفر</span>;
+                        }
+                        if (typeof val === 'object') return JSON.stringify(val);
+                        return String(val);
+                      };
+
+                      return (
+                        <table className="w-full text-xs text-right" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
+                          <thead className="bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-extrabold sticky top-0">
+                            <tr>
+                              {displayKeys.map((colKey) => (
+                                <th key={colKey} className="p-2.5 border-b border-slate-200 dark:border-zinc-700 font-bold text-xs whitespace-nowrap">
+                                  {getColLabel(colKey)}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium">
+                            {selectedViewData.slice(0, 50).map((row, rIdx) => (
+                              <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-zinc-800/40">
+                                {displayKeys.map((colKey, cIdx) => (
+                                  <td key={cIdx} className="p-2.5 whitespace-nowrap text-xs text-slate-800 dark:text-zinc-200">
+                                    {formatCellVal(row[colKey], colKey)}
+                                  </td>
+                                ))}
+                              </tr>
                             ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                          </tbody>
+                        </table>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

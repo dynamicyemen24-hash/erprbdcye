@@ -32,7 +32,7 @@ export function getPDFHeaderHTML(options: PDFReportHeaderOptions): string {
     ? (options.orgNameAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية')
     : (options.orgNameEn || 'Rohamā\'a Baynahum Charity Foundation');
   const logo = options.logoUrl || '/UAMEX_ERPLOGO.png';
-  const docNo = options.docNumber || `UAM-${generateNumericCode(100000, 999999)}`;
+  const docNo = options.docNumber || (isRtl ? `وثيقة-${new Date().getFullYear()}/08` : `DOC-${new Date().getFullYear()}/08`);
   const today = options.date || new Date().toLocaleDateString(isRtl ? 'ar-YE' : 'en-US', {
     year: 'numeric',
     month: 'long',
@@ -85,7 +85,7 @@ export function getPDFHeaderHTML(options: PDFReportHeaderOptions): string {
       <div style="flex: 1; text-align: ${isRtl ? 'left' : 'right'}; font-size: 10px; color: #64748b; line-height: 1.6;">
         <div><strong style="color: #334155;">${isRtl ? 'رقم الوثيقة:' : 'Doc No:'}</strong> <span style="font-family: monospace; font-weight: 700;">${docNo}</span></div>
         <div><strong style="color: #334155;">${isRtl ? 'تاريخ الإصدار:' : 'Date:'}</strong> ${today}</div>
-        <div><strong style="color: #334155;">${isRtl ? 'المعيار:' : 'Standard:'}</strong> IPSAS / Sphere / CHS</div>
+        <div><strong style="color: #334155;">${isRtl ? 'المعيار المؤسسي:' : 'Standard:'}</strong> ${isRtl ? 'معايير IPSAS المحاسبية وميثاق إسفير الإنساني' : 'IPSAS / Sphere / CHS Standards'}</div>
       </div>
     </div>
   `;
@@ -433,14 +433,14 @@ export function buildFinancialStatementPDFHTML(options: {
     const revenueRows = accounts.filter(a => a.account_type === 'REVENUE').map(acc => `
       <tr style="border-bottom: 1px solid #f1f5f9; font-size: 10px;">
         <td style="padding: 6px; font-weight: 600;">${isRtl ? acc.name_ar : acc.name_en}</td>
-        <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700; color: #059669;">${parseFloat(String(acc.current_balance)).toLocaleString()} YER</td>
+        <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700; color: #059669;">${parseFloat(String(acc.current_balance)).toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</td>
       </tr>
     `).join('');
 
     const expenseRows = accounts.filter(a => a.account_type === 'EXPENSE').map(acc => `
       <tr style="border-bottom: 1px solid #f1f5f9; font-size: 10px;">
         <td style="padding: 6px; font-weight: 600;">${isRtl ? acc.name_ar : acc.name_en}</td>
-        <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700; color: #dc2626;">${parseFloat(String(acc.current_balance)).toLocaleString()} YER</td>
+        <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700; color: #dc2626;">${parseFloat(String(acc.current_balance)).toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</td>
       </tr>
     `).join('');
 
@@ -455,7 +455,7 @@ export function buildFinancialStatementPDFHTML(options: {
           </table>
           <div style="background: #d1fae5; padding: 10px; font-weight: 900; font-size: 11px; color: #064e3b; display: flex; justify-content: space-between;">
             <span>${isRtl ? 'إجمالي الإيرادات:' : 'Total Revenues:'}</span>
-            <span style="font-family: monospace;">${totalRevenues.toLocaleString()} YER</span>
+            <span style="font-family: monospace;">${totalRevenues.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</span>
           </div>
         </div>
 
@@ -468,7 +468,7 @@ export function buildFinancialStatementPDFHTML(options: {
           </table>
           <div style="background: #ffe4e6; padding: 10px; font-weight: 900; font-size: 11px; color: #881337; display: flex; justify-content: space-between;">
             <span>${isRtl ? 'إجمالي المصروفات:' : 'Total Expenses:'}</span>
-            <span style="font-family: monospace;">${totalExpenses.toLocaleString()} YER</span>
+            <span style="font-family: monospace;">${totalExpenses.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</span>
           </div>
         </div>
       </div>
@@ -494,7 +494,7 @@ export function buildFinancialStatementPDFHTML(options: {
           </div>
         </div>
         <div style="font-size: 20px; font-weight: 900; font-family: monospace; color: ${netIncome >= 0 ? '#34d399' : '#f87171'};">
-          ${netIncome.toLocaleString()} YER
+          ${netIncome.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}
         </div>
       </div>
     `;
@@ -517,27 +517,27 @@ export function buildFinancialStatementPDFHTML(options: {
             </tr>
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 6px 16px;">${isRtl ? 'فائض (عجز) الفترة التشغيلية' : 'Net Operating Surplus'}</td>
-              <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700;">${netIncome.toLocaleString()} YER</td>
+              <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700;">${netIncome.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</td>
             </tr>
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 6px 16px;">${isRtl ? 'متحصلات المنح والتبرعات والإيرادات' : 'Inflows from Grants & Donations'}</td>
-              <td style="padding: 6px; text-align: right; font-family: monospace; color: #059669; font-weight: 700;">+${totalRevenues.toLocaleString()} YER</td>
+              <td style="padding: 6px; text-align: right; font-family: monospace; color: #059669; font-weight: 700;">+${totalRevenues.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</td>
             </tr>
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 6px 16px;">${isRtl ? 'مدفوعات نقدية للبرامج والمشاريع الإغاثية' : 'Cash Paid for Operations & Projects'}</td>
-              <td style="padding: 6px; text-align: right; font-family: monospace; color: #dc2626; font-weight: 700;">-${totalExpenses.toLocaleString()} YER</td>
+              <td style="padding: 6px; text-align: right; font-family: monospace; color: #dc2626; font-weight: 700;">-${totalExpenses.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</td>
             </tr>
             <tr style="background-color: #ecfdf5; font-weight: 800; border-bottom: 2px solid #a7f3d0;">
               <td style="padding: 8px 16px; color: #065f46;">${isRtl ? 'صافي النقد المحقق من الأنشطة التشغيلية' : 'Net Cash from Operating Activities'}</td>
-              <td style="padding: 8px; text-align: right; font-family: monospace; color: #047857;">${netIncome.toLocaleString()} YER</td>
+              <td style="padding: 8px; text-align: right; font-family: monospace; color: #047857;">${netIncome.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</td>
             </tr>
 
             <tr style="background-color: #f8fafc; font-weight: 800;">
-              <td colspan="2" style="padding: 8px; color: #b45309;">${isRtl ? '2. التدفقات النقدية من الأنشطة الاستثمارية:' : '2. Cash Flows from Investing Activities:'}</td>
+              <td colspan="2" style="padding: 8px; color: #b45309;">${isRtl ? '2. التدفقات النقدية من الأنشطة الاستثمارية الوقفية:' : '2. Cash Flows from Investing Activities:'}</td>
             </tr>
             <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 6px 16px;">${isRtl ? 'مدفوعات حيازة وتطوير الأصول الثابتة' : 'Fixed Asset Additions'}</td>
-              <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700;">0 YER</td>
+              <td style="padding: 6px 16px;">${isRtl ? 'مدفوعات حيازة وتطوير الأصول الوقفية الثابتة' : 'Fixed Asset Additions'}</td>
+              <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700;">0 ${isRtl ? 'ر.ي' : 'YER'}</td>
             </tr>
 
             <tr style="background-color: #f8fafc; font-weight: 800;">
@@ -545,13 +545,13 @@ export function buildFinancialStatementPDFHTML(options: {
             </tr>
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 6px 16px;">${isRtl ? 'أمانات وكفالات محصلة تحت الصرف' : 'Restricted Grants Held'}</td>
-              <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700;">0 YER</td>
+              <td style="padding: 6px; text-align: right; font-family: monospace; font-weight: 700;">0 ${isRtl ? 'ر.ي' : 'YER'}</td>
             </tr>
 
             <tr style="background-color: #0f172a; color: #ffffff; font-weight: 900; font-size: 11px;">
               <td style="padding: 10px;">${isRtl ? 'رصيد النقدية وما في حكمها في نهاية الفترة' : 'Cash & Cash Equivalents at End of Period'}</td>
               <td style="padding: 10px; text-align: right; font-family: monospace; color: #34d399;">
-                ${cashAndBank > 0 ? cashAndBank.toLocaleString() : (totalAssets * 0.45).toLocaleString()} YER
+                ${cashAndBank > 0 ? cashAndBank.toLocaleString() : (totalAssets * 0.45).toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}
               </td>
             </tr>
           </tbody>
@@ -564,41 +564,41 @@ export function buildFinancialStatementPDFHTML(options: {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; direction: ${isRtl ? 'rtl' : 'ltr'}; font-family: sans-serif;">
         <div style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
           <div style="background-color: #f1f5f9; padding: 10px; font-weight: 800; font-size: 11px; color: #0f172a;">
-            ${isRtl ? 'الأصول والموجودات (Assets)' : 'Assets'}
+            ${isRtl ? 'الأصول والموجودات المتداولة والوقفية' : 'Assets'}
           </div>
           <div style="padding: 10px;">
             ${accounts.filter(a => a.account_type === 'ASSET').map(acc => `
               <div style="display: flex; justify-content: space-between; font-size: 10px; padding: 6px 0; border-bottom: 1px solid #f1f5f9;">
                 <span>${isRtl ? acc.name_ar : acc.name_en}</span>
-                <span style="font-family: monospace; font-weight: 700;">${parseFloat(String(acc.current_balance)).toLocaleString()} YER</span>
+                <span style="font-family: monospace; font-weight: 700;">${parseFloat(String(acc.current_balance)).toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</span>
               </div>
             `).join('')}
           </div>
           <div style="background: #e2e8f0; padding: 10px; font-weight: 900; font-size: 11px; display: flex; justify-content: space-between;">
-            <span>${isRtl ? 'إجمالي الأصول:' : 'Total Assets:'}</span>
-            <span style="font-family: monospace; color: #047857;">${totalAssets.toLocaleString()} YER</span>
+            <span>${isRtl ? 'إجمالي الأصول والموجودات:' : 'Total Assets:'}</span>
+            <span style="font-family: monospace; color: #047857;">${totalAssets.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</span>
           </div>
         </div>
 
         <div style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
           <div style="background-color: #f1f5f9; padding: 10px; font-weight: 800; font-size: 11px; color: #0f172a;">
-            ${isRtl ? 'الالتزامات وحقوق الملكية (Liabilities & Equity)' : 'Liabilities & Equity'}
+            ${isRtl ? 'الالتزامات وصافي الأصول المقيدة والمتاحة' : 'Liabilities & Equity'}
           </div>
           <div style="padding: 10px;">
             ${accounts.filter(a => a.account_type === 'LIABILITY' || a.account_type === 'EQUITY').map(acc => `
               <div style="display: flex; justify-content: space-between; font-size: 10px; padding: 6px 0; border-bottom: 1px solid #f1f5f9;">
                 <span>${isRtl ? acc.name_ar : acc.name_en}</span>
-                <span style="font-family: monospace; font-weight: 700;">${parseFloat(String(acc.current_balance)).toLocaleString()} YER</span>
+                <span style="font-family: monospace; font-weight: 700;">${parseFloat(String(acc.current_balance)).toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</span>
               </div>
             `).join('')}
             <div style="display: flex; justify-content: space-between; font-size: 10px; padding: 6px 0; background: #fffbe3; font-weight: 800;">
-              <span>${isRtl ? 'فائض الفترة الحالية' : 'Current Period Surplus'}</span>
-              <span style="font-family: monospace; color: #059669;">${netIncome.toLocaleString()} YER</span>
+              <span>${isRtl ? 'فائض الفترة المالية الحالية' : 'Current Period Surplus'}</span>
+              <span style="font-family: monospace; color: #059669;">${netIncome.toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</span>
             </div>
           </div>
           <div style="background: #e2e8f0; padding: 10px; font-weight: 900; font-size: 11px; display: flex; justify-content: space-between;">
-            <span>${isRtl ? 'إجمالي الالتزامات والملكية:' : 'Total Liabilities & Equity:'}</span>
-            <span style="font-family: monospace; color: #b45309;">${(totalLiabilities + totalEquity + netIncome).toLocaleString()} YER</span>
+            <span>${isRtl ? 'إجمالي الالتزامات وصافي الأصول:' : 'Total Liabilities & Equity:'}</span>
+            <span style="font-family: monospace; color: #b45309;">${(totalLiabilities + totalEquity + netIncome).toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</span>
           </div>
         </div>
       </div>
@@ -1318,7 +1318,7 @@ export function buildPredictiveReportPDFHTML(options: {
     ">
       <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; text-align: center;">
         <div style="font-size: 10px; color: #1e40af; font-weight: 700;">${isRtl ? 'إجمالي الموازنات المرصودة' : 'Total Allocated Budget'}</div>
-        <div style="font-size: 14px; font-weight: 900; color: #1d4ed8; margin-top: 4px;">${fmtYER(totalBudget)} YER</div>
+        <div style="font-size: 14px; font-weight: 900; color: #1d4ed8; margin-top: 4px;">${fmtYER(totalBudget)} ${isRtl ? 'ر.ي' : 'YER'}</div>
       </div>
       <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; text-align: center;">
         <div style="font-size: 10px; color: #b45309; font-weight: 700;">${isRtl ? 'معدل التنفيذ الموزون بالموازنات' : 'Budget-Weighted Execution Rate'}</div>
@@ -1363,7 +1363,7 @@ export function buildPredictiveReportPDFHTML(options: {
       </h3>
       <p style="margin-bottom: 12px;">
         ${isRtl
-          ? `تُحتسب جميع المؤشرات أعلاه مباشرةً من سجل المشاريع والبرامج الفعلي (${projects.length} مشروعاً ضمن ${programs.length} برنامجاً). معدل التنفيذ الموزون يبلغ ${executionRate.toFixed(1)}%، مع موازنة غير منفذة قدرها ${fmtYER(remainingBudget)} YER، و${completedCount} مشروعاً مكتملاً و${overdueCount} مشروعاً متجاوزاً لتاريخ الإغلاق المجدول.`
+          ? `تُحتسب جميع المؤشرات أعلاه مباشرةً من سجل المشاريع والبرامج الفعلي (${projects.length} مشروعاً ضمن ${programs.length} برنامجاً). معدل التنفيذ الموزون يبلغ ${executionRate.toFixed(1)}%، مع موازنة غير منفذة قدرها ${fmtYER(remainingBudget)} ر.ي، و${completedCount} مشروعاً مكتملاً و${overdueCount} مشروعاً متجاوزاً لتاريخ الإغلاق المجدول.`
           : `All indicators above are computed directly from the actual project and program register (${projects.length} projects across ${programs.length} programs). The budget-weighted execution rate stands at ${executionRate.toFixed(1)}%, with ${fmtYER(remainingBudget)} YER of unexecuted budget, ${completedCount} completed project(s) and ${overdueCount} project(s) past their scheduled closure date.`}
       </p>
 
@@ -1372,7 +1372,7 @@ export function buildPredictiveReportPDFHTML(options: {
           <tr style="background-color: #f1f5f9; color: #0f172a; font-weight: 800; font-size: 10px;">
             <th style="padding: 8px; border: 1px solid #cbd5e1;">${isRtl ? 'البرنامج التشغيلي' : 'Operational Program'}</th>
             <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'المشاريع' : 'Projects'}</th>
-            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${isRtl ? 'الموازنة المرصودة (YER)' : 'Allocated Budget (YER)'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${isRtl ? 'الموازنة المرصودة (ر.ي)' : 'Allocated Budget (YER)'}</th>
             <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'متوسط الإنجاز' : 'Avg Progress'}</th>
             <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'الحالة' : 'Status'}</th>
           </tr>
@@ -1616,7 +1616,7 @@ export function buildInterconnectedReportPDFHTML(options: {
       </h3>
       <p style="margin-bottom: 12px;">
         ${isRtl
-          ? `تُحتسب جميع المؤشرات أدناه مباشرةً من سجل المشاريع (${projects.length} مشروعاً ضمن ${programs.length} برنامجاً). تتركز ${(topPrograms.reduce((s, a) => s + a.budget, 0) / 1000000).toFixed(1)}M YER من الموازنة في أكبر ${topPrograms.length} برامج بنسبة تركّز ${concentration}%، بينما تمثل المشاريع المتأخرة عن جدولها الزمني ${overdueShare}% من إجمالي الموازنات المرصودة.`
+          ? `تُحتسب جميع المؤشرات أدناه مباشرةً من سجل المشاريع (${projects.length} مشروعاً ضمن ${programs.length} برنامجاً). تتركز ${(topPrograms.reduce((s, a) => s + a.budget, 0) / 1000000).toFixed(1)} مليون ر.ي من الموازنة في أكبر ${topPrograms.length} برامج بنسبة تركّز ${concentration}%، بينما تمثل المشاريع المتأخرة عن جدولها الزمني ${overdueShare}% من إجمالي الموازنات المرصودة.`
           : `All metrics below are computed directly from the project register (${projects.length} projects across ${programs.length} programs). The top ${topPrograms.length} programs concentrate ${(topPrograms.reduce((s, a) => s + a.budget, 0) / 1000000).toFixed(1)}M YER of budget (${concentration}% concentration), while schedule-overdue projects represent ${overdueShare}% of total allocated budgets.`}
       </p>
 
@@ -1625,7 +1625,7 @@ export function buildInterconnectedReportPDFHTML(options: {
           <tr style="background-color: #f1f5f9; color: #0f172a; font-weight: 800;">
             <th style="padding: 8px; border: 1px solid #cbd5e1;">${isRtl ? 'البرنامج' : 'Program'}</th>
             <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'المشاريع' : 'Projects'}</th>
-            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${isRtl ? 'الموازنة (YER)' : 'Budget (YER)'}</th>
+            <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">${isRtl ? 'الموازنة (ر.ي)' : 'Budget (YER)'}</th>
             <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'الإنجاز الموزون' : 'Weighted Progress'}</th>
             <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${isRtl ? 'حصة المحفظة' : 'Portfolio Share'}</th>
           </tr>
@@ -1720,7 +1720,7 @@ export function buildStrategyReportPDFHTML(options: {
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
           <div>
             <span style="font-size: 9.5px; color: #64748b; font-weight: 700;">${isRtl ? 'الموازنة التقديرية الكلية' : 'Estimated Strategic Budget'}</span>
-            <div style="font-size: 13px; font-weight: 900; color: #0f172a; margin-top: 4px;">${parseFloat(activePlan.total_estimated_budget_yer || '0').toLocaleString()} YER</div>
+            <div style="font-size: 13px; font-weight: 900; color: #0f172a; margin-top: 4px;">${parseFloat(activePlan.total_estimated_budget_yer || '0').toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</div>
           </div>
           <div>
             <span style="font-size: 9.5px; color: #64748b; font-weight: 700;">${isRtl ? 'معدل التقدم العام' : 'Overall Progress Rate'}</span>
@@ -1826,8 +1826,8 @@ export function buildProgramsReportPDFHTML(options: {
     <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0; font-size: 10px;">
       <td style="padding: 8px; text-align: center; font-family: monospace; font-weight: 700; color: #475569;">${p.code || `PRG-${idx + 1}`}</td>
       <td style="padding: 8px; font-weight: 700; color: #0f172a;">${isRtl ? p.name_ar : p.name_en}</td>
-      <td style="padding: 8px; color: #334155; text-align: center;">${p.category_code || 'EDUCATION'}</td>
-      <td style="padding: 8px; text-align: right; font-family: monospace; font-weight: 700; color: #047857;">${parseFloat(p.budget || '0').toLocaleString()} YER</td>
+      <td style="padding: 8px; color: #334155; text-align: center;">${p.category_code || (isRtl ? 'تعليم وتأهيل' : 'EDUCATION')}</td>
+      <td style="padding: 8px; text-align: right; font-family: monospace; font-weight: 700; color: #047857;">${parseFloat(p.budget || '0').toLocaleString()} ${isRtl ? 'ر.ي' : 'YER'}</td>
       <td style="padding: 8px; text-align: center;">
         <span style="
           padding: 2px 6px;

@@ -220,8 +220,8 @@ export const PrintableOfficialVoucherModal: React.FC<PrintableOfficialVoucherMod
                 <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold">
                   <th className="p-2.5 w-24">رقم الحساب</th>
                   <th className="p-2.5">اسم الحساب بدفتر الأستاذ العام</th>
-                  <th className="p-2.5 w-28 text-left">مدين (YER)</th>
-                  <th className="p-2.5 w-28 text-left">دائن (YER)</th>
+                  <th className="p-2.5 w-28 text-left">مدين (ر.ي)</th>
+                  <th className="p-2.5 w-28 text-left">دائن (ر.ي)</th>
                   <th className="p-2.5">البيان والشرح الإجرائي</th>
                 </tr>
               </thead>
