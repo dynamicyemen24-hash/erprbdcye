@@ -1,0 +1,8 @@
+# UAMEX ERP™ — erprbdcye.org
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /*/settings
+Disallow: /*users
+
+Sitemap: https://erprbdcye.org/sitemap.xml

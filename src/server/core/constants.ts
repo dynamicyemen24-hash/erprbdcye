@@ -347,8 +347,11 @@ export const TABLE_WHITELIST = [
   'v_chs_compliance_dashboard',
   'v_beneficiary_vulnerability_index',
   'v_kpi_vs_target_dashboard',
-  'v_ai_anomaly_detection_feed',
-  'v_procurement_performance',
+   'v_ai_anomaly_detection_feed',
+   'v_procurement_performance',
+   // NEB-11: Intelligent Administrative Communications OS
+   'official_communications',
+   'official_communication_recipients',
 ];
 
 export function isWhitelisted(table: string): boolean {
@@ -397,6 +400,8 @@ export const TABLE_POLICY_DOMAIN: Record<string, string> = {
   audit_logs: 'audit',
   approval_history: 'audit',
   approval_requests: 'audit',
+  official_communications: 'communications',
+  official_communication_recipients: 'communications',
   strategic_goals: 'projects',
   swot_entries: 'projects',
 };

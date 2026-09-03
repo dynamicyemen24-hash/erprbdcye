@@ -78,163 +78,163 @@ export default function HelperToolsPanel({ lang, initialTool, onClose }: HelperT
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeTool, setActiveTool] = useState<ToolId>(initialTool || 'sphere');
 
-  // Metadata for the 8 Integrated Enterprise Tools
+// Simplified tool titles for end-user familiarity
   const toolsList: ToolMetadata[] = useMemo(() => [
     {
       id: 'sphere',
-      nameAr: 'حاسبة تقدير الاحتياجات الميدانية والإغاثة',
-      nameEn: 'Sphere Humanitarian Calc',
+      nameAr: 'حاسبة الإغاثة الميدانية',
+      nameEn: 'Field Relief Calc',
       category: 'field',
-      categoryNameAr: 'العمليات الميدانية والإغاثة',
+      categoryNameAr: 'العمليات الميدانية',
       categoryNameEn: 'Field Operations',
       icon: Droplet,
       iconColor: 'text-blue-600 dark:text-blue-400',
       bgLight: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50',
       badgeAr: 'معايير العمل الإنساني',
-      descriptionAr: 'حساب مخصصات المياه، المساحة الآمنة، السلال الغذائية والمرافق الصحية.'
+      descriptionAr: 'للحاجات المائية والغذائية والطوارئ الميدانية.'
     },
     {
       id: 'id_verifier',
-      nameAr: 'التحقق والتدقيق الميداني للهويات والملفات',
-      nameEn: 'Beneficiary ID Verifier',
+      nameAr: 'التحقق من الهويات',
+      nameEn: 'ID Verifier',
       category: 'field',
-      categoryNameAr: 'العمليات الميدانية والإغاثة',
+      categoryNameAr: 'العمليات الميدانية',
       categoryNameEn: 'Field Operations',
       icon: UserCheck,
       iconColor: 'text-purple-600 dark:text-purple-400',
       bgLight: 'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800/50',
       badgeAr: 'فحص البصمة الرقمية',
-      descriptionAr: 'التحقق البرمجي من الأرقام القومية وجوازات السفر وكروت الإغاثة.'
+      descriptionAr: 'للتحقق من الأرقام القومية ووثائق المستفيدين.'
     },
     {
       id: 'risk',
-      nameAr: 'مؤشر تقييم المخاطر التشغيلية والميدانية',
-      nameEn: 'Field Risk Index',
+      nameAr: 'مخاطر الميدان',
+      nameEn: 'Field Risk',
       category: 'field',
-      categoryNameAr: 'العمليات الميدانية والإغاثة',
+      categoryNameAr: 'العمليات الميدانية',
       categoryNameEn: 'Field Operations',
       icon: ShieldAlert,
       iconColor: 'text-rose-600 dark:text-rose-400',
       bgLight: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50',
-      badgeAr: 'إدارة المخاطر الميدانية',
-      descriptionAr: 'تقييم السلامة، سلاسل الإمداد اللوجستية وتذبذب تكاليف التدخل.'
+      badgeAr: 'إدارة المخاطر',
+      descriptionAr: 'لتقييم السلامة اللوجستية وتكلفة التدخل.'
     },
     {
       id: 'zakat_calculator',
-      nameAr: 'حاسبة الزكاة الشرعية وتوزيع المصارف والصدقات',
-      nameEn: 'Zakat & Charities Engine',
+      nameAr: 'حاسبة الزكاة',
+      nameEn: 'Zakat Calculator',
       category: 'finance',
       categoryNameAr: 'المالية والميزانيات',
       categoryNameEn: 'Finance & Budgets',
       icon: Coins,
       iconColor: 'text-amber-500 dark:text-amber-400',
       bgLight: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50',
-      badgeAr: 'المصارف الشرعية الثمانية',
-      descriptionAr: 'احتساب زكاة المال، عروض التجارة، نصاب الذهب والفضة، وحصص المصارف الثمانية.'
+      badgeAr: 'المصارف الشرعية',
+      descriptionAr: 'لاحتساب الزكاة وتوزيع المصارف الثمانية.'
     },
     {
       id: 'fx_hedging',
-      nameAr: 'محول ومراقب أسعار الصرف المتعددة والتحوط المالي',
-      nameEn: 'Multi-Currency FX & Hedging',
+      nameAr: 'محول العملات',
+      nameEn: 'Currency Converter',
       category: 'finance',
       categoryNameAr: 'المالية والميزانيات',
       categoryNameEn: 'Finance & Budgets',
       icon: DollarSign,
       iconColor: 'text-emerald-500 dark:text-emerald-400',
       bgLight: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50',
-      badgeAr: 'مؤشرات الصرف الحية والتحوط',
-      descriptionAr: 'تحويل العملات (YER صنعاء/عدن/SAR/USD)، ومراقبة فجوة السوق ومخاطر تقلب الموازنات.'
+      badgeAr: 'مؤشرات الصرف',
+      descriptionAr: 'لتحويل العملات YER/SAR/USD ومراقبة الفجوات.'
     },
     {
       id: 'hijri_converter',
-      nameAr: 'محول التقويم الهجري وجدولة المواسم الإنسانية',
-      nameEn: 'Hijri & Seasonal Scheduler',
+      nameAr: 'التقويم الهجري',
+      nameEn: 'Hijri Calendar',
       category: 'governance',
       categoryNameAr: 'المعايير والحوكمة',
       categoryNameEn: 'Standards & Governance',
       icon: CalendarIcon,
       iconColor: 'text-teal-500 dark:text-teal-400',
       bgLight: 'bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800/50',
-      badgeAr: 'التقويم الإسلامي والمواسم',
-      descriptionAr: 'تحويل التواريخ، وحساب العد التنازلي لمواسم رمضان، الأضاحي، والعودة للمدارس.'
+      badgeAr: 'التقويم الإسلامي',
+      descriptionAr: 'لتحويل التواريخ وحساب المواسم الدينية.'
     },
     {
       id: 'qr_stamp_generator',
-      nameAr: 'مولد الأختام الرقمية ورموز الاستجابة السريعة للتحقق',
-      nameEn: 'QR & Digital Audit Stamper',
+      nameAr: 'مولد الأختام',
+      nameEn: 'Stamp Generator',
       category: 'governance',
       categoryNameAr: 'المعايير والحوكمة',
       categoryNameEn: 'Standards & Governance',
       icon: QrCode,
       iconColor: 'text-indigo-500 dark:text-indigo-400',
       bgLight: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50',
-      badgeAr: 'التوثيق الرقمي المشفر SHA-256',
-      descriptionAr: 'إنشاء رموز QR وأختام الحوكمة الرقمية المشفرة للقرارات والوثائق المعتمدة.'
+      badgeAr: 'التوثيق الرقمي',
+      descriptionAr: 'لإنشاء أختام وحروف تحقق SHA-256 للوثائق.'
     },
     {
       id: 'checklists',
-      nameAr: 'قوائم التدقيق الميداني والمطابقة',
+      nameAr: 'قوائم التدقيق',
       nameEn: 'Dispatch Checklists',
       category: 'field',
-      categoryNameAr: 'العمليات الميدانية والإغاثة',
+      categoryNameAr: 'العمليات الميدانية',
       categoryNameEn: 'Field Operations',
       icon: ListChecks,
       iconColor: 'text-teal-600 dark:text-teal-400',
       bgLight: 'bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800/50',
       badgeAr: 'التدقيق الميداني',
-      descriptionAr: 'قوائم تفقدية جاهزة لفرق التوزيع، المخازن، واللجان المالية.'
+      descriptionAr: 'لقوائم التفقدية لتوزيع، مخازن، ولجان مالية.'
     },
     {
       id: 'icr',
-      nameAr: 'حاسبة التكاليف المباشرة والتشغيلية للمشاريع',
-      nameEn: 'ICR & Direct Cost Calc',
+      nameAr: 'حاسبة التكاليف',
+      nameEn: 'Cost Calculator',
       category: 'finance',
       categoryNameAr: 'المالية والميزانيات',
       categoryNameEn: 'Finance & Budgets',
       icon: Percent,
       iconColor: 'text-amber-600 dark:text-amber-400',
       bgLight: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50',
-      badgeAr: 'ضوابط الموازنات المعتمدة',
-      descriptionAr: 'احتساب المصاريف التشغيلية والإشرافية المباشرة وغير المباشرة للمشاريع.'
+      badgeAr: 'ضوابط الموازنات',
+      descriptionAr: 'لاحتساب المصاريف التشغيلية وغير المباشرة.'
     },
     {
       id: 'ipsas',
-      nameAr: 'المدقق المحاسبي وتوازن قيود اليومية',
-      nameEn: 'IPSAS Code Validator',
+      nameAr: 'المدقق المحاسبي',
+      nameEn: 'IPSAS Validator',
       category: 'finance',
       categoryNameAr: 'المالية والميزانيات',
       categoryNameEn: 'Finance & Budgets',
       icon: FileCheck,
       iconColor: 'text-indigo-600 dark:text-indigo-400',
       bgLight: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50',
-      badgeAr: 'المطابقة المحاسبية الرسمية',
-      descriptionAr: 'فحص سلامة الحسابات ومطابقة القيود وتوازن طرفي القيد المزدوج.'
+      badgeAr: 'المطابقة المحاسبية',
+      descriptionAr: 'لفحص سلامة الحسابات والتوازن المزدوج.'
     },
     {
       id: 'iati',
-      nameAr: 'دليل القطاعات التنموية والإنسانية المعتمد',
-      nameEn: 'IATI Sector Mapper',
+      nameAr: 'دليل القطاعات',
+      nameEn: 'IATI Mapper',
       category: 'governance',
       categoryNameAr: 'المعايير والحوكمة',
       categoryNameEn: 'Standards & Governance',
       icon: Map,
       iconColor: 'text-emerald-600 dark:text-emerald-400',
       bgLight: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50',
-      badgeAr: 'الشفافية والتقارير المعتمدة',
-      descriptionAr: 'دليل تصنيف القطاعات والأنشطة التنموية وفق النماذج المعتمدة.'
+      badgeAr: 'الشفافية والتقارير',
+      descriptionAr: 'لتصنيف القطاعات والأنشطة التنموية المعتمدة.'
     },
     {
       id: 'chs_audit',
-      nameAr: 'مقياس معايير الجودة والمساءلة الإنسانية',
-      nameEn: 'CHS Core Humanitarian Audit',
+      nameAr: 'معايير الجودة',
+      nameEn: 'CHS Audit',
       category: 'governance',
       categoryNameAr: 'المعايير والحوكمة',
       categoryNameEn: 'Standards & Governance',
       icon: Award,
       iconColor: 'text-sky-600 dark:text-sky-400',
       bgLight: 'bg-sky-50 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/50',
-      badgeAr: 'معايير الجودة والمساءلة',
-      descriptionAr: 'تقييم مستوى التزام المؤسسة بمعايير الجودة والمساءلة والشفافية.'
+      badgeAr: 'الجودة والمساءلة',
+      descriptionAr: 'لتقييم التزام المؤسسة بالمعايير الإنسانية.'
     }
   ], []);
 
@@ -427,8 +427,36 @@ export default function HelperToolsPanel({ lang, initialTool, onClose }: HelperT
   const totalChsScore = useMemo(() => chsScores.reduce((a, b) => a + b, 0), [chsScores]);
   const chsPercent = useMemo(() => Math.round((totalChsScore / 45) * 100), [totalChsScore]);
 
-  // ==================== TOOL 8: STAFF DISPATCH CHECKLISTS ====================
-  const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' | 'warehouse' | 'tender'>('distribution');
+  // Safe btoa implementation that handles non-Latin1 characters (Arabic, etc.)
+function safeBtoa(str: string): string {
+  if (!str) return '';
+  try {
+    // First try native btoa
+    return btoa(str);
+  } catch (e) {
+    // Fallback: use TextEncoder if available (modern browsers)
+    if (typeof TextEncoder !== 'undefined') {
+      const encoder = new TextEncoder();
+      const encoded = encoder.encode(str);
+      // Convert bytes to Latin1-compatible string for btoa
+      let result = '';
+      for (let i = 0; i < encoded.length; i++) {
+        // Take only the lower 8 bits of each byte
+        result += String.fromCharCode(encoded[i] & 0xFF);
+      }
+      return btoa(result);
+    }
+    // Fallback for older browsers: replace non-Latin1 characters
+    // (control characters are intentionally part of the Latin-1 range filter)
+    // eslint-disable-next-line no-control-regex
+    return str.replace(/[^\x00-\xFF]/g, function(c) {
+      return String.fromCharCode(c.charCodeAt(0) & 0xFF);
+    });
+  }
+}
+
+// ==================== TOOL 8: STAFF DISPATCH CHECKLISTS ====================
+const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' | 'warehouse' | 'tender'>('distribution');
   const [completedItems, setCompletedItems] = useState<{ [key: string]: boolean }>({});
 
   const checklistData = {
@@ -632,7 +660,7 @@ export default function HelperToolsPanel({ lang, initialTool, onClose }: HelperT
   const [stampCopied, setStampCopied] = useState<boolean>(false);
 
   const digitalAuditHash = useMemo(() => {
-    return 'SHA256-' + btoa(stampDocRef + '-' + stampDocType).replace(/=/g, '').toUpperCase() + '-UAMEX-VERIFIED';
+    return 'SHA256-' + safeBtoa(stampDocRef + '-' + stampDocType).replace(/=/g, '').toUpperCase() + '-UAMEX-VERIFIED';
   }, [stampDocRef, stampDocType]);
 
   const handlePrintAuditStampCard = () => {

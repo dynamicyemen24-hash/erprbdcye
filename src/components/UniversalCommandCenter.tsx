@@ -124,8 +124,10 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
   onOpenSystemMapModal,
   onSetHomeExperienceMode
 }) => {
-  if (!isOpen) return null;
   const isRtl = lang === 'ar';
+
+  // Hooks must run unconditionally (Rules of Hooks). The `isOpen` render
+  // guard is applied below, after every hook has executed.
 
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryType>('ALL');
@@ -755,6 +757,9 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
 
     return scored;
   }, [query, activeCategory, masterCommandList, recentActionIds]);
+
+  // Render guard — placed after ALL hooks (Rules of Hooks compliance).
+  if (!isOpen) return null;
 
   // Keyboard Navigation & Numeric Hotkeys (1-9)
   const handleKeyDown = (e: React.KeyboardEvent) => {

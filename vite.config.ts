@@ -5,11 +5,14 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   const isHmrDisabled = process.env.DISABLE_HMR === 'true';
+  // Inject cache version for service worker freshness on Ctrl+F5
+  const cacheVersion = process.env.VITE_CACHE_VERSION || `build-${Date.now()}`;
 
   return {
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.GOOGLE_MAPS_PLATFORM_KEY': JSON.stringify(process.env.GOOGLE_MAPS_PLATFORM_KEY || '')
+      'process.env.GOOGLE_MAPS_PLATFORM_KEY': JSON.stringify(process.env.GOOGLE_MAPS_PLATFORM_KEY || ''),
+      'process.env.VITE_CACHE_VERSION': JSON.stringify(cacheVersion),
     },
     resolve: {
       alias: {

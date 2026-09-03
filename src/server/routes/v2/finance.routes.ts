@@ -41,7 +41,7 @@ router.get('/chart-of-accounts/tree', async (req: AuthenticatedRequest, res: Res
 
 router.get('/chart-of-accounts/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const account = await ChartOfAccountsService.getById(req.params.id);
+    const account = await ChartOfAccountsService.getById(extractTenantId(req), req.params.id);
     if (!account) return errorResponse(res, 'Account not found', 404);
     successResponse(res, account);
   } catch (err: any) {

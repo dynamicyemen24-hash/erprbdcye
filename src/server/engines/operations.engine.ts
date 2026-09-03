@@ -25,7 +25,7 @@ export class ActivityEngine {
     const where = conditions.join(' AND ');
     return paginatedQuery(
       `SELECT a.*, p.name_ar as project_name_ar,
-        (a.spent_amount / NULLIF(a.budget_allocated, 0) * 100) as budget_utilization_pct
+        (a.actual_cost / NULLIF(a.budget, 0) * 100) as budget_utilization_pct
        FROM activities a
        LEFT JOIN projects p ON p.id = a.project_id
        WHERE ${where}`,
@@ -44,10 +44,10 @@ export class ActivityEngine {
   }, auth: AuthContext) {
     return await transaction(async (client) => {
       const result = await client.query(
-        `INSERT INTO activities (organization_id, project_id, code, name_ar, name_en, budget_allocated)
-         VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+        `INSERT INTO activities (organization_id, project_id, code, name_ar, name_en, budget, status_code)
+         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
         [data.organizationId, data.projectId || null, requireField(data.code, 'code'),
-         requireField(data.nameAr, 'nameAr'), optionalString(data.nameEn), data.budgetAllocated || 0]
+         requireField(data.nameAr, 'nameAr'), optionalString(data.nameEn), data.budgetAllocated || 0, 'PLANNED']
       );
       await auditLog({ organizationId: data.organizationId, userId: auth.userId, action: 'CREATE', tableName: 'activities', recordId: result.rows[0].id });
       return result.rows[0];
@@ -58,21 +58,88 @@ export class ActivityEngine {
     nameAr: string; nameEn: string; budgetAllocated: number; spentAmount: number;
     progressPct: number; statusCode: string;
   }>) {
+    // Explicit real-schema column mapping (solves camelCase→snake drift).
+    const map: Record<string, string> = {
+      budgetAllocated: 'budget',
+      spentAmount: 'actual_cost',
+      progressPct: 'progress_pct',
+      statusCode: 'status_code',
+      nameAr: 'name_ar',
+      nameEn: 'name_en',
+    };
     const sets: string[] = []; const values: any[] = []; let idx = 1;
-    Object.entries(data).forEach(([key, val]) => {
-      if (val !== undefined) {
-        const col = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-        sets.push(`${col} = $${idx++}`);
-        values.push(val);
-      }
-    });
-    values.push(activityId);
+    for (const key of Object.keys(data) as Array<keyof typeof data>) {
+      const val = data[key];
+      if (val === undefined) continue;
+      const col = map[key] || key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      sets.push(`${col} = $${idx++}`);
+      values.push(val);
+    }
     if (sets.length === 0) return null;
-    return queryOne(`UPDATE activities SET ${sets.join(', ')} WHERE id = $${idx} RETURNING *`, values);
+    values.push(activityId);
+    return queryOne(`UPDATE activities SET ${sets.join(', ')} WHERE id = $${idx} AND deleted_at IS NULL RETURNING *`, values);
   }
 
   static async delete(activityId: string) {
-    await query('DELETE FROM activities WHERE id = $1', [activityId]);
+    await query('UPDATE activities SET deleted_at = NOW() WHERE id = $1', [activityId]);
+  }
+
+  /**
+   * Update activity progress with automatic parent project recalculation
+   * INTELLIGENT: Cascades progress updates to project level
+   */
+  static async updateProgress(activityId: string, progressPct: number, auth: AuthContext) {
+    if (progressPct < 0 || progressPct > 100) {
+      throw new Error('Progress must be between 0 and 100');
+    }
+
+    return await transaction(async (client) => {
+      const result = await client.query(
+        `UPDATE activities
+         SET metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object('progress_pct', $1, 'progress_updated_at', NOW()),
+             status_code = CASE
+               WHEN $1 = 0 THEN 'PLANNED'
+               WHEN $1 >= 100 THEN 'COMPLETED'
+               ELSE 'IN_PROGRESS'
+             END,
+             updated_at = NOW()
+         WHERE id = $2 RETURNING *`,
+        [progressPct, activityId]
+      );
+
+      if (result.rows.length === 0) throw new Error('Activity not found');
+      const activity = result.rows[0];
+
+      await auditLog({
+        organizationId: activity.organization_id,
+        userId: auth.userId,
+        action: 'UPDATE' as any,
+        tableName: 'activities',
+        recordId: activityId,
+        details: { progressPct, statusCode: activity.status_code, type: 'PROGRESS_UPDATE' }
+      });
+
+      // Recalculate parent project progress based on weighted EVM of activities
+      if (activity.project_id) {
+        await client.query(
+          `UPDATE projects SET
+             progress_percent = COALESCE((
+               SELECT ROUND(AVG(
+                 CASE WHEN budget > 0 THEN (earned_value / budget) * 100
+                      WHEN earned_value > 0 THEN earned_value
+                      ELSE 0 END
+               ))::int
+               FROM activities
+               WHERE project_id = $1 AND deleted_at IS NULL
+             ), progress_percent),
+             updated_at = NOW()
+           WHERE id = $1`,
+          [activity.project_id]
+        );
+      }
+
+      return activity;
+    });
   }
 
   /**
@@ -93,8 +160,8 @@ export class ActivityEngine {
       wbs: buildWBSTree(activities),
       summary: {
         totalActivities: activities.length,
-        totalBudget: activities.reduce((s: number, a: any) => s + Number(a.budget_allocated || 0), 0),
-        totalSpent: activities.reduce((s: number, a: any) => s + Number(a.spent_amount || 0), 0),
+        totalBudget: activities.reduce((s: number, a: any) => s + Number(a.budget || 0), 0),
+        totalSpent: activities.reduce((s: number, a: any) => s + Number(a.actual_cost || 0), 0),
       },
     };
   }
@@ -178,5 +245,145 @@ export class GeospatialEngine {
        WHERE pr.organization_id = $1 AND pr.deleted_at IS NULL AND ga.latitude IS NOT NULL`,
       [orgId]
     ).catch((err) => { logger.error('Query failed', { context: 'operations', error: err.message }); return []; });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TASK ENGINE — WBS Level 3+ Task Management
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * TaskEngine — Fine-grained task tracking within WBS activities
+ * Features:
+ *  - Weighted progress cascading (Task → Activity → Project)
+ *  - Priority management (LOW/MEDIUM/HIGH/CRITICAL)
+ *  - Assignee tracking
+ *  - Auto-recalculation of parent progress on every update
+ */
+export class TaskEngine {
+  static async listByActivity(activityId: string) {
+    return queryMany(
+      `SELECT t.*, u.full_name_ar as assignee_name
+       FROM project_tasks t
+       LEFT JOIN users u ON u.id = t.assigned_to
+       WHERE t.activity_id = $1 AND t.deleted_at IS NULL
+       ORDER BY COALESCE(t.priority_code, 'MEDIUM') DESC, t.due_date NULLS LAST`,
+      [activityId]
+    ).catch((err) => { logger.error('Tasks list query failed', { context: 'tasks', error: err.message }); return []; });
+  }
+
+  static async create(data: {
+    activityId: string;
+    titleAr: string;
+    titleEn?: string;
+    assignedTo?: string;
+    dueDate?: string;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    weightPct?: number;
+  }, auth: AuthContext) {
+    return await transaction(async (client) => {
+      const actRes = await client.query(
+        'SELECT id, project_id, organization_id FROM activities WHERE id = $1',
+        [data.activityId]
+      );
+      if (actRes.rows.length === 0) throw new Error('Activity not found');
+
+      const result = await client.query(
+        `INSERT INTO project_tasks
+          (activity_id, project_id, title_ar, title_en, assigned_to, due_date, priority_code, weight_pct, status_code)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'TODO')
+         RETURNING *`,
+        [
+          data.activityId,
+          actRes.rows[0].project_id || null,
+          requireField(data.titleAr, 'titleAr'),
+          optionalString(data.titleEn),
+          data.assignedTo || null,
+          data.dueDate || null,
+          data.priority || 'MEDIUM',
+          data.weightPct || 10
+        ]
+      );
+      const task = result.rows[0];
+
+      await auditLog({
+        organizationId: actRes.rows[0].organization_id,
+        userId: auth.userId,
+        action: 'CREATE' as any,
+        tableName: 'project_tasks',
+        recordId: task.id,
+        details: { title: data.titleAr, activityId: data.activityId }
+      });
+
+      return task;
+    });
+  }
+
+  /**
+   * INTELLIGENT: Cascades progress through the entire WBS hierarchy
+   * Task → Activity → Project (automatic recalculation)
+   */
+  static async updateProgress(taskId: string, progressPct: number, auth: AuthContext) {
+    if (progressPct < 0 || progressPct > 100) {
+      throw new Error('Progress must be between 0 and 100');
+    }
+    return await transaction(async (client) => {
+      const result = await client.query(
+        `UPDATE project_tasks
+         SET progress_percent = $1,
+             status_code = CASE WHEN $1 >= 100 THEN 'DONE' WHEN $1 > 0 THEN 'IN_PROGRESS' ELSE 'TODO' END,
+             updated_at = NOW()
+         WHERE id = $2 AND deleted_at IS NULL RETURNING activity_id`,
+        [progressPct, taskId]
+      );
+      if (result.rows.length === 0) throw new Error('Task not found');
+      const activityId = result.rows[0].activity_id;
+
+      // Recalculate activity progress as weighted average of tasks
+      await client.query(
+        `UPDATE activities SET
+           progress_pct = COALESCE((
+             SELECT ROUND(SUM(progress_percent * weight_pct) / NULLIF(SUM(weight_pct), 0))::int
+             FROM project_tasks WHERE activity_id = $1 AND deleted_at IS NULL
+           ), progress_pct),
+           status_code = CASE
+             WHEN COALESCE((SELECT AVG(progress_percent) FROM project_tasks WHERE activity_id = $1 AND deleted_at IS NULL), 0) >= 100 THEN 'COMPLETED'
+             WHEN COALESCE((SELECT AVG(progress_percent) FROM project_tasks WHERE activity_id = $1 AND deleted_at IS NULL), 0) > 0 THEN 'IN_PROGRESS'
+             ELSE status_code
+           END,
+           updated_at = NOW()
+         WHERE id = $1`,
+        [activityId]
+      );
+
+      // Cascade: recalculate parent project progress
+      const actRow = await client.query('SELECT project_id, organization_id FROM activities WHERE id = $1', [activityId]);
+      if (actRow.rows.length > 0 && actRow.rows[0].project_id) {
+        await client.query(
+          `UPDATE projects SET
+             progress_percent = COALESCE((
+               SELECT ROUND(AVG(progress_pct))::int FROM activities WHERE project_id = $1 AND deleted_at IS NULL
+             ), progress_percent),
+             updated_at = NOW()
+           WHERE id = $1`,
+          [actRow.rows[0].project_id]
+        );
+
+        await auditLog({
+          organizationId: actRow.rows[0].organization_id,
+          userId: auth.userId,
+          action: 'UPDATE' as any,
+          tableName: 'project_tasks',
+          recordId: taskId,
+          details: { progressPct, type: 'TASK_PROGRESS_CASCADE', activityId, projectId: actRow.rows[0].project_id }
+        });
+      }
+
+      return await client.query('SELECT * FROM project_tasks WHERE id = $1', [taskId]).then(r => r.rows[0]);
+    });
+  }
+
+  static async delete(taskId: string) {
+    await query('UPDATE project_tasks SET deleted_at = NOW() WHERE id = $1', [taskId]);
   }
 }

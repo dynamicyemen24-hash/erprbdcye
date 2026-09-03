@@ -675,7 +675,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       const item = items.find(i => i.id === itemId);
       if (!item) return;
       const currentStock = item.qty || 0;
-      let totalReq = selectedBenIds.reduce((sum, bId) => sum + (newMatrix[bId]?.[itemId] || 0), 0);
+      const totalReq = selectedBenIds.reduce((sum, bId) => sum + (newMatrix[bId]?.[itemId] || 0), 0);
       
       if (totalReq > currentStock && totalReq > 0) {
         const factor = currentStock / totalReq;

@@ -16,7 +16,7 @@ const HTML_ENTITIES: Record<string, string> = {
 
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return '';
-  return input.replace(/[&<>"'\/`]/g, char => HTML_ENTITIES[char] || char);
+  return input.replace(/[&<>"'/`]/g, char => HTML_ENTITIES[char] || char);
 }
 
 export function sanitizeInput(input: any): any {
@@ -215,7 +215,7 @@ export function checkPasswordStrength(password: string): PasswordStrength {
   else feedback.push('يجب أن يحتوي على حرف صغير');
   if (/[0-9]/.test(password)) score++;
   else feedback.push('يجب أن يحتوي على رقم');
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
+  if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) score++;
   else feedback.push('يجب أن يحتوي على رمز خاص');
 
   // Check common patterns

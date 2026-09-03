@@ -67,6 +67,14 @@ export function useAppUIStore() {
     return 'work_first';
   });
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('uamex_home_experience_mode', homeExperienceMode);
+    } catch (error) {
+      console.error('[ExperienceMode] Failed to persist home mode:', error);
+    }
+  }, [homeExperienceMode]);
+
   // Context perspective controls
   const [activeRolePerspective, setActiveRolePerspective] = useState<RolePerspective>('executive');
   const [organizationId, setOrganizationId] = useState('hq');

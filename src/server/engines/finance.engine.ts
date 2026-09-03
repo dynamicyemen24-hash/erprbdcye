@@ -27,8 +27,11 @@ export class ChartOfAccountsService {
     );
   }
 
-  static async getById(id: string) {
-    return queryOne('SELECT * FROM chart_of_accounts WHERE id = $1', [id]);
+  static async getById(orgId: string, id: string) {
+    return queryOne(
+      'SELECT * FROM chart_of_accounts WHERE id = $1 AND organization_id = $2 AND deleted_at IS NULL',
+      [id, orgId]
+    );
   }
 
   static async getByCode(orgId: string, accountCode: string) {
@@ -150,9 +153,15 @@ export class LedgerEngine {
    * Post a double-entry voucher (IPSAS compliant)
    */
   static async postVoucher(entry: VoucherEntry, auth: AuthContext) {
+    if (!entry.organizationId || entry.organizationId !== auth.orgId) {
+      throw new Error('لا يمكن ترحيل قيد خارج نطاق المنظمة الحالية');
+    }
+    if (!entry.description?.trim()) {
+      throw new Error('وصف القيد إلزامي لأغراض التدقيق والتتبع');
+    }
     // Validate balance
-    const totalDebit = entry.lines.reduce((s, l) => s + (Number(l.debit) || 0), 0);
-    const totalCredit = entry.lines.reduce((s, l) => s + (Number(l.credit) || 0), 0);
+    const totalDebit = entry.lines.reduce((s, l) => s + Number(l.debit), 0);
+    const totalCredit = entry.lines.reduce((s, l) => s + Number(l.credit), 0);
 
     if (Math.abs(totalDebit - totalCredit) > 0.01) {
       throw new Error(`IPSAS Validation: Debit (${totalDebit}) ≠ Credit (${totalCredit})`);
@@ -164,6 +173,14 @@ export class LedgerEngine {
 
     if (entry.lines.length < 2) {
       throw new Error('Double-entry requires at least 2 lines');
+    }
+    const invalidLine = entry.lines.find(line => {
+      const debit = Number(line.debit);
+      const credit = Number(line.credit);
+      return !Number.isFinite(debit) || !Number.isFinite(credit) || debit < 0 || credit < 0 || (debit > 0 && credit > 0) || (debit === 0 && credit === 0);
+    });
+    if (invalidLine) {
+      throw new Error('كل سطر محاسبي يجب أن يحتوي على مدين أو دائن موجب واحد فقط');
     }
 
     return await transaction(async (client) => {
@@ -192,11 +209,27 @@ export class LedgerEngine {
       const fy = await client.query(
         `SELECT id, status FROM fiscal_years
          WHERE organization_id = $1 AND status = 'open'
-         AND start_date <= CURRENT_DATE AND end_date >= CURRENT_DATE
+         AND ((
+           start_date <= CURRENT_DATE AND end_date >= CURRENT_DATE
+         ) OR id = $2)
          LIMIT 1`,
-        [entry.organizationId]
+        [entry.organizationId, entry.fiscalYearId || null]
       );
       const fiscalYearId = fy.rows[0]?.id || entry.fiscalYearId || null;
+      if (!fiscalYearId || !fy.rows[0] || fy.rows[0].status !== 'open') {
+        throw new Error('لا يمكن ترحيل القيد دون سنة مالية مفتوحة');
+      }
+
+      const accountIds = [...new Set(entry.lines.map(line => line.accountId))];
+      const accounts = await client.query(
+        `SELECT id FROM chart_of_accounts
+         WHERE organization_id = $1 AND deleted_at IS NULL AND is_active = TRUE
+           AND is_header = FALSE AND id = ANY($2::uuid[])`,
+        [entry.organizationId, accountIds]
+      );
+      if (accounts.rows.length !== accountIds.length) {
+        throw new Error('يوجد حساب غير نشط أو غير تابع للمنظمة الحالية');
+      }
 
       // 1. Insert transaction header
       const txResult = await client.query(
@@ -256,8 +289,8 @@ export class LedgerEngine {
                ELSE ($2 - $1)
              END
            )
-           WHERE id = $3`,
-          [line.debit || 0, line.credit || 0, line.accountId]
+           WHERE id = $3 AND organization_id = $4 AND deleted_at IS NULL`,
+          [line.debit, line.credit, line.accountId, entry.organizationId]
         );
       }
 

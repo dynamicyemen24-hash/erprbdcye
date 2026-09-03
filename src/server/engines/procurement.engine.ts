@@ -48,13 +48,13 @@ export class RFQEngine {
     );
   }
 
-  static async getById(rfqId: string) {
+  static async getById(orgId: string, rfqId: string) {
     const rfq = await queryOne(
       `SELECT r.*, p.name_ar as project_name_ar
        FROM procurement_tenders r
        LEFT JOIN projects p ON p.id = r.project_id
-       WHERE r.id = $1`,
-      [rfqId]
+       WHERE r.id = $1 AND r.organization_id = $2`,
+      [rfqId, orgId]
     );
 
     if (!rfq) return null;
@@ -63,9 +63,9 @@ export class RFQEngine {
       `SELECT vb.*, v.name_ar as vendor_name_ar, v.name_en as vendor_name_en
        FROM vendor_bids vb
        JOIN vendors v ON v.id = vb.vendor_id
-       WHERE vb.rfq_id = $1
+       WHERE vb.rfq_id = $1 AND vb.organization_id = $2
        ORDER BY vb.computed_score DESC`,
-      [rfqId]
+      [rfqId, orgId]
     );
 
     return { ...rfq, bids };
@@ -73,6 +73,18 @@ export class RFQEngine {
 
   static async create(data: RFQCreate, auth: AuthContext) {
     return await transaction(async (client) => {
+      if (data.organizationId !== auth.orgId) throw new Error('لا يمكن إنشاء طلب شراء خارج نطاق المنظمة الحالية');
+      if (data.projectId) {
+        const project = await client.query(
+          'SELECT id FROM projects WHERE id = $1 AND organization_id = $2',
+          [data.projectId, auth.orgId]
+        );
+        if (project.rows.length === 0) throw new Error('المشروع غير موجود ضمن المنظمة الحالية');
+      }
+      if (data.estimatedValue !== undefined &&
+          (!Number.isFinite(Number(data.estimatedValue)) || Number(data.estimatedValue) <= 0)) {
+        throw new Error('القيمة التقديرية لطلب الشراء يجب أن تكون موجبة');
+      }
       const code = generateCode('RFQ-');
 
       const result = await client.query(
@@ -108,8 +120,8 @@ export class RFQEngine {
 
   static async updateStatus(rfqId: string, status: RFQStatus, auth: AuthContext) {
     const result = await queryOne(
-      `UPDATE procurement_tenders SET status = $1 WHERE id = $2 RETURNING *`,
-      [status, rfqId]
+      `UPDATE procurement_tenders SET status = $1, updated_at = NOW() WHERE id = $2 AND organization_id = $3 RETURNING *`,
+      [status, rfqId, auth.orgId]
     );
     return result;
   }
@@ -121,15 +133,15 @@ export class RFQEngine {
     return await transaction(async (client) => {
       // Get RFQ
       const rfq = await client.query(
-        'SELECT * FROM procurement_tenders WHERE id = $1 AND status IN ($2, $3)',
-        [rfqId, 'OPEN', 'EVALUATING']
+        'SELECT * FROM procurement_tenders WHERE id = $1 AND organization_id = $2 AND status IN ($3, $4) FOR UPDATE',
+        [rfqId, auth.orgId, 'OPEN', 'EVALUATING']
       );
       if (rfq.rows.length === 0) throw new Error('RFQ not found or not in awardable status');
 
       // Get winning bid
       const bid = await client.query(
-        'SELECT * FROM vendor_bids WHERE id = $1 AND rfq_id = $2',
-        [winningBidId, rfqId]
+        'SELECT * FROM vendor_bids WHERE id = $1 AND rfq_id = $2 AND organization_id = $3',
+        [winningBidId, rfqId, auth.orgId]
       );
       if (bid.rows.length === 0) throw new Error('Winning bid not found');
 
@@ -594,6 +606,232 @@ export class VendorPerformanceEngine {
        ORDER BY avg_score DESC
        LIMIT $2`,
       [orgId, limit]
+    );
+  }
+}
+
+// ─── Tender Lifecycle Management (NEB-14 E2E) ───────────
+// دورة حياة المناقصة المعيارية (تطابق TenderStatus في features/procurement/tenderTypes.ts)
+
+const TENDER_TRANSITIONS: Record<string, string[]> = {
+  DRAFT: ['PUBLISHED', 'CANCELLED'],
+  PUBLISHED: ['BID_SUBMISSION', 'CANCELLED'],
+  BID_SUBMISSION: ['CLARIFICATIONS', 'EVALUATION_TECH', 'CANCELLED'],
+  CLARIFICATIONS: ['BID_SUBMISSION', 'EVALUATION_TECH', 'CANCELLED'],
+  EVALUATION_TECH: ['EVALUATION_FIN', 'CLARIFICATIONS', 'CANCELLED'],
+  EVALUATION_FIN: ['AWARD_PENDING', 'EVALUATION_TECH', 'CANCELLED'],
+  AWARD_PENDING: ['AWARDED', 'EVALUATION_FIN', 'CHALLENGED'],
+  AWARDED: ['CONTRACTED', 'CHALLENGED'],
+  CONTRACTED: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: [],
+  CANCELLED: [],
+  CHALLENGED: ['EVALUATION_FIN', 'CANCELLED'],
+};
+
+export class TenderLifecycleEngine {
+  /** لوحة المناقصات: قائمة + عدّاد العروض + إحصاءات خط الأنابيب */
+  static async list(orgId: string, pagination: PaginationParams = {}, filters?: {
+    status?: string;
+    projectId?: string;
+    search?: string;
+  }): Promise<PaginatedResult<any>> {
+    const conditions = ['t.organization_id = $1'];
+    const params: any[] = [orgId];
+    let idx = 2;
+
+    if (filters?.status) { conditions.push(`t.status = $${idx++}`); params.push(filters.status); }
+    if (filters?.projectId) { conditions.push(`t.project_id = $${idx++}`); params.push(filters.projectId); }
+    if (filters?.search) {
+      conditions.push(`(t.title_ar ILIKE $${idx} OR t.title_en ILIKE $${idx} OR t.tender_number ILIKE $${idx})`);
+      params.push(`%${filters.search}%`);
+      idx++;
+    }
+
+    const where = conditions.join(' AND ');
+
+    const result = await paginatedQuery(
+      `SELECT t.*, p.name_ar as project_name_ar,
+              (SELECT COUNT(*) FROM vendor_bids vb WHERE vb.rfq_id = t.id) as bids_count,
+              (SELECT MIN(vb.bid_amount) FROM vendor_bids vb WHERE vb.rfq_id = t.id) as best_bid_amount
+       FROM procurement_tenders t
+       LEFT JOIN projects p ON p.id = t.project_id
+       WHERE ${where}
+       ORDER BY t.created_at DESC`,
+      `SELECT COUNT(*) FROM procurement_tenders t WHERE ${where}`,
+      params,
+      pagination
+    );
+
+    const statsRows = await queryMany(
+      `SELECT status, COUNT(*) as count, COALESCE(SUM(estimated_value), 0) as total_value
+       FROM procurement_tenders WHERE organization_id = $1 GROUP BY status`,
+      [orgId]
+    );
+    (result as any).pipelineStats = statsRows;
+
+    return result;
+  }
+
+  static async getDetail(tenderId: string) {
+    const tender = await queryOne(
+      `SELECT t.*, p.name_ar as project_name_ar
+       FROM procurement_tenders t
+       LEFT JOIN projects p ON p.id = t.project_id
+       WHERE t.id = $1`,
+      [tenderId]
+    );
+    if (!tender) return null;
+
+    const bids = await queryMany(
+      `SELECT vb.*, v.name_ar as vendor_name_ar, v.name_en as vendor_name_en
+       FROM vendor_bids vb
+       JOIN vendors v ON v.id = vb.vendor_id
+       WHERE vb.rfq_id = $1
+       ORDER BY vb.computed_score DESC`,
+      [tenderId]
+    );
+
+    const daysToDeadline = (tender as any).submission_deadline
+      ? Math.ceil((new Date((tender as any).submission_deadline).getTime() - Date.now()) / 86400000)
+      : null;
+
+    return {
+      ...tender,
+      bids,
+      allowedTransitions: TENDER_TRANSITIONS[tender.status] || [],
+      daysToDeadline,
+    };
+  }
+
+  /** انتقال محمي: يرفض أي قفزة خارج مصفوفة التحولات المسموحة */
+  static async transition(tenderId: string, toStatus: string, auth: AuthContext, note?: string) {
+    return await transaction(async (client) => {
+      const tenderRes = await client.query('SELECT * FROM procurement_tenders WHERE id = $1', [tenderId]);
+      if (tenderRes.rows.length === 0) throw new Error('Tender not found');
+      const tender = tenderRes.rows[0];
+
+      const allowed = TENDER_TRANSITIONS[tender.status] || [];
+      if (!allowed.includes(toStatus)) {
+        throw new Error(`Invalid transition: ${tender.status} → ${toStatus}. Allowed: ${allowed.join(', ') || 'none'}`);
+      }
+
+      // حراسة معيارية: فتح الاستلام يتطلب موعداً نهائياً مستقبلياً
+      if (toStatus === 'BID_SUBMISSION' && (!tender.submission_deadline || new Date(tender.submission_deadline) <= new Date())) {
+        throw new Error('Cannot open bid submission: submission deadline must be set in the future');
+      }
+
+      // حراسة الترسية: وجوب وجود عرض فائز مقبول
+      if (toStatus === 'AWARDED') {
+        const winning = await client.query(
+          `SELECT id FROM vendor_bids WHERE rfq_id = $1 AND status IN ('ACCEPTED','AWARDED')`,
+          [tenderId]
+        );
+        if (winning.rows.length === 0) throw new Error('Cannot award: no accepted winning bid. Award a bid first.');
+      }
+
+      const updated = await client.query(
+        `UPDATE procurement_tenders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+        [toStatus, tenderId]
+      );
+
+      await auditLog({
+        organizationId: tender.organization_id,
+        userId: auth.userId,
+        action: 'TENDER_TRANSITION',
+        tableName: 'procurement_tenders',
+        recordId: tenderId,
+        details: { from: tender.status, to: toStatus, note: optionalString(note) },
+      });
+
+      return updated.rows[0];
+    });
+  }
+
+  /** الترسية: قبول عرض فائز + رفض الباقي + توليد أمر شراء تلقائي (E2E إلى P2P) */
+  static async award(tenderId: string, winningBidId: string, auth: AuthContext) {
+    return await transaction(async (client) => {
+      const tenderRes = await client.query(
+        `SELECT * FROM procurement_tenders WHERE id = $1 AND status IN ('EVALUATION_FIN','AWARD_PENDING')`,
+        [tenderId]
+      );
+      if (tenderRes.rows.length === 0) {
+        throw new Error('Tender not found or not in awardable stage (EVALUATION_FIN / AWARD_PENDING)');
+      }
+      const tender = tenderRes.rows[0];
+
+      const bidRes = await client.query(
+        'SELECT * FROM vendor_bids WHERE id = $1 AND rfq_id = $2',
+        [winningBidId, tenderId]
+      );
+      if (bidRes.rows.length === 0) throw new Error('Winning bid not found for this tender');
+      const bid = bidRes.rows[0];
+
+      await client.query(`UPDATE procurement_tenders SET status = 'AWARDED', updated_at = NOW() WHERE id = $1`, [tenderId]);
+      await client.query(`UPDATE vendor_bids SET status = 'ACCEPTED' WHERE id = $1`, [winningBidId]);
+      await client.query(
+        `UPDATE vendor_bids SET status = 'REJECTED' WHERE rfq_id = $1 AND id != $2 AND status = 'SUBMITTED'`,
+        [tenderId, winningBidId]
+      );
+
+      const poNumber = generateCode('PO-');
+      const poRes = await client.query(
+        `INSERT INTO purchase_orders
+         (organization_id, po_number, rfq_id, vendor_id, project_id, total_amount, currency_code, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING_APPROVAL')
+         RETURNING *`,
+        [
+          tender.organization_id,
+          poNumber,
+          tenderId,
+          bid.vendor_id,
+          tender.project_id || null,
+          bid.bid_amount,
+          bid.currency_code || 'USD',
+        ]
+      );
+
+      await auditLog({
+        organizationId: tender.organization_id,
+        userId: auth.userId,
+        action: 'TENDER_AWARD',
+        tableName: 'procurement_tenders',
+        recordId: tenderId,
+        details: { winningBidId, poNumber, awardedAmount: bid.bid_amount },
+      });
+
+      return {
+        tenderId,
+        status: 'AWARDED',
+        winningBidId,
+        awardedAmount: bid.bid_amount,
+        poId: poRes.rows[0].id,
+        poNumber,
+        nextStep: 'CONTRACTED',
+      };
+    });
+  }
+}
+
+// ─── Auctions / Live Bidding (المزايدات) ────────────────
+
+export class AuctionEngine {
+  static async list(orgId: string, pagination: PaginationParams = {}, filters?: { status?: string }): Promise<PaginatedResult<any>> {
+    const conditions = ['a.organization_id = $1'];
+    const params: any[] = [orgId];
+    let idx = 2;
+    if (filters?.status) { conditions.push(`a.status = $${idx++}`); params.push(filters.status); }
+    const where = conditions.join(' AND ');
+
+    return paginatedQuery(
+      `SELECT a.*, t.tender_number,
+              (SELECT COUNT(*) FROM auction_bids ab WHERE ab.auction_id = a.id) as bids_count
+       FROM tender_auctions a
+       LEFT JOIN procurement_tenders t ON t.id = a.tender_id
+       WHERE ${where}
+       ORDER BY a.created_at DESC`,
+      `SELECT COUNT(*) FROM tender_auctions a WHERE ${where}`,
+      params,
+      pagination
     );
   }
 }

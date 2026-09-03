@@ -5,7 +5,7 @@ import {
   ShieldCheck, Settings, Database, Activity, Sliders,
   Maximize2, Minimize2, CheckCircle2, X, Calendar, Globe,
   BookOpen, PlayCircle, TrendingUp, Sparkles, Filter, ChevronDown,
-  FileCheck, Building2, Calculator, PackageCheck, Handshake
+  FileCheck, Building2, Calculator, PackageCheck, Handshake, BarChart3
 } from 'lucide-react';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 
@@ -63,14 +63,14 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
       case 'executive':
         return [
           'strategic_planning', 'dashboard', 'domains', 'programs',
-          'investments', 'finance', 'currencies', 'reports',
+          'investments', 'finance', 'currencies', 'reports', 'business_intelligence', 'sales', 'procurement',
           'approvals', 'docs', 'scenarios', 'hr_dashboard', 'third-party-network'
         ];
       case 'manager':
         return [
           'programs', 'projects', 'activities', 'investments', 'finance',
           'currencies', 'contracts', 'inventory', 'approvals', 'users', 'control_panel',
-          'settings', 'audit', 'backup', 'docs', 'scenarios', 'hr_dashboard', 'third-party-network'
+          'settings', 'audit', 'backup', 'docs', 'scenarios', 'hr_dashboard', 'third-party-network', 'business_intelligence', 'sales'
         ];
       case 'field':
         return [
@@ -158,6 +158,23 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
       accentColor: 'emerald',
       badgeBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
       badgeText: 'text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+    },
+    {
+      id: 'sys-business-intelligence',
+      tab: 'business_intelligence',
+      titleAr: 'ذكاء الأعمال والتحليلات',
+      titleEn: 'Business Intelligence & Analytics',
+      descAr: 'تحليل المؤشرات والاتجاهات والقرارات المبنية على البيانات',
+      descEn: 'Evidence-based KPIs, trends and decision intelligence',
+      suiteId: 'strategy',
+      suiteAr: 'الاستراتيجية والتخطيط',
+      suiteEn: 'Strategy & Planning',
+      icon: BarChart3,
+      statusAr: 'تحليلي',
+      statusEn: 'Analytics',
+      accentColor: 'amber',
+      badgeBg: 'bg-amber-500/10 dark:bg-amber-500/20',
+      badgeText: 'text-amber-700 dark:text-amber-400 border-amber-500/20'
     },
 
     // 2. Operations & Field Execution Suite

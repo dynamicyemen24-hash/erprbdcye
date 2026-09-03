@@ -33,6 +33,12 @@ export default tseslint.config(
         },
       ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // Best-effort persistence (localStorage/IndexedDB) legitimately uses
+      // silent catch blocks — flagging them as errors is noise, not safety.
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      // `declare global { namespace Express { ... } }` is the canonical
+      // Express request-augmentation pattern (requestId, user, etc.).
+      '@typescript-eslint/no-namespace': ['error', { allowDeclarations: true }],
     },
   },
   {

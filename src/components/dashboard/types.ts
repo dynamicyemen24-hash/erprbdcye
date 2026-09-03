@@ -15,6 +15,7 @@ export interface DashboardViewProps {
   systemAlerts?: any[];
   currentUser?: any;
   activeOrg?: any;
+  orgSettings?: any[];
   orgName?: string;
   onOpenHelpers?: () => void;
   onOpenSystemMap?: () => void;

@@ -24,7 +24,7 @@ export const serverConfig = {
   geminiApiKey: env.ai.geminiApiKey || '',
   isProduction: env.env === 'production',
   env: env.env,
-  defaultOrgId: '00000000-0000-0000-0000-000000000001',
+  defaultOrgId: process.env.DEFAULT_ORG_ID || '00000000-0000-0000-0000-000000000001',
   // Session & Security
   bcryptRounds: 12,
   jwtExpiresIn: env.jwt.accessExpiresIn,

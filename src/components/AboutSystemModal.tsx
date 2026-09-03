@@ -26,6 +26,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { STORAGE_KEYS } from '../lib/constants';
+import { SYSTEM_NAME } from '../core/utils';
 
 interface AboutSystemModalProps {
   isOpen: boolean;
@@ -148,14 +149,14 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-black tracking-tight text-white">
-                  UAMEX<span className="text-amber-400"> ERP</span>™ Enterprise
+                  <span className="text-amber-400">${SYSTEM_NAME.split('™')[0]}</span>™ Enterprise
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   v2.6 Production
                 </span>
               </div>
-              <p className="text-xs text-emerald-200/80 font-medium">
-                {isRtl ? 'منظومة يو امكس المؤسسية الشاملة - جمعية رُحماء بينهم' : 'UAMEX ERP™ Intelligent Enterprise Operating System'}
+<p className="text-xs text-emerald-200/80 font-medium">
+                {isRtl ? 'منظومة يو امكس المؤسسية' : 'UAMEX ERP™'}
               </p>
             </div>
           </div>

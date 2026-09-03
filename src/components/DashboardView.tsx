@@ -93,6 +93,7 @@ export default function DashboardView({
   beneficiaries = [],
   sponsorships = [],
   approvalRequests = [],
+  orgSettings = [],
   currentUser,
   activeOrg,
   orgName,
@@ -102,7 +103,7 @@ export default function DashboardView({
   onSwitchToWorkFirst,
   onOpenExperienceModeModal
 }: DashboardViewProps) {
-  const state = useDashboardState(currentUser);
+  const state = useDashboardState(currentUser, orgSettings, activeOrg?.subscription_plan);
   
   // Multi-Cockpit Experience Mode State ('work_first' vs 'classic_analytics')
   const [homeMode, setHomeMode] = React.useState<'work_first' | 'classic_analytics'>(() => {
@@ -111,8 +112,14 @@ export default function DashboardView({
       const saved = localStorage.getItem('uamex_home_experience_mode');
       if (saved === 'classic_analytics' || saved === 'work_first') return saved;
     } catch {}
-    return 'classic_analytics';
+    return 'work_first';
   });
+
+  React.useEffect(() => {
+    if (initialExperienceMode && initialExperienceMode !== homeMode) {
+      setHomeMode(initialExperienceMode);
+    }
+  }, [initialExperienceMode, homeMode]);
 
   const handleSetHomeMode = (mode: 'work_first' | 'classic_analytics') => {
     setHomeMode(mode);
@@ -184,7 +191,7 @@ export default function DashboardView({
 
 ### 💰 2. التقييم المالي والسيولة النقدية
 - **نسبة استهلاك الموازنة:** **${(data.budgetUtilization * 100).toFixed(1)}%** من الموازنة التجميعية للبرامج.
-- **توازن القيود المزدوجة:** ميزانية متوازنة 100% وفقاً للمعايير المحاسبية المعتمدة.
+- **توازن القيود المزدوجة:** لا تُعلن المطابقة إلا عند توفر دليل دفتر الأستاذ المعتمد.
 - **الاعتمادات المالية:** بلغ عدد الاعتمادات المعلقة **${data.pendingApprovalsCount}** بقيمة **${data.pendingApprovalsAmount.toLocaleString()}** USD.
 
 ### 💼 3. التقييم الإداري والكفاءة الوظيفية
@@ -194,10 +201,10 @@ export default function DashboardView({
 - **الأداء والالتزام التنفيذي:** الالتزام التام بالجداول الزمنية للمشاريع وتفعيل محرك المعالجة دون اتصال (Offline Sync Engine) لحظر أي فقدان للبيانات الميدانية.
 
 ### 🛡️ 5. التقييم النهائي الشامل للأشهر
-- **التقييم المالي:** **96.5% (ممتاز)** — توازن كامل للقيود وحظر صارم لتجاوز الموازنة (Budget Hard-Lock).
-- **التقييم الإداري:** **95.0% (ممتاز)** — انضباط كامل للكادر البشري وإنجاز المعاملات.
-- **تقييم المشاريع:** **98.0% (استثنائي)** — سرعة تنفيذ عالية وصفر انحراف في جودة الخدمات الميدانية.
-- **المعدل العام المركب للمؤسسة:** **96.5% (جاهزية إنتاجية كاملة 10/10)**.`
+- **التقييم المالي:** يتطلب دليل دفتر الأستاذ الفعلي.
+- **التقييم الإداري:** يتطلب سجلات الموارد البشرية والاعتمادات.
+- **تقييم المشاريع:** يتطلب بيانات التنفيذ الفعلية.
+- **المعدل العام المركب للمؤسسة:** لا يُحتسب دون بيانات مصدر موثقة.`
           : `# Executive Summary & Strategic Performance Report
 **Organization:** Rohamā'a Baynahum Charity Foundation
 **Date:** ${new Date().toLocaleDateString('en-US')}
@@ -208,13 +215,13 @@ export default function DashboardView({
 
 ### 💰 2. Financial & Liquidity Evaluation
 - **Budget Utilization:** **${(data.budgetUtilization * 100).toFixed(1)}%** of allocated program budget.
-- **Ledger Integrity:** 100% balanced double-entry accounting per certified standards.
+- **Ledger Integrity:** Reported only when certified ledger evidence is available.
 
 ### 🛡️ 3. Final Monthly Evaluation Matrix
-- **Financial Evaluation:** **96.5% (Excellent)**
-- **Administrative Evaluation:** **95.0% (Excellent)**
-- **Projects Evaluation:** **98.0% (Exceptional)**
-- **Composite Enterprise Score:** **96.5% (10/10 Production Readiness)**.`;
+- **Financial Evaluation:** Requires certified ledger evidence.
+- **Administrative Evaluation:** Requires HR and approval records.
+- **Projects Evaluation:** Requires recorded execution data.
+- **Composite Enterprise Score:** Not calculated without verified source data.`;
 
         state.setSummaryOutput(fallbackText);
       }
@@ -224,21 +231,21 @@ export default function DashboardView({
 **المؤسسة:** جمعية رُحماء بينهم للعمل الإنساني والتنمية
 
 ### 📌 1. الخلاصة التنفيذية
-- المنظومة تعمل بكفاءة تشغيلية كاملة مع متابعة فورية لكافة النطاقات 15.
+- حالة المنظومة ومتابعة النطاقات تُعرض وفق السجلات المتاحة لحظة إنشاء التقرير.
 
 ### 🛡️ 2. التقييم النهائي الشامل للأشهر
-- **التقييم المالي:** **96.5% (ممتاز)**
-- **التقييم الإداري:** **95.0% (ممتاز)**
-- **تقييم المشاريع:** **98.0% (استثنائي)**
-- **المعدل العام المركب:** **96.5% (جاهزية إنتاجية 10/10)**.`
+- **التقييم المالي:** يتطلب أدلة دفتر الأستاذ المعتمدة.
+- **التقييم الإداري:** يتطلب سجلات الموارد البشرية والاعتمادات.
+- **تقييم المشاريع:** يتطلب بيانات التنفيذ الفعلية.
+- **المعدل العام المركب:** لا يُحتسب دون بيانات مصدر موثقة.`
         : `# Executive Summary Report
 **Organization:** Rohamā'a Baynahum Charity Foundation
 
 ### 🛡️ Final Monthly Evaluation Matrix
-- **Financial Score:** 96.5% (Excellent)
-- **Administrative Score:** 95.0% (Excellent)
-- **Projects Score:** 98.0% (Exceptional)
-- **Composite Score:** 96.5% (10/10 Production Readiness)`;
+- **Financial Score:** Requires certified ledger evidence.
+- **Administrative Score:** Requires HR and approval records.
+- **Projects Score:** Requires recorded execution data.
+- **Composite Score:** Not calculated without verified source data.`;
 
       state.setSummaryOutput(fallbackText);
     } finally {
@@ -345,6 +352,7 @@ export default function DashboardView({
                     onOpenHelpers={onOpenHelpers}
                     currentPreset={state.currentPreset}
                     customPresets={state.customPresets}
+                    availablePresets={state.availablePresets}
                     getSpacingClass={state.getSpacingClass}
                     isCustomizerOpen={state.isCustomizerOpen}
                     setIsCustomizerOpen={state.setIsCustomizerOpen}

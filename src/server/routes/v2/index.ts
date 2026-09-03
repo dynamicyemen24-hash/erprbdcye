@@ -15,6 +15,13 @@ import serviceDeliveryRoutes from './serviceDelivery.routes';
 import reportingRoutes from './reporting.routes';
 import strategyRoutes from './strategy.routes';
 import domainsRoutes from './domains.routes';
+import inventoryRoutes from './inventory.routes';
+import revenueRoutes from './revenue.routes';
+import expenseRoutes from './expense.routes';
+import searchRoutes from './search.routes';
+import performanceRoutes from './performance.routes';
+import ppmRoutes from './ppm.routes';
+import communicationsRoutes from './communications.routes';
 
 const router = Router();
 
@@ -35,6 +42,15 @@ router.use('/procurement', authenticateToken, procurementRoutes);
 // NEB-06: Service Delivery & Beneficiaries
 router.use('/services', authenticateToken, serviceDeliveryRoutes);
 
+// NEB-05/NEB-09: Inventory & Warehouse OS
+router.use('/inventory', authenticateToken, inventoryRoutes);
+
+// NEB-15: Unified Revenue OS
+router.use('/revenue', authenticateToken, revenueRoutes);
+
+// NEB-10: Unified Expense OS (expense records, categories, petty cash, recurring)
+router.use('/expense', authenticateToken, expenseRoutes);
+
 // Reports & Analytics (cross-domain)
 router.use('/reports', authenticateToken, reportingRoutes);
 
@@ -43,5 +59,17 @@ router.use('/strategy', authenticateToken, strategyRoutes);
 
 // All Other Domains: NEB-02,03,05,07,08,09,11,12,13,15
 router.use('/domains', authenticateToken, domainsRoutes);
+
+// NEB-12 + NEB-13: Unified Search & Query Engine (cross-domain institutional search)
+router.use('/search', authenticateToken, searchRoutes);
+
+// Performance, Diagnostics & Benchmarking (cache, pool, materialized views)
+router.use('/performance', authenticateToken, performanceRoutes);
+
+// NEB-02/03/04/05: PPM Intelligence (Critical Path, Scorecard, Portfolio Dashboard)
+router.use('/ppm', authenticateToken, ppmRoutes);
+
+// NEB-11: Intelligent Administrative Communications OS
+router.use('/communications', authenticateToken, communicationsRoutes);
 
 export default router;

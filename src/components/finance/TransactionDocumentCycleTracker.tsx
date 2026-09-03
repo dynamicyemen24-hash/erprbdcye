@@ -809,7 +809,7 @@ export default function TransactionDocumentCycleTracker({
     `).join('');
 
     const htmlContent = `
-      <div style="direction: ${isRtl ? 'rtl' : 'ltr'}; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; padding: 25px;">
+      <div style="direction: ${isRtl ? 'rtl' : 'ltr'}; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double #059669; padding-bottom: 15px; margin-bottom: 20px;">
           <div>
             <h1 style="color: #059669; margin: 0; font-size: 22px;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>

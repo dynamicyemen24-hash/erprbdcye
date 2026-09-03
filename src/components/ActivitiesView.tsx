@@ -49,7 +49,7 @@ import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
 import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
-import { REAL_ENTERPRISE_DATA } from '../core/data/realEnterpriseData';
+import { ppmApi, type PpmActivity } from '../core/ppm/ppmData';
 import { generateNumericCode } from '../lib/idGenerator';
 import { instantPrint } from '../core/export';
 import { WBSActivityTreeSymbol } from './common/SovereignSystemIcons';
@@ -260,7 +260,7 @@ export default function ActivitiesView({
 }: ActivitiesViewProps) {
   const isRtl = lang === 'ar';
   
-  const [activities, setActivities] = useState<Activity[]>((REAL_ENTERPRISE_DATA.activities as any) || []);
+  const [activities, setActivities] = useState<PpmActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSector, setSelectedSector] = useState('all');
@@ -344,21 +344,15 @@ export default function ActivitiesView({
   const fetchActivities = async () => {
     setLoading(true);
     setFetchError(null);
-    try {
-      const res = await fetch('/api/tables/activities');
-      if (res.ok) {
-        const data = await res.json();
-        setActivities(data && Array.isArray(data) && data.length > 0 ? data : ((REAL_ENTERPRISE_DATA.activities as any) || []));
-      } else {
-        console.warn('[Activities] Live fetch returned status:', res.status, '- using institutional snapshot');
-        setActivities((REAL_ENTERPRISE_DATA.activities as any) || []);
-      }
-    } catch (err) {
-      console.warn('[Activities] Note fetching activities (using institutional snapshot):', err);
-      setActivities((REAL_ENTERPRISE_DATA.activities as any) || []);
-    } finally {
-      setLoading(false);
+    const { data, ok, error } = await ppmApi.getActivities();
+    if (ok) {
+      setActivities(data);
+    } else {
+      console.warn('[Activities] Engine fetch failed — showing live empty state:', error);
+      setActivities([]);
+      if (error) setFetchError(true);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -802,7 +796,7 @@ export default function ActivitiesView({
   // Aggregated KPIs
   const activeCount = activities.filter(a => a.status_code === 'active').length;
   const closedCount = activities.filter(a => a.status_code === 'closed').length;
-  const totalBudget = activities.reduce((sum, a) => sum + parseFloat(a.budget || '0'), 0);
+  const totalBudget = activities.reduce((sum, a) => sum + parseFloat(String(a.budget || '0')), 0);
   const totalDisbursedBudget = activities.reduce((sum, a) => sum + (a.disbursed_budget || 0), 0);
   const totalBeneficiariesCount = activities.reduce((sum, a) => sum + (a.target_beneficiaries || a.metadata?.student_count || 0), 0);
 
@@ -1055,7 +1049,7 @@ export default function ActivitiesView({
             const gov = act.metadata?.governorate || act.location_name_ar || 'تعز';
             const students = act.target_beneficiaries || act.metadata?.student_count || 20;
             const disbursed = act.disbursed_budget || 0;
-            const totalB = parseFloat(act.budget || '0');
+            const totalB = parseFloat(String(act.budget || '0'));
             const percentDisb = totalB > 0 ? Math.round((disbursed / totalB) * 100) : 0;
 
             const IconComp = sec.icon;
@@ -1179,7 +1173,7 @@ export default function ActivitiesView({
                     </button>
 
                     <button
-                      onClick={() => setSelectedActivity(act)}
+                      onClick={() => setSelectedActivity(act as unknown as Activity)}
                       className="py-1.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 font-extrabold text-[10px] rounded-xl transition flex items-center justify-center gap-1 cursor-pointer border border-amber-200 dark:border-amber-800"
                     >
                       <CheckSquare className="w-3.5 h-3.5" />
@@ -1196,7 +1190,7 @@ export default function ActivitiesView({
                   </div>
 
                   <button
-                    onClick={() => handlePrintActivityManifest(act)}
+                    onClick={() => handlePrintActivityManifest(act as unknown as Activity)}
                     className="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <Printer className="w-3.5 h-3.5" />
@@ -1767,7 +1761,7 @@ export default function ActivitiesView({
                   <option value="" disabled>{isRtl ? 'اختر النشاط الميداني...' : 'Select Activity...'}</option>
                   {activities.map(a => (
                     <option key={a.id} value={a.id}>
-                      {a.name_ar} (الموازنة: {parseFloat(a.budget || '0').toLocaleString()} YER)
+                      {a.name_ar} (الموازنة: {parseFloat(String(a.budget || '0')).toLocaleString()} YER)
                     </option>
                   ))}
                 </select>

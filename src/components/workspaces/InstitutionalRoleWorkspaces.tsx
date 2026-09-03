@@ -30,9 +30,12 @@ import {
   FileText,
   Activity,
   Zap,
-  Globe
+  Globe,
+  Star,
+  Warehouse,
+  ArrowRight
 } from 'lucide-react';
-import { REAL_ENTERPRISE_DATA } from '../../core/data/realEnterpriseData';
+import { useLiveEnterpriseTables } from '../../core/hooks/useLiveEnterpriseTables';
 import { ActiveTab } from '../../types';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
 import { instantPrint } from '../../core/export';
@@ -43,16 +46,14 @@ import {
   OrgHierarchySymbol, 
   ClearanceDelegationSymbol 
 } from '../common/SovereignSystemIcons';
+import {
+  isWorkspaceRoleKey,
+  WORKSPACE_ROLE_KEYS,
+  WORKSPACE_STORAGE_KEYS,
+  type WorkspaceRoleKey as SharedWorkspaceRoleKey
+} from '../../config/workspaceRegistry';
 
-export type WorkspaceRoleKey = 
-  | 'strategy' 
-  | 'programs' 
-  | 'operations' 
-  | 'beneficiaries' 
-  | 'finance' 
-  | 'procurement' 
-  | 'meal' 
-  | 'admin';
+export type WorkspaceRoleKey = SharedWorkspaceRoleKey;
 
 export type SecurityClearanceLevel = 1 | 2 | 3 | 4;
 
@@ -186,26 +187,55 @@ const STRATEGIC_GOALS_10 = [
 
 export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesProps> = ({
   lang,
+  currentUserRole,
   onNavigateToTab
 }) => {
   const isRtl = lang === 'ar';
-  const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceRoleKey>('strategy');
-  const [securityClearanceLevel, setSecurityClearanceLevel] = useState<SecurityClearanceLevel>(3);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceRoleKey>(() => {
+    const saved = localStorage.getItem(WORKSPACE_STORAGE_KEYS.active);
+    return isWorkspaceRoleKey(saved) ? saved : 'strategy';
+  });
+  React.useEffect(() => {
+    const handleWorkspaceSelected = (event: Event) => {
+      const key = (event as CustomEvent<string>).detail;
+      if (isWorkspaceRoleKey(key)) {
+        setSelectedWorkspace(key);
+        localStorage.setItem(WORKSPACE_STORAGE_KEYS.active, key);
+      }
+    };
+    window.addEventListener('uamex:workspace-selected', handleWorkspaceSelected);
+    return () => window.removeEventListener('uamex:workspace-selected', handleWorkspaceSelected);
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
+  const [workspaceQuery, setWorkspaceQuery] = useState('');
+  const [favoriteWorkspaces, setFavoriteWorkspaces] = useState<WorkspaceRoleKey[]>(() => {
+    try {
+      const saved = localStorage.getItem(WORKSPACE_STORAGE_KEYS.favorites);
+      if (!saved) return ['strategy'];
+      const parsed: unknown = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter(isWorkspaceRoleKey) : ['strategy'];
+    } catch {
+      return ['strategy'];
+    }
+  });
   const [programsSubTab, setProgramsSubTab] = useState<'projects' | 'programs'>('projects');
   const [beneficiarySubTab, setBeneficiarySubTab] = useState<'sponsorships' | 'cases'>('sponsorships');
   const [inspectingRecord, setInspectingRecord] = useState<any | null>(null);
 
-  // Database Tables Sourced from Central State
-  const programs = (REAL_ENTERPRISE_DATA.programs as any[]) || [];
-  const projects = (REAL_ENTERPRISE_DATA.projects as any[]) || [];
-  const activities = (REAL_ENTERPRISE_DATA.activities as any[]) || [];
-  const beneficiaries = (REAL_ENTERPRISE_DATA.beneficiaries as any[]) || [];
-  const sponsorships = (REAL_ENTERPRISE_DATA.sponsorships as any[]) || [];
-  const accounts = (REAL_ENTERPRISE_DATA.chart_of_accounts as any[]) || [];
-  const warehouses = (REAL_ENTERPRISE_DATA.warehouses as any[]) || [];
-  const inventory = (REAL_ENTERPRISE_DATA.inventory_items as any[]) || [];
-  const users = (REAL_ENTERPRISE_DATA.users as any[]) || [];
+  // Database Tables Sourced Live from the Backend (no static snapshot)
+  const {
+    programs,
+    projects,
+    activities,
+    beneficiaries,
+    sponsorships,
+    accounts,
+    warehouses,
+    inventory,
+    users,
+    loading: liveLoading,
+    refresh: refreshLive,
+  } = useLiveEnterpriseTables();
 
   // Filtered data records
   const filteredProjects = useMemo(() => {
@@ -403,16 +433,48 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
   };
 
   // Parallel Role Workspaces Tabs Definition
-  const WORKSPACE_TABS: { key: WorkspaceRoleKey; titleAr: string; titleEn: string; code: string; icon: any; count: number }[] = [
-    { key: 'strategy', titleAr: 'لوحة القيادة الاستراتيجية والأداء', titleEn: 'Strategic Cockpit', code: 'NEB-01', icon: StrategicCompassSymbol, count: 10 },
-    { key: 'programs', titleAr: 'المحافظ والبرامج والمشاريع', titleEn: 'Portfolios & Projects', code: 'NEB-03/04', icon: ProjectLifecycleSymbol, count: projects.length },
-    { key: 'operations', titleAr: 'العمليات الميدانية وهيكل الأنشطة', titleEn: 'Field Operations & WBS', code: 'NEB-05', icon: WBSActivityTreeSymbol, count: activities.length },
-    { key: 'beneficiaries', titleAr: 'الرعاية والمستفيدين والأيتام', titleEn: 'Social Welfare & Orphans', code: 'NEB-06/07', icon: Heart, count: sponsorships.length },
-    { key: 'finance', titleAr: 'المالية والرقابة المحاسبية IPSAS', titleEn: 'Finance & IPSAS Ledger', code: 'NEB-10', icon: Coins, count: accounts.length },
-    { key: 'procurement', titleAr: 'الإمداد والمشتريات والمخازن P2P', titleEn: 'Supply Chain & Inventory', code: 'NEB-09/14', icon: Box, count: warehouses.length + inventory.length },
-    { key: 'meal', titleAr: 'الرقابة والتقييم والجودة MEAL', titleEn: 'MEAL & Accountability', code: 'NEB-13', icon: ShieldCheck, count: 9 },
-    { key: 'admin', titleAr: 'الهيكل المؤسسي والموارد البشرية', titleEn: 'Governance & HR Desk', code: 'NEB-09', icon: OrgHierarchySymbol, count: users.length }
-  ];
+  const WORKSPACE_TABS: { key: WorkspaceRoleKey; titleAr: string; titleEn: string; code: string; icon: any; count: number }[] = WORKSPACE_ROLE_KEYS.map(key => {
+    const definitions: Record<WorkspaceRoleKey, { titleAr: string; titleEn: string; code: string; icon: any; count: number }> = {
+      strategy: { titleAr: 'لوحة القيادة الاستراتيجية والأداء', titleEn: 'Strategic Cockpit', code: 'NEB-01', icon: StrategicCompassSymbol, count: 10 },
+      programs: { titleAr: 'المحافظ والبرامج والمشاريع', titleEn: 'Portfolios & Projects', code: 'NEB-03/04', icon: ProjectLifecycleSymbol, count: projects.length },
+      operations: { titleAr: 'الأنشطة الميدانية وهيكل العمل', titleEn: 'Field Activities & WBS', code: 'NEB-05', icon: WBSActivityTreeSymbol, count: activities.length },
+      field_tasks: { titleAr: 'المهام الميدانية والتنفيذ اليومي', titleEn: 'Field Tasks & Dispatch', code: 'NEB-05', icon: CheckCircle2, count: activities.length },
+      beneficiaries: { titleAr: 'الرعاية والمستفيدين والأيتام', titleEn: 'Social Welfare & Orphans', code: 'NEB-06/07', icon: Heart, count: sponsorships.length },
+      finance: { titleAr: 'المالية والرقابة المحاسبية IPSAS', titleEn: 'Finance & IPSAS Ledger', code: 'NEB-10', icon: Coins, count: accounts.length },
+      procurement: { titleAr: 'المشتريات والمناقصات P2P', titleEn: 'Procurement & Tenders', code: 'NEB-14', icon: Box, count: projects.length },
+      inventory: { titleAr: 'المخزون والمستودعات', titleEn: 'Inventory & Warehouses', code: 'NEB-09', icon: Warehouse, count: warehouses.length + inventory.length },
+      sales: { titleAr: 'المبيعات والإيرادات', titleEn: 'Sales & Revenue', code: 'NEB-15', icon: TrendingUp, count: 0 },
+      meal: { titleAr: 'الرقابة والتقييم والجودة MEAL', titleEn: 'MEAL & Accountability', code: 'NEB-13', icon: ShieldCheck, count: 9 },
+      admin: { titleAr: 'الحوكمة والصلاحيات', titleEn: 'Governance & Access', code: 'NEB-09', icon: OrgHierarchySymbol, count: users.length },
+      hr: { titleAr: 'الموارد البشرية وشؤون الموظفين', titleEn: 'Human Resources', code: 'NEB-09', icon: Users, count: users.length }
+    };
+    const definition = definitions[key];
+    return { key, ...definition };
+  });
+  const visibleWorkspaceTabs = WORKSPACE_TABS
+    .filter(tab => !workspaceQuery || `${tab.titleAr} ${tab.titleEn} ${tab.code}`.toLowerCase().includes(workspaceQuery.toLowerCase()))
+    .sort((a, b) => Number(favoriteWorkspaces.includes(b.key)) - Number(favoriteWorkspaces.includes(a.key)));
+  const quickActions: Partial<Record<WorkspaceRoleKey, { labelAr: string; labelEn: string; tab: ActiveTab }[]>> = {
+    strategy: [{ labelAr: 'فتح التخطيط الاستراتيجي', labelEn: 'Open strategic planning', tab: 'strategic_planning' }],
+    programs: [{ labelAr: 'فتح المشاريع', labelEn: 'Open projects', tab: 'projects' }, { labelAr: 'فتح البرامج', labelEn: 'Open programs', tab: 'programs' }],
+    operations: [{ labelAr: 'فتح سجل الأنشطة', labelEn: 'Open activities', tab: 'activities' }],
+    field_tasks: [{ labelAr: 'فتح توزيع الموارد', labelEn: 'Open resource allocation', tab: 'allocations' }, { labelAr: 'فتح السيناريوهات', labelEn: 'Open scenarios', tab: 'scenarios' }],
+    beneficiaries: [{ labelAr: 'فتح المستفيدين', labelEn: 'Open beneficiaries', tab: 'beneficiaries' }],
+    finance: [{ labelAr: 'فتح المالية', labelEn: 'Open finance', tab: 'finance' }],
+    procurement: [{ labelAr: 'فتح المشتريات', labelEn: 'Open procurement', tab: 'procurement' }],
+    inventory: [{ labelAr: 'فتح المخزون', labelEn: 'Open inventory', tab: 'inventory' }],
+    sales: [{ labelAr: 'فتح المبيعات والإيرادات', labelEn: 'Open sales & revenue', tab: 'sales' }],
+    meal: [{ labelAr: 'فتح التقارير', labelEn: 'Open reports', tab: 'reports' }],
+    admin: [{ labelAr: 'فتح المستخدمين', labelEn: 'Open users', tab: 'users' }],
+    hr: [{ labelAr: 'فتح الموارد البشرية', labelEn: 'Open HR', tab: 'hr_dashboard' }]
+  };
+  const toggleWorkspaceFavorite = (key: WorkspaceRoleKey) => {
+    setFavoriteWorkspaces(current => {
+      const next = current.includes(key) ? current.filter(item => item !== key) : [...current, key];
+      localStorage.setItem(WORKSPACE_STORAGE_KEYS.favorites, JSON.stringify(next));
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
@@ -426,31 +488,29 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               {isRtl ? 'منظومة مساحات العمل المؤسسية المتوازية حسب الأدوار (UAMEX™ Sovereign Workspaces)' : 'Parallel Role-Based Workspaces Cockpit'}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">
-              {isRtl ? 'مستوى الصلاحية النشط:' : 'Clearance Level:'}
+          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 dark:text-zinc-400">
+            <span>{isRtl ? 'مساحة الدور:' : 'Role workspace:'}</span>
+            <span className="max-w-40 truncate rounded-lg bg-slate-100 px-2 py-1 text-slate-700 dark:bg-zinc-800 dark:text-zinc-200">
+              {currentUserRole || (isRtl ? 'مستخدم مؤسسي' : 'Enterprise user')}
             </span>
-            <div className="flex items-center bg-slate-100 dark:bg-zinc-800 p-0.5 rounded-lg text-[10px] font-black">
-              {[1, 2, 3, 4].map(lvl => (
-                <button
-                  key={lvl}
-                  onClick={() => setSecurityClearanceLevel(lvl as SecurityClearanceLevel)}
-                  className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                    securityClearanceLevel === lvl 
-                      ? 'bg-emerald-600 text-white shadow-xs' 
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  L{lvl}
-                </button>
-              ))}
-            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 mb-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <label className="relative flex-1">
+              <Search className="absolute right-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+              <input value={workspaceQuery} onChange={event => setWorkspaceQuery(event.target.value)} placeholder={isRtl ? 'ابحث في مساحات العمل...' : 'Search workspaces...'} className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pr-9 pl-3 text-xs outline-none focus:border-emerald-500 dark:border-zinc-800 dark:bg-zinc-950" />
+            </label>
+            <span className="self-center text-[10px] font-bold text-slate-500 dark:text-zinc-400">
+              {isRtl ? `${visibleWorkspaceTabs.length} مساحة متاحة` : `${visibleWorkspaceTabs.length} workspaces available`}
+            </span>
           </div>
         </div>
 
         {/* Parallel Tabs Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5">
-          {WORKSPACE_TABS.map(tab => {
+        <div className="flex gap-1.5 overflow-x-auto pb-1 snap-x lg:grid lg:grid-cols-8 lg:overflow-visible lg:pb-0">
+          {visibleWorkspaceTabs.map(tab => {
             const TabIcon = tab.icon;
             const isSelected = selectedWorkspace === tab.key;
             return (
@@ -459,8 +519,9 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 onClick={() => {
                   triggerHaptic('light');
                   setSelectedWorkspace(tab.key);
+                  localStorage.setItem(WORKSPACE_STORAGE_KEYS.active, tab.key);
                 }}
-                className={`flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all cursor-pointer border active:scale-95 ${
+                className={`relative min-w-[132px] snap-start flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all cursor-pointer border active:scale-95 lg:min-w-0 ${
                   isSelected
                     ? 'bg-emerald-600 text-white border-emerald-500 shadow-md ring-2 ring-emerald-500/20 font-black'
                     : 'bg-slate-50 dark:bg-zinc-950/70 border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:border-slate-300'
@@ -468,7 +529,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               >
                 <TabIcon className={`w-4 h-4 mb-1 ${isSelected ? 'text-white scale-110' : 'text-slate-500 dark:text-zinc-400'}`} />
                 <span className="text-[11px] font-bold line-clamp-1">{isRtl ? tab.titleAr : tab.titleEn}</span>
-                <div className="flex items-center gap-1 mt-0.5">
+                <div className="hidden sm:flex items-center gap-1 mt-0.5">
                   <span className={`text-[9px] font-mono px-1 rounded ${isSelected ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-200 dark:bg-zinc-800 text-slate-500'}`}>
                     {tab.code}
                   </span>
@@ -476,10 +537,23 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                     {tab.count}
                   </span>
                 </div>
+                <span role="button" tabIndex={0} aria-label={isRtl ? 'تثبيت مساحة العمل' : 'Pin workspace'} onClick={event => { event.stopPropagation(); toggleWorkspaceFavorite(tab.key); }} onKeyDown={event => { if (event.key === 'Enter') { event.stopPropagation(); toggleWorkspaceFavorite(tab.key); } }} className="absolute left-1 top-1">
+                  <Star className={`h-3 w-3 ${favoriteWorkspaces.includes(tab.key) ? 'fill-amber-400 text-amber-400' : isSelected ? 'text-emerald-100' : 'text-slate-300'}`} />
+                </span>
               </button>
             );
           })}
         </div>
+        {quickActions[selectedWorkspace] && onNavigateToTab && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2 dark:border-zinc-800">
+            <span className="text-[10px] font-black text-slate-500 dark:text-zinc-400">{isRtl ? 'الإجراءات المباشرة:' : 'Direct actions:'}</span>
+            {quickActions[selectedWorkspace]!.map(action => (
+              <button key={action.tab} type="button" onClick={() => onNavigateToTab(action.tab)} className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[10px] font-black text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300">
+                {isRtl ? action.labelAr : action.labelEn}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── WORKSPACE CONTENT CANVAS: EACH TAB IS INDEPENDENT AND NOT STACKED ── */}
@@ -943,6 +1017,39 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {(selectedWorkspace === 'field_tasks' || selectedWorkspace === 'inventory' || selectedWorkspace === 'sales' || selectedWorkspace === 'hr') && (
+        <div className="space-y-5 animate-in fade-in duration-200">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-emerald-500/10 p-3 text-emerald-600">
+                {selectedWorkspace === 'inventory' ? <Warehouse className="h-6 w-6" /> :
+                  selectedWorkspace === 'sales' ? <TrendingUp className="h-6 w-6" /> :
+                  selectedWorkspace === 'hr' ? <Users className="h-6 w-6" /> :
+                  <CheckCircle2 className="h-6 w-6" />}
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                  {visibleWorkspaceTabs.find(tab => tab.key === selectedWorkspace)?.titleAr}
+                </h3>
+                <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+                  {isRtl
+                    ? 'مساحة عمل مستقلة للعمليات اليومية، مع إبقاء القيود المالية والموافقات ضمن وحدتها المختصة.'
+                    : 'Dedicated operational workspace with financial postings and approvals kept in their specialist domains.'}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {(quickActions[selectedWorkspace] || []).map(action => (
+              <button key={action.tab} type="button" onClick={() => onNavigateToTab?.(action.tab)} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 text-right transition-colors hover:border-emerald-400 hover:bg-emerald-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-emerald-950/20">
+                <span className="text-xs font-black text-slate-800 dark:text-zinc-100">{isRtl ? action.labelAr : action.labelEn}</span>
+                <ArrowRight className="h-4 w-4 text-emerald-600 rtl:rotate-180" />
+              </button>
+            ))}
           </div>
         </div>
       )}

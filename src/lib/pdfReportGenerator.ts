@@ -1,6 +1,7 @@
 import { sanitizeHtml } from './htmlSanitizer';
 import { generateNumericCode } from './idGenerator';
 import { tafqeetArabicRials } from '../core/security/financialSafetyGuardian';
+import { SYSTEM_NAME } from '../core/utils';
 
 export function safeArray<T = any>(input: any): T[] {
   if (Array.isArray(input)) return input;
@@ -67,9 +68,9 @@ export function getPDFHeaderHTML(options: PDFReportHeaderOptions): string {
           <h2 style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 800; line-height: 1.3;">
             ${orgName}
           </h2>
-          <div style="color: ${accentColor}; font-size: 11px; font-weight: 700; margin-top: 2px;">
-            نظام يو امكس المؤسسي الشامل - UAMEX ERP™
-          </div>
+<div style="color: ${accentColor}; font-size: 11px; font-weight: 700; margin-top: 2px;">
+              ${accentColor}
+            </div>
           <div style="margin-top: 4px; display: inline-block; padding: 2px 8px; border-radius: 4px; background-color: ${classInfo.color}15; color: ${classInfo.color}; font-size: 9px; font-weight: 800; border: 1px solid ${classInfo.color}30;">
             ${classInfo[lang]}
           </div>
@@ -112,7 +113,7 @@ export function getPDFFooterHTML(lang: 'ar' | 'en' = 'ar'): string {
         <strong>جمعية رُحماء بينهم للعمل الإنساني والتنمية</strong> - ${isRtl ? 'المستند طُبع آلياً ومحمي بالتوقيع الرقمي المؤسسي' : 'Auto-generated & digitally verified document.'}
       </div>
       <div style="font-family: monospace; font-weight: 700;">
-        UAMEX ERP™ v2.6 | ${isRtl ? 'صفحة 1 من 1' : 'Page 1 of 1'}
+        ${SYSTEM_NAME} v2.6 | ${isRtl ? 'صفحة 1 من 1' : 'Page 1 of 1'}
       </div>
     </div>
   `;
@@ -358,6 +359,24 @@ export function buildFinancialStatementPDFHTML(options: {
   includeSignatures?: boolean;
   orgNameAr?: string;
   orgNameEn?: string;
+  executiveSummary?: {
+    totalProgramsBudget?: number;
+    totalProjectsBudget?: number;
+    averageProgramBudget?: number;
+    averageProjectBudget?: number;
+    completedProjectsCount?: number;
+    totalPrograms?: number;
+    totalProjects?: number;
+    beneficiariesCount?: number;
+    sponsorshipsCount?: number;
+    sponsorshipRate?: number;
+    projectsDataCompleteness?: number;
+    executionEfficiencyRate?: number;
+    costPerBeneficiary?: number;
+    avgProgressPercent?: number;
+    topProgramBudgetShare?: number;
+    primaryCurrency?: string;
+  };
 }): string {
   const lang = options.lang || 'ar';
   const isRtl = lang === 'ar';
@@ -793,6 +812,24 @@ export function buildExecutiveReportPDFHTML(options: {
   includeSignatures?: boolean;
   orgNameAr?: string;
   orgNameEn?: string;
+  executiveSummary?: {
+    totalProgramsBudget?: number;
+    totalProjectsBudget?: number;
+    averageProgramBudget?: number;
+    averageProjectBudget?: number;
+    completedProjectsCount?: number;
+    totalPrograms?: number;
+    totalProjects?: number;
+    beneficiariesCount?: number;
+    sponsorshipsCount?: number;
+    sponsorshipRate?: number;
+    projectsDataCompleteness?: number;
+    executionEfficiencyRate?: number;
+    costPerBeneficiary?: number;
+    avgProgressPercent?: number;
+    topProgramBudgetShare?: number;
+    primaryCurrency?: string;
+  };
 }): string {
   const lang = options.lang || 'ar';
   const isRtl = lang === 'ar';
@@ -2163,7 +2200,7 @@ export function buildUserManualPDFHTML(options: {
   const accentColor = options.accentColor || '#059669';
 
   const headerHTML = getPDFHeaderHTML({
-    title: options.title || (isRtl ? 'دليل المستخدم الشامل - نظام يو امكس المؤسسي' : 'Comprehensive User Manual - UAMEX ERP™'),
+    title: options.title || (isRtl ? 'دليل المستخدم الشامل - نظام يو امكس المؤسسي' : 'Comprehensive User Manual - ${SYSTEM_NAME}'),
     subtitle: options.subtitle || (isRtl ? 'إرشادات الاستخدام الميداني والإداري خطوة بخطوة لكافة المستخدمين والقطاعات' : 'Step-by-Step Field & Administrative User Playbook'),
     lang,
     accentColor,
@@ -2178,7 +2215,7 @@ export function buildUserManualPDFHTML(options: {
       <!-- Welcome Callout -->
       <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 14px; margin-bottom: 20px;">
         <div style="font-weight: 800; font-size: 13px; color: #065f46; margin-bottom: 4px;">
-          ${isRtl ? 'مرحباً بك في نظام UAMEX ERP™ المؤسسي' : 'Welcome to UAMEX ERP™ Intelligent Enterprise OS'}
+          ${isRtl ? 'مرحباً بك في نظام ${SYSTEM_NAME} المؤسسي' : 'Welcome to ${SYSTEM_NAME} Intelligent Enterprise OS'}
         </div>
         <p style="margin: 0; color: #047857; font-size: 10.5px;">
           ${isRtl 
@@ -3003,7 +3040,7 @@ export function buildOfficialPaymentVoucherPDFHTML(options: {
 
         <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
           <div>
-            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
             <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">ENTERPRISE OS</div>
             <div style="font-size: 8px; color: #94a3b8;">IPSAS-24 GAAP</div>
           </div>
@@ -3127,7 +3164,7 @@ export function buildOfficialPaymentVoucherPDFHTML(options: {
       <!-- تذييل السند -->
       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
         <div>${orgName} • ص.ب: تعز - الجمهورية اليمنية • وثيقة مالية رسمية صادرة آلياً</div>
-        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ IPSAS VERIFIED • صفحة 1 من 1</div>
+        <div style="font-family: monospace; font-weight: bold;">${SYSTEM_NAME} IPSAS VERIFIED • صفحة 1 من 1</div>
       </div>
     </div>
   `;
@@ -3192,7 +3229,7 @@ export function buildOfficialReceiptVoucherPDFHTML(options: {
 
         <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
           <div>
-            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
             <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">FINANCE OS</div>
             <div style="font-size: 8px; color: #94a3b8;">IPSAS SECURE</div>
           </div>
@@ -3299,7 +3336,7 @@ export function buildOfficialReceiptVoucherPDFHTML(options: {
       <!-- التذييل -->
       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
         <div>${orgName} • ص.ب: تعز - الجمهورية اليمنية • سند رسمي معتمد خاضع للرقابة المحاسبية</div>
-        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ REVENUE SAFEGUARD</div>
+        <div style="font-family: monospace; font-weight: bold;">${SYSTEM_NAME} REVENUE SAFEGUARD</div>
       </div>
     </div>
   `;
@@ -3361,7 +3398,7 @@ export function buildOfficialJournalVoucherPDFHTML(options: {
 
         <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
           <div>
-            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
             <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">LEDGER CORE</div>
             <div style="font-size: 8px; color: #94a3b8;">DOUBLE ENTRY</div>
           </div>
@@ -3444,7 +3481,7 @@ export function buildOfficialJournalVoucherPDFHTML(options: {
       <!-- التذييل -->
       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
         <div>${orgName} • نظام يو امكس المؤسسي الشامل • سجل قيد الأستاذ العام المعتمد</div>
-        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ JOURNAL VOUCHER • صفحة 1 من 1</div>
+        <div style="font-family: monospace; font-weight: bold;">${SYSTEM_NAME} JOURNAL VOUCHER • صفحة 1 من 1</div>
       </div>
     </div>
   `;
@@ -3511,7 +3548,7 @@ export function buildOfficialGoodsReceiptIssuePDFHTML(options: {
 
         <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
           <div>
-            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
             <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">INVENTORY OS</div>
             <div style="font-size: 8px; color: #94a3b8;">LOGISTICS CORE</div>
           </div>
@@ -3608,7 +3645,7 @@ export function buildOfficialGoodsReceiptIssuePDFHTML(options: {
       <!-- التذييل -->
       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
         <div>${orgName} • إدارة سلاسل الإمداد والمخازن • وثيقة استلام وصرف مخزني موثقة</div>
-        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ LOGISTICS OS • صفحة 1 من 1</div>
+        <div style="font-family: monospace; font-weight: bold;">${SYSTEM_NAME} LOGISTICS OS • صفحة 1 من 1</div>
       </div>
     </div>
   `;
@@ -3674,7 +3711,7 @@ export function buildOfficialPurchaseOrderPDFHTML(options: {
 
         <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
           <div>
-            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
             <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">P2P ENGINE</div>
             <div style="font-size: 8px; color: #94a3b8;">PROCUREMENT</div>
           </div>
@@ -3778,8 +3815,8 @@ export function buildOfficialPurchaseOrderPDFHTML(options: {
 
       <!-- التذييل -->
       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
-        <div>${orgName} • أمر شراء ملزم قانونياً وفق لوائح المشتريات المعيارية • صادر عبر UAMEX ERP™</div>
-        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ P2P ENGINE • صفحة 1 من 1</div>
+        <div>${orgName} • أمر شراء ملزم قانونياً وفق لوائح المشتريات المعيارية • صادر عبر ${SYSTEM_NAME}</div>
+        <div style="font-family: monospace; font-weight: bold;">${SYSTEM_NAME} P2P ENGINE • صفحة 1 من 1</div>
       </div>
     </div>
   `;
@@ -3848,7 +3885,7 @@ export function buildOfficialBeneficiaryAidCardPDFHTML(options: {
 
         <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
           <div>
-            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">UAMEX ERP™</div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
             <div style="font-size: 8.5px; font-weight: bold; color: ${accentColor};">AID DISPATCH</div>
             <div style="font-size: 8px; color: #94a3b8;">SPHERE COMPLIANT</div>
           </div>
@@ -3938,18 +3975,486 @@ export function buildOfficialBeneficiaryAidCardPDFHTML(options: {
           <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">المصادقة</div>
         </div>
 
-        <div style="border: 1.5px dashed ${accentColor}; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f0fdf4;">
-          <div style="width: 44px; height: 44px; border: 2px dashed ${accentColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${accentColor}; font-size: 7.5px; font-weight: 900; text-align: center; line-height: 1.1;">
-            ختم الصرف<br/>الميداني
+        </div>
+    </div>
+  `;
+}
+
+/**
+ * Shared General-Settings branding resolution for official documents.
+ * Merges runtime options with the report customization saved from
+ * General Settings (rbd_* keys) so documents reflect organization branding.
+ */
+function resolveOfficialBranding(options: { orgNameAr?: string; orgNameEn?: string; accentColor?: string; logoUrl?: string } = {}): {
+  orgNameAr: string;
+  orgNameEn: string;
+  accentColor: string;
+  logoUrl: string;
+} {
+  let savedOrgAr: string | null = null;
+  let savedOrgEn: string | null = null;
+  let savedAccent: string | null = null;
+  let savedLogo: string | null = null;
+  try {
+    savedOrgAr = localStorage.getItem('rbd_org_name');
+    savedOrgEn = localStorage.getItem('rbd_org_name_en');
+    savedAccent = localStorage.getItem('rbd_report_accent_color');
+    savedLogo = localStorage.getItem('rbd_logo_url');
+  } catch (e) {
+    // Non-browser environment — use options/fallbacks only.
+  }
+  return {
+    orgNameAr: options.orgNameAr || savedOrgAr || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية',
+    orgNameEn: options.orgNameEn || savedOrgEn || "Rohamā'a Baynahum Charity Foundation",
+    accentColor: options.accentColor || savedAccent || '#059669',
+    logoUrl: options.logoUrl || savedLogo || '/UAMEX_ERPLOGO.png',
+  };
+}
+
+/**
+ * مذكرة رسمية داخلية معتمدة (Official Internal Memo / Letterhead)
+ * Portable A4 RTL Arabic official document honoring General Settings branding.
+ */
+export function buildOfficialArabicMemoPDFHTML(options: {
+  memoNumber?: string;
+  classification?: 'OFFICIAL' | 'CONFIDENTIAL' | 'PUBLIC';
+  dateGregorian?: string;
+  dateHijri?: string;
+  fromAr?: string;
+  toAr?: string;
+  subjectAr?: string;
+  bodyAr?: string[];
+  referencesAr?: string;
+  attachmentsAr?: string;
+  preparedBy?: string;
+  approvedBy?: string;
+  accentColor?: string;
+  orgNameAr?: string;
+  orgNameEn?: string;
+} = {}): string {
+  const b = resolveOfficialBranding(options);
+  const isRtl = true;
+  const memoNo = options.memoNumber || `م/2026/${String(Math.floor(1000 + Math.random() * 9000))}`;
+  const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
+  const dateHij = options.dateHijri || '1448 هـ الموافق';
+  const from = options.fromAr || 'الإدارة العامة للعمليات والبرامج التنموية';
+  const to = options.toAr || 'إدارة المشاريع والفرق الميدانية - محافظة تعز';
+  const subject = options.subjectAr || 'تفويض ونشر الخطة التشغيلية الربعية وتوزيع المهام الميدانية';
+  const body = options.bodyAr && options.bodyAr.length > 0
+    ? options.bodyAr
+    : [
+        'تحية طيبة وبعد،',
+        'نفيدكم باعتماد الخطة التشغيلية للربع المالي الحالي، وبناءً عليه نأمل التوجيه بالبدء الفوري بتنفيذ الأنشطة المدرجة وفق الجدول الزمني المرفق، وبما يتوافق مع معايير ميثاق إسفير الإنساني (Sphere) ولوائح الحوكمة والمساءلة الداخلية.',
+        'يرجى رفع تقارير المتابعة الدورية إلى إدارة التخطيط والمتابعة عبر منصة ${SYSTEM_NAME} قبل نهاية كل أسبوع عمل، مع تزويد الإدارة المالية بسندات الصرف المستحقة لكل نشاط منفذ.',
+      ];
+  const references = options.referencesAr || 'م129/2026 (خطة عام 2026) — محضر توزيع المهام رقم 3/تنفيذي';
+  const attachments = options.attachmentsAr || 'ملحق (1): الخطة التشغيلية الربعية — ملحق (2): مصفوفة المؤشرات والمستهدفات';
+
+  return `
+    <div style="background-color: #ffffff; padding: 28px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+
+      <!-- الترويسة الرسمية المخصصة من الإعدادات العامة -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double ${b.accentColor}; padding-bottom: 14px; margin-bottom: 18px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="/LogoRohamaab.png" style="height: 54px; max-width: 74px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+          <div>
+            <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${b.orgNameAr}</h1>
+            <div style="font-size: 10px; color: ${b.accentColor}; font-weight: bold; margin-top: 2px;">${b.orgNameEn}</div>
+            <div style="font-size: 9px; color: #64748b;">نظام يو امكس المؤسسي الشامل — ${SYSTEM_NAME}</div>
           </div>
-          <div style="font-size: 8px; color: ${accentColor}; font-weight: bold; margin-top: 4px;">معتمد إنسانياً</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="display: inline-block; background-color: #ecfdf5; border: 1.5px solid ${b.accentColor}; padding: 5px 16px; border-radius: 8px; font-weight: 900; font-size: 15px; color: #065f46;">
+            مذكرة رسمية داخلية
+          </div>
+          <div style="font-size: 10px; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 5px;">
+            رقم المذكرة: <span style="color: ${b.accentColor};">${memoNo}</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+          <div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
+            <div style="font-size: 8px; color: #64748b;">${dateHij} • ${dateGreg}</div>
+          </div>
+          <img src="${b.logoUrl}" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
         </div>
       </div>
 
-      <!-- التذييل -->
+      <!-- نطاق السرية -->
+      <div style="margin-bottom: 14px;">
+        <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 9px; font-weight: 800; border: 1px solid ${b.accentColor}; color: ${b.accentColor}; background-color: ${b.accentColor}12;">
+          ${options.classification === 'CONFIDENTIAL' ? 'سري للغاية ومحمي' : options.classification === 'PUBLIC' ? 'للنشر العام والشفافية' : 'مستند رسمي معتمد'}
+        </span>
+      </div>
+
+      <!-- بيانات المرسل والمرسل إليه والموضوع -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 10.5px;">
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">من / جهة الإصدار:</span>
+          <strong style="color: #1e293b;">${from}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">إلى / جهة التوجيه:</span>
+          <strong style="color: #047857;">${to}</strong>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <span style="color: #64748b; font-weight: bold; display: block; font-size: 9px;">موضوع المذكرة:</span>
+          <strong style="color: #0f172a; font-size: 13px;">${subject}</strong>
+        </div>
+      </div>
+
+      <!-- متن المذكرة -->
+      <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px; margin-bottom: 16px; font-size: 11px; line-height: 2; color: #1e293b;">
+        ${body.map(p => `<p style="margin: 0 0 10px 0; text-align: justify;">${sanitizeHtml(p)}</p>`).join('')}
+      </div>
+
+      <!-- المراجع والمرفقات -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; font-size: 10px;">
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+          <div style="font-weight: 900; color: ${b.accentColor}; font-size: 9px; margin-bottom: 4px;">المراجع والمستندات المساندة:</div>
+          <div style="color: #475569;">${references}</div>
+        </div>
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+          <div style="font-weight: 900; color: ${b.accentColor}; font-size: 9px; margin-bottom: 4px;">المرفقات:</div>
+          <div style="color: #475569;">${attachments}</div>
+        </div>
+      </div>
+
+      <!-- مصفوفة التوقيعات والاعتماد -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; margin-bottom: 16px; font-size: 9.5px;">
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">إعداد المذكرة</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">${options.preparedBy || 'مسؤول التخطيط'}</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع</div>
+        </div>
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #64748b; font-weight: bold;">المراجعة</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">مدير المتابعة والتقييم</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">الاعتماد</div>
+        </div>
+        <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background-color: #f8fafc;">
+          <div style="color: #047857; font-weight: bold;">الاعتماد النهائي</div>
+          <div style="font-weight: 800; color: #0f172a; margin-top: 4px;">${options.approvedBy || 'المدير التنفيذي'}</div>
+          <div style="margin-top: 22px; border-bottom: 1px dashed #94a3b8; width: 80%; margin-left: auto; margin-right: auto;"></div>
+          <div style="color: #94a3b8; font-size: 8.5px; margin-top: 3px;">التوقيع والختم</div>
+        </div>
+        <div style="border: 1.5px dashed ${b.accentColor}; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f0fdf4;">
+          <div style="width: 44px; height: 44px; border: 2px dashed ${b.accentColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${b.accentColor}; font-size: 7.5px; font-weight: 900; text-align: center; line-height: 1.1;">
+            ختم الجمعية<br/>الرسمي
+          </div>
+          <div style="font-size: 8px; color: ${b.accentColor}; font-weight: bold; margin-top: 4px;">معتمد وموثق</div>
+        </div>
+      </div>
+
       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
-        <div>${orgName} • قطاع الإغاثة والمساعدات الإنسانية • وثيقة صرف معتمدة تخضع للمساءلة والشفافية</div>
-        <div style="font-family: monospace; font-weight: bold;">UAMEX ERP™ SPHERE & CHS CERTIFIED</div>
+        <div>${b.orgNameAr} • وثيقة رسمية صادرة آلياً من نظام ${SYSTEM_NAME}</div>
+        <div style="font-family: monospace; font-weight: bold;">OFFICIAL MEMO • صفحة 1 من 1</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * شهادة إنجاز رسمية معتمدة (Official Certificate of Completion)
+ * A4 RTL certificate with tafqeet amount, honoring General Settings branding.
+ */
+export function buildOfficialCompletionCertificatePDFHTML(options: {
+  certificateNumber?: string;
+  entityNameAr?: string;
+  projectName?: string;
+  projectCode?: string;
+  descriptionAr?: string;
+  amountYer?: number;
+  startDate?: string;
+  endDate?: string;
+  locationAr?: string;
+  issuedBy?: string;
+  accentColor?: string;
+  orgNameAr?: string;
+  orgNameEn?: string;
+} = {}): string {
+  const b = resolveOfficialBranding(options);
+  const certNo = options.certificateNumber || `ش/2026/${String(Math.floor(1000 + Math.random() * 9000))}`;
+  const entity = options.entityNameAr || 'شركة الأمل للمقاولات والتوريدات الهندسية';
+  const project = options.projectName || 'مشروع حفر وتأهيل الآبار ومحطات التحلية - تعز';
+  const projectCode = options.projectCode || 'PRJ-WASH-2026';
+  const description = options.descriptionAr || 'إتمام تنفيذ أعمال حفر وتأهيل بئرين ارتوازيين وإنشاء محطتي تحلية ومد شبكات المياه النقية لصالح 1,200 أسرة مستفيدة، وفق المواصفات الفنية المعتمدة ومحاضر الاستلام الميدانية.';
+  const amount = options.amountYer ?? 45000000;
+  const tafqeet = tafqeetArabicRials(amount);
+  const startDate = options.startDate || '01/01/2026';
+  const endDate = options.endDate || '30/06/2026';
+  const location = options.locationAr || 'مديرية صبر الموادم - محافظة تعز - الجمهورية اليمنية';
+  const issuedBy = options.issuedBy || 'لجنة الاستلام والتدقيق الفني';
+
+  return `
+    <div style="background-color: #ffffff; padding: 30px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+
+      <!-- إطار شهادة مزدوج -->
+      <div style="border: 2.5px double ${b.accentColor}; border-radius: 14px; padding: 22px;">
+
+        <!-- الترويسة -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid ${b.accentColor}; padding-bottom: 14px; margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="/LogoRohamaab.png" style="height: 54px; max-width: 74px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+            <div>
+              <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${b.orgNameAr}</h1>
+              <div style="font-size: 10px; color: ${b.accentColor}; font-weight: bold; margin-top: 2px;">${b.orgNameEn}</div>
+            </div>
+          </div>
+          <div style="text-align: center;">
+            <div style="display: inline-block; background-color: #fefce8; border: 1.5px solid #d97706; padding: 6px 18px; border-radius: 10px; font-weight: 900; font-size: 17px; color: #92400e;">
+              شهادة إنجاز معتمدة
+            </div>
+            <div style="font-size: 10px; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 5px;">
+              المنشأ الرقمي: <span style="color: ${b.accentColor};">${certNo}</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+            <div>
+              <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
+              <div style="font-size: 8px; color: #64748b;">SPHERE & CHS COMPLIANT</div>
+            </div>
+            <img src="${b.logoUrl}" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+          </div>
+        </div>
+
+        <!-- نص الشهادة -->
+        <div style="text-align: center; margin-bottom: 16px; font-size: 12px; line-height: 2.1; color: #1e293b;">
+          <p style="margin: 0 0 8px 0;">تشهد <strong>${b.orgNameAr}</strong><br/> بأن الجهة / الشخص التالي:</p>
+          <div style="font-size: 15px; font-weight: 900; color: #047857; margin: 8px 0;">${entity}</div>
+          <p style="margin: 0 0 8px 0;">قد أتم بنجاح ودقة عالية تنفيذ:</p>
+          <div style="font-size: 13px; font-weight: 900; color: #0f172a; margin: 4px 0;">${project}</div>
+          <div style="font-size: 10px; color: #64748b; font-family: monospace; margin-bottom: 8px;">[${projectCode}]</div>
+          <p style="margin: 0 auto; max-width: 640px; color: #475569;">${description}</p>
+        </div>
+
+        <!-- شريط المبلغ والتفقيط -->
+        <div style="background-color: #fefce8; border: 1.5px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; font-weight: 900; color: #92400e;">قيمة التعاقد بالأرقام:</span>
+            <span style="font-size: 15px; font-weight: 900; font-family: monospace; color: #b45309; background: #ffffff; padding: 2px 10px; border-radius: 6px; border: 1px solid #fde68a;">
+              ${amount.toLocaleString()} ر.ي
+            </span>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 800; color: #92400e;">تفقيطاً: ${tafqeet}</div>
+        </div>
+
+        <!-- بيانات التنفيذ -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; font-size: 10.5px;">
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-weight: 900; color: ${b.accentColor}; font-size: 9px;">تاريخ البدء</div>
+            <div style="color: #334155; font-weight: 700; margin-top: 3px;">${startDate}</div>
+          </div>
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-weight: 900; color: ${b.accentColor}; font-size: 9px;">تاريخ الإنجاز والاستلام</div>
+            <div style="color: #334155; font-weight: 700; margin-top: 3px;">${endDate}</div>
+          </div>
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-weight: 900; color: ${b.accentColor}; font-size: 9px;">موقع التنفيذ</div>
+            <div style="color: #334155; font-weight: 700; margin-top: 3px;">${location}</div>
+          </div>
+        </div>
+
+        <!-- التوقيعات -->
+        ${getSignaturesBlockHTML('ar', b.accentColor)}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+          <div>${b.orgNameAr} • صدرت عن ${issuedBy} • وثيقة رسمية صادرة آلياً وتخضع للمساءلة والشفافية</div>
+          <div style="font-family: monospace; font-weight: bold;">${SYSTEM_NAME} CERTIFICATE • صفحة 1 من 1</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Official Donation Acknowledgement Letter (خطاب شكر وتأكيد تبرع معتمد).
+ * A4 RTL Arabic letterhead honoring General Settings branding, with
+ * donation amount in tafqeet and an official distribution endorsement.
+ */
+export function buildOfficialDonationAcknowledgmentPDFHTML(options: {
+  acknowledgmentNumber?: string;
+  donorNameAr?: string;
+  amountYer?: number;
+  campaignAr?: string;
+  channelAr?: string;
+  dateGregorian?: string;
+  purposeAr?: string;
+  receivedBy?: string;
+  approvedBy?: string;
+  accentColor?: string;
+  orgNameAr?: string;
+  orgNameEn?: string;
+} = {}): string {
+  const b = resolveOfficialBranding(options);
+  const ackNo = options.acknowledgmentNumber || `إش/${new Date().getFullYear()}/${String(Math.floor(1000 + Math.random() * 9000))}`;
+  const donor = options.donorNameAr || 'المكرم: الجهة المانحة / المتبرع';
+  const amount = options.amountYer ?? 0;
+  const tafqeet = tafqeetArabicRials(amount);
+  const campaign = options.campaignAr || 'صندوق كفالة الأيتام والأسر الأشد احتياجاً';
+  const channel = options.channelAr || 'تحويل مصرفي معتمد';
+  const dateGreg = options.dateGregorian || `تعز، ${new Date().toLocaleDateString('ar-YE')}`;
+  const purpose = options.purposeAr || 'كفالة الأيتام ودعم البرامج الإنسانية والتنموية';
+  const receivedBy = options.receivedBy || 'مدير إدارة الموارد المالية والتمويل';
+  const approvedBy = options.approvedBy || 'المدير التنفيذي';
+
+  return `
+    <div style="background-color: #ffffff; padding: 30px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+
+      <!-- الترويسة الرسمية من الإعدادات العامة -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double ${b.accentColor}; padding-bottom: 14px; margin-bottom: 18px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="/LogoRohamaab.png" style="height: 54px; max-width: 74px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+          <div>
+            <h1 style="margin: 0; font-size: 15px; font-weight: 900; color: #0f172a; line-height: 1.3;">${b.orgNameAr}</h1>
+            <div style="font-size: 9.5px; color: ${b.accentColor}; font-weight: bold; margin-top: 2px;">${b.orgNameEn}</div>
+          </div>
+        </div>
+        <div style="text-align: center;">
+          <div style="display: inline-block; background-color: #ecfdf5; border: 1.5px solid #059669; padding: 5px 16px; border-radius: 10px; font-weight: 900; font-size: 14px; color: #047857;">
+            خطاب شكر وتأكيد تبرع
+          </div>
+          <div style="font-size: 10px; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 5px;">
+            المنشأ الرقمي: <span style="color: ${b.accentColor};">${ackNo}</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+          <div>
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
+            <div style="font-size: 8px; color: #64748b;">IAAT PROCUREMENT & FUNDING</div>
+          </div>
+          <img src="${b.logoUrl}" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+        </div>
+      </div>
+
+      <!-- نص الخطاب -->
+      <div style="font-size: 11.5px; line-height: 2.05; color: #1e293b;">
+        <div style="font-weight: 800;">${dateGreg}</div>
+        <div style="font-weight: 800; margin: 8px 0;">إلى المحترم: ${donor}</div>
+        <p style="margin: 10px 0;">تحية طيبة وبعد،</p>
+        <p style="margin: 10px 0;">نتقدم لكم بجزيل الشكر وعظيم الامتنان على تبرعكم الكريم لصالح:
+          <strong style="color: #047857;">${campaign}</strong> بمبلغ قدره
+          <span style="font-weight: 900; color: #b45309; background: #fefce8; padding: 2px 8px; border: 1px solid #fde68a; border-radius: 6px;">${amount.toLocaleString()} ر.ي</span>
+          (تفقيطاً: ${tafqeet}) عبر <strong>${channel}</strong>.
+        </p>
+        <p style="margin: 10px 0;">وإذ نؤكد استلام المبلغ المذكور وتوجيهه وفق الأسس المحاسبية المعتمدة (IPSAS) لأغراض
+          <strong>${purpose}</strong>، نود إعلامكم بأن عطاءكم سيمكّن من استمرارية البرامج وخدمة
+          المستفيدين وفق معايير ميثاق إسفير الإنساني وشركاء المساءلة (CHS).</p>
+        <p style="margin: 10px 0 0 0;">وتفضلوا بقبول فائق التقدير والاحترام،<br/>والسلام عليكم ورحمة الله وبركاته.</p>
+      </div>
+
+      <!-- بيانات الإحالة المحاسبية -->
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin: 16px 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 10.5px;">
+        <div>
+          <div style="font-weight: 900; color: ${b.accentColor};">جهة الاستلام</div>
+          <div style="color: #334155; font-weight: 700; margin-top: 3px;">${receivedBy}</div>
+        </div>
+        <div>
+          <div style="font-weight: 900; color: ${b.accentColor};">الاعتماد</div>
+          <div style="color: #334155; font-weight: 700; margin-top: 3px;">${approvedBy}</div>
+        </div>
+        <div>
+          <div style="font-weight: 900; color: ${b.accentColor};">وسيلة السداد</div>
+          <div style="color: #334155; font-weight: 700; margin-top: 3px;">${channel}</div>
+        </div>
+      </div>
+
+      <!-- التوقيعات -->
+      ${getSignaturesBlockHTML('ar', b.accentColor)}
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+        <div>${b.orgNameAr} • وثيقة مالية رسمية معتمدة تخضع للتدقيق • إدارة الموارد المالية</div>
+        <div style="font-family: monospace; font-weight: bold;">${SYSTEM_NAME} FUNDING ACK • صفحة 1 من 1</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Official Volunteer Appreciation Certificate (شهادة شكر وتقدير متطوع).
+ * A4 RTL certificate honoring General Settings branding, suitable for
+ * community engagement (NEB-07) printing.
+ */
+export function buildOfficialVolunteerAppreciationPDFHTML(options: {
+  certificateNumber?: string;
+  volunteerNameAr?: string;
+  initiativeAr?: string;
+  hoursServed?: number;
+  periodAr?: string;
+  excellenceAr?: string;
+  dateGregorian?: string;
+  issuedBy?: string;
+  accentColor?: string;
+  orgNameAr?: string;
+  orgNameEn?: string;
+} = {}): string {
+  const b = resolveOfficialBranding(options);
+  const certNo = options.certificateNumber || `شك/${new Date().getFullYear()}/${String(Math.floor(1000 + Math.random() * 9000))}`;
+  const volunteer = options.volunteerNameAr || 'المتطوع الفاضل';
+  const initiative = options.initiativeAr || 'مبادرات الإغاثة والتنمية الميدانية';
+  const hours = options.hoursServed ?? 0;
+  const period = options.periodAr || 'العام الخيري 2026';
+  const excellence = options.excellenceAr || 'نظير ما أبداه من تفانٍ وإخلاص وعطاء متميز خلال تنفيذ الأنشطة الميدانية وفق قيم العمل الإنساني';
+  const dateGreg = options.dateGregorian || `تعز، ${new Date().toLocaleDateString('ar-YE')}`;
+  const issuedBy = options.issuedBy || 'المدير التنفيذي';
+
+  return `
+    <div style="background-color: #ffffff; padding: 30px; color: #0f172a; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px;">
+
+      <!-- إطار مزدوج -->
+      <div style="border: 2.5px double ${b.accentColor}; border-radius: 14px; padding: 22px;">
+
+        <!-- الترويسة -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid ${b.accentColor}; padding-bottom: 14px; margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="/LogoRohamaab.png" style="height: 54px; max-width: 74px; object-fit: contain;" alt="جمعية رحماء بينهم" />
+            <div>
+              <h1 style="margin: 0; font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.3;">${b.orgNameAr}</h1>
+              <div style="font-size: 10px; color: ${b.accentColor}; font-weight: bold; margin-top: 2px;">${b.orgNameEn}</div>
+            </div>
+          </div>
+          <div style="text-align: center;">
+            <div style="display: inline-block; background-color: #fefce8; border: 1.5px solid #d97706; padding: 6px 18px; border-radius: 10px; font-weight: 900; font-size: 16px; color: #92400e;">
+              شهادة شكر وتقدير
+            </div>
+            <div style="font-size: 10px; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 5px;">
+              المنشأ الرقمي: <span style="color: ${b.accentColor};">${certNo}</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; text-align: left; direction: ltr;">
+            <div>
+              <div style="font-weight: 900; font-size: 11px; color: #0f172a;">${SYSTEM_NAME}</div>
+              <div style="font-size: 8px; color: #64748b;">COMMUNITY & MEMBERSHIP</div>
+            </div>
+            <img src="${b.logoUrl}" style="height: 50px; max-width: 65px; object-fit: contain;" alt="UAMEX ERP" />
+          </div>
+        </div>
+
+        <!-- نص الشهادة -->
+        <div style="text-align: center; margin-bottom: 16px; font-size: 12px; line-height: 2.1; color: #1e293b;">
+          <p style="margin: 0 0 6px 0;">تشهد <strong>${b.orgNameAr}</strong> بفخر واعتزاز أن المتطوع/ة:</p>
+          <div style="font-size: 17px; font-weight: 900; color: #047857; margin: 10px 0;">${volunteer}</div>
+          <p style="margin: 0 0 6px 0;">قد أسهم بجهد متميز في</p>
+          <div style="font-size: 13px; font-weight: 900; color: #0f172a; margin: 4px 0;">${initiative}</div>
+          <div style="font-size: 10px; color: #64748b; margin-bottom: 8px;">خلال فترة: ${period} • إجمالي ساعات العمل التطوعي: <strong>${hours.toLocaleString()} ساعة</strong></div>
+          <p style="margin: 0 auto; max-width: 640px; color: #475569;">${excellence}</p>
+        </div>
+
+        <!-- شريط تمييز -->
+        <div style="background-color: #f8fafc; border: 1.5px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 10.5px; font-weight: 800; color: #92400e;">
+          <span>🏅</span>
+          <span>شهادة تُمنح تكريماً للعطاء الإنساني وتوثق في سجل المتطوعين بمنظومة المجتمع والعضوية</span>
+        </div>
+
+        <!-- التوقيعات -->
+        ${getSignaturesBlockHTML('ar', b.accentColor)}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 8.5px; color: #94a3b8;">
+          <div>${b.orgNameAr} • ${dateGreg} • صدرت عن ${issuedBy} • وثيقة تقدير رسمية</div>
+          <div style="font-family: monospace; font-weight: bold;">${SYSTEM_NAME} CERTIFICATE • صفحة 1 من 1</div>
+        </div>
       </div>
     </div>
   `;

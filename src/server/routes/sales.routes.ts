@@ -5,10 +5,16 @@ import { requireFinancePolicy } from '../middleware/policy.middleware';
 
 export const salesRouter = express.Router();
 
+function requireOrganizationId(req: any): string {
+  const orgId = req.user?.org_id;
+  if (!orgId) throw new Error('Organization context is required');
+  return orgId;
+}
+
 // GET /api/sales/invoices
 salesRouter.get('/invoices', async (req: any, res) => {
   try {
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrganizationId(req);
     const status = req.query.status as string;
     const invoices = await SalesRevenueService.getSalesInvoices(orgId, status);
     res.json(invoices);
@@ -30,7 +36,7 @@ salesRouter.post('/invoices', requireFinancePolicy('CREATE'), async (req: any, r
       return res.status(400).json({ error: 'description is required and must be a non-empty string' });
     }
 
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrganizationId(req);
     const invoice = await SalesRevenueService.createSalesInvoice({
       ...req.body,
       organizationId: orgId
@@ -45,7 +51,7 @@ salesRouter.post('/invoices', requireFinancePolicy('CREATE'), async (req: any, r
 // POST /api/sales/invoices/:id/pay (Atomic settlement with IPSAS double-entry posting)
 salesRouter.post('/invoices/:id/pay', requireFinancePolicy('APPROVE'), async (req: any, res) => {
   try {
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrganizationId(req);
     const invoiceId = req.params.id;
     const { paymentGateway } = req.body;
     const result = await SalesRevenueService.paySalesInvoice(invoiceId, paymentGateway, orgId);
@@ -59,7 +65,7 @@ salesRouter.post('/invoices/:id/pay', requireFinancePolicy('APPROVE'), async (re
 // GET /api/sales/summary
 salesRouter.get('/summary', async (req: any, res) => {
   try {
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrganizationId(req);
     const summary = await SalesRevenueService.getSalesRevenueSummary(orgId);
     res.json(summary);
   } catch (err: any) {
@@ -71,7 +77,7 @@ salesRouter.get('/summary', async (req: any, res) => {
 // GET /api/sales/service-points
 salesRouter.get('/service-points', async (req: any, res) => {
   try {
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrganizationId(req);
     const points = await SalesRevenueService.getServicePoints(orgId);
     res.json(points);
   } catch (err: any) {

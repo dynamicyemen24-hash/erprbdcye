@@ -11,15 +11,6 @@ import {
 } from '../types';
 import { persistenceService } from '../services/persistence';
 import { performanceMonitor } from '../telemetry/performanceMonitor';
-import { 
-  DEFAULT_ORGANIZATION, 
-  DEFAULT_CURRENCIES, 
-  DEFAULT_PROGRAMS, 
-  DEFAULT_PROJECTS, 
-  DEFAULT_BENEFICIARIES, 
-  DEFAULT_DASHBOARD_STATS 
-} from '../data/defaultEnterpriseSeed';
-import { REAL_ENTERPRISE_DATA } from '../data/realEnterpriseData';
 
 export interface NexoraDataState {
   programs: Program[];
@@ -102,45 +93,38 @@ export function useNexoraData(lang: 'ar' | 'en') {
       };
     }
 
-    // High-Fidelity Instant Institutional State from Production Database Snapshot
+    // Live-first initial state. The real backend is the sole source of truth:
+    // every slice starts empty and is hydratured by fetchAllData from the live
+    // Neon PostgreSQL /api/tables/* endpoints. NO static snapshot is ever shown.
+    // (IndexedDB SWR cache — previously-fetched live data — may re-hydrate below.)
     return {
-      programs: (REAL_ENTERPRISE_DATA.programs && REAL_ENTERPRISE_DATA.programs.length > 0) ? REAL_ENTERPRISE_DATA.programs : DEFAULT_PROGRAMS,
-      projects: (REAL_ENTERPRISE_DATA.projects && REAL_ENTERPRISE_DATA.projects.length > 0) ? REAL_ENTERPRISE_DATA.projects : DEFAULT_PROJECTS,
-      users: REAL_ENTERPRISE_DATA.users || [],
-      roles: REAL_ENTERPRISE_DATA.roles || [],
-      currencies: (REAL_ENTERPRISE_DATA.currencies && REAL_ENTERPRISE_DATA.currencies.length > 0) ? REAL_ENTERPRISE_DATA.currencies : DEFAULT_CURRENCIES,
-      organizations: (REAL_ENTERPRISE_DATA.organizations && REAL_ENTERPRISE_DATA.organizations.length > 0) ? REAL_ENTERPRISE_DATA.organizations : [DEFAULT_ORGANIZATION],
-      orgSettings: REAL_ENTERPRISE_DATA.organization_settings || [],
-      sysSettings: REAL_ENTERPRISE_DATA.system_settings || [],
-      beneficiaries: (REAL_ENTERPRISE_DATA.beneficiaries && REAL_ENTERPRISE_DATA.beneficiaries.length > 0) ? REAL_ENTERPRISE_DATA.beneficiaries : DEFAULT_BENEFICIARIES,
-      sponsorships: REAL_ENTERPRISE_DATA.sponsorships || [],
-      approvalRequests: REAL_ENTERPRISE_DATA.approval_requests || [],
-      financialAccounts: REAL_ENTERPRISE_DATA.chart_of_accounts || [],
-      activities: REAL_ENTERPRISE_DATA.activities || [],
-      procurementTenders: REAL_ENTERPRISE_DATA.procurement_tenders || [],
+      programs: [],
+      projects: [],
+      users: [],
+      roles: [],
+      currencies: [],
+      organizations: [],
+      orgSettings: [],
+      sysSettings: [],
+      beneficiaries: [],
+      sponsorships: [],
+      approvalRequests: [],
+      financialAccounts: [],
+      activities: [],
+      procurementTenders: [],
       predictiveAnalytics: null,
       strategicPlan: null,
       investmentSummary: null,
-      serverStats: REAL_ENTERPRISE_DATA.dashboardStats || DEFAULT_DASHBOARD_STATS,
+      serverStats: null,
       consolidatedKpis: null,
       loading: false,
       error: null,
       systemAlerts: [],
-      isCacheWarmed: true,
+      isCacheWarmed: false,
       isPrefetching: false,
-      prefetchProgress: 100,
-      lastPrefetchedAt: Date.now(),
-      prefetchedModules: {
-        programs: true,
-        projects: true,
-        beneficiaries: true,
-        sponsorships: true,
-        activities: true,
-        finance: true,
-        users: true,
-        roles: true,
-        organizations: true
-      },
+      prefetchProgress: 0,
+      lastPrefetchedAt: null,
+      prefetchedModules: {},
     };
   });
 
@@ -247,16 +231,8 @@ export function useNexoraData(lang: 'ar' | 'en') {
         const retrySuccess = await tryFetch();
 
         if (!retrySuccess && !fetchedResults[ep.key]) {
-          const fallbackData = (REAL_ENTERPRISE_DATA as any)[ep.key] || dataRef.current[ep.key];
-          if (fallbackData && Array.isArray(fallbackData) && fallbackData.length > 0) {
-            fetchedResults[ep.key] = fallbackData;
-          } else if (ep.key === 'financialAccounts' && REAL_ENTERPRISE_DATA.chart_of_accounts) {
-            fetchedResults[ep.key] = REAL_ENTERPRISE_DATA.chart_of_accounts;
-          } else if (ep.key === 'serverStats' && REAL_ENTERPRISE_DATA.dashboardStats) {
-            fetchedResults[ep.key] = REAL_ENTERPRISE_DATA.dashboardStats;
-          } else {
-            fetchedResults[ep.key] = dataRef.current[ep.key] || [];
-          }
+          // Honest fallback: empty state, never stale static snapshot.
+          fetchedResults[ep.key] = dataRef.current[ep.key] || [];
         }
       }
       updateProgress();

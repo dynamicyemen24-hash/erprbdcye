@@ -1,5 +1,7 @@
 // UAMEX ERP™ High-Performance Offline-First Enterprise Service Worker
-const CACHE_NAME = 'uamex-erp-cache-v2026.5';
+// Cache version is injected at build time via VITE_CACHE_VERSION env var
+const CACHE_VERSION = import.meta.env.VITE_CACHE_VERSION || '2026.5';
+const CACHE_NAME = 'uamex-erp-cache-' + CACHE_VERSION;
 const CORE_STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -1,4 +1,5 @@
-import { pgTable, serial, text, timestamp, numeric, integer, uuid, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, numeric, integer, uuid, boolean, jsonb, check } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // ==========================================
 // 1. NEB-01: STRATEGY & PERFORMANCE OS
@@ -16,9 +17,15 @@ export const organizations = pgTable('organizations', {
   address: text('address'),
   city: text('city'),
   country: text('country'),
+  countryCode: text('country_code').default('YE'),
   registrationNumber: text('registration_number'),
   taxNumber: text('tax_number'),
   licenseNumber: text('license_number'),
+  // Multi-tenant / multi-country locale config
+  timezone: text('timezone').default('Asia/Aden'),
+  locale: text('locale').default('ar-YE'),
+  baseCurrencyCode: text('base_currency_code').default('YER'),
+  primaryLanguage: text('primary_language').default('ar'),
   typeCode: text('type_code').default('charity'),
   subscriptionPlan: text('subscription_plan').default('basic'),
   status: text('status').default('active'),
@@ -28,6 +35,38 @@ export const organizations = pgTable('organizations', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
+});
+
+// Unified global countries/regions taxonomy (multi-country)
+export const countries = pgTable('countries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  code2: text('code2').notNull().unique(),      // ISO 3166-1 alpha-2
+  code3: text('code3').notNull().unique(),      // ISO 3166-1 alpha-3
+  numericCode: text('numeric_code'),            // ISO 3166-1 numeric
+  nameAr: text('name_ar').notNull(),
+  nameEn: text('name_en').notNull(),
+  region: text('region'),
+  subRegion: text('sub_region'),
+  currencyCode: text('currency_code'),          // ISO 4217
+  phoneCode: text('phone_code'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+// Unified units of measure (multi-UOM) catalog
+export const itemUnits = pgTable('item_units', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  organizationId: uuid('organization_id').references(() => organizations.id),
+  code: text('code').notNull(),
+  nameAr: text('name_ar').notNull(),
+  nameEn: text('name_en').notNull(),
+  category: text('category').default('COUNT'),
+  symbolAr: text('symbol_ar'),
+  symbolEn: text('symbol_en'),
+  baseUnitCode: text('base_unit_code'),
+  conversionFactor: numeric('conversion_factor').default('1'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
 export const strategicPlans = pgTable('strategic_plans', {
@@ -391,12 +430,17 @@ export const assets = pgTable('fixed_assets', {
   nameAr: text('name_ar'),
   nameEn: text('name_en'),
   category: text('category'),
+  serialNumber: text('serial_number'),
   purchaseCost: numeric('purchase_cost'),
   currentValue: numeric('current_value'),
+  depreciationRate: numeric('depreciation_rate'),
   accumulatedDepreciation: numeric('accumulated_depreciation'),
   residualValue: numeric('residual_value'),
   usefulLifeMonths: integer('useful_life_months'),
   status: text('status_code'),
+  supplierName: text('supplier_name'),
+  supplierContact: text('supplier_contact'),
+  warrantyExpiryDate: text('warranty_expiry_date'),
   locationName: text('location_name'),
   warehouseId: text('warehouse_id'),
   projectId: text('project_id'),
@@ -405,6 +449,11 @@ export const assets = pgTable('fixed_assets', {
   assignedCustodianHr: text('assigned_custodian_hr'),
   conditionCode: text('condition_code'),
   purchaseDate: timestamp('purchase_date'),
+  lastMaintenanceDate: text('last_maintenance_date'),
+  nextMaintenanceDate: text('next_maintenance_date'),
+  disposalDate: text('disposal_date'),
+  disposalReason: text('disposal_reason'),
+  metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -476,12 +525,14 @@ export const chartOfAccounts = pgTable('chart_of_accounts', {
 
 export const currencies = pgTable('currencies', {
   id: uuid('id').primaryKey().defaultRandom(),
+  organizationId: uuid('organization_id').references(() => organizations.id),
   code: text('code').notNull().unique(),
   nameAr: text('name_ar').notNull(),
   nameEn: text('name_en'),
   symbol: text('symbol'),
   exchangeRate: numeric('exchange_rate').default('1'),
   isBaseCurrency: boolean('is_base_currency').default(false),
+  isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -501,7 +552,7 @@ export const transactions = pgTable('transactions', {
   transactionNumber: text('transaction_number').notNull(),
   transactionDate: timestamp('transaction_date').notNull(),
   postingDate: timestamp('posting_date').defaultNow(),
-  transactionType: text('transaction_type').notNull(), // 'JOURNAL_ENTRY' | 'PAYMENT' | 'RECEIPT' | 'TRANSFER'
+  transactionType: text('transaction_type').notNull(),
   description: text('description'),
   referenceNo: text('reference_no'),
   fiscalYearId: uuid('fiscal_year_id').references(() => fiscalYears.id),
@@ -510,7 +561,10 @@ export const transactions = pgTable('transactions', {
   status: text('status').default('POSTED'),
   createdById: uuid('created_by_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-});
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (t) => [
+  check('chk_transaction_balance', sql`${t.totalDebit} = ${t.totalCredit}`),
+]);
 
 export const transactionLines = pgTable('transaction_lines', {
   id: uuid('id').primaryKey().defaultRandom(),

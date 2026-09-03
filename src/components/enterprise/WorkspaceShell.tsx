@@ -6,16 +6,16 @@ interface WorkspaceShellProps {
   header: React.ReactNode;
 }
 
-export function WorkspaceShell({ children, header }: WorkspaceShellProps) {
+export function WorkspaceShell({ children, header }: Readonly<WorkspaceShellProps>) {
   return (
-    <div className={`min-h-screen ${designTokens.colors.bgBase} flex flex-col gap-4`}>
-      <header className={`sticky top-0 z-50 ${designTokens.colors.bgCard} border-b ${designTokens.colors.border} p-4`}>
+    <div className={`min-h-screen overflow-x-hidden ${designTokens.colors.bgBase} flex flex-col`}>
+      <header className={`sticky top-0 z-50 ${designTokens.colors.bgCard} border-b ${designTokens.colors.border} px-4 py-3 md:p-4`}>
         {header}
       </header>
-      <main className="flex-1 p-6 md:p-8 max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 p-4 md:p-6 max-w-[1600px] mx-auto w-full">
         {children}
       </main>
-      <footer className="p-4 text-center text-xs text-zinc-500">
+      <footer className="px-4 py-3 text-center text-[11px] text-zinc-500">
         NexoraOS™ Enterprise Platform - {new Date().getFullYear()}
       </footer>
     </div>

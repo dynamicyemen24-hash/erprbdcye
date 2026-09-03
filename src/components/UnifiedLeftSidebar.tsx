@@ -1,14 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { 
   ShoppingCart,
   ChevronRight, ChevronLeft, Pin, PinOff, Search,
   LayoutDashboard, Compass, Briefcase, Layers, Activity, 
   Users, Heart, Coins, ShieldCheck, TrendingUp, User, 
-  Box, FileCheck, Settings, Database, PlayCircle, BookOpen, 
-  Globe, Calendar, Sliders, Brain, Sparkles, HelpCircle, FileText, Lock, Receipt
+  Box, FileCheck, Settings, Database, PlayCircle, BookOpen, GitBranch,
+  Globe, Calendar, Sliders, Brain, Sparkles, HelpCircle, FileText, Lock, Receipt,
+  Printer, Clock, Calculator, BarChart3,
 } from 'lucide-react';
 import { useEnterprise } from '../core/context/EnterpriseContext';
 import { triggerHaptic } from '../helpers/hapticSwipe';
+import { instantPrint } from '../core/export';
 
 // ActiveTab is the single source of truth — imported from core/types/dashboard.ts
 import { ActiveTab } from '../core/types/dashboard';
@@ -16,6 +18,7 @@ interface UnifiedLeftSidebarProps {
   lang: 'ar' | 'en';
   activeTab: ActiveTab;
   onNavigate: (tab: ActiveTab) => void;
+  onPrintReport?: (reportType: string) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onOpenCopilot?: () => void;
@@ -44,6 +47,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
   lang,
   activeTab,
   onNavigate,
+  onPrintReport,
   isCollapsed,
   onToggleCollapse,
   onOpenCopilot,
@@ -67,6 +71,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
         { tab: 'workspaces', domainCode: '', titleAr: 'مساحات عمل الوحدات التشغيلية', titleEn: 'Institutional Workspaces', icon: Briefcase, badgeAr: 'أدوار', badgeEn: 'Roles' },
         { tab: 'strategic_planning', domainCode: '', titleAr: 'التخطيط الاستراتيجي والأداء', titleEn: 'Strategic Planning', icon: Activity, badgeAr: 'خطة', badgeEn: 'Plan' },
         { tab: 'investments', domainCode: '', titleAr: 'المشاريع الاستثمارية والأوقاف', titleEn: 'Investment & Endowments', icon: TrendingUp },
+        { tab: 'business_intelligence', domainCode: 'NEB-13', titleAr: 'ذكاء الأعمال والتحليلات', titleEn: 'Business Intelligence', icon: BarChart3, badgeAr: 'BI', badgeEn: 'BI' },
       ]
     },
     {
@@ -77,6 +82,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
         { tab: 'programs', domainCode: '', titleAr: 'إدارة البرامج التنموية', titleEn: 'Program Management', icon: Briefcase },
         { tab: 'projects', domainCode: '', titleAr: 'المشاريع الميدانية والتنفيذ', titleEn: 'Project Management', icon: Layers },
         { tab: 'activities', domainCode: '', titleAr: 'الأنشطة الميدانية والمهام', titleEn: 'Field Activities', icon: Compass },
+        { tab: 'portfolio_intelligence', domainCode: '', titleAr: 'ذكاء المحفظة والمسار الحرج', titleEn: 'Portfolio Intelligence', icon: GitBranch },
         { tab: 'scenarios', domainCode: '', titleAr: 'أدلة التشغيل القياسية', titleEn: 'Operational Playbooks', icon: PlayCircle },
       ]
     },
@@ -121,6 +127,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       items: [
         { tab: 'users', domainCode: '', titleAr: 'المستخدمون والصلاحيات', titleEn: 'User Management', icon: Users },
         { tab: 'reports', domainCode: '', titleAr: 'التقارير والمؤشرات المعتمدة', titleEn: 'Certified Reports', icon: TrendingUp },
+        { tab: 'communications', domainCode: 'NEB-11', titleAr: 'الاتصال الإداري الذكي', titleEn: 'Intelligent Communications', icon: FileText, badgeAr: '12', badgeEn: 'Comms' },
         { tab: 'control_panel', domainCode: '', titleAr: 'لوحة التحكم والعمليات', titleEn: 'Control Console', icon: Sliders },
         { tab: 'settings', domainCode: '', titleAr: 'إعدادات المؤسسة', titleEn: 'System Settings', icon: Settings },
         { tab: 'backup', domainCode: '', titleAr: 'النسخ الاحتياطي والأرشفة', titleEn: 'Backup & Recovery', icon: Database },
@@ -134,8 +141,8 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
   const filteredGroups = useMemo(() => {
     // Role-Based Allowed Tabs Map
     const roleAllowedTabs: Record<string, ActiveTab[]> = {
-      executive: ['dashboard', 'workspaces', 'strategic_planning', 'investments', 'programs', 'procurement', 'scenarios', 'reports', 'domains', 'control_panel', 'sales'],
-      manager: ['finance', 'sales', 'approvals', 'currencies', 'procurement', 'inventory', 'contracts', 'reports', 'audit', 'users', 'hr_dashboard', 'third-party-network', 'workspaces'],
+      executive: ['dashboard', 'workspaces', 'strategic_planning', 'investments', 'programs', 'procurement', 'scenarios', 'reports', 'business_intelligence', 'domains', 'control_panel', 'sales', 'communications'],
+      manager: ['finance', 'sales', 'approvals', 'currencies', 'procurement', 'inventory', 'contracts', 'reports', 'business_intelligence', 'audit', 'users', 'hr_dashboard', 'third-party-network', 'workspaces', 'communications'],
       field: ['beneficiaries', 'sponsorships', 'geospatial', 'programs', 'projects', 'activities', 'allocations', 'scenarios', 'workspaces'],
     };
 
@@ -350,7 +357,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
 
       {/* FOOTER UTILITIES SECTION */}
       <div className="p-2 border-t border-slate-100 dark:border-zinc-900 space-y-1 bg-slate-50/50 dark:bg-zinc-900/40 shrink-0">
-        {onOpenCopilot && (
+{onOpenCopilot && (
           <button
             onClick={() => {
               triggerHaptic('medium');
@@ -363,6 +370,42 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
             {!isCollapsed && (
               <span className="truncate flex-1 text-right rtl:text-right">
                 {isRtl ? 'المساعد الذكي Gemini' : 'Gemini AI Copilot'}
+              </span>
+            )}
+          </button>
+        )}
+
+        {/* REPORT PRINT BUTTON - NEW */}
+        <button
+          onClick={() => {
+            triggerHaptic('light');
+            onPrintReport?.('programs');
+          }}
+          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-sm hover:brightness-110 transition-all cursor-pointer"
+          title={isCollapsed ? (isRtl ? 'طباعة تقرير البرامج' : 'Print Programs Report') : undefined}
+        >
+          <Printer className="w-4 h-4 shrink-0 animate-pulse text-emerald-300" />
+          {!isCollapsed && (
+            <span className="truncate flex-1 text-right rtl:text-right">
+              {isRtl ? 'طباعة تقرير البرامج' : 'Programs Report'}
+            </span>
+          )}
+        </button>
+
+        {/* HELPER TOOLS BUTTON - CENTRALIZED */}
+        {onOpenHelpers && (
+          <button
+            onClick={() => {
+              triggerHaptic('light');
+              onOpenHelpers();
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-sm hover:brightness-110 transition-all cursor-pointer"
+            title={isCollapsed ? (isRtl ? 'أدوات المساعدة' : 'Helper Tools') : undefined}
+          >
+            <Calculator className="w-4 h-4 shrink-0 animate-pulse text-emerald-300" />
+            {!isCollapsed && (
+              <span className="truncate flex-1 text-right rtl:text-right">
+                {isRtl ? 'أدوات المساعدة' : 'Helper Tools'}
               </span>
             )}
           </button>

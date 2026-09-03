@@ -354,7 +354,7 @@ export default function ManagementAccountingTab({
 
   // Printable Report Generator
   const handlePrintManagementReport = () => {
-    let reportHTML = `
+    const reportHTML = `
       <!DOCTYPE html>
       <html lang="${lang}" dir="${isRtl ? 'rtl' : 'ltr'}">
       <head>

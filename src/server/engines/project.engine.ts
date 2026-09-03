@@ -1,6 +1,9 @@
 /**
- * NexoraOS™ — Project Management Engine
- * Full project lifecycle: planning, execution, EVM, Gantt, milestones, resource tracking
+ * NexoraOS™ — Project Management Engine (NEB-04 & NEB-05)
+ * ================================================================================
+ * Full project lifecycle: planning, execution, EVM, Gantt, milestones, WBS,
+ * risk assessment, AI-powered forecasting, resource optimization, variance analysis
+ * ================================================================================
  */
 
 import { query, queryOne, queryMany, transaction } from '../core/database';
@@ -12,6 +15,7 @@ import {
   paginatedQuery, requireField, optionalString, optionalNumber,
   generateCode, auditLog, AuthContext
 } from '../core/helpers';
+import logger from '../core/logger';
 
 // ─── Project CRUD ──────────────────────────────────────
 
@@ -40,9 +44,9 @@ export class ProjectEngine {
 
     return paginatedQuery(
       `SELECT p.*, pr.name_ar as program_name_ar, pr.name_en as program_name_en,
-              (SELECT COUNT(*) FROM milestones m WHERE m.project_id = p.id AND m.status = 'COMPLETED') as completed_milestones,
+              (SELECT COUNT(*) FROM milestones m WHERE m.project_id = p.id AND m.status_code = 'COMPLETED') as completed_milestones,
               (SELECT COUNT(*) FROM milestones m WHERE m.project_id = p.id) as total_milestones,
-              (SELECT COUNT(*) FROM activities a WHERE a.project_id = p.id) as activities_count
+              (SELECT COUNT(*) FROM activities a WHERE a.project_id = p.id AND a.deleted_at IS NULL) as activities_count
        FROM projects p
        LEFT JOIN programs pr ON pr.id = p.program_id
        WHERE ${where}`,
@@ -67,7 +71,7 @@ export class ProjectEngine {
     if (!project) return null;
 
     const milestones = await queryMany(
-      `SELECT * FROM milestones WHERE project_id = $1 ORDER BY target_date`,
+      `SELECT * FROM milestones WHERE project_id = $1 AND deleted_at IS NULL ORDER BY COALESCE(planned_date, actual_date)`,
       [projectId]
     );
 
@@ -109,6 +113,13 @@ export class ProjectEngine {
   /**
    * Create a new project
    */
+  private static async invalidateCache(orgId: string) {
+    try {
+      const { CachedQuery } = await import('../core/performance');
+      CachedQuery.invalidateTags([`org:${orgId}`, 'projects']);
+    } catch { /* safe to ignore in dev */ }
+  }
+
   static async create(data: ProjectCreate, auth: AuthContext) {
     return await transaction(async (client) => {
       // Auto-generate project code if not provided
@@ -156,7 +167,7 @@ export class ProjectEngine {
       });
 
       return project;
-    });
+    }).finally(() => this.invalidateCache(data.organizationId));
   }
 
   /**
@@ -237,39 +248,56 @@ export class ProjectEngine {
     const budget = Number(project.budget || 0);
     const progressPct = Number(project.progress_percent || 0) / 100;
 
-    // Calculate from activities and milestones
+    // Prefer the latest VERIFIED metric persisted in earned_value_metrics
+    // (live production table) so EVM reflects the authoritative record.
+    const latestMetric = await queryOne(
+      `SELECT * FROM earned_value_metrics
+       WHERE project_id = $1
+       ORDER BY measurement_date DESC, created_at DESC
+       LIMIT 1`,
+      [projectId]
+    );
+
+    // Calculate from activities and milestones using the real schema.
     const activityData = await queryOne(
       `SELECT
-        COALESCE(SUM(budget_allocated), 0) as total_activity_budget,
-        COALESCE(SUM(spent_amount), 0) as total_actual_cost,
-        CASE WHEN SUM(budget_allocated) > 0
-          THEN SUM(spent_amount) / SUM(budget_allocated)
+        COALESCE(SUM(budget), 0) as total_activity_budget,
+        COALESCE(SUM(actual_cost), 0) as total_actual_cost,
+        COALESCE(SUM(earned_value), 0) as total_earned_value,
+        CASE WHEN SUM(budget) > 0
+          THEN SUM(COALESCE(actual_cost,0)) / SUM(budget)
           ELSE 0 END as cost_efficiency
-       FROM activities WHERE project_id = $1`,
+       FROM activities WHERE project_id = $1 AND deleted_at IS NULL`,
       [projectId]
     );
 
     const milestoneData = await queryOne(
       `SELECT
         COUNT(*) as total,
-        COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END) as completed,
+        COUNT(CASE WHEN status_code = 'COMPLETED' THEN 1 END) as completed,
         CASE WHEN COUNT(*) > 0
-          THEN COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END)::float / COUNT(*)::float
+          THEN COUNT(CASE WHEN status_code = 'COMPLETED' THEN 1 END)::float / COUNT(*)::float
           ELSE 0 END as milestone_completion_pct
-       FROM milestones WHERE project_id = $1`,
+       FROM milestones WHERE project_id = $1 AND deleted_at IS NULL`,
       [projectId]
     );
 
-    // EVM Calculations
-    const pv = budget; // Planned Value = total budget
-    const ev = budget * progressPct; // Earned Value = budget * % complete
-    const ac = Number(activityData?.total_actual_cost || 0); // Actual Cost
+    // EVM Calculations — prefer persisted metric values when available
+    const pv = Number(latestMetric?.planned_value ?? budget);              // Planned Value
+    const ev = Number(latestMetric?.earned_value ?? budget * progressPct); // Earned Value
+    const ac = Number(latestMetric?.actual_cost ?? (activityData?.total_actual_cost || 0)); // Actual Cost
 
-    const cpi = ac > 0 ? ev / ac : 0; // Cost Performance Index
-    const spi = pv > 0 ? ev / pv : 0; // Schedule Performance Index
-    const eac = cpi > 0 ? budget / cpi : budget; // Estimate at Completion
-    const etc = eac - ac; // Estimate to Complete
-    const vac = budget - eac; // Variance at Completion
+    const cpi = Number(latestMetric?.cost_performance_index ?? (ac > 0 ? ev / ac : 1));
+    const spi = Number(latestMetric?.schedule_performance_index ?? (pv > 0 ? ev / pv : 1));
+    const eac = Number(latestMetric?.estimate_at_completion ?? (cpi > 0 ? budget / cpi : budget));
+    const etc = Number(latestMetric?.estimate_to_complete ?? eac - ac);
+    const vac = Number(latestMetric?.variance_at_completion ?? budget - eac);
+    const tcpi = Number(latestMetric?.to_complete_performance_index ?? 0);
+
+    const rawPctComplete = latestMetric?.percent_complete;
+    const pctComplete = rawPctComplete != null && Number.isFinite(Number(rawPctComplete))
+      ? Number(rawPctComplete)
+      : progressPct;
 
     return {
       project,
@@ -281,7 +309,9 @@ export class ProjectEngine {
       eac: Math.round(eac * 100) / 100,
       etc: Math.round(etc * 100) / 100,
       vac: Math.round(vac * 100) / 100,
-      percentComplete: Math.round(progressPct * 100),
+      percentComplete: Math.round(pctComplete * 100),
+      tcpi: Math.round(tcpi * 100) / 100,
+      source: latestMetric ? 'earned_value_metrics' : 'computed',
       milestones: {
         total: Number(milestoneData?.total || 0),
         completed: Number(milestoneData?.completed || 0),
@@ -291,7 +321,9 @@ export class ProjectEngine {
   }
 
   /**
-   * Get project Gantt data
+   * Get project Gantt data — real schema, real dependency_network
+   * Corrects schema mismatches against the live Neon DB (milestones.milestone_name_ar,
+   * project_schedules.progress_percent) and returns true task dependencies.
    */
   static async getGanttData(projectId: string) {
     const project = await queryOne(
@@ -303,30 +335,51 @@ export class ProjectEngine {
       `SELECT
         ps.id,
         ps.task_name_ar as name,
+        ps.task_name_en as name_en,
         ps.start_date as start,
-        ps.end_date as end,
-        ps.progress_pct as progress,
-        'schedule' as type
+        ps.end_date as "end",
+        COALESCE(ps.progress_percent, 0) as progress,
+        ps.wbs_code,
+        COALESCE(ps.is_critical, false) as is_critical,
+        'schedule' as type,
+        ps.status_code
        FROM project_schedules ps
-       WHERE ps.project_id = $1
+       WHERE ps.project_id = $1 AND ps.deleted_at IS NULL
        UNION ALL
        SELECT
         m.id,
-        m.title_ar as name,
-        m.target_date as start,
-        m.completed_date as end,
-        CASE WHEN m.status = 'COMPLETED' THEN 100 ELSE 0 END as progress,
-        'milestone' as type
+        COALESCE(m.milestone_name_ar, m.milestone_name_en) as name,
+        COALESCE(m.milestone_name_en, m.milestone_name_ar) as name_en,
+        m.planned_date as start,
+        m.planned_date as "end",
+        COALESCE(m.progress_percent, CASE WHEN m.status_code = 'COMPLETED' THEN 100 ELSE 0 END) as progress,
+        m.wbs_code,
+        COALESCE(m.is_key_milestone, false) as is_critical,
+        'milestone' as type,
+        m.status_code
        FROM milestones m
-       WHERE m.project_id = $1
+       WHERE m.project_id = $1 AND m.deleted_at IS NULL
        ORDER BY start`,
+      [projectId]
+    );
+
+    // Real dependencies from dependency_network (successor_id => [predecessor task ids])
+    const dependencies = await queryMany(
+      `SELECT predecessor_id, successor_id, dependency_type, lag_days
+       FROM dependency_network
+       WHERE project_id = $1`,
       [projectId]
     );
 
     return {
       project,
       tasks,
-      dependencies: [], // Could be extended with task dependencies
+      dependencies: dependencies.map((d: any) => ({
+        from: d.predecessor_id,
+        to: d.successor_id,
+        type: d.dependency_type || 'FS',
+        lag: Number(d.lag_days || 0),
+      })),
     };
   }
 
@@ -334,45 +387,48 @@ export class ProjectEngine {
    * Dashboard summary for all projects
    */
   static async getDashboard(orgId: string) {
-    const stats = await queryOne(
-      `SELECT
-        COUNT(*) as total_projects,
-        COUNT(CASE WHEN status_code = 'ACTIVE' THEN 1 END) as active_projects,
-        COUNT(CASE WHEN status_code = 'COMPLETED' THEN 1 END) as completed_projects,
-        COUNT(CASE WHEN status_code = 'PLANNING' THEN 1 END) as planning_projects,
-        COUNT(CASE WHEN status_code = 'ON_HOLD' THEN 1 END) as on_hold_projects,
-        COALESCE(SUM(budget), 0) as total_budget,
-        COALESCE(AVG(progress_percent), 0) as avg_progress
-       FROM projects
-       WHERE organization_id = $1 AND deleted_at IS NULL`,
-      [orgId]
+    // Performance: read-through cache (60s) + parallel Promise.all instead of 3 sequential awaits.
+    const { CachedQuery } = await import('../core/performance');
+    return CachedQuery.fetch(
+      `project:dashboard:${orgId}`,
+      async () => {
+        const [stats, recentProjects, upcomingMilestones] = await Promise.all([
+          queryOne(
+            `SELECT
+              COUNT(*) as total_projects,
+              COUNT(CASE WHEN status_code = 'ACTIVE' THEN 1 END) as active_projects,
+              COUNT(CASE WHEN status_code = 'COMPLETED' THEN 1 END) as completed_projects,
+              COUNT(CASE WHEN status_code = 'PLANNING' THEN 1 END) as planning_projects,
+              COUNT(CASE WHEN status_code = 'ON_HOLD' THEN 1 END) as on_hold_projects,
+              COALESCE(SUM(budget), 0) as total_budget,
+              COALESCE(AVG(progress_percent), 0) as avg_progress
+             FROM projects
+             WHERE organization_id = $1 AND deleted_at IS NULL`,
+            [orgId]
+          ),
+          queryMany(
+            `SELECT id, project_code, name_ar, status_code, progress_percent, budget
+             FROM projects
+             WHERE organization_id = $1 AND deleted_at IS NULL
+             ORDER BY updated_at DESC LIMIT 5`,
+            [orgId]
+          ),
+          queryMany(
+            `SELECT m.*, p.name_ar as project_name_ar
+             FROM milestones m
+             JOIN projects p ON p.id = m.project_id
+             WHERE p.organization_id = $1
+               AND m.status_code IN ('PENDING', 'IN_PROGRESS')
+               AND m.planned_date >= CURRENT_DATE
+             ORDER BY m.planned_date
+             LIMIT 10`,
+            [orgId]
+          ),
+        ]);
+        return { statistics: stats, recentProjects, upcomingMilestones };
+      },
+      { ttlMs: 60_000, tags: ['projects', `org:${orgId}`] }
     );
-
-    const recentProjects = await queryMany(
-      `SELECT id, project_code, name_ar, status_code, progress_percent, budget
-       FROM projects
-       WHERE organization_id = $1 AND deleted_at IS NULL
-       ORDER BY updated_at DESC LIMIT 5`,
-      [orgId]
-    );
-
-    const upcomingMilestones = await queryMany(
-      `SELECT m.*, p.name_ar as project_name_ar
-       FROM milestones m
-       JOIN projects p ON p.id = m.project_id
-       WHERE p.organization_id = $1
-         AND m.status IN ('PENDING', 'IN_PROGRESS')
-         AND m.target_date >= CURRENT_DATE
-       ORDER BY m.target_date
-       LIMIT 10`,
-      [orgId]
-    );
-
-    return {
-      statistics: stats,
-      recentProjects,
-      upcomingMilestones,
-    };
   }
 }
 
@@ -382,10 +438,10 @@ export class MilestoneEngine {
   static async listByProject(projectId: string) {
     return queryMany(
       `SELECT m.*,
-        (SELECT COUNT(*) FROM activities a WHERE a.project_id = m.project_id) as project_activities
+        (SELECT COUNT(*) FROM activities a WHERE a.project_id = m.project_id AND a.deleted_at IS NULL) as project_activities
        FROM milestones m
-       WHERE m.project_id = $1
-       ORDER BY m.target_date`,
+       WHERE m.project_id = $1 AND m.deleted_at IS NULL
+       ORDER BY COALESCE(m.planned_date, m.actual_date)`,
       [projectId]
     );
   }
@@ -401,8 +457,8 @@ export class MilestoneEngine {
 
       const result = await client.query(
         `INSERT INTO milestones
-         (organization_id, project_id, title_ar, title_en, target_date, status)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+         (organization_id, project_id, milestone_name_ar, milestone_name_en, planned_date, status_code, milestone_code)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
         [
           project.rows[0].organization_id,
           data.projectId,
@@ -410,6 +466,7 @@ export class MilestoneEngine {
           optionalString(data.titleEn),
           data.targetDate || null,
           data.status || 'PENDING',
+          generateCode('MS-'),
         ]
       );
 
@@ -421,7 +478,7 @@ export class MilestoneEngine {
     const completedDate = status === 'COMPLETED' ? 'NOW()' : 'NULL';
     const result = await queryOne(
       `UPDATE milestones
-       SET status = $1, completed_date = ${completedDate}
+       SET status_code = $1, actual_date = ${completedDate}
        WHERE id = $2 RETURNING *`,
       [status, milestoneId]
     );
@@ -435,15 +492,15 @@ export class MilestoneEngine {
   }
 
   static async delete(milestoneId: string) {
-    await query('DELETE FROM milestones WHERE id = $1', [milestoneId]);
+    await query('UPDATE milestones SET deleted_at = NOW() WHERE id = $1', [milestoneId]);
   }
 
   private static async recalculateProjectProgress(projectId: string) {
     const stats = await queryOne(
       `SELECT
         COUNT(*) as total,
-        COUNT(CASE WHEN status = 'COMPLETED' THEN 1 END) as completed
-       FROM milestones WHERE project_id = $1`,
+        COUNT(CASE WHEN status_code = 'COMPLETED' THEN 1 END) as completed
+       FROM milestones WHERE project_id = $1 AND deleted_at IS NULL`,
       [projectId]
     );
 
@@ -462,7 +519,7 @@ export class MilestoneEngine {
 export class ScheduleEngine {
   static async listByProject(projectId: string) {
     return queryMany(
-      `SELECT * FROM project_schedules WHERE project_id = $1 ORDER BY start_date`,
+      `SELECT * FROM project_schedules WHERE project_id = $1 AND deleted_at IS NULL ORDER BY start_date`,
       [projectId]
     );
   }
@@ -476,20 +533,389 @@ export class ScheduleEngine {
   }) {
     return queryOne(
       `INSERT INTO project_schedules
-       (project_id, task_name_ar, start_date, end_date, progress_pct)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+       (project_id, task_name_ar, start_date, end_date, progress_percent, status_code)
+       VALUES ($1, $2, $3, $4, $5, 'NOT_STARTED') RETURNING *`,
       [data.projectId, data.taskNameAr, data.startDate, data.endDate, data.progressPct || 0]
     );
   }
 
   static async updateProgress(scheduleId: string, progressPct: number) {
     return queryOne(
-      `UPDATE project_schedules SET progress_pct = $1 WHERE id = $2 RETURNING *`,
+      `UPDATE project_schedules SET progress_percent = $1 WHERE id = $2 RETURNING *`,
       [progressPct, scheduleId]
     );
   }
 
   static async delete(scheduleId: string) {
-    await query('DELETE FROM project_schedules WHERE id = $1', [scheduleId]);
+    await query('UPDATE project_schedules SET deleted_at = NOW() WHERE id = $1', [scheduleId]);
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SMART ANALYTICS & INTELLIGENCE LAYER — Professional Enterprise Capabilities
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * ProjectIntelligenceEngine
+ * Advanced analytics, risk assessment, forecasting, and portfolio health
+ */
+export class ProjectIntelligenceEngine {
+  /**
+   * Get comprehensive project intelligence snapshot for an organization.
+   * Includes portfolio health, risk distribution, financial KPIs, and AI insights.
+   */
+  static async getSnapshot(orgId: string): Promise<{
+    portfolio: any;
+    riskMatrix: any[];
+    performance: any;
+    financials: any;
+    timeline: any;
+    insights: string[];
+    alerts: Array<{ severity: string; title_ar: string; message_ar: string }>;
+  }> {
+    // 1. Portfolio overview
+    const portfolio = await queryOne(
+      `SELECT
+         COUNT(*) as total_projects,
+         COUNT(CASE WHEN status_code = 'ACTIVE' THEN 1 END) as active,
+         COUNT(CASE WHEN status_code = 'PLANNING' THEN 1 END) as planning,
+         COUNT(CASE WHEN status_code = 'COMPLETED' THEN 1 END) as completed,
+         COUNT(CASE WHEN status_code = 'ON_HOLD' THEN 1 END) as on_hold,
+         COUNT(CASE WHEN status_code = 'CANCELLED' THEN 1 END) as cancelled,
+         COALESCE(SUM(budget), 0) as total_budget,
+         COALESCE(SUM(spent_amount), 0) as total_spent,
+         COALESCE(AVG(progress_percent), 0) as avg_progress
+       FROM projects
+       WHERE organization_id = $1 AND deleted_at IS NULL`,
+      [orgId]
+    );
+
+    // 2. Risk matrix — projects by health classification
+    const riskMatrix = await queryMany(
+      `WITH project_kpis AS (
+         SELECT
+           p.id, p.name_ar, p.project_code, p.budget, p.spent_amount,
+           p.progress_percent, p.start_date, p.end_date, p.status_code,
+           CASE
+             WHEN p.end_date < CURRENT_DATE AND p.status_code NOT IN ('COMPLETED','CANCELLED') THEN 'CRITICAL'
+             WHEN p.spent_amount > p.budget THEN 'CRITICAL'
+             WHEN (p.progress_percent::float / 100.0) < 0.4
+                  AND p.start_date < CURRENT_DATE - INTERVAL '60 days' THEN 'AT_RISK'
+             WHEN (p.progress_percent::float / 100.0) < 0.7
+                  AND p.end_date < CURRENT_DATE + INTERVAL '30 days' THEN 'WARNING'
+             WHEN (p.progress_percent::float / 100.0) >= 0.8 THEN 'ON_TRACK'
+             ELSE 'NORMAL'
+           END as health_status
+         FROM projects p
+         WHERE p.organization_id = $1 AND p.deleted_at IS NULL
+       )
+       SELECT health_status, COUNT(*) as count, COALESCE(SUM(budget), 0) as total_budget
+       FROM project_kpis
+       GROUP BY health_status
+       ORDER BY CASE health_status
+         WHEN 'CRITICAL' THEN 1
+         WHEN 'AT_RISK' THEN 2
+         WHEN 'WARNING' THEN 3
+         WHEN 'ON_TRACK' THEN 4
+         ELSE 5 END`,
+      [orgId]
+    );
+
+    // 3. Performance KPIs (EVM aggregated)
+    const performance = await queryMany(
+      `SELECT
+         id, project_code, name_ar, budget, spent_amount, progress_percent,
+         CASE WHEN budget > 0 THEN ROUND((spent_amount / budget * 100)::numeric, 1) ELSE 0 END as budget_utilization,
+         CASE WHEN progress_percent > 0 THEN ROUND((spent_amount / NULLIF(progress_percent, 0) * 100)::numeric, 1) ELSE 0 END as cost_per_progress
+       FROM projects
+       WHERE organization_id = $1 AND deleted_at IS NULL AND status_code = 'ACTIVE'
+       ORDER BY progress_percent DESC LIMIT 20`,
+      [orgId]
+    );
+
+    // 4. Financial health
+    const financials = await queryOne(
+      `SELECT
+         COALESCE(SUM(budget), 0) as total_allocated,
+         COALESCE(SUM(spent_amount), 0) as total_spent,
+         COALESCE(SUM(budget) - SUM(spent_amount), 0) as total_remaining,
+         CASE WHEN SUM(budget) > 0
+           THEN ROUND((SUM(spent_amount) / SUM(budget) * 100)::numeric, 1)
+           ELSE 0 END as utilization_pct
+       FROM projects
+       WHERE organization_id = $1 AND deleted_at IS NULL`,
+      [orgId]
+    );
+
+    // 5. Timeline analytics
+    const timeline = await queryMany(
+      `SELECT
+         TO_CHAR(DATE_TRUNC('month', start_date), 'YYYY-MM') as month,
+         COUNT(*) as started,
+         COALESCE(SUM(budget), 0) as budget_started
+       FROM projects
+       WHERE organization_id = $1 AND deleted_at IS NULL
+         AND start_date >= CURRENT_DATE - INTERVAL '12 months'
+       GROUP BY DATE_TRUNC('month', start_date)
+       ORDER BY month DESC`,
+      [orgId]
+    );
+
+    // 6. Generate AI insights
+    const insights: string[] = [];
+    const alerts: Array<{ severity: string; title_ar: string; message_ar: string }> = [];
+
+    const totalBudget = Number(portfolio?.total_budget || 0);
+    const totalSpent = Number(portfolio?.total_spent || 0);
+    const avgProgress = Number(portfolio?.avg_progress || 0);
+    const onTrack = riskMatrix.find(r => r.health_status === 'ON_TRACK')?.count || 0;
+    const critical = riskMatrix.find(r => r.health_status === 'CRITICAL')?.count || 0;
+    const atRisk = riskMatrix.find(r => r.health_status === 'AT_RISK')?.count || 0;
+    const total = Number(portfolio?.total_projects || 0);
+
+    if (totalBudget > 0) {
+      const utilPct = (totalSpent / totalBudget) * 100;
+      if (utilPct > 90) {
+        insights.push(`⚠️ نسبة الاستهلاك المالي مرتفعة (${utilPct.toFixed(1)}%) - راجع ميزانيات المشاريع الحرجة`);
+      } else if (utilPct < 30) {
+        insights.push(`💡 الاستهلاك المالي منخفض (${utilPct.toFixed(1)}%) - يمكن تسريع التنفيذ`);
+      }
+    }
+
+    if (avgProgress < 40 && Number(portfolio?.active) > 0) {
+      insights.push(`📊 متوسط الإنجاز ${avgProgress.toFixed(0)}% - يحتاج متابعة ميدانية مكثفة`);
+    }
+
+    if (critical > 0) {
+      alerts.push({
+        severity: 'CRITICAL',
+        title_ar: 'مشاريع في حالة حرجة',
+        message_ar: `${critical} مشروع في حالة حرجة (تجاوز ميزانية أو تأخر) - تدخل فوري مطلوب`
+      });
+    }
+
+    if (atRisk > 0) {
+      alerts.push({
+        severity: 'HIGH',
+        title_ar: 'مشاريع تحت الخطر',
+        message_ar: `${atRisk} مشروع يحتاج إعادة تخطيط وميزانية`
+      });
+    }
+
+    if (onTrack > 0 && total > 0) {
+      const healthyPct = (Number(onTrack) / total) * 100;
+      if (healthyPct >= 70) {
+        insights.push(`✅ ${healthyPct.toFixed(0)}% من المشاريع على المسار الصحيح`);
+      }
+    }
+
+    return {
+      portfolio: {
+        total: Number(portfolio?.total_projects || 0),
+        active: Number(portfolio?.active || 0),
+        planning: Number(portfolio?.planning || 0),
+        completed: Number(portfolio?.completed || 0),
+        onHold: Number(portfolio?.on_hold || 0),
+        cancelled: Number(portfolio?.cancelled || 0),
+        avgProgress: Math.round(avgProgress),
+        totalBudget: Number(portfolio?.total_budget || 0),
+        totalSpent: Number(portfolio?.total_spent || 0),
+      },
+      riskMatrix: riskMatrix.map(r => ({
+        status: r.health_status,
+        count: Number(r.count),
+        totalBudget: Number(r.total_budget)
+      })),
+      performance: performance.map(p => ({
+        id: p.id,
+        projectCode: p.project_code,
+        nameAr: p.name_ar,
+        budget: Number(p.budget),
+        spent: Number(p.spent_amount),
+        progress: Number(p.progress_percent),
+        budgetUtilization: Number(p.budget_utilization),
+        costPerProgress: Number(p.cost_per_progress || 0)
+      })),
+      financials: {
+        totalAllocated: Number(financials?.total_allocated || 0),
+        totalSpent: Number(financials?.total_spent || 0),
+        totalRemaining: Number(financials?.total_remaining || 0),
+        utilizationPct: Number(financials?.utilization_pct || 0)
+      },
+      timeline,
+      insights,
+      alerts
+    };
+  }
+
+  /**
+   * AI-powered risk assessment for a single project
+   */
+  static async assessRisk(projectId: string): Promise<{
+    riskScore: number; // 0-100
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    factors: Array<{ name_ar: string; weight: number; status: 'OK' | 'WARNING' | 'CRITICAL' }>;
+    recommendations: string[];
+  }> {
+    const project = await queryOne(
+      `SELECT * FROM projects WHERE id = $1 AND deleted_at IS NULL`,
+      [projectId]
+    );
+    if (!project) throw new Error('Project not found');
+
+    const factors: Array<{ name_ar: string; weight: number; status: 'OK' | 'WARNING' | 'CRITICAL' }> = [];
+    const recommendations: string[] = [];
+    let totalScore = 0;
+
+    // Factor 1: Budget overrun
+    const budget = Number(project.budget || 0);
+    const spent = Number(project.spent_amount || 0);
+    if (budget > 0) {
+      const burnRate = (spent / budget) * 100;
+      const progress = Number(project.progress_percent || 0);
+      const expectedSpend = (progress / 100) * budget;
+      const overrunPct = expectedSpend > 0 ? ((spent - expectedSpend) / expectedSpend) * 100 : 0;
+
+      if (burnRate > 100) {
+        factors.push({ name_ar: 'تجاوز الميزانية', weight: 25, status: 'CRITICAL' });
+        recommendations.push('إعادة هيكلة الميزانية أو طلب تمويل إضافي');
+        totalScore += 25;
+      } else if (overrunPct > 20) {
+        factors.push({ name_ar: 'استهلاك ميزانية سريع', weight: 15, status: 'WARNING' });
+        recommendations.push('مراجعة كفاءة الصرف وتبرير الفروقات');
+        totalScore += 15;
+      } else {
+        factors.push({ name_ar: 'الميزانية', weight: 0, status: 'OK' });
+      }
+    }
+
+    // Factor 2: Schedule slippage
+    if (project.end_date) {
+      const endDate = new Date(project.end_date);
+      const today = new Date();
+      const daysToDeadline = Math.floor((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const progress = Number(project.progress_percent || 0);
+      const timeProgress = project.start_date
+        ? Math.min(100, Math.max(0, ((today.getTime() - new Date(project.start_date).getTime()) /
+            (endDate.getTime() - new Date(project.start_date).getTime())) * 100))
+        : 0;
+
+      if (daysToDeadline < 0 && progress < 100) {
+        factors.push({ name_ar: 'تجاوز الموعد النهائي', weight: 25, status: 'CRITICAL' });
+        recommendations.push('تمديد المشروع رسمياً أو الإغلاق المبكر');
+        totalScore += 25;
+      } else if (progress < timeProgress - 20) {
+        factors.push({ name_ar: 'تأخر في الجدول الزمني', weight: 15, status: 'WARNING' });
+        recommendations.push('تسريع وتيرة التنفيذ');
+        totalScore += 15;
+      } else {
+        factors.push({ name_ar: 'الجدول الزمني', weight: 0, status: 'OK' });
+      }
+    }
+
+    // Factor 3: Progress stagnation
+    const lastUpdate = project.updated_at ? new Date(project.updated_at) : new Date(project.created_at);
+    const daysSinceUpdate = Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSinceUpdate > 30 && project.status_code === 'ACTIVE') {
+      factors.push({ name_ar: 'عدم تحديث منذ فترة طويلة', weight: 10, status: 'WARNING' });
+      recommendations.push('تحديث حالة المشروع في النظام');
+      totalScore += 10;
+    }
+
+    // Factor 4: Status appropriateness
+    if (project.status_code === 'PLANNING' && project.start_date) {
+      const startDate = new Date(project.start_date);
+      if (startDate < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
+        factors.push({ name_ar: 'تأخر الانتقال للتنفيذ', weight: 10, status: 'WARNING' });
+        recommendations.push('تفعيل المشروع والانتقال للتنفيذ');
+        totalScore += 10;
+      }
+    }
+
+    // Determine risk level
+    let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    if (totalScore >= 50) riskLevel = 'CRITICAL';
+    else if (totalScore >= 30) riskLevel = 'HIGH';
+    else if (totalScore >= 15) riskLevel = 'MEDIUM';
+    else riskLevel = 'LOW';
+
+    return {
+      riskScore: Math.min(100, totalScore),
+      riskLevel,
+      factors,
+      recommendations
+    };
+  }
+
+  /**
+   * Forecast project completion based on current burn rate
+   */
+  static async forecastCompletion(projectId: string): Promise<{
+    estimatedCompletionDate: string | null;
+    estimatedFinalCost: number;
+    confidence: 'LOW' | 'MEDIUM' | 'HIGH';
+    onTrack: boolean;
+  }> {
+    const project = await queryOne(
+      `SELECT * FROM projects WHERE id = $1 AND deleted_at IS NULL`,
+      [projectId]
+    );
+    if (!project) throw new Error('Project not found');
+
+    const budget = Number(project.budget || 0);
+    const spent = Number(project.spent_amount || 0);
+    const progress = Number(project.progress_percent || 0);
+
+    if (progress === 0 || spent === 0) {
+      return {
+        estimatedCompletionDate: project.end_date,
+        estimatedFinalCost: budget,
+        confidence: 'LOW',
+        onTrack: true
+      };
+    }
+
+    // Cost Performance Index (CPI)
+    const cpi = spent > 0 ? (budget * progress / 100) / spent : 1;
+    const estimatedFinalCost = cpi > 0 ? budget / cpi : budget;
+
+    // Time forecast
+    let estimatedCompletionDate: string | null = project.end_date;
+    let onTrack = true;
+    if (project.start_date) {
+      const startDate = new Date(project.start_date);
+      const today = new Date();
+      const daysElapsed = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const burnRate = progress / Math.max(1, daysElapsed); // % per day
+
+      if (burnRate > 0) {
+        const daysToComplete = (100 - progress) / burnRate;
+        const completionDate = new Date(today.getTime() + daysToComplete * 24 * 60 * 60 * 1000);
+        estimatedCompletionDate = completionDate.toISOString().split('T')[0];
+      }
+    }
+
+    // Determine if on track
+    if (project.end_date) {
+      const plannedEnd = new Date(project.end_date);
+      const estimatedEnd = estimatedCompletionDate ? new Date(estimatedCompletionDate) : plannedEnd;
+      onTrack = estimatedEnd <= plannedEnd;
+    }
+
+    // Confidence based on data availability
+    const confidence: 'LOW' | 'MEDIUM' | 'HIGH' =
+      daysSinceUpdate(project) > 7 ? 'LOW' : daysSinceUpdate(project) > 3 ? 'MEDIUM' : 'HIGH';
+
+    return {
+      estimatedCompletionDate,
+      estimatedFinalCost: Math.round(estimatedFinalCost),
+      confidence,
+      onTrack
+    };
+  }
+}
+
+function daysSinceUpdate(project: any): number {
+  const last = project.updated_at ? new Date(project.updated_at) : new Date(project.created_at);
+  return Math.floor((Date.now() - last.getTime()) / (1000 * 60 * 60 * 24));
 }

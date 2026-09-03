@@ -20,6 +20,21 @@ db_schema_output.json
 # Backup files
 backups/
 
+# TypeScript incremental build info
+.tsbuildinfo
+*.tsbuildinfo
+
+# Agent/tool temporary verification outputs
+*_r.txt
+*_final.txt
+vb.txt
+fullbuild.txt
+lint.txt
+npm_install.txt
+tc_quick.txt
+test_r.txt
+build_r.txt
+
 # Debug and diagnostic scripts
 scripts/debug*.cjs
 scripts/archive/

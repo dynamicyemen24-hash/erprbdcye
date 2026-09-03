@@ -58,7 +58,7 @@ export type EnterpriseStatusType =
   | 'RFQ_OPEN' | 'RFQ_CLOSED' | 'PO_ISSUED' | 'PO_RECEIVED'
   | string;
 
-interface EnterpriseStatusBadgeProps {
+export interface EnterpriseStatusBadgeProps {
   status: EnterpriseStatusType;
   labelAr?: string;
   labelEn?: string;

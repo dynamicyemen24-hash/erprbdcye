@@ -52,6 +52,8 @@ import { EnvironmentModeSettingsSection } from './settings/EnvironmentModeSettin
 import { OperationalPoliciesSettings } from './settings/OperationalPoliciesSettings';
 import { PolicyDashboardView } from './settings/PolicyDashboardView';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
+import { DASHBOARD_MODE_SETTING_KEY, parseDashboardExperienceConfig } from '../config/dashboardExperienceModes';
+import { SYSTEM_PRESETS } from './dashboard/SmartCustomizationPanel';
 
 interface SettingsViewProps {
   organizations: Organization[];
@@ -134,6 +136,12 @@ export default function SettingsView({
   const [licenseNum, setLicenseNum] = useState(mainOrg?.license_number || '');
   const [orgArchetype, setOrgArchetype] = useState<'CHARITY_NGO' | 'WAQF_FOUNDATION' | 'GOVT_AUTHORITY' | 'COMMERCIAL_ENTERPRISE' | 'INTL_AGENCY'>('CHARITY_NGO');
   const [retentionYears, setRetentionYears] = useState<number>(10);
+  const initialDashboardConfig = parseDashboardExperienceConfig(orgSettings);
+  const [dashboardDefaultPreset, setDashboardDefaultPreset] = useState(initialDashboardConfig.defaultPresetId || 'sys-full');
+  const [dashboardForceDefault, setDashboardForceDefault] = useState(initialDashboardConfig.forceDefault === true);
+  const [dashboardEnabledPresets, setDashboardEnabledPresets] = useState<string[]>(
+    initialDashboardConfig.enabledPresetIds || SYSTEM_PRESETS.map(preset => preset.id)
+  );
 
   // Logo & Report Customization States
   const [logoUrl, setLogoUrl] = useState<string>(() => localStorage.getItem('rbd_logo_url') || '/UAMEX_ERPLOGO.png');
@@ -715,6 +723,48 @@ export default function SettingsView({
   const startEditSetting = (id: string, currentVal: any) => {
     setEditingSettingId(id);
     setEditingValue(typeof currentVal === 'object' ? JSON.stringify(currentVal) : String(currentVal));
+  };
+
+  const saveDashboardExperienceConfig = async () => {
+    if (!mainOrg?.id) {
+      setErrorMsg(lang === 'ar' ? 'تعذر تحديد المؤسسة النشطة.' : 'Active organization could not be determined.');
+      return;
+    }
+    setUpdating(true);
+    setErrorMsg(null);
+    const value = {
+      defaultPresetId: dashboardDefaultPreset,
+      enabledPresetIds: dashboardEnabledPresets,
+      forceDefault: dashboardForceDefault
+    };
+    const existing = orgSettings.find(setting => setting.setting_key === DASHBOARD_MODE_SETTING_KEY);
+    try {
+      const response = await fetch(
+        existing
+          ? `/api/tables/organization_settings/${existing.id}`
+          : '/api/tables/organization_settings',
+        {
+          method: existing ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(existing
+            ? { setting_value: value, setting_type: 'json' }
+            : {
+              organization_id: mainOrg.id,
+              setting_key: DASHBOARD_MODE_SETTING_KEY,
+              setting_value: value,
+              setting_type: 'json',
+              description: 'Organization dashboard experience modes and subscription entitlements'
+            })
+        }
+      );
+      if (!response.ok) throw new Error('Dashboard experience configuration was not saved.');
+      setSuccessMsg(lang === 'ar' ? 'تم حفظ أنماط الشاشة الرئيسية للمؤسسة.' : 'Dashboard experience modes saved for the organization.');
+      onRefresh();
+    } catch (error: any) {
+      setErrorMsg(error.message);
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const saveSettingEdit = async (id: string, isSystem: boolean) => {
@@ -2120,6 +2170,49 @@ export default function SettingsView({
               className={`w-10 h-5 rounded-full flex items-center p-0.5 transition-all cursor-pointer ${biometricEnabled ? 'bg-emerald-600 justify-end' : 'bg-slate-200 justify-start'}`}
             >
               <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
+
+          <div className="m-4 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-4 dark:border-indigo-800/60 dark:bg-indigo-950/20">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-xs font-black text-indigo-900 dark:text-indigo-200">
+                  {lang === 'ar' ? 'أنماط عرض الشاشة الرئيسية وميزات المشترك' : 'Home Dashboard Modes & Subscriber Features'}
+                </h4>
+                <p className="mt-1 text-[10px] text-indigo-700/80 dark:text-indigo-300/80">
+                  {lang === 'ar' ? 'يُحفظ الإعداد على مستوى المؤسسة ويُطبّق وفق باقة المشترك وصلاحيات المستخدم.' : 'Saved at organization level and constrained by subscription entitlements and user permissions.'}
+                </p>
+              </div>
+              <LayoutTemplate className="h-5 w-5 text-indigo-500" />
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="text-[10px] font-bold text-slate-600 dark:text-zinc-300">
+                {lang === 'ar' ? 'النمط الافتراضي' : 'Default mode'}
+                <select value={dashboardDefaultPreset} onChange={event => setDashboardDefaultPreset(event.target.value)} className="mt-1 w-full rounded-lg border border-indigo-200 bg-white px-2 py-2 text-xs dark:border-indigo-800 dark:bg-zinc-900">
+                  {SYSTEM_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{lang === 'ar' ? preset.name_ar : preset.name_en}</option>)}
+                </select>
+              </label>
+              <label className="flex items-center gap-2 text-[10px] font-bold text-slate-600 dark:text-zinc-300">
+                <input type="checkbox" checked={dashboardForceDefault} onChange={event => setDashboardForceDefault(event.target.checked)} />
+                {lang === 'ar' ? 'فرض النمط على مستخدمي المؤسسة' : 'Force mode for organization users'}
+              </label>
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {SYSTEM_PRESETS.map(preset => (
+                <label key={preset.id} className="flex items-center gap-2 rounded-lg border border-indigo-100 bg-white/70 p-2 text-[10px] dark:border-indigo-900/60 dark:bg-zinc-900/60">
+                  <input
+                    type="checkbox"
+                    checked={dashboardEnabledPresets.includes(preset.id)}
+                    onChange={event => setDashboardEnabledPresets(current => event.target.checked
+                      ? [...new Set([...current, preset.id])]
+                      : current.filter(id => id !== preset.id))}
+                  />
+                  <span>{lang === 'ar' ? preset.name_ar : preset.name_en}</span>
+                </label>
+              ))}
+            </div>
+            <button type="button" onClick={saveDashboardExperienceConfig} disabled={updating} className="mt-3 rounded-lg bg-indigo-600 px-3 py-2 text-[10px] font-black text-white hover:bg-indigo-500 disabled:opacity-50">
+              {lang === 'ar' ? 'حفظ إعدادات العرض المؤسسية' : 'Save organization display settings'}
             </button>
           </div>
 
@@ -3672,4 +3765,3 @@ export default function SettingsView({
     </ErrorBoundary>
   );
 }
-

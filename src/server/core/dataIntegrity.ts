@@ -163,7 +163,7 @@ export function validateEmail(email: string): boolean {
 }
 
 export function validatePhone(phone: string): boolean {
-  const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  const cleaned = phone.replace(/[\s()-]/g, '');
   return /^\+?[0-9]{7,15}$/.test(cleaned);
 }
 

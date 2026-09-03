@@ -500,6 +500,39 @@ budget NUMERIC(18,2) DEFAULT 0 CHECK (budget >= 0),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS tender_auctions (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        tender_id UUID REFERENCES procurement_tenders(id) ON DELETE SET NULL,
+        auction_number VARCHAR(50) NOT NULL,
+        title_ar TEXT NOT NULL,
+        title_en TEXT,
+        auction_type VARCHAR(30) DEFAULT 'FORWARD',
+        start_price NUMERIC(18,2) DEFAULT 0,
+        reserve_price NUMERIC(18,2),
+        current_best_bid NUMERIC(18,2) DEFAULT 0,
+        currency_code VARCHAR(10) DEFAULT 'USD',
+        status VARCHAR(30) DEFAULT 'SCHEDULED',
+        starts_at TIMESTAMP WITH TIME ZONE,
+        ends_at TIMESTAMP WITH TIME ZONE,
+        created_by UUID REFERENCES users(id),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS auction_bids (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        auction_id UUID NOT NULL REFERENCES tender_auctions(id) ON DELETE CASCADE,
+        vendor_id UUID NOT NULL REFERENCES vendors(id),
+        bid_amount NUMERIC(18,2) NOT NULL,
+        currency_code VARCHAR(10) DEFAULT 'USD',
+        is_winning BOOLEAN DEFAULT FALSE,
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        notes TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS goods_receipts (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
         organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
@@ -941,6 +974,228 @@ budget NUMERIC(18,2) DEFAULT 0 CHECK (budget >= 0),
         unit VARCHAR(50),
         frequency VARCHAR(30) DEFAULT 'MONTHLY',
         status VARCHAR(30) DEFAULT 'ACTIVE',
+      -- ═══════════════════════════════════════════════════════════════
+      -- NEB-05/NEB-09: INVENTORY & WAREHOUSE OS (Production-Grade E2E)
+      -- وحدة المخازن: مدخلات أساسية، عمليات، مستندات، تقارير، سياسات
+      -- ═══════════════════════════════════════════════════════════════
+
+      -- شجرة فئات الأصناف
+      CREATE TABLE IF NOT EXISTS inventory_categories (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        parent_id UUID REFERENCES inventory_categories(id),
+        code VARCHAR(50) NOT NULL,
+        name_ar TEXT NOT NULL,
+        name_en TEXT,
+        description TEXT,
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- وحدات القياس
+      CREATE TABLE IF NOT EXISTS inventory_uoms (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        code VARCHAR(20) NOT NULL,
+        name_ar TEXT NOT NULL,
+        name_en TEXT,
+        base_uom_code VARCHAR(20),
+        conversion_factor NUMERIC(18,6) DEFAULT 1,
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- دليل الأصناف الرئيسي (Master Data)
+      CREATE TABLE IF NOT EXISTS inventory_items (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        category_id UUID REFERENCES inventory_categories(id),
+        uom_id UUID REFERENCES inventory_uoms(id),
+        item_code VARCHAR(50) NOT NULL,
+        barcode VARCHAR(60),
+        name_ar TEXT NOT NULL,
+        name_en TEXT,
+        description TEXT,
+        item_type VARCHAR(30) DEFAULT 'STOCK',
+        valuation_method VARCHAR(30) DEFAULT 'WEIGHTED_AVERAGE',
+        min_level NUMERIC(18,2) DEFAULT 0,
+        max_level NUMERIC(18,2) DEFAULT 0,
+        reorder_level NUMERIC(18,2) DEFAULT 0,
+        reorder_qty NUMERIC(18,2) DEFAULT 0,
+        shelf_life_days INT,
+        storage_conditions TEXT,
+        is_serialized BOOLEAN DEFAULT FALSE,
+        is_batch_tracked BOOLEAN DEFAULT TRUE,
+        standard_cost NUMERIC(18,2) DEFAULT 0,
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        created_by UUID REFERENCES users(id),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- أرصدة المخزون (item × warehouse × batch)
+      CREATE TABLE IF NOT EXISTS inventory_stock_balances (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        warehouse_id UUID NOT NULL REFERENCES warehouses(id) ON DELETE CASCADE,
+        item_id UUID NOT NULL REFERENCES inventory_items(id) ON DELETE CASCADE,
+        batch_number VARCHAR(60),
+        expiry_date DATE,
+        quantity_on_hand NUMERIC(18,2) NOT NULL DEFAULT 0,
+        quantity_reserved NUMERIC(18,2) NOT NULL DEFAULT 0,
+        unit_cost NUMERIC(18,2) NOT NULL DEFAULT 0,
+        last_movement_at TIMESTAMP WITH TIME ZONE,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        CONSTRAINT uq_stock_balance UNIQUE (warehouse_id, item_id, batch_number)
+      );
+
+      -- دفتر حركات المخزون الموحد (Immutable Ledger)
+      CREATE TABLE IF NOT EXISTS inventory_movements (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        movement_number VARCHAR(40) NOT NULL,
+        movement_type VARCHAR(30) NOT NULL,
+        warehouse_id UUID NOT NULL REFERENCES warehouses(id),
+        item_id UUID NOT NULL REFERENCES inventory_items(id),
+        batch_number VARCHAR(60),
+        expiry_date DATE,
+        quantity NUMERIC(18,2) NOT NULL,
+        unit_cost NUMERIC(18,2) NOT NULL DEFAULT 0,
+
+      -- أوامر التحويل بين المخازن
+      CREATE TABLE IF NOT EXISTS inventory_transfers (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        transfer_number VARCHAR(40) NOT NULL,
+        from_warehouse_id UUID NOT NULL REFERENCES warehouses(id),
+        to_warehouse_id UUID NOT NULL REFERENCES warehouses(id),
+        transfer_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        reason TEXT,
+        status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+        requested_by UUID REFERENCES users(id),
+        approved_by UUID REFERENCES users(id),
+        approved_at TIMESTAMP WITH TIME ZONE,
+        shipped_at TIMESTAMP WITH TIME ZONE,
+        received_by UUID REFERENCES users(id),
+        received_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS inventory_transfer_lines (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        transfer_id UUID NOT NULL REFERENCES inventory_transfers(id) ON DELETE CASCADE,
+        item_id UUID NOT NULL REFERENCES inventory_items(id),
+        batch_number VARCHAR(60),
+        quantity NUMERIC(18,2) NOT NULL,
+        quantity_shipped NUMERIC(18,2) DEFAULT 0,
+        quantity_received NUMERIC(18,2) DEFAULT 0,
+        unit_cost NUMERIC(18,2) DEFAULT 0,
+        notes TEXT
+      );
+
+      -- تسويات المخزون
+      CREATE TABLE IF NOT EXISTS inventory_adjustments (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        adjustment_number VARCHAR(40) NOT NULL,
+        warehouse_id UUID NOT NULL REFERENCES warehouses(id),
+        adjustment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        direction VARCHAR(10) NOT NULL,
+        reason_code VARCHAR(50) NOT NULL,
+        reason_text TEXT,
+        status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+        total_value NUMERIC(18,2) DEFAULT 0,
+        created_by UUID REFERENCES users(id),
+        approved_by UUID REFERENCES users(id),
+        approved_at TIMESTAMP WITH TIME ZONE,
+        posted_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS inventory_adjustment_lines (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        adjustment_id UUID NOT NULL REFERENCES inventory_adjustments(id) ON DELETE CASCADE,
+        item_id UUID NOT NULL REFERENCES inventory_items(id),
+        batch_number VARCHAR(60),
+        quantity NUMERIC(18,2) NOT NULL,
+        unit_cost NUMERIC(18,2) DEFAULT 0,
+        total_value NUMERIC(18,2) DEFAULT 0,
+        notes TEXT
+      );
+
+      -- الجرد الفعلي (Stocktake)
+      CREATE TABLE IF NOT EXISTS inventory_stocktakes (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        stocktake_number VARCHAR(40) NOT NULL,
+        warehouse_id UUID NOT NULL REFERENCES warehouses(id),
+        stocktake_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        count_type VARCHAR(30) DEFAULT 'FULL',
+        status VARCHAR(30) NOT NULL DEFAULT 'OPEN',
+        total_variance_value NUMERIC(18,2) DEFAULT 0,
+        counted_by UUID REFERENCES users(id),
+        approved_by UUID REFERENCES users(id),
+        approved_at TIMESTAMP WITH TIME ZONE,
+        posted_at TIMESTAMP WITH TIME ZONE,
+        notes TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS inventory_stocktake_lines (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        stocktake_id UUID NOT NULL REFERENCES inventory_stocktakes(id) ON DELETE CASCADE,
+        item_id UUID NOT NULL REFERENCES inventory_items(id),
+        batch_number VARCHAR(60),
+        system_quantity NUMERIC(18,2) NOT NULL DEFAULT 0,
+        counted_quantity NUMERIC(18,2),
+        variance_quantity NUMERIC(18,2),
+        unit_cost NUMERIC(18,2) DEFAULT 0,
+        variance_value NUMERIC(18,2) DEFAULT 0,
+        notes TEXT
+      );
+
+      -- سياسات وإعدادات وحدة المخازن (لكل منظمة)
+      CREATE TABLE IF NOT EXISTS inventory_policies (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL UNIQUE REFERENCES organizations(id) ON DELETE CASCADE,
+        costing_method VARCHAR(30) DEFAULT 'WEIGHTED_AVERAGE',
+        allow_negative_stock BOOLEAN DEFAULT FALSE,
+        require_approval_issue BOOLEAN DEFAULT TRUE,
+        require_approval_transfer BOOLEAN DEFAULT TRUE,
+        require_approval_adjustment BOOLEAN DEFAULT TRUE,
+        issue_approval_threshold NUMERIC(18,2) DEFAULT 0,
+        adjustment_approval_threshold NUMERIC(18,2) DEFAULT 0,
+        default_stocktake_frequency VARCHAR(30) DEFAULT 'MONTHLY',
+        expiry_alert_days INT DEFAULT 60,
+        reorder_alert_enabled BOOLEAN DEFAULT TRUE,
+        auto_reserve_on_transfer BOOLEAN DEFAULT TRUE,
+        fifo_enabled BOOLEAN DEFAULT FALSE,
+        updated_by UUID REFERENCES users(id),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+
+        total_value NUMERIC(18,2) NOT NULL DEFAULT 0,
+        balance_after NUMERIC(18,2),
+        reference_type VARCHAR(40),
+        reference_id UUID,
+        reference_number VARCHAR(40),
+        project_id UUID REFERENCES projects(id),
+        activity_id UUID REFERENCES activities(id),
+        beneficiary_id UUID REFERENCES beneficiaries(id),
+        donor_id UUID REFERENCES donors(id),
+        doc_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        notes TEXT,
+        status VARCHAR(30) NOT NULL DEFAULT 'POSTED',
+        posted_by UUID REFERENCES users(id),
+        posted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
 
@@ -1055,6 +1310,21 @@ budget NUMERIC(18,2) DEFAULT 0 CHECK (budget >= 0),
       CREATE INDEX IF NOT EXISTS idx_staff_org ON staff(organization_id);
       CREATE INDEX IF NOT EXISTS idx_volunteers_org ON volunteers(organization_id);
       CREATE INDEX IF NOT EXISTS idx_knowledge_org ON knowledge_articles(organization_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_items_org ON inventory_items(organization_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_items_code ON inventory_items(item_code);
+      CREATE INDEX IF NOT EXISTS idx_inventory_items_category ON inventory_items(category_id);
+      CREATE INDEX IF NOT EXISTS idx_stock_balance_wh_item ON inventory_stock_balances(warehouse_id, item_id);
+      CREATE INDEX IF NOT EXISTS idx_stock_balance_expiry ON inventory_stock_balances(expiry_date) WHERE expiry_date IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_inventory_mov_org ON inventory_movements(organization_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_mov_wh ON inventory_movements(warehouse_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_mov_item ON inventory_movements(item_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_mov_type ON inventory_movements(movement_type);
+      CREATE INDEX IF NOT EXISTS idx_inventory_mov_date ON inventory_movements(doc_date);
+      CREATE INDEX IF NOT EXISTS idx_inventory_transfers_org ON inventory_transfers(organization_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_transfers_status ON inventory_transfers(status);
+      CREATE INDEX IF NOT EXISTS idx_inventory_adjust_org ON inventory_adjustments(organization_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_stocktakes_org ON inventory_stocktakes(organization_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_stocktakes_wh ON inventory_stocktakes(warehouse_id);
     `);
 
     await client.query('COMMIT');

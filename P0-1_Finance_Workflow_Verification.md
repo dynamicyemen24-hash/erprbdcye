@@ -89,7 +89,7 @@ ALTER TABLE transactions DROP CONSTRAINT chk_transaction_balance;
 - Code paths traced from: `initial_schema.ts`, `finance.engine.ts`, `finance.service.ts`
 - CHECK constraint recommendation: `NEXORA_TECHNICAL_DEBT_REGISTER.md` TD-005
 - Workflow matrix: `NEXORA_CRITICAL_WORKFLOW_MATRIX.md`
-- E2E test script: `test_finance.mjs` (developed but DB connectivity prevented execution)
+- E2E test script: Vitest suite at `src/server/__tests__/` and `src/server/engines/__tests__/`
 
 ---
 *This verification is part of P0-1 Finance Workflow. Evidence-based findings with specific file references and line numbers. Code analysis complete; E2E testing pending database connectivity.*

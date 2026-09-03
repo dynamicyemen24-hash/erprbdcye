@@ -38,6 +38,10 @@ import {
   buildOfficialGoodsReceiptIssuePDFHTML,
   buildOfficialPurchaseOrderPDFHTML,
   buildOfficialBeneficiaryAidCardPDFHTML,
+  buildOfficialArabicMemoPDFHTML,
+  buildOfficialCompletionCertificatePDFHTML,
+  buildOfficialDonationAcknowledgmentPDFHTML,
+  buildOfficialVolunteerAppreciationPDFHTML,
   generateAndDownloadPDF, 
   printPDFHTML,
   safeArray 
@@ -49,7 +53,7 @@ interface PrintPDFTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
   lang: 'ar' | 'en';
-  type: 'project' | 'financial' | 'executive' | 'beneficiary' | 'predictive' | 'evaluation' | 'interconnected' | 'strategy' | 'programs' | 'projects' | 'activities' | 'staff' | 'operational_manual' | 'user_manual' | 'procurement' | 'inventory' | 'sponsorship' | 'revenue_investments' | 'audit_trail' | 'payment_voucher' | 'receipt_voucher' | 'journal_voucher' | 'goods_voucher' | 'purchase_order' | 'beneficiary_aid_card';
+  type: 'project' | 'financial' | 'executive' | 'beneficiary' | 'predictive' | 'evaluation' | 'interconnected' | 'strategy' | 'programs' | 'projects' | 'activities' | 'staff' | 'operational_manual' | 'user_manual' | 'procurement' | 'inventory' | 'sponsorship' | 'revenue_investments' | 'audit_trail' | 'payment_voucher' | 'receipt_voucher' | 'journal_voucher' | 'goods_voucher' | 'purchase_order' | 'beneficiary_aid_card' | 'official_memo' | 'completion_certificate' | 'donation_acknowledgment' | 'volunteer_appreciation';
   data: {
     projects?: any[];
     programs?: any[];
@@ -110,6 +114,30 @@ interface PrintPDFTemplateModalProps {
     referenceDocNumber?: string;
     descriptionAr?: string;
     preparedBy?: string;
+    approvedBy?: string;
+    memoNumber?: string;
+    fromAr?: string;
+    toAr?: string;
+    subjectAr?: string;
+    bodyAr?: string[];
+    referencesAr?: string;
+    attachmentsAr?: string;
+    certificateNumber?: string;
+    entityNameAr?: string;
+    classification?: 'OFFICIAL' | 'CONFIDENTIAL' | 'PUBLIC';
+    acknowledgmentNumber?: string;
+    donorNameAr?: string;
+    channelAr?: string;
+    campaignAr?: string;
+    initiativeAr?: string;
+    hoursServed?: number;
+    periodAr?: string;
+    excellenceAr?: string;
+    volunteerNameAr?: string;
+    startDate?: string;
+    endDate?: string;
+    locationAr?: string;
+    issuedBy?: string;
   };
 }
 
@@ -131,6 +159,10 @@ export default function PrintPDFTemplateModal({
     if (type === 'goods_voucher') return isRtl ? 'سند استلام وصرف مواد مخزنية معتمد' : 'Goods Receipt & Issue Voucher';
     if (type === 'purchase_order') return isRtl ? 'أمر شراء وتوريد رسمي معتمد' : 'Official Purchase Order';
     if (type === 'beneficiary_aid_card') return isRtl ? 'سند تسليم مساعدات إغاثية وبطاقة صرف معتمدة' : 'Beneficiary Aid Delivery Card';
+    if (type === 'official_memo') return isRtl ? 'مذكرة رسمية داخلية معتمدة' : 'Official Internal Memo';
+    if (type === 'completion_certificate') return isRtl ? 'شهادة إنجاز رسمية معتمدة' : 'Official Certificate of Completion';
+    if (type === 'donation_acknowledgment') return isRtl ? 'خطاب شكر وتأكيد تبرع معتمد' : 'Official Donation Acknowledgment';
+    if (type === 'volunteer_appreciation') return isRtl ? 'شهادة شكر وتقدير للمتطوعين' : 'Volunteer Appreciation Certificate';
     if (type === 'procurement') return isRtl ? 'تقرير المشتريات والمناقصات وسلاسل الإمداد المعتمد' : 'Certified Procurement & Supply Chain Report';
     if (type === 'inventory') return isRtl ? 'تقرير المخزون والمستودعات المركزية المعتمد' : 'Certified Inventory & Central Warehouses Report';
     if (type === 'sponsorship') return isRtl ? 'تقرير كفالات الأيتام والرعاية التكافلية المعتمد' : 'Certified Orphans Sponsorships & Social Care Report';
@@ -154,6 +186,10 @@ export default function PrintPDFTemplateModal({
     if (type === 'goods_voucher') return isRtl ? 'فحص واستلام وصرف المواد والمستلزمات الإغاثية المستودعية' : 'Warehouse Stock In/Out Verification';
     if (type === 'purchase_order') return isRtl ? 'أمر تعميد شراء وتوريد ملزم قانونياً وفق محضر المناقصات' : 'Legally Binding Purchase Order & Supplier Contract';
     if (type === 'beneficiary_aid_card') return isRtl ? 'توثيق تسليم الحصص الإغاثية الميدانية وفق معايير ميثاق إسفير الدولي' : 'Field Aid Dispatch & Sphere Compliance Verification';
+    if (type === 'official_memo') return isRtl ? 'مستند رسمي صادر من الإدارة المختصة وفق لوائح الحوكمة المؤسسية' : 'Official letterhead document governed by institutional policies';
+    if (type === 'completion_certificate') return isRtl ? 'توثيق استلام الأعمال المنفذة وقيمتها المالية بالتفقيط' : 'Verified acceptance of executed works with tafqeet amount';
+    if (type === 'donation_acknowledgment') return isRtl ? 'إقرار استلام التبرعات وتوجيهها محاسبياً وفق IPSAS' : 'Donation receipt & IPSAS-compliant fund allocation';
+    if (type === 'volunteer_appreciation') return isRtl ? 'تكريم العطاء التطوعي وفق منظومة المجتمع والعضوية NEB-07' : 'Community & Membership (NEB-07) volunteer recognition';
     if (type === 'procurement') return isRtl ? 'سجل أوامر الشراء P2P، تقييم الموردين، والمطابقة المحاسبية الثلاثية' : 'P2P Purchase Orders, Vendor Vetting & 3-Way Match Audit';
     if (type === 'inventory') return isRtl ? 'حركة المواد الإغاثية، الطاقة الاستيعابية للمستودعات، وتقييم المخزون المتاح' : 'Relief Stock Balances, Warehouse Capacities & Stock Valuation';
     if (type === 'sponsorship') return isRtl ? 'سجل الحالات المكفولة، المخصصات الشهرية، وبيانات المتابعة التعليمية والصحية' : 'Sponsored Orphans Dossier, Monthly Stipends, Health & Education Welfare';
@@ -172,6 +208,43 @@ export default function PrintPDFTemplateModal({
   const [includeSignatures, setIncludeSignatures] = useState(true);
   const [classification, setClassification] = useState<'OFFICIAL' | 'CONFIDENTIAL' | 'PUBLIC'>('OFFICIAL');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const [memoFields, setMemoFields] = useState({
+    fromAr: data.fromAr || '',
+    toAr: data.toAr || '',
+    subjectAr: data.subjectAr || '',
+    bodyAr: (data.bodyAr || []).join('\n'),
+    referencesAr: data.referencesAr || '',
+    attachmentsAr: data.attachmentsAr || ''
+  });
+
+  const [certFields, setCertFields] = useState({
+    entityNameAr: data.entityNameAr || '',
+    projectName: data.projectName || '',
+    projectCode: data.projectCode || '',
+    descriptionAr: data.descriptionAr || '',
+    amountYer: data.amountYer || '',
+    startDate: data.startDate || '',
+    endDate: data.endDate || '',
+    locationAr: data.locationAr || '',
+    issuedBy: data.issuedBy || ''
+  });
+
+  const [donationFields, setDonationFields] = useState({
+    donorNameAr: data.donorNameAr || '',
+    amountYer: data.amountYer || '',
+    campaignAr: data.campaignAr || '',
+    channelAr: data.channelAr || '',
+    purposeAr: data.purposeAr || ''
+  });
+
+  const [volunteerFields, setVolunteerFields] = useState({
+    volunteerNameAr: data.volunteerNameAr || '',
+    initiativeAr: data.initiativeAr || '',
+    hoursServed: data.hoursServed || '',
+    periodAr: data.periodAr || '',
+    excellenceAr: data.excellenceAr || ''
+  });
 
   const generatedHTML = useMemo(() => {
     if (type === 'project' || type === 'projects') {
@@ -471,6 +544,68 @@ export default function PrintPDFTemplateModal({
         accentColor,
         orgNameAr: activeOrg?.name_ar || orgName
       });
+    } else if (type === 'official_memo') {
+      return buildOfficialArabicMemoPDFHTML({
+        memoNumber: data.memoNumber || data.voucherNumber,
+        classification: memoFields.subjectAr ? classification : 'OFFICIAL',
+        dateGregorian: data.dateGregorian,
+        fromAr: memoFields.fromAr,
+        toAr: memoFields.toAr,
+        subjectAr: memoFields.subjectAr,
+        bodyAr: memoFields.bodyAr.split('\n').filter(l => l.trim().length > 0),
+        referencesAr: memoFields.referencesAr,
+        attachmentsAr: memoFields.attachmentsAr,
+        preparedBy: data.preparedBy,
+        approvedBy: data.approvedBy,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'completion_certificate') {
+      return buildOfficialCompletionCertificatePDFHTML({
+        certificateNumber: data.certificateNumber || data.voucherNumber,
+        entityNameAr: certFields.entityNameAr,
+        projectName: certFields.projectName,
+        projectCode: certFields.projectCode,
+        descriptionAr: certFields.descriptionAr || data.purposeAr,
+        amountYer: certFields.amountYer ? Number(certFields.amountYer) : undefined,
+        startDate: certFields.startDate,
+        endDate: certFields.endDate,
+        locationAr: certFields.locationAr || data.deliveryLocation,
+        issuedBy: certFields.issuedBy || data.collectorName,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'donation_acknowledgment') {
+      return buildOfficialDonationAcknowledgmentPDFHTML({
+        acknowledgmentNumber: data.acknowledgmentNumber || data.voucherNumber,
+        donorNameAr: donationFields.donorNameAr,
+        amountYer: donationFields.amountYer ? Number(donationFields.amountYer) : undefined,
+        campaignAr: donationFields.campaignAr,
+        channelAr: donationFields.channelAr,
+        dateGregorian: data.dateGregorian,
+        purposeAr: donationFields.purposeAr,
+        receivedBy: data.collectorName,
+        approvedBy: data.approvedBy,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
+    } else if (type === 'volunteer_appreciation') {
+      return buildOfficialVolunteerAppreciationPDFHTML({
+        certificateNumber: data.certificateNumber || data.voucherNumber,
+        volunteerNameAr: volunteerFields.volunteerNameAr,
+        initiativeAr: volunteerFields.initiativeAr,
+        hoursServed: volunteerFields.hoursServed ? Number(volunteerFields.hoursServed) : undefined,
+        periodAr: volunteerFields.periodAr,
+        excellenceAr: volunteerFields.excellenceAr,
+        dateGregorian: data.dateGregorian,
+        issuedBy: data.issuedBy || data.preparedBy,
+        accentColor,
+        orgNameAr: activeOrg?.name_ar || orgName,
+        orgNameEn: activeOrg?.name_en
+      });
     } else {
       return buildFinancialStatementPDFHTML({
         statementType: data.financialType || 'income',
@@ -631,6 +766,156 @@ export default function PrintPDFTemplateModal({
                 <span>{isRtl ? 'تضمين مربع التوقيعات والختم الرسمي' : 'Include Official Signatures & Stamp'}</span>
               </label>
             </div>
+
+            {/* Official Memo Fields Editor */}
+            {type === 'official_memo' && (
+              <div className="space-y-3 border-t border-slate-200 pt-3">
+                <label className="block text-[11px] font-bold text-slate-700 mb-2">
+                  {isRtl ? 'بيانات المذكرة الرسمية:' : 'Official Memo Details:'}
+                </label>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'من (جهة الإصدار):' : 'From (Sender):'}</label>
+                  <input type="text" value={memoFields.fromAr} onChange={(e) => setMemoFields(f => ({ ...f, fromAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'إلى (جهة الإحالة):' : 'To (Recipient):'}</label>
+                  <input type="text" value={memoFields.toAr} onChange={(e) => setMemoFields(f => ({ ...f, toAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الموضوع:' : 'Subject:'}</label>
+                  <input type="text" value={memoFields.subjectAr} onChange={(e) => setMemoFields(f => ({ ...f, subjectAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'نص الموضوع (كل سطر فقرة):' : 'Body (one line per paragraph):'}</label>
+                  <textarea rows={5} value={memoFields.bodyAr} onChange={(e) => setMemoFields(f => ({ ...f, bodyAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المراجع/المرفقات:' : 'References & Attachments:'}</label>
+                  <input type="text" value={memoFields.referencesAr} onChange={(e) => setMemoFields(f => ({ ...f, referencesAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+              </div>
+            )}
+
+            {/* Completion Certificate Fields Editor */}
+            {type === 'completion_certificate' && (
+              <div className="space-y-3 border-t border-slate-200 pt-3">
+                <label className="block text-[11px] font-bold text-slate-700 mb-2">
+                  {isRtl ? 'بيانات شهادة الإنجاز:' : 'Certificate of Completion Details:'}
+                </label>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الجهة المقبلة (المستلم):' : 'Receiving Entity:'}</label>
+                  <input type="text" value={certFields.entityNameAr} onChange={(e) => setCertFields(f => ({ ...f, entityNameAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المشروع/المهمة:' : 'Project / Task:'}</label>
+                  <input type="text" value={certFields.projectName} onChange={(e) => setCertFields(f => ({ ...f, projectName: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'القيمة المالية (ريال يمني):' : 'Monetary Amount (YER):'}</label>
+                  <input type="number" value={certFields.amountYer} onChange={(e) => setCertFields(f => ({ ...f, amountYer: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="ltr" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ البدء:' : 'Start Date:'}</label>
+                    <input type="date" value={certFields.startDate} onChange={(e) => setCertFields(f => ({ ...f, startDate: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ الانتهاء:' : 'End Date:'}</label>
+                    <input type="date" value={certFields.endDate} onChange={(e) => setCertFields(f => ({ ...f, endDate: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المكان:' : 'Location:'}</label>
+                  <input type="text" value={certFields.locationAr} onChange={(e) => setCertFields(f => ({ ...f, locationAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'مسؤول الإصدار/الاعتماد:' : 'Issued / Authorized By:'}</label>
+                  <input type="text" value={certFields.issuedBy} onChange={(e) => setCertFields(f => ({ ...f, issuedBy: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+              </div>
+            )}
+
+            {/* Donation Acknowledgment Fields Editor */}
+            {type === 'donation_acknowledgment' && (
+              <div className="space-y-3 border-t border-slate-200 pt-3">
+                <label className="block text-[11px] font-bold text-slate-700 mb-2">
+                  {isRtl ? 'بيانات تأكيد التبرع:' : 'Donation Acknowledgment Details:'}
+                </label>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'اسم المتبرع / الجهة:' : 'Donor Name / Entity:'}</label>
+                  <input type="text" value={donationFields.donorNameAr} onChange={(e) => setDonationFields(f => ({ ...f, donorNameAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المبلغ (ريال يمني):' : 'Amount (YER):'}</label>
+                  <input type="number" value={donationFields.amountYer} onChange={(e) => setDonationFields(f => ({ ...f, amountYer: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="ltr" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الحملة / الصندوق:' : 'Campaign / Fund:'}</label>
+                  <input type="text" value={donationFields.campaignAr} onChange={(e) => setDonationFields(f => ({ ...f, campaignAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'وسيلة السداد:' : 'Payment Channel:'}</label>
+                  <input type="text" value={donationFields.channelAr} onChange={(e) => setDonationFields(f => ({ ...f, channelAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الغرض / التوجيه:' : 'Purpose / Allocation:'}</label>
+                  <input type="text" value={donationFields.purposeAr} onChange={(e) => setDonationFields(f => ({ ...f, purposeAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+              </div>
+            )}
+
+            {/* Volunteer Appreciation Fields Editor */}
+            {type === 'volunteer_appreciation' && (
+              <div className="space-y-3 border-t border-slate-200 pt-3">
+                <label className="block text-[11px] font-bold text-slate-700 mb-2">
+                  {isRtl ? 'بيانات شهادة التقدير:' : 'Appreciation Details:'}
+                </label>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'اسم المتطوع/ة:' : 'Volunteer Name:'}</label>
+                  <input type="text" value={volunteerFields.volunteerNameAr} onChange={(e) => setVolunteerFields(f => ({ ...f, volunteerNameAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المبادرة / النشاط:' : 'Initiative / Activity:'}</label>
+                  <input type="text" value={volunteerFields.initiativeAr} onChange={(e) => setVolunteerFields(f => ({ ...f, initiativeAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'ساعات العمل:' : 'Hours Served:'}</label>
+                    <input type="number" value={volunteerFields.hoursServed} onChange={(e) => setVolunteerFields(f => ({ ...f, hoursServed: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="ltr" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الفترة:' : 'Period:'}</label>
+                    <input type="text" value={volunteerFields.periodAr} onChange={(e) => setVolunteerFields(f => ({ ...f, periodAr: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'أسباب التقدير:' : 'Reason for Recognition:'}</label>
+                  <textarea rows={3} value={volunteerFields.excellenceAr} onChange={(e) => setVolunteerFields(f => ({ ...f, excellenceAr: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
+                </div>
+              </div>
+            )}
 
             {/* Governance Badge Info */}
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-900 font-semibold space-y-1">

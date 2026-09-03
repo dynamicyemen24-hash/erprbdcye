@@ -75,9 +75,9 @@ export default function FinanceOperationsControlBar({
             className="px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 outline-none focus:border-emerald-500 transition-all cursor-pointer"
           >
             <option value="ALL">{isRtl ? 'جميع الفروع والجمعيات الشريكة' : 'All Tenants & Branches'}</option>
-            <option value="HQ_SANAA">{isRtl ? '🏢 المركز الرئيسي - صنعاء (HQ)' : 'Main HQ - Sanaa'}</option>
-            <option value="BR_ADEN">{isRtl ? '🌊 فرع المحافظات الجنوبية - عدن' : 'Aden South Branch'}</option>
-            <option value="BR_TAIZ">{isRtl ? '🏔️ فرع تعز والمناطق الميدانية' : 'Taiz Field Branch'}</option>
+            <option value="HQ_SANAA">{isRtl ? 'المركز الرئيسي - صنعاء' : 'Main HQ - Sanaa'}</option>
+            <option value="BR_ADEN">{isRtl ? 'فرع المحافظات الجنوبية - عدن' : 'Aden South Branch'}</option>
+            <option value="BR_TAIZ">{isRtl ? 'فرع تعز والمناطق الميدانية' : 'Taiz Field Branch'}</option>
           </select>
         </div>
 

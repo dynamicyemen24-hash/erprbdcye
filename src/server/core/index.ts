@@ -36,6 +36,16 @@ export {
 } from './responseFormatter';
 export { OptimisticLock, PessimisticLock, ConsistencyChecker } from './dataIntegrity';
 export { queryMonitor, poolOptimizer, initPoolOptimizer, monitoredQuery } from './queryMonitor';
+export {
+  optimizeConnectionPool,
+  CachedQuery,
+  BatchLoader,
+  CursorPaginator,
+  MaterializedViewReader,
+  QueryProfiler,
+  StreamBatchInserter,
+  PerformanceHealth,
+} from './performance';
 export * from './types';
 export * from './helpers';
 export * from './errors';

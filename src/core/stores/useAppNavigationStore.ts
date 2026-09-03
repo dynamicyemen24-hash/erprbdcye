@@ -45,6 +45,7 @@ export function useAppNavigationStore() {
       currencies: { ar: 'العملات وأسعار الصرف', en: 'Currencies & Rates' },
       settings: { ar: 'إعدادات النظام', en: 'System Settings' },
       geospatial: { ar: 'خريطة الأثر الجغرافي', en: 'Geospatial Map' },
+      communications: { ar: 'الاتصال الإداري الذكي', en: 'Intelligent Communications' },
     };
     const info = tabNames[tab] || { ar: tab, en: tab };
     resumeIntelligenceService.recordActivity({

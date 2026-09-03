@@ -176,32 +176,8 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
 
-  if (!isOpen) return null;
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(recordCode);
-    setCopiedCode(true);
-    triggerHaptic('light');
-    setTimeout(() => setCopiedCode(false), 2000);
-  };
-
-  const handleGenerateAiSummary = () => {
-    setIsAiGenerating(true);
-    setTimeout(() => {
-      setAiSummary(
-        isRtl
-          ? `تم فحص سجل [${recordCode}] عبر الذكاء الاصطناعي المؤسسي: السجل مكتمل ومطابق لتعليمات المجال ${domainCode}. تم التحقق من سلامة الموازنة والارتباط المحاسبي المزدوج دون أي انحرافات تشغيلية. التوصية: اعتماد مرحلي منتظم.`
-          : `Record [${recordCode}] audited by Enterprise AI: Full data integrity confirmed for ${domainCode}. Double-entry ledger mapped with zero financial deviations. Recommendation: Standard progressive approval.`
-      );
-      setIsAiGenerating(false);
-      triggerHaptic('medium');
-    }, 800);
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
+    // Keyboard shortcuts — effect runs unconditionally (Rules of Hooks) and
+  // self-guards on `isOpen`; the guard below only controls rendering.
   React.useEffect(() => {
     if (!isOpen) return;
 
@@ -242,6 +218,32 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, lineItems.length, timeline.length, linkedRecords.length, auditTrail.length, attachments.length, onEdit, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(recordCode);
+    setCopiedCode(true);
+    triggerHaptic('light');
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const handleGenerateAiSummary = () => {
+    setIsAiGenerating(true);
+    setTimeout(() => {
+      setAiSummary(
+        isRtl
+          ? `تم فحص سجل [${recordCode}] عبر الذكاء الاصطناعي المؤسسي: السجل مكتمل ومطابق لتعليمات المجال ${domainCode}. تم التحقق من سلامة الموازنة والارتباط المحاسبي المزدوج دون أي انحرافات تشغيلية. التوصية: اعتماد مرحلي منتظم.`
+          : `Record [${recordCode}] audited by Enterprise AI: Full data integrity confirmed for ${domainCode}. Double-entry ledger mapped with zero financial deviations. Recommendation: Standard progressive approval.`
+      );
+      setIsAiGenerating(false);
+      triggerHaptic('medium');
+    }, 800);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   const getStatusBadge = () => {
     const colorMap = {

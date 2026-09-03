@@ -103,8 +103,8 @@ router.get('/investment-summary', authenticateToken, async (req: any, res) => {
       })
     ]);
 
-    let contracts: any[] = contractsResult.rows;
-    let activities: any[] = activitiesResult.rows;
+    const contracts: any[] = contractsResult.rows;
+    const activities: any[] = activitiesResult.rows;
 
     const projects = projectsRes.rows;
     const history = historyRes.rows;

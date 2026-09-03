@@ -41,7 +41,7 @@
 | **NEB-12** | Integration & Digital Services OS (Neon PostgreSQL, APIs & IATI) | ✅ Complete | `server/db.ts` pg pool, Neon whitelist | — |
 | **NEB-13** | AI Intelligence & Impact OS (Gemini AI & Sphere/CHS Impact) | ⚠️ Partial | Gemini AI configured, seeds disabled | — |
 | **NEB-14** | Procurement & Tenders OS (Purchasing, RFQs & Vendors) | ✅ Complete | `procurement.engine.ts`, 3-way match, PO budget hard-lock | — |
-| **NEB-15** | Sales, Revenue & Fundraising OS (Donations, Invoicing & Revenue) | ✅ Complete | DonatePage, checkout session, rate limiting | — |
+| **NEB-15** | Sales, Revenue & Fundraising OS (Donations, Invoicing & Revenue) | ✅ Complete | **Unified Revenue Engine** (`revenue.engine.ts`) + SQL migration + v2 API + React UI tab: 13-stream registry seed (IPSAS 9/23), full lifecycle (DRAFT→PENDING_APPROVAL→APPROVED→POSTED→PARTIALLY_COLLECTED→COLLECTED | REJECTED/VOIDED), automated double-entry IPSAS posting to `transactions`/`transaction_lines`, partial collection settlement, linear-regression forecasting with R² confidence tiers, concentration risk & restricted-fund insights — 19/19 Vitest tests pass; full suite 111/111 across 3 files; `tsc --noEmit` = 0 errors; server & frontend builds green | — |
 
 **Domain Gap Summary:**
 - **NEB-13**: AI Intelligence — Gemini API key configured, active impact telemetry
@@ -63,7 +63,8 @@
 |----|-------|-----|------|
 | **P1-1** | Rate limiting + CSRF | 20 req/10min volunteers, 30 req/10min donations, 5 req/10min checkout; `X-CSRF-Token` validation against cookie/header | `api/volunteers.js:1`, `api/donations.js:1`, `api/create-checkout-session.js:1` |
 | **P1-2** | Mobile finance expense flow | `createExpenseRequest` UI + `settleExpense` server call, every write through `transaction(async client=>...) + assertBalanced + CHECK total_debit=total_credit` | `finance.tsx:1`, `finance-domain.ts:54` |
-| **P1-3** | Offline store deterministic delay | Replaced `Math.min(...,1500)` with `jitter 0.8-1.2 + circuitBreaker 5→deadLetter + last-good rollback + FIELD_PACKAGE_STAGE_KEY recovery + cursor-based partial refresh` | `lib/offline-store.ts:75` (design documented) |
+| **P1-3** | Offline store deterministic delay | Replaced `Math.min(...,1500)` with `jitter 0.8-1.2 + circuitBreaker 5→deadLetter + last-good rollback + FIELD_PACKAGE_STAGE_KEY recovery + cursor-based partial refresh` | `lib/offline-store.ts:75` (design documented) |\n| **P1-6** | `enterprise_schema_completion.ts` ALTER on undefined `assets` | Added full `CREATE TABLE IF NOT EXISTS assets (...)` with 30+ columns before `ALTER TABLE assets ADD COLUMN` — unblocks schema completion & revenue table creation | `enterprise_schema_completion.ts` (pre-ALTER block) |
+
 | **P1-4** | Currency handling unification | Replaced hardcoded `SAR:65` with server-sourced FX rate; expanded `validCurrencies` to include `yer/sar`; fixed `amount*100*100`→`amount*100`; enabled `mode:subscription` for repeat donors | `DonatePage.tsx:24`, `create-checkout-session.js:73` |
 | **P1-5** | Volunteer taxonomy alignment | Aligned fields to Sanity `إغاثة/تعليم/صحة/إدارة/تسويق`; added `honeypot+Turnstile`; fixed `ALLOWED_ORIGINS` to include `rbdcye.org`; `api/erp.js:216` program/availability fix | `VolunteerPage.tsx:13`, `api/erp.js:216` |
 

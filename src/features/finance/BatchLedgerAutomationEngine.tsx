@@ -109,16 +109,16 @@ export default function BatchLedgerAutomationEngine({ lang }: BatchLedgerAutomat
 
           <div className="space-y-2 text-xs font-mono">
             <div className="p-2.5 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200 dark:border-zinc-800 flex items-center justify-between">
-              <span>USD ➡️ YER</span>
-              <span className="font-bold text-emerald-600">1 USD = 535.00 YER</span>
+              <span>من الدولار الأمريكي إلى الريال اليمني</span>
+              <span className="font-bold text-emerald-600">الدولار الأمريكي الواحد يساوي 535.00 ريال يمني</span>
             </div>
             <div className="p-2.5 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200 dark:border-zinc-800 flex items-center justify-between">
-              <span>SAR ➡️ YER</span>
-              <span className="font-bold text-emerald-600">1 SAR = 142.50 YER</span>
+              <span>من الريال السعودي إلى الريال اليمني</span>
+              <span className="font-bold text-emerald-600">الريال السعودي الواحد يساوي 142.50 ريال يمني</span>
             </div>
             <div className="p-2.5 bg-white dark:bg-zinc-900 rounded-lg border border-slate-200 dark:border-zinc-800 flex items-center justify-between">
-              <span>EUR ➡️ USD</span>
-              <span className="font-bold text-blue-600">1 EUR = 1.085 USD</span>
+              <span>من اليورو الأوروبي إلى الدولار الأمريكي</span>
+              <span className="font-bold text-blue-600">اليورو الواحد يساوي 1.085 دولار أمريكي</span>
             </div>
           </div>
         </div>

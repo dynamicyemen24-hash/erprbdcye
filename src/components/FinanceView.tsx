@@ -67,11 +67,11 @@ import EndowmentInvestmentGovernanceSuite from '../features/finance/EndowmentInv
 import ConsolidatedStatementsTab from '../features/finance/ConsolidatedStatementsTab';
 import FinanceOperationsControlBar from '../features/finance/FinanceOperationsControlBar';
 import ReverseEntryModal from '../features/finance/ReverseEntryModal';
+import UnifiedRevenueEngineTab from './finance/UnifiedRevenueEngineTab';
 import DataExchangeHub from './DataExchangeHub';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyButton } from '../core/security/PermissionGate';
-import { REAL_ENTERPRISE_DATA } from '../core/data/realEnterpriseData';
 import { EnterpriseSkeletonTable } from './common/EnterpriseSkeletonTable';
 import { PrintableOfficialVoucherModal, OfficialVoucherData } from './finance/PrintableOfficialVoucherModal';
 
@@ -82,17 +82,18 @@ interface FinanceViewProps {
   onNavigate?: (tab: string) => void;
 }
 
-type FinanceSubTab = 'coa' | 'cost_centers' | 'lineage' | 'opening_balances' | 'data_exchange' | 'entry' | 'payment_vouchers' | 'receipt_vouchers' | 'document_workflow' | 'ledger' | 'statement_query' | 'statements' | 'closings' | 'ai_parser' | 'bi_analytics' | 'governance_settings' | 'procurement' | 'currency_conversion' | 'budget_variance' | 'management_accounting' | 'e_invoicing' | 'batch_automation' | 'cfo_audit_suite' | 'endowment_governance' | 'consolidated_statements';
+type FinanceSubTab = 'coa' | 'cost_centers' | 'lineage' | 'opening_balances' | 'data_exchange' | 'entry' | 'payment_vouchers' | 'receipt_vouchers' | 'document_workflow' | 'ledger' | 'statement_query' | 'statements' | 'closings' | 'ai_parser' | 'bi_analytics' | 'governance_settings' | 'procurement' | 'currency_conversion' | 'budget_variance' | 'management_accounting' | 'e_invoicing' | 'batch_automation' | 'cfo_audit_suite' | 'endowment_governance' | 'consolidated_statements' | 'revenue_engine';
 
 export default function FinanceView({ currencies, lang, onRefresh, onNavigate }: FinanceViewProps) {
   const [activeSubTab, setActiveSubTab] = useState<FinanceSubTab>('coa');
-  const [accounts, setAccounts] = useState<Account[]>((REAL_ENTERPRISE_DATA.chart_of_accounts as any) || []);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [lines, setLines] = useState<TransactionLine[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<boolean>(false);
   
   // Security State
   const [securityLevel] = useState(3);
@@ -168,6 +169,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
 
   const fetchFinanceData = useCallback(async () => {
     setLoading(true);
+    setFetchError(false);
     try {
       const [accRes, txRes, linesRes, projRes, orgRes, actRes] = await Promise.all([
         fetch('/api/tables/chart_of_accounts'),
@@ -177,12 +179,12 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         fetch('/api/tables/organizations'),
         fetch('/api/tables/activities')
       ]);
-      
+
       if (accRes.ok) {
         const accData = await accRes.json();
-        setAccounts((accData && accData.length > 0) ? accData : ((REAL_ENTERPRISE_DATA.chart_of_accounts as any) || []));
+        setAccounts((accData && Array.isArray(accData)) ? accData : []);
       } else {
-        setAccounts((REAL_ENTERPRISE_DATA.chart_of_accounts as any) || []);
+        setFetchError(true);
       }
       if (txRes.ok) {
         const txData = await txRes.json();
@@ -205,8 +207,8 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         setActivities(actData || []);
       }
     } catch (err) {
-      console.warn('Note fetching accounting data (using institutional snapshot):', err);
-      setAccounts((REAL_ENTERPRISE_DATA.chart_of_accounts as any) || []);
+      console.warn('[Finance] Live data fetch failed — showing empty state (no stale snapshot):', err);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -531,6 +533,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       {/* Main Subtab Nav */}
       <div className="flex flex-wrap gap-2 bg-slate-100 dark:bg-zinc-900/60 p-2 rounded-2xl overflow-x-auto border border-slate-200 dark:border-zinc-800">
         {[
+          { id: 'revenue_engine', label: lang === 'ar' ? 'محرك الإيرادات الموحد (NEB-15)' : 'Unified Revenue Engine (NEB-15)', icon: TrendingUp },
           { id: 'coa', label: lang === 'ar' ? 'دليل الحسابات' : 'Chart of Accounts', icon: FolderTree },
           { id: 'cost_centers', label: lang === 'ar' ? 'مراكز التكلفة ومحاسبة الأنشطة' : 'Cost Centers & Activity OS', icon: Calculator },
           { id: 'lineage', label: lang === 'ar' ? 'سلسلة التتبع والتكامل المؤسسي' : 'Cross-Entity Lineage & Traceability', icon: GitCommit },
@@ -592,9 +595,28 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         })}
       </div>
 
+      {/* SUBTAB 0: UNIFIED REVENUE ENGINE (NEB-15) — ANY REVENUE TYPE, FULL LIFECYCLE */}
+      {activeSubTab === 'revenue_engine' && (
+        <UnifiedRevenueEngineTab
+          lang={lang}
+          projects={projects}
+        />
+      )}
+
       {/* SUBTAB 1: CHART OF ACCOUNTS HIERARCHICAL TREEVIEW */}
       {activeSubTab === 'coa' && (
-        <ChartOfAccountsTreeView 
+        <>
+          {fetchError && (
+            <div className="mb-3 px-4 py-3 rounded-2xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-xs font-bold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>
+                {lang === 'ar'
+                  ? 'تعذّر الاتصال بنظام المعطيات الحيّ. تُعرض البيانات الفارغة الواقعية (لا لقطة قديمة). أعد المحاولة بعد تأكيد توفر الخادم.'
+                  : 'Live data source unavailable. Showing the real empty state (no stale snapshot). Verify server connectivity and retry.'}
+              </span>
+            </div>
+          )}
+          <ChartOfAccountsTreeView 
           accounts={accounts} 
           lang={lang} 
           onRefresh={fetchFinanceData} 
@@ -612,7 +634,8 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
           onSaveAccounts={(updated) => {
             setAccounts(updated);
           }}
-        />
+          />
+        </>
       )}
 
       {/* SUBTAB: STANDARDIZED COST CENTERS MANAGEMENT */}
@@ -991,17 +1014,32 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
 
       {/* SUBTAB 17: CFO & CPA EXECUTIVE AUDIT SUITE 360 */}
       {activeSubTab === 'cfo_audit_suite' && (
-        <CFOExecutiveAuditSuite lang={lang} />
+        <CFOExecutiveAuditSuite 
+          lang={lang}
+          accounts={accounts}
+          transactions={transactions}
+          lines={lines}
+          projects={projects}
+        />
       )}
 
       {/* SUBTAB 18: ENDOWMENTS, INVESTMENT PROJECTS & GOVERNANCE CAPS SUITE */}
       {activeSubTab === 'endowment_governance' && (
-        <EndowmentInvestmentGovernanceSuite lang={lang} />
+        <EndowmentInvestmentGovernanceSuite 
+          lang={lang}
+          accounts={accounts}
+          transactions={transactions}
+          lines={lines}
+          projects={projects}
+        />
       )}
 
       {/* SUBTAB 19: MULTI-BRANCH INTER-COMPANY CONSOLIDATION ENGINE (IPSAS-35) */}
       {activeSubTab === 'consolidated_statements' && (
-        <ConsolidatedStatementsTab lang={lang} />
+        <ConsolidatedStatementsTab 
+          lang={lang} 
+          accounts={accounts}
+        />
       )}
 
       {/* OFFICIAL A4 STAMPED VOUCHER MODAL */}

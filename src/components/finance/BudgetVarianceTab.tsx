@@ -134,7 +134,7 @@ export default function BudgetVarianceTab({
       // Determine if an account is an expense account
       // Standard practice: account type 'EXPENSE', or account code starts with '6'
       let actualExpenseYer = 0;
-      let actualExpenseUSD = 0;
+      const actualExpenseUSD = 0;
       
       // We will sum the debits minus credits for expense lines, converted to YER/USD
       projectLines.forEach(line => {

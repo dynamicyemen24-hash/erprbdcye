@@ -14,11 +14,15 @@ import {
   Check, 
   X,
   AlertTriangle,
-  Info
+  Info,
+  Activity,
+  Target,
+  ShieldAlert
 } from 'lucide-react';
 import { Program } from '../types';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { Briefcase } from 'lucide-react';
+import { ppmApi, PpmOverview } from '../core/ppm/ppmData';
 
 interface ProgramsViewProps {
   programs: Program[];
@@ -44,6 +48,11 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
+
+  // Program health panel
+  const [expandedProgramId, setExpandedProgramId] = useState<string | null>(null);
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [healthData, setHealthData] = useState<{ overview: PpmOverview | null; scorecard: any[]; error?: string }>({ overview: null, scorecard: [] });
 
   // Form fields
   const [code, setCode] = useState('');
@@ -184,6 +193,41 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
     }
   };
 
+  const toggleHealth = async (progId: string) => {
+    if (expandedProgramId === progId) {
+      setExpandedProgramId(null);
+      return;
+    }
+    setExpandedProgramId(progId);
+    setHealthLoading(true);
+    setHealthData({ overview: null, scorecard: [], error: undefined });
+    try {
+      const [ovRes, scRes] = await Promise.all([
+        ppmApi.getPortfolioOverview(),
+        ppmApi.getScorecard(),
+      ]);
+      const errors: string[] = [];
+      if (!ovRes.ok) errors.push(ovRes.error || 'overview');
+      if (!scRes.ok) errors.push(scRes.error || 'scorecard');
+      setHealthData({
+        overview: ovRes.ok ? ovRes.data : null,
+        scorecard: scRes.ok ? scRes.data : [],
+        error: errors.length > 0 ? errors.join('; ') : undefined,
+      });
+    } catch (err: any) {
+      setHealthData({ overview: null, scorecard: [], error: err?.message });
+    } finally {
+      setHealthLoading(false);
+    }
+  };
+
+  const getRatingBadge = (score: number) => {
+    if (score >= 80) return { label: 'EXCELLENT', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
+    if (score >= 60) return { label: 'GOOD', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+    if (score >= 40) return { label: 'FAIR', color: 'bg-amber-100 text-amber-700 border-amber-200' };
+    return { label: 'CRITICAL', color: 'bg-rose-100 text-rose-700 border-rose-200' };
+  };
+
   // Filter programs logic
   const filtered = programs.filter(prog => {
     const matchesSearch = 
@@ -321,9 +365,9 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
             const targetMetPercent = target > 0 ? Math.min(Math.round((actual / target) * 100), 100) : 0;
 
             return (
+              <React.Fragment key={prog.id}>
               <div 
-                key={prog.id}
-                className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between overflow-hidden hover:shadow-md hover:border-emerald-500/50 transition-all duration-200"
+                className={`bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between overflow-hidden hover:shadow-md hover:border-emerald-500/50 transition-all duration-200 ${expandedProgramId === prog.id ? 'ring-2 ring-emerald-500/30' : ''}`}
               >
                 {/* Card Header Banner */}
                 <div className="p-5 border-b border-slate-100 flex-1 space-y-4">
@@ -398,6 +442,17 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
 
                   <div className="flex items-center gap-2">
                     <button 
+                      onClick={() => toggleHealth(prog.id)}
+                      className={`p-1.5 border border-transparent rounded transition-all ${
+                        expandedProgramId === prog.id
+                          ? 'text-emerald-600 bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                          : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'
+                      }`}
+                      title={lang === 'ar' ? 'صحة البرنامج' : 'Program Health'}
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
                       onClick={() => openModal(prog)}
                       className="p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 rounded transition-all"
                       title={lang === 'ar' ? 'تعديل البيانات' : 'Edit program'}
@@ -414,6 +469,139 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                   </div>
                 </div>
               </div>
+
+              {expandedProgramId === prog.id && (
+                <div className="col-span-full bg-white dark:bg-zinc-900 rounded-2xl border border-emerald-200 dark:border-emerald-800 shadow-xs p-5 space-y-4 animate-in fade-in">
+                  {healthLoading ? (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                      <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-xs text-zinc-400 font-medium">{lang === 'ar' ? 'جاري تحميل صحة البرنامج...' : 'Loading program health data...'}</p>
+                    </div>
+                  ) : healthData.error && !healthData.overview ? (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                      <ShieldAlert className="w-8 h-8 text-rose-400" />
+                      <p className="text-xs text-rose-600 font-semibold text-center">
+                        {lang === 'ar' ? 'فشل الاتصال بالمحرك' : 'Engine API unavailable'}
+                      </p>
+                      <p className="text-[10px] text-zinc-400">{healthData.error}</p>
+                    </div>
+                  ) : healthData.overview ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                        <Activity className="w-4 h-4 text-emerald-600" />
+                        <h3 className="text-xs font-extrabold text-slate-800 uppercase">
+                          {lang === 'ar' ? 'لوحة صحة البرنامج من المحرك الحي' : 'Live Engine Program Health'}
+                        </h3>
+                      </div>
+
+                      {(() => {
+                        const ovPrograms = healthData.overview!.programs;
+                        const ovProjects = healthData.overview!.projects;
+                        const matchingProjects = ovProjects.filter(
+                          (p: any) => String(p.program_id || '') === String(prog.id) || String(p.id || '') === String(prog.id)
+                        );
+                        const matchingProgram = ovPrograms.find(
+                          (p: any) => String(p.program_id || p.id || '') === String(prog.id)
+                        );
+                        const budgetVal = Number(matchingProgram?.budget ?? matchingProgram?.budget_base ?? healthData.overview!.summary.totalBudget ?? 0);
+                        const projectCount = matchingProjects.length || Number(matchingProgram?.total_projects ?? 0);
+                        const avgProg = matchingProjects.length > 0
+                          ? Math.round(matchingProjects.reduce((s: number, p: any) => s + Number(p.progress_percent ?? 0), 0) / matchingProjects.length)
+                          : Number(matchingProgram?.progress_percent ?? healthData.overview!.summary.avgProgress ?? 0);
+                        const atRisk = healthData.overview!.risks.filter(
+                          (r: any) => String(r.program_id || '') === String(prog.id)
+                        ).length;
+                        const programScorecard = healthData.scorecard.filter(
+                          (s: any) => String(s.program_id || '') === String(prog.id) || (matchingProjects.some((p: any) => String(p.project_id || p.id) === String(s.projectId || s.project_id)))
+                        );
+
+                        return (
+                          <>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                              <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 space-y-1">
+                                <span className="text-[9px] font-bold uppercase text-emerald-600 flex items-center gap-1">
+                                  <DollarSign className="w-3 h-3" />
+                                  {lang === 'ar' ? 'الميزانية' : 'Budget'}
+                                </span>
+                                <span className="text-sm font-extrabold text-slate-800">{formatCurrency(String(budgetVal))}</span>
+                              </div>
+                              <div className="bg-blue-50 p-3 rounded-xl border border-blue-100 space-y-1">
+                                <span className="text-[9px] font-bold uppercase text-blue-600 flex items-center gap-1">
+                                  <Layers className="w-3 h-3" />
+                                  {lang === 'ar' ? 'المشاريع' : 'Projects'}
+                                </span>
+                                <span className="text-sm font-extrabold text-slate-800">{projectCount}</span>
+                              </div>
+                              <div className="bg-amber-50 p-3 rounded-xl border border-amber-100 space-y-1">
+                                <span className="text-[9px] font-bold uppercase text-amber-600 flex items-center gap-1">
+                                  <TrendingUp className="w-3 h-3" />
+                                  {lang === 'ar' ? 'متوسط التقدم' : 'Avg Progress'}
+                                </span>
+                                <span className="text-sm font-extrabold text-slate-800">{avgProg}%</span>
+                              </div>
+                              <div className={`${atRisk > 0 ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'} p-3 rounded-xl border space-y-1`}>
+                                <span className={`text-[9px] font-bold uppercase flex items-center gap-1 ${atRisk > 0 ? 'text-rose-600' : 'text-zinc-400'}`}>
+                                  <ShieldAlert className="w-3 h-3" />
+                                  {lang === 'ar' ? 'مخاطر نشطة' : 'At-Risk'}
+                                </span>
+                                <span className="text-sm font-extrabold text-slate-800">{atRisk}</span>
+                              </div>
+                            </div>
+
+                            {programScorecard.length > 0 && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Target className="w-3.5 h-3.5 text-amber-500" />
+                                  <h4 className="text-[10px] font-extrabold text-slate-600 uppercase">
+                                    {lang === 'ar' ? 'تصنيف المشاريع المتوازن' : 'Balanced Scorecard Rankings'}
+                                  </h4>
+                                </div>
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-[10px]">
+                                    <thead>
+                                      <tr className="border-b border-slate-200 text-zinc-400 font-bold uppercase">
+                                        <th className="text-left py-2 pr-2">{lang === 'ar' ? 'المشروع' : 'Project'}</th>
+                                        <th className="text-center py-2 px-2">{lang === 'ar' ? 'الدرجة' : 'Score'}</th>
+                                        <th className="text-center py-2 px-2">{lang === 'ar' ? 'التصنيف' : 'Rating'}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {programScorecard.map((sc: any, idx: number) => {
+                                        const score = Number(sc.totalScore ?? sc.score ?? 0);
+                                        const badge = getRatingBadge(score);
+                                        return (
+                                          <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50">
+                                            <td className="py-2 pr-2 font-semibold text-slate-700">
+                                              {lang === 'ar' ? (sc.projectName || sc.project_name || '-') : (sc.projectNameEn || sc.projectName || sc.project_name || '-')}
+                                            </td>
+                                            <td className="py-2 px-2 text-center font-extrabold text-slate-800">{score}<span className="text-zinc-400">/100</span></td>
+                                            <td className="py-2 px-2 text-center">
+                                              <span className={`px-2 py-0.5 rounded-full border text-[9px] font-bold ${badge.color}`}>
+                                                {badge.label}
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            )}
+
+                            {programScorecard.length === 0 && matchingProjects.length === 0 && (
+                              <p className="text-xs text-zinc-400 text-center py-2">
+                                {lang === 'ar' ? 'لا توجد مشاريع مسجلة لهذا البرنامج في المحرك' : 'No engine projects linked to this program yet'}
+                              </p>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+              </React.Fragment>
             );
           })}
         </div>

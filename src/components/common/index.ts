@@ -45,4 +45,4 @@ export { default as OfflineSyncTelemetryBar }   from './OfflineSyncTelemetryBar'
 export { default as UniversalObjectPageModal }  from './UniversalObjectPageModal';
 
 // ── Icon System ───────────────────────────────────────────────────────────────
-export { default as SovereignSystemIcons }      from './SovereignSystemIcons';
+export * from './SovereignSystemIcons';

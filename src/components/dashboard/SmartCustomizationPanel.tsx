@@ -35,6 +35,7 @@ interface SmartCustomizationPanelProps {
   onSaveCustomPreset: (preset: DashboardPreset) => void;
   onDeletePreset: (id: string) => void;
   customPresets: DashboardPreset[];
+  availablePresets?: DashboardPreset[];
   isOpen: boolean;
   onClose: () => void;
 }
@@ -43,7 +44,7 @@ export const SYSTEM_PRESETS: DashboardPreset[] = [
   {
     id: 'sys-full',
     name_en: 'Executive Focus Dashboard',
-    name_ar: 'شراكات المانحين والعقود',
+    name_ar: 'التركيز التنفيذي',
     isSystem: true,
     visibleWidgets: {
       kpiCards: true,
@@ -64,7 +65,7 @@ export const SYSTEM_PRESETS: DashboardPreset[] = [
   {
     id: 'sys-operations',
     name_en: 'Field Operations & Planning',
-    name_ar: 'الأنظمة والوحدات التشغيلية',
+    name_ar: 'التشغيل الميداني والتخطيط',
     isSystem: true,
     visibleWidgets: {
       kpiCards: true,
@@ -104,6 +105,48 @@ export const SYSTEM_PRESETS: DashboardPreset[] = [
     cardStyle: 'shadowed'
   },
   {
+    id: 'sys-command-center',
+    name_en: 'Command Center Cockpit',
+    name_ar: 'قمرة القيادة ومركز القرار',
+    isSystem: true,
+    visibleWidgets: {
+      kpiCards: true,
+      operationsCenter: true,
+      domainOverview: true,
+      smartAlerts: true,
+      bottleneckAnalysis: true,
+      charts: false,
+      activityLog: true,
+      aiInsights: true,
+      calendar: false,
+      geoMap: false,
+      fieldEfficiency: false
+    },
+    spacing: 'compact',
+    cardStyle: 'bordered'
+  },
+  {
+    id: 'sys-field-mobile',
+    name_en: 'Field Mobile Focus',
+    name_ar: 'النمط الميداني المختصر',
+    isSystem: true,
+    visibleWidgets: {
+      kpiCards: true,
+      operationsCenter: true,
+      domainOverview: false,
+      smartAlerts: true,
+      bottleneckAnalysis: false,
+      charts: false,
+      activityLog: true,
+      aiInsights: false,
+      calendar: true,
+      geoMap: true,
+      fieldEfficiency: true
+    },
+    spacing: 'compact',
+    cardStyle: 'flat'
+  },
+  {
     id: 'sys-minimal',
     name_en: 'Minimal Actions Console',
     name_ar: 'لوحة الإجراءات البسيطة',
@@ -134,6 +177,7 @@ export function SmartCustomizationPanel({
   onSaveCustomPreset,
   onDeletePreset,
   customPresets,
+  availablePresets = SYSTEM_PRESETS,
   isOpen,
   onClose
 }: SmartCustomizationPanelProps) {
@@ -281,7 +325,7 @@ export function SmartCustomizationPanel({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* System Presets */}
-                  {SYSTEM_PRESETS.map((preset) => {
+                  {availablePresets.filter(preset => preset.isSystem).map((preset) => {
                     const isActive = currentPreset.id === preset.id;
                     const visibleCount = Object.values(preset.visibleWidgets).filter(Boolean).length;
 
@@ -534,8 +578,9 @@ export function SmartCustomizationPanel({
             <div className="bg-slate-50 dark:bg-zinc-900/50 px-6 py-4 border-t border-slate-200 dark:border-zinc-800 flex justify-between items-center shrink-0">
               <button
                 onClick={() => {
-                  onApplyPreset(SYSTEM_PRESETS[0]);
-                  setTempConfig(SYSTEM_PRESETS[0]);
+                  const defaultPreset = availablePresets[0] || SYSTEM_PRESETS[0];
+                  onApplyPreset(defaultPreset);
+                  setTempConfig(defaultPreset);
                 }}
                 className="text-[10px] font-bold text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 flex items-center gap-1 transition-colors cursor-pointer"
               >

@@ -14,11 +14,13 @@ export default function HRDocumentGeneratorModal({
   lang,
   employeeData
 }: HRDocumentGeneratorModalProps) {
-  if (!isOpen) return null;
-  const isRtl = lang === 'ar';
-
+    // Hooks must run unconditionally (Rules of Hooks) — the guard below only
+  // controls rendering, never hook execution.
   const [docType, setDocType] = useState<'permanent' | 'volunteer' | 'consultant' | 'daily_wage' | 'coi' | 'clearance'>('volunteer');
   const [unSector, setUnSector] = useState<string>('FSC');
+
+  if (!isOpen) return null;
+  const isRtl = lang === 'ar';
 
   const empName = employeeData?.full_name_ar || employeeData?.name || (isRtl ? 'أحمد محمد المعمري' : 'Ahmad M. Al-Maamari');
   const empCode = employeeData?.employee_code || 'EMP-2026-089';

@@ -20,7 +20,7 @@
 5. Add Environment Variables:
    - NODE_ENV = production
    - PORT = 3000
-   - DATABASE_URL = postgresql://neondb_owner:npg_dIXtW6LQw8sH@ep-shiny-wind-ai4w5o0l-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
+   - DATABASE_URL = postgresql://<user>:<password>@<neon-host>/<database>?sslmode=require  (never commit real credentials — rotate immediately if leaked)
    - JWT_SECRET = (generate a random 64-char string)
    - CORS_ORIGINS = https://erprbdcye.org,https://www.erprbdcye.org
 
@@ -124,8 +124,42 @@ If you want a simpler setup, deploy both frontend and backend on Render:
 ## Database Migration
 ## ═══════════════════════════════════════════════════════════════
 
-The database schema is auto-migrated on server startup.
-No manual migration steps needed.
+The database schema is **auto-migrated on server startup** (`bootstrapDatabase`):
+
+1. **Phase 1** — Enterprise schema completion (tables across all 15 NEB domains)
+2. **Phase 1.5** — Pending SQL migrations from `/migrations/*.sql` are applied
+   automatically via the `Migrator` and tracked in the `_migrations` table. All files
+   are idempotent (`CREATE ... IF NOT EXISTS` / `ON CONFLICT DO NOTHING`) — re-runs are safe.
+3. **Phase 2–4** — Seed data, advanced views/procedures, performance indexes.
+
+CLI options:
+
+```bash
+npm run migration:list    # list migration files
+npm run migration:run    # describe auto-apply behavior (files ship to DB at boot)
+```
+
+> ⚠️ Existing production DBs: the first boot after this update applies 19 pending
+> migrations automatically. Take a Neon backup (`Neon → Branches → Create Branch` or
+> `pg_dump`) before deploying.
+
+
+
+## ═══════════════════════════════════════════════════════════════
+## Security Notes (2026-09-03)
+## ═══════════════════════════════════════════════════════════════
+
+- Set `ALLOWED_ORIGINS=https://erprbdcye.org,https://www.erprbdcye.org` — CORS
+  rejects everything else in production.
+- Set `JWT_SECRET` (≥ 32 chars) and optionally `JWT_REFRESH_SECRET` (recommended).
+- The serverless `/api/*` shims are tenant-scoped **exclusively by JWT claims** — never
+  trust `X-Organization-Id` headers (they are rejected with 403 on mismatch).
+- Dashboard/statistics endpoints fail closed (503) in production when the DB is down —
+  no fabricated numbers are ever served.
+- Rate limiting now keys on the real client IP via `trust proxy` behind Cloudflare → Render.
+- Enable Cloudflare **Bot Fight Mode** and **Rate Limiting Rules** for `api.erprbdcye.org/*`.
+- Rotate `DEFAULT_USER_PASSWORD` immediately after first production seed; enable forced
+  password change (the seeder flags seeded users with `password_expires_at`).
 
 ## ═══════════════════════════════════════════════════════════════
 ## Default Login

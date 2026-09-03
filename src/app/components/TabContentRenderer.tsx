@@ -18,6 +18,7 @@ const ProjectsView = lazyWithRetry(() => import('../../components/ProjectsView')
 const ActivitiesView = lazyWithRetry(() => import('../../components/ActivitiesView'), 'ActivitiesView');
 const OperationalScenariosView = lazyWithRetry(() => import('../../components/OperationalScenariosView'), 'OperationalScenariosView');
 const ResourceAllocationView = lazyWithRetry(() => import('../../components/ResourceAllocationView'), 'ResourceAllocationView');
+const PortfolioIntelligenceView = lazyWithRetry(() => import('../../components/PortfolioIntelligenceView'), 'PortfolioIntelligenceView');
 
 const BeneficiariesView = lazyWithRetry(() => import('../../components/BeneficiariesView'), 'BeneficiariesView');
 const SponsorshipsView = lazyWithRetry(() => import('../../components/SponsorshipsView'), 'SponsorshipsView');
@@ -25,7 +26,7 @@ const ThirdPartyNetworkCenterView = lazyWithRetry(() => import('../../components
 
 const ProcurementWorkspaceView = lazyWithRetry(() => import('../../components/ProcurementWorkspaceView'), 'ProcurementWorkspaceView');
 const ContractManagementView = lazyWithRetry(() => import('../../components/ContractManagementView').then(m => ({ default: m.ContractManagementView })), 'ContractManagementView');
-const InventoryManagementView = lazyWithRetry(() => import('../../components/InventoryManagementView').then(m => ({ default: m.InventoryManagementView })), 'InventoryManagementView');
+const InventoryWorkspaceView = lazyWithRetry(() => import('../../components/inventory/InventoryWorkspaceView'), 'InventoryWorkspaceView');
 
 const FinanceView = lazyWithRetry(() => import('../../components/FinanceView'), 'FinanceView');
 const CurrenciesView = lazyWithRetry(() => import('../../components/CurrenciesView'), 'CurrenciesView');
@@ -46,6 +47,7 @@ const InvestmentProjectsView = lazyWithRetry(() => import('../../components/Inve
 const SalesRevenueView = lazyWithRetry(() => import('../../components/SalesRevenueView'), 'SalesRevenueView');
 const InstitutionalRoleWorkspaces = lazyWithRetry(() => import('../../components/workspaces/InstitutionalRoleWorkspaces'), 'InstitutionalRoleWorkspaces');
 const BusinessIntelligenceView = lazyWithRetry(() => import('../../components/BusinessIntelligenceView'), 'BusinessIntelligenceView');
+const CommunicationsView = lazyWithRetry(() => import('../../components/CommunicationsView'), 'CommunicationsView');
 import { BINexusSymbol } from '../../components/bi/BIIcons';
 
 // Lucide Icons for Premium Window Chrome
@@ -55,7 +57,7 @@ import {
   ShieldAlert, CheckCircle2, Lock, Unlock, Database, Eye, RefreshCw,
   Columns, ChevronDown, Clock, ArrowRightLeft, Sparkles, BookOpen, 
   Sliders, Compass, Briefcase, Layers, Activity, Users, Heart, Coins, 
-  ShieldCheck, TrendingUp, User, Box, FileCheck, PlayCircle, Calendar, Globe, Settings
+  ShieldCheck, TrendingUp, User, Box, FileCheck, FileText, PlayCircle, Calendar, Globe, Settings
 } from 'lucide-react';
 
 export interface TabContentRendererProps {
@@ -75,6 +77,7 @@ export interface TabContentRendererProps {
   sysSettings: any[];
   beneficiaries: any[];
   sponsorships: any[];
+  activities: any[];
   approvalRequests: any[];
   systemAlerts: string[];
   serverStats: any;
@@ -105,6 +108,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   sysSettings,
   beneficiaries,
   sponsorships,
+  activities,
   approvalRequests,
   systemAlerts,
   serverStats,
@@ -199,6 +203,8 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     programs: { icon: Briefcase, title_ar: 'نظام البرامج التنموية', title_en: 'Programs Management OS', domainCode: 'NEB-03', desc_ar: 'تخطيط البرامج الاستراتيجية الكبرى للجمعية وموازناتها الإنمائية.', desc_en: 'Strategic multi-sector programs planning, funding streams, and overarching metrics.' },
     projects: { icon: Layers, title_ar: 'نظام المشاريع الميدانية', title_en: 'Projects Management OS', domainCode: 'NEB-04', desc_ar: 'إدارة دورة حياة المشاريع، نسب التنفيذ الفعلي والمالي، وتوزيع المهام الميدانية.', desc_en: 'Detailed field projects lifecycle, progress charts, tasks allocation, and active status.' },
     activities: { icon: Activity, title_ar: 'الأنشطة والمهام الميدانية', title_en: 'Field Activities & Tasks', domainCode: 'NEB-05', desc_ar: 'تنظيم ومتابعة المهام الميدانية، بطاقات العمل اليومية، وقوائم الإنجاز.', desc_en: 'Detailed task planning, field checklists, and progress tracking.' },
+    field_tasks: { icon: CheckCircle2, title_ar: 'توزيع المهام الميدانية', title_en: 'Field Task Dispatch', domainCode: 'NEB-05', desc_ar: 'توزيع المهام اليومية ومواءمة الموارد والفرق الميدانية.', desc_en: 'Dispatch daily tasks and align field teams and resources.' },
+    portfolio_intelligence: { icon: Layers, title_ar: 'ذكاء المحفظة والمسار الحرج', title_en: 'Portfolio Intelligence', domainCode: 'NEB-02', desc_ar: 'تصنيف الصحة الاستراتيجي عبر بطاقة قياس متوازنة، شبكة المسار الحرج، والتخطيط المكتسب الحيّ.', desc_en: 'Balanced Scorecard ranking, critical path network, and live earned value from the real engine.' },
     beneficiaries: { icon: Users, title_ar: 'نظام المستفيدين والخدمات', title_en: 'Service Delivery & Beneficiaries OS', domainCode: 'NEB-06', desc_ar: 'قواعد بيانات المستفيدين، التحقق من الهوية الوطنية وتطبيق معايير الاستحقاق.', desc_en: 'Beneficiary registries, eligibility criteria, and humanitarian assistance routing.' },
     sponsorships: { icon: Heart, title_ar: 'نظام الكفالات والرعاية الاجتماعية', title_en: 'Sponsorships & Welfare OS', domainCode: 'NEB-08', desc_ar: 'برامج كفالات الأيتام، الأسر المحتاجة، الرعاية التعليمية، والتحويلات المالية الآمنة.', desc_en: 'Sponsorship programs, orphan registries, monthly distribution auditing, and compliance.' },
     finance: { icon: Coins, title_ar: 'نظام المالية والحوكمة', title_en: 'Finance & Compliance OS', domainCode: 'NEB-10', desc_ar: 'إدارة القيود اليومية والحسابات والموازنات العمومية والتقارير المالية المعتمدة.', desc_en: 'Double-entry general ledger, budget lines audit, and financial statements.' },
@@ -207,7 +213,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     users: { icon: User, title_ar: 'نظام الكادر والملفات المهنية', title_en: 'Resource & Personnel OS', domainCode: 'NEB-09', desc_ar: 'السجلات الوظيفية للفرق الإنسانية، تخطيط المهام الميدانية وتتبع الحضور الرقمي.', desc_en: 'Staff profiles, humanitarian field logs, skills mapping, and active team locations.' },
     inventory: { icon: Box, title_ar: 'نظام الإمداد والمخزون الإغاثي', title_en: 'Supply Chain & Inventory OS', domainCode: 'NEB-09', desc_ar: 'مستودعات المواد الإغاثية والطبية، مستويات إعادة الطلب الآمن، وإذن التوريد والصرف.', desc_en: 'Humanitarian inventory warehouses, logistics pipelines, stock movements, and asset registers.' },
     procurement: { icon: ShoppingCart, title_ar: 'نظام المشتريات والمناقصات (P2P)', title_en: 'Procurement & Tenders OS', domainCode: 'NEB-14', desc_ar: 'دورة المشتريات المتكاملة، استدراج العروض، أوامر الشراء، وفحص واستلام المواد والمطابقة الثلاثية.', desc_en: 'End-to-end P2P cycle, RFQs, purchase orders, warehouse intake & 3-way matching.' },
-    contracts: { icon: FileCheck, title_ar: 'نظام العقود والاتفاقيات', title_en: 'Contracts & Procurement OS', domainCode: 'NEB-08', desc_ar: 'مناقصات تأمين السلال الغذائية والمعدات، تصنيف الموردين، والدفعات التعاقدية.', desc_en: 'Supplier tenders, equipment logistics procurement, and contractual compliance.' },
+    contracts: { icon: FileCheck, title_ar: 'نظام العقود والاتفاقيات', title_en: 'Contracts & Agreements OS', domainCode: 'NEB-08', desc_ar: 'إدارة الاتفاقيات والالتزامات التعاقدية والشراكات المؤسسية.', desc_en: 'Manage agreements, contractual obligations, and institutional partnerships.' },
     currencies: { icon: Coins, title_ar: 'نظام العملات والصرف الأجنبي', title_en: 'Foreign Exchange OS', domainCode: 'NEB-10', desc_ar: 'تحديث أسعار صرف الريال اليمني والدولار والريال السعودي في الوقت الفعلي.', desc_en: 'Live multi-currency rate tracking, forex conversion logs, and treasury operations.' },
     settings: { icon: Settings, title_ar: 'إعدادات النظام والمنظمة', title_en: 'System Configurations OS', domainCode: 'NEB-12', desc_ar: 'تهيئة معايير الأمان، وبيانات المنظمة ونطاقات العمل.', desc_en: 'General software system configurations and organizational preferences.' },
     audit: { icon: Database, title_ar: 'سجل التدقيق المؤسسي', title_en: 'Audit Logs OS', domainCode: 'NEB-11', desc_ar: 'مراقبة وتوثيق كافة العمليات الإدارية والمالية لضمان أعلى معايير الشفافية.', desc_en: 'Chronological audit logs tracking administrative and financial events.' },
@@ -221,7 +227,8 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     hr_dashboard: { icon: Users, title_ar: 'لوحة إدارة الموارد البشرية', title_en: 'HR Management Dashboard', domainCode: 'NEB-09', desc_ar: 'إدارة الكادر الوظيفي، تقييم الأداء، وتوازن المهام.', desc_en: 'HR workforce management, performance appraisal, and workload balancing.' },
     'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', domainCode: 'NEB-14', desc_ar: 'إدارة أطراف العملية، مطابقة القسائم الرقمية، ومطالبات وتسويات التجار والشركاء.', desc_en: 'Third-party merchants, digital voucher fulfillment, claims processing, and settlements.' },
     sales: { icon: Coins, title_ar: 'نظام المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', domainCode: 'NEB-15', desc_ar: 'إدارة حملات التبرع، الاشتراكات والمنتجات الوقفية، الفواتير، ونمو الإيرادات المستدامة.', desc_en: 'Fundraising campaigns, endowment products, invoices, and sustainable revenue generation.' },
-    business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', domainCode: 'NEB-13', desc_ar: 'ذكاء الأثر ومصفوفة الارتباط التكاملي الموزع على الوحدات التشغيلية وفق معايير CHS وإسفير وSROI.', desc_en: 'Cross-domain impact intelligence matrix distributed across operational units based on CHS, Sphere & SROI standards.' }
+    business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', domainCode: 'NEB-13', desc_ar: 'ذكاء الأثر ومصفوفة الارتباط التكاملي الموزع على الوحدات التشغيلية وفق معايير CHS وإسفير وSROI.', desc_en: 'Cross-domain impact intelligence matrix distributed across operational units based on CHS, Sphere & SROI standards.' },
+    communications: { icon: FileText, title_ar: 'نظام الاتصال الإداري الذكي', title_en: 'Intelligent Communications OS', domainCode: 'NEB-11', desc_ar: 'المذكرات والتعاميم والتوجيهات الرسمية بوحدة اعتماد وتوزيع وسجل توثيق مترابط مع الوحدات.', desc_en: 'Official memoranda, circulars and directives with approval, distribution registry and cross-unit linkage.' }
   };
 
   const [internalHomeMode, setInternalHomeMode] = useState<'work_first' | 'classic_analytics'>(() => {
@@ -280,6 +287,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             approvalRequests={approvalRequests}
             currentUser={currentUser}
             activeOrg={activeOrg}
+            orgSettings={orgSettings}
             orgName={orgName}
             onOpenHelpers={onOpenHelpers}
             onOpenSystemMap={onOpenSystemMap}
@@ -330,6 +338,20 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             onNavigate={safeNavigate} 
           />
         );
+      case 'field_tasks':
+        return (
+          <ActivitiesView
+            lang={lang}
+            programs={programs}
+            projects={projects}
+            beneficiaries={beneficiaries}
+            loading={loading}
+            onRefresh={onRefreshData}
+            onNavigate={safeNavigate}
+          />
+        );
+      case 'portfolio_intelligence':
+        return <PortfolioIntelligenceView lang={lang} onNavigate={safeNavigate} />;
       case 'beneficiaries':
         return (
           <BeneficiariesView 
@@ -351,7 +373,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
       case 'approvals':
         return <ApprovalWorkflowView currentUser={currentUser as any} lang={lang} onRefresh={onRefreshData} initialStatusFilter={drillDownFilters.approvalsStatus} onNavigate={safeNavigate} />;
       case 'reports':
-        return <ReportsView programs={programs} projects={projects} beneficiaries={beneficiaries} sponsorships={sponsorships} currencies={currencies} lang={lang} organizations={organizations} onNavigate={safeNavigate} />;
+        return <ReportsView programs={programs} projects={projects} beneficiaries={beneficiaries} sponsorships={sponsorships} currencies={currencies} lang={lang} activities={activities} organizations={organizations} onNavigate={safeNavigate} />;
       case 'business_intelligence':
         return (
           <BusinessIntelligenceView
@@ -364,10 +386,20 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             onNavigate={safeNavigate}
           />
         );
+      case 'communications':
+        return (
+          <CommunicationsView
+            lang={lang}
+            currentUser={currentUser}
+            projects={projects}
+            programs={programs}
+            onNavigate={safeNavigate}
+          />
+        );
       case 'users':
         return <UsersView users={users} roles={roles} loading={loading} onRefresh={onRefreshData} lang={lang} />;
-      case 'inventory':
-        return <InventoryManagementView lang={lang} currentUser={currentUser} beneficiaries={beneficiaries} onNavigate={safeNavigate} />;
+            case 'inventory':
+        return <InventoryWorkspaceView lang={lang} currentUser={currentUser} onNavigate={safeNavigate} />;
       case 'procurement':
         return (
           <ProcurementWorkspaceView

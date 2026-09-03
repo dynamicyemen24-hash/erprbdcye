@@ -1,28 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
-import { adminAuth } from '../lib/firebase-admin.ts';
-import { DecodedIdToken } from 'firebase-admin/auth';
+import { authenticateToken, AuthenticatedRequest } from '../server/middleware/auth.middleware';
+
+/**
+ * NexoraOS™ — Unified Auth Entry Point
+ *
+ * Deprecated shim. The system uses a single JWT-based authentication chain via
+ * `authenticateToken` from `../server/middleware/auth.middleware`.
+ *
+ * This file previously hosted a redundant Firebase Admin `verifyIdToken` path,
+ * which was removed to eliminate the dual-auth conflict:
+ *   - JWT (jsonwebtoken) is THE single source of truth for API authentication.
+ *   - Firebase SDK (src/lib/firebase.ts) is used client-side ONLY for Google
+ *     social sign-in, NOT for server authorization.
+ */
 
 export interface AuthRequest extends Request {
-  user?: DecodedIdToken;
+  user?: AuthenticatedRequest['user'];
 }
 
-export const requireAuth = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized: Missing token' });
-  }
+export const requireAuth = authenticateToken;
 
-  const token = authHeader.split('Bearer ')[1];
-  try {
-    const decodedToken = await adminAuth.verifyIdToken(token);
-    req.user = decodedToken;
-    next();
-  } catch (error) {
-    console.error('Error verifying Firebase ID token:', error);
-    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-  }
-};
+export { authenticateToken };

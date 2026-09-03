@@ -36,12 +36,14 @@ export const HighValueDisbursementModal: React.FC<HighValueDisbursementModalProp
   voucher,
   lang
 }) => {
-  if (!isOpen) return null;
-  const isRtl = lang === 'ar';
-
+    // Hooks must run unconditionally (Rules of Hooks) — the guard below only
+  // controls rendering, never hook execution.
   const [authReason, setAuthReason] = useState('');
   const [securityPin, setSecurityPin] = useState('');
   const [pinError, setPinError] = useState(false);
+
+  if (!isOpen) return null;
+  const isRtl = lang === 'ar';
 
   const tafqeetText = tafqeetArabicRials(voucher.amount);
 

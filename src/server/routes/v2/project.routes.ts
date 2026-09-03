@@ -4,7 +4,7 @@
  */
 
 import { Router, Response } from 'express';
-import { ProjectEngine, MilestoneEngine, ScheduleEngine } from '../../engines/project.engine';
+import { ProjectEngine, MilestoneEngine, ScheduleEngine, ProjectIntelligenceEngine } from '../../engines/project.engine';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { successResponse, errorResponse, extractTenantId } from '../../core/helpers';
 
@@ -214,6 +214,50 @@ router.put('/schedules/:scheduleId/progress', async (req: AuthenticatedRequest, 
       req.body.progressPct
     );
     successResponse(res, schedule);
+  } catch (err: any) {
+    errorResponse(res, err.message);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INTELLIGENCE & ANALYTICS — Smart Professional Capabilities
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/v2/projects/intelligence
+ * Comprehensive project portfolio intelligence snapshot with risk matrix, KPIs, and AI insights
+ */
+router.get('/intelligence', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const orgId = extractTenantId(req);
+    const snapshot = await ProjectIntelligenceEngine.getSnapshot(orgId);
+    successResponse(res, snapshot);
+  } catch (err: any) {
+    errorResponse(res, err.message);
+  }
+});
+
+/**
+ * GET /api/v2/projects/intelligence/risk/:id
+ * AI-powered risk assessment for a specific project
+ */
+router.get('/intelligence/risk/:id', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const riskAssessment = await ProjectIntelligenceEngine.assessRisk(req.params.id);
+    successResponse(res, riskAssessment);
+  } catch (err: any) {
+    errorResponse(res, err.message);
+  }
+});
+
+/**
+ * GET /api/v2/projects/intelligence/forecast/:id
+ * AI-powered completion forecast for a specific project
+ */
+router.get('/intelligence/forecast/:id', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const forecast = await ProjectIntelligenceEngine.forecastCompletion(req.params.id);
+    successResponse(res, forecast);
   } catch (err: any) {
     errorResponse(res, err.message);
   }

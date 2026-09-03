@@ -32,6 +32,7 @@ import { triggerHaptic } from '../helpers/hapticSwipe';
 import VisualProjectTimeline from './VisualProjectTimeline';
 import ProjectGanttView from './ProjectGanttView';
 import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
+import { ppmApi } from '../core/ppm/ppmData';
 import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
@@ -135,6 +136,12 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
   const [showAddressManagerModal, setShowAddressManagerModal] = useState(false);
   const [priorityCode, setPriorityCode] = useState('medium');
   const [riskLevel, setRiskLevel] = useState('medium');
+
+  const [realGanttData, setRealGanttData] = useState<Record<string, any>>({});
+  const [realEvmData, setRealEvmData] = useState<Record<string, any>>({});
+  const [realCpmData, setRealCpmData] = useState<Record<string, any>>({});
+  const [intelligenceLoading, setIntelligenceLoading] = useState(false);
+  const [intelligenceErrors, setIntelligenceErrors] = useState<Record<string, string>>({});
 
   const openModal = (project: Project | null = null, prefilledData?: any) => {
     setSelectedProject(project);
@@ -366,6 +373,44 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
 
     return matchesSearch && matchesProgram && matchesStatus;
   });
+
+  const _ganttIds = filtered.map(p => p.id).sort().join(',');
+
+  useEffect(() => {
+    if (viewMode !== 'gantt' || !_ganttIds) return;
+    let cancelled = false;
+    const ids = _ganttIds.split(',');
+    const fetchAll = async () => {
+      setIntelligenceLoading(true);
+      const g: Record<string, any> = {};
+      const e: Record<string, any> = {};
+      const c: Record<string, any> = {};
+      const errs: Record<string, string> = {};
+      await Promise.allSettled(ids.map(async (id) => {
+        const [gr, er, cr] = await Promise.allSettled([
+          ppmApi.getGantt(id),
+          ppmApi.getEVM(id),
+          ppmApi.getCriticalPath(id),
+        ]);
+        if (gr.status === 'fulfilled' && gr.value.ok) g[id] = gr.value.data;
+        else errs[`${id}_gantt`] = gr.status === 'fulfilled' ? (gr.value.error || 'error') : 'network';
+        if (er.status === 'fulfilled' && er.value.ok) e[id] = er.value.data;
+        else errs[`${id}_evm`] = er.status === 'fulfilled' ? (er.value.error || 'error') : 'network';
+        if (cr.status === 'fulfilled' && cr.value.ok) c[id] = cr.value.data;
+        else errs[`${id}_cpm`] = cr.status === 'fulfilled' ? (cr.value.error || 'error') : 'network';
+      }));
+      if (!cancelled) {
+        setRealGanttData(g);
+        setRealEvmData(e);
+        setRealCpmData(c);
+        setIntelligenceErrors(errs);
+        setIntelligenceLoading(false);
+      }
+    };
+    fetchAll();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, _ganttIds]);
 
   const formatCurrency = (amount: string | null) => {
     const val = parseFloat(amount || '0');
@@ -678,12 +723,180 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
           <p className="text-xs text-zinc-400 font-medium">{lang === 'ar' ? 'جاري جلب المشاريع الميدانية...' : 'Retrieving field projects...'}</p>
         </div>
       ) : viewMode === 'gantt' ? (
-        <ProjectGanttView
-          projects={filtered}
-          programs={programs}
-          lang={lang}
-          onRefreshProjects={onRefresh}
-        />
+        <div className="space-y-4">
+          <ProjectGanttView
+            projects={filtered}
+            programs={programs}
+            lang={lang}
+            onRefreshProjects={onRefresh}
+            engineSchedules={realGanttData}
+          />
+          {intelligenceLoading ? (
+            <div className="flex items-center justify-center gap-3 p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl">
+              <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs font-bold text-zinc-400">
+                {lang === 'ar' ? 'جاري تحميل بيانات المحرك الذكي...' : 'Loading engine intelligence...'}
+              </span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2 bg-slate-50 dark:bg-zinc-900/60">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  <h3 className="text-xs font-black text-slate-800 dark:text-zinc-200 uppercase tracking-wide">
+                    {lang === 'ar' ? 'المسار الحرج (CPM)' : 'Critical Path Method (CPM)'}
+                  </h3>
+                  <span className="px-1.5 py-0.5 text-[8px] font-black bg-emerald-500/10 text-emerald-600 rounded-full">
+                    {lang === 'ar' ? 'محرك مباشر' : 'LIVE ENGINE'}
+                  </span>
+                </div>
+                <div className="p-4 max-h-[420px] overflow-y-auto space-y-3">
+                  {filtered.map(proj => {
+                    const cpmData = realCpmData[proj.id];
+                    const cpmError = intelligenceErrors[`${proj.id}_cpm`];
+                    if (!cpmData && !cpmError) return null;
+                    return (
+                      <div key={proj.id} className="border border-slate-100 dark:border-zinc-800 rounded-xl p-3 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono text-[9px] font-bold rounded">
+                            {proj.code}
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 truncate">
+                            {lang === 'ar' ? proj.name_ar : (proj.name_en || proj.name_ar)}
+                          </span>
+                        </div>
+                        {cpmData?.derivedChain && (
+                          <div className="flex items-center gap-1.5 text-[9px] text-amber-600 font-semibold">
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>{lang === 'ar' ? 'ترتيب افتراضي مستمد من الجدول (لا روابط صريحة)' : 'Derived schedule-order chain (no explicit links)'}</span>
+                          </div>
+                        )}
+                        {cpmError ? (
+                          <div className="flex items-center gap-1.5 text-[10px] text-rose-500 font-semibold">
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>{cpmError}</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {(cpmData?.tasks || cpmData?.critical_tasks || cpmData?.network || cpmData?.nodes || []).slice(0, 10).map((task: any, idx: number) => (
+                              <div key={idx} className="flex items-center gap-2 text-[10px] py-0.5">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${task.is_critical ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
+                                <span className="text-slate-600 dark:text-zinc-400 truncate flex-1">
+                                  {task.name_ar || task.name_en || task.name || task.task_name || task.schedule_name || `${lang === 'ar' ? 'مةلّف' : 'Task'} ${idx + 1}`}
+                                </span>
+                                {(task.progress !== undefined || task.progress_percent !== undefined) && (
+                                  <span className="font-mono font-bold text-slate-500">{task.progress ?? task.progress_percent}%</span>
+                                )}
+                                {(task.slack !== undefined || task.total_float !== undefined) && (
+                                  <span className="font-mono text-zinc-400">
+                                    {lang === 'ar' ? 'فائض: ' : 'Slack: '}{task.slack ?? task.total_float}
+                                  </span>
+                                )}
+                                {task.is_critical && (
+                                  <span className="px-1 py-0.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 text-[8px] font-bold rounded">
+                                    {lang === 'ar' ? 'حرج' : 'CRITICAL'}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                            {cpmData?.duration && (
+                              <div className="pt-1.5 mt-1.5 border-t border-slate-100 dark:border-zinc-800 flex items-center gap-2 text-[10px]">
+                                <span className="font-bold text-slate-500">{lang === 'ar' ? 'المدة الكلية:' : 'Total Duration:'}</span>
+                                <span className="font-mono font-black text-amber-600">{cpmData.duration} {lang === 'ar' ? 'يوم' : 'days'}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {filtered.every(p => !realCpmData[p.id] && !intelligenceErrors[`${p.id}_cpm`]) && (
+                    <div className="text-center py-8 text-zinc-400">
+                      <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-zinc-300" />
+                      <p className="text-xs font-medium">
+                        {lang === 'ar' ? 'لا توجد بيانات مسار حرج متاحة من المحرك' : 'No critical path data available from engine'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-2 bg-slate-50 dark:bg-zinc-900/60">
+                  <TrendingUp className="w-4 h-4 text-emerald-500" />
+                  <h3 className="text-xs font-black text-slate-800 dark:text-zinc-200 uppercase tracking-wide">
+                    {lang === 'ar' ? 'إدارة القيمة المكتسبة (EVM)' : 'Earned Value Management (EVM)'}
+                  </h3>
+                  <span className="px-1.5 py-0.5 text-[8px] font-black bg-emerald-500/10 text-emerald-600 rounded-full">
+                    {lang === 'ar' ? 'محرك مباشر' : 'LIVE ENGINE'}
+                  </span>
+                </div>
+                <div className="p-4 max-h-[420px] overflow-y-auto space-y-3">
+                  {filtered.map(proj => {
+                    const evmData = realEvmData[proj.id];
+                    const evmError = intelligenceErrors[`${proj.id}_evm`];
+                    if (!evmData && !evmError) return null;
+                    const metrics = evmData?.metrics || evmData;
+                    return (
+                      <div key={proj.id} className="border border-slate-100 dark:border-zinc-800 rounded-xl p-3 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono text-[9px] font-bold rounded">
+                            {proj.code}
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 truncate">
+                            {lang === 'ar' ? proj.name_ar : (proj.name_en || proj.name_ar)}
+                          </span>
+                        </div>
+                        {evmError ? (
+                          <div className="flex items-center gap-1.5 text-[10px] text-rose-500 font-semibold">
+                            <AlertTriangle className="w-3 h-3" />
+                            <span>{evmError}</span>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2">
+                            {([
+                              { key: 'cpi', ar: 'مؤشر أداء التكلفة', en: 'CPI', color: 'text-emerald-600' },
+                              { key: 'spi', ar: 'مؤشر أداء الجدول', en: 'SPI', color: 'text-blue-600' },
+                              { key: 'eac', ar: 'تقدير التكلفة الإجمالية', en: 'EAC', color: 'text-amber-600' },
+                              { key: 'etc', ar: 'التكلفة المتبقية المتوقعة', en: 'ETC', color: 'text-purple-600' },
+                              { key: 'bac', ar: 'الموازنة الإجمالية', en: 'BAC', color: 'text-slate-600' },
+                              { key: 'cv', ar: 'انحراف التكلفة', en: 'CV', color: 'text-rose-600' },
+                              { key: 'sv', ar: 'انحراف الجدول', en: 'SV', color: 'text-cyan-600' },
+                              { key: 'vac', ar: 'الانحراف النهائي', en: 'VAC', color: 'text-indigo-600' },
+                              { key: 'percent_complete', ar: 'نسبة الإنجاز', en: '% Complete', color: 'text-emerald-700' },
+                              { key: 'tcpi', ar: 'مؤشر الأداء المستهدف', en: 'TCPI', color: 'text-orange-600' },
+                            ]).map(({ key, ar, en, color }) => {
+                              const value = metrics[key];
+                              if (value === undefined || value === null) return null;
+                              return (
+                                <div key={key} className="bg-slate-50 dark:bg-zinc-800/50 rounded-lg p-2">
+                                  <div className="text-[8px] font-bold text-zinc-400 uppercase">
+                                    {lang === 'ar' ? ar : en}
+                                  </div>
+                                  <div className={`text-sm font-black font-mono ${color}`}>
+                                    {typeof value === 'number' ? value.toFixed(2) : String(value)}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {filtered.every(p => !realEvmData[p.id] && !intelligenceErrors[`${p.id}_evm`]) && (
+                    <div className="text-center py-8 text-zinc-400">
+                      <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-zinc-300" />
+                      <p className="text-xs font-medium">
+                        {lang === 'ar' ? 'لا توجد بيانات EVM متاحة من المحرك' : 'No EVM data available from engine'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       ) : viewMode === 'timeline' ? (
         <VisualProjectTimeline 
           projects={filtered} 

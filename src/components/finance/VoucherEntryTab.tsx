@@ -719,7 +719,7 @@ export default function VoucherEntryTab({
     projects.forEach(proj => {
       options.push({
         id: `proj-${proj.id}`,
-        label: `📁 [${proj.code}] ${lang === 'ar' ? proj.name_ar : proj.name_en} - ${lang === 'ar' ? 'عام (بدون تخصيص نشاط)' : 'General (No Activity)'}`,
+        label: `[${proj.code}] ${lang === 'ar' ? proj.name_ar : proj.name_en} - ${lang === 'ar' ? 'عام (بدون تخصيص نشاط)' : 'General (No Activity)'}`,
         isActivity: false,
         project_id: proj.id,
         activity_id: null
@@ -729,7 +729,7 @@ export default function VoucherEntryTab({
       projActs.forEach(act => {
         options.push({
           id: `act-${act.id}`,
-          label: `   ↳ 📍 ${lang === 'ar' ? act.name_ar : act.name_en}`,
+          label: `      ${lang === 'ar' ? act.name_ar : act.name_en}`,
           isActivity: true,
           project_id: proj.id,
           activity_id: act.id
@@ -831,9 +831,9 @@ export default function VoucherEntryTab({
         // Prepend Project and/or Activity reference to description
         let finalDescription = line.description || entryForm.description;
         if (selectedAct) {
-          finalDescription = `[📍 ${lang === 'ar' ? selectedAct.name_ar : selectedAct.name_en}] ${finalDescription}`;
+          finalDescription = `[${lang === 'ar' ? selectedAct.name_ar : selectedAct.name_en}] ${finalDescription}`;
         } else if (selectedProj) {
-          finalDescription = `[📁 ${selectedProj.code}] ${finalDescription}`;
+          finalDescription = `[${selectedProj.code}] ${finalDescription}`;
         }
 
         const debBase = (parseFloat(line.debit_amount) || 0) * rate;
@@ -942,7 +942,7 @@ export default function VoucherEntryTab({
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-zinc-200'
             }`}
           >
-            ??? {lang === 'ar' ? 'مشروع الحقيبة والتمكين الطلابي' : 'Advanced Multi-Party Mode'}
+            {lang === 'ar' ? 'الوضع المتقدم متعدد الأطراف' : 'Advanced Multi-Party Mode'}
           </button>
         </div>
 
@@ -962,11 +962,11 @@ export default function VoucherEntryTab({
               className="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               title={lang === 'ar' ? 'رفع فاتورة أو مستند وتحويله لقيد آلي عبر الذكاء الاصطناعي' : 'Upload document & parse via Gemini AI OCR'}
             >
-              <span>{isOcrProcessing ? (lang === 'ar' ? 'جاري المسح الضوئي...' : 'Scanning...') : (lang === 'ar' ? '✨ مسح المستند بـ Gemini AI' : '? Gemini AI OCR Scan')}</span>
+              <span>{isOcrProcessing ? (lang === 'ar' ? 'جاري المسح الضوئي للمستند...' : 'Scanning...') : (lang === 'ar' ? 'مسح المستند باستخدام الذكاء الاصطناعي' : 'Gemini AI OCR Scan')}</span>
             </button>
           )}
           <span className="text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1 rounded-md font-mono font-black animate-pulse">
-            {lang === 'ar' ? 'ميزان القيد: ' : 'Voucher Balance: '} {isBalanced ? 'OK' : 'FAIL'}
+            {lang === 'ar' ? 'ميزان القيد: متزن' : 'Voucher Balance: Balanced'} {isBalanced ? '' : lang === 'ar' ? 'غير متزن' : 'Unbalanced'}
           </span>
         </div>
       </div>

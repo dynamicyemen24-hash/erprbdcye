@@ -181,6 +181,7 @@ export function ModuleShell({
                 onClick={onRefresh}
                 className={enterpriseTokens.buttons.iconOnly}
                 title={isRtl ? 'تحديث البيانات' : 'Refresh Data'}
+                aria-label={isRtl ? 'تحديث البيانات' : 'Refresh Data'}
               >
                 <RefreshCw className="w-4 h-4" aria-label={isRtl ? 'تحديث' : 'Refresh'} />
               </button>
@@ -208,7 +209,7 @@ export function ModuleShell({
           <>
             <div className="flex items-center gap-3 flex-wrap">
               {/* Connectivity */}
-              <span className="flex items-center gap-1 font-bold">
+              <span className="hidden sm:flex items-center gap-1 font-bold">
                 {isOnline
                   ? <Wifi    className="w-3 h-3 text-emerald-500" aria-hidden="true" />
                   : <WifiOff className="w-3 h-3 text-rose-500"    aria-hidden="true" />}
@@ -236,7 +237,7 @@ export function ModuleShell({
 
             <div className="flex items-center gap-3">
               {/* Domain Code */}
-              <span className="flex items-center gap-1 font-bold">
+              <span className="hidden md:flex items-center gap-1 font-bold">
                 <Activity className="w-3 h-3 text-emerald-500" aria-hidden="true" />
                 {domainCode}
               </span>

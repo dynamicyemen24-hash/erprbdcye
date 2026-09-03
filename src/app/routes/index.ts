@@ -19,11 +19,14 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
   { id: 'programs', domainCode: 'NEB-03', labelAr: 'البرامج التنموية', labelEn: 'Programs', category: 'operations' },
   { id: 'projects', domainCode: 'NEB-04', labelAr: 'المشاريع التنفيذية', labelEn: 'Projects', category: 'operations' },
   { id: 'activities', domainCode: 'NEB-05', labelAr: 'الأنشطة الميدانية والمهام', labelEn: 'Field Activities', category: 'operations' },
+  { id: 'field_tasks', domainCode: 'NEB-05', labelAr: 'توزيع المهام الميدانية', labelEn: 'Field Task Dispatch', category: 'operations' },
   { id: 'allocations', domainCode: 'NEB-05', labelAr: 'توزيع الموارد والفرق', labelEn: 'Resource Allocation', category: 'operations' },
   { id: 'scenarios', domainCode: 'NEB-05', labelAr: 'السيناريوهات التشغيلية', labelEn: 'Operational Scenarios', category: 'operations' },
+  { id: 'portfolio_intelligence', domainCode: 'NEB-02', labelAr: 'ذكاء المحفظة', labelEn: 'Portfolio Intelligence', category: 'analytics' },
 
   { id: 'beneficiaries', domainCode: 'NEB-06', labelAr: 'إدارة المستفيدين', labelEn: 'Beneficiaries', category: 'operations' },
   { id: 'sponsorships', domainCode: 'NEB-06', labelAr: 'الكفالات والخدمات', labelEn: 'Sponsorships', category: 'operations' },
+  { id: 'procurement', domainCode: 'NEB-14', labelAr: 'المشتريات والمناقصات', labelEn: 'Procurement & Tenders', category: 'operations' },
 
   { id: 'inventory', domainCode: 'NEB-09', labelAr: 'المخزون والمستودعات', labelEn: 'Inventory', category: 'operations' },
   { id: 'contracts', domainCode: 'NEB-08', labelAr: 'العقود والشراكات', labelEn: 'Contracts', category: 'operations' },
@@ -34,10 +37,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
   { id: 'currencies', domainCode: 'NEB-10', labelAr: 'العملات وأسعار الصرف', labelEn: 'Currencies', category: 'governance' },
 
   { id: 'reports', domainCode: 'NEB-11', labelAr: 'التقارير وقياس الأثر', labelEn: 'Reports & Analytics', category: 'analytics' },
+  { id: 'business_intelligence', domainCode: 'NEB-13', labelAr: 'ذكاء الأعمال', labelEn: 'Business Intelligence', category: 'analytics' },
   { id: 'docs', domainCode: 'NEB-11', labelAr: 'المكتبة والسياسات', labelEn: 'Documentation & Policies', category: 'analytics' },
 
   { id: 'users', domainCode: 'NEB-12', labelAr: 'المستخدمين والصلاحيات', labelEn: 'Users & Roles', category: 'settings' },
   { id: 'settings', domainCode: 'NEB-12', labelAr: 'إعدادات المنظومة', labelEn: 'System Settings', category: 'settings' },
   { id: 'audit', domainCode: 'NEB-12', labelAr: 'سجلات التدقيق الأمني', labelEn: 'Security Audit Logs', category: 'settings', isSecure: true },
   { id: 'backup', domainCode: 'NEB-12', labelAr: 'النسخ الاحتياطي والتعافي', labelEn: 'Backup & Recovery', category: 'settings' },
+  { id: 'sales', domainCode: 'NEB-15', labelAr: 'المبيعات والإيرادات', labelEn: 'Sales & Revenue', category: 'operations' },
+  { id: 'communications', domainCode: 'NEB-11', labelAr: 'الاتصالات المؤسسية', labelEn: 'Communications', category: 'operations' },
 ];

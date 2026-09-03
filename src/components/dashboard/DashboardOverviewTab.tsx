@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
 import { 
-  Building2, AlertTriangle, Users, Target, Sliders, Calculator, Sparkles,
-  Briefcase, ArrowLeft, ArrowRight, BarChart3, Map, Cpu, Layers, ShieldCheck,
-  CheckCircle2, Coins, Heart, Box, TrendingUp, Compass, ChevronRight, Activity
+  Building2, AlertTriangle, Users, Target, Sliders,
+  Briefcase, ArrowLeft, ArrowRight, BarChart3, Map, Cpu, ShieldCheck,
+  Coins, Heart, Box, ShoppingCart, TrendingUp, Activity
 } from 'lucide-react';
-import { ExecutiveCommandStrip } from './ExecutiveCommandStrip';
 import { ExecutiveDecisionQueue } from './ExecutiveDecisionQueue';
-import { PerformanceLinkageBanner } from './PerformanceLinkageBanner';
 import { KPICard } from './KPICard';
-import { DomainOverview } from './DomainOverview';
 import { OperationsControlCenter } from './OperationsControlCenter';
 import { MyDailyTasksWidget } from './MyDailyTasksWidget';
 import { SmartAlertPanel } from './SmartAlertPanel';
@@ -19,6 +16,7 @@ import { AIInsightsWidget } from './AIInsightsWidget';
 import { SmartCustomizationPanel, DashboardPreset } from './SmartCustomizationPanel';
 import { KPILayoutItem } from './types';
 import { lazyWithRetry } from '../../lib/lazyWithRetry';
+import { WorkspaceRoleKey, WORKSPACE_STORAGE_KEYS } from '../../config/workspaceRegistry';
 
 const PredictiveAnalyticsWidget = lazyWithRetry(() => import('./PredictiveAnalyticsWidget').then(m => ({ default: m.PredictiveAnalyticsWidget })), 'PredictiveAnalyticsWidget');
 const WhatIfSimulationWidget = lazyWithRetry(() => import('./WhatIfSimulationWidget').then(m => ({ default: m.WhatIfSimulationWidget })), 'WhatIfSimulationWidget');
@@ -41,6 +39,7 @@ interface DashboardOverviewTabProps {
   onOpenHelpers?: () => void;
   currentPreset: DashboardPreset;
   customPresets: DashboardPreset[];
+  availablePresets?: DashboardPreset[];
   getSpacingClass: () => string;
   isCustomizerOpen: boolean;
   setIsCustomizerOpen: (open: boolean) => void;
@@ -84,6 +83,7 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
   onOpenHelpers,
   currentPreset,
   customPresets,
+  availablePresets,
   getSpacingClass,
   isCustomizerOpen,
   setIsCustomizerOpen,
@@ -115,21 +115,25 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
   const isRtl = lang === 'ar';
   const [activeSection, setActiveSection] = useState<'operations' | 'analytics' | 'geospatial' | 'forecasting'>('operations');
 
-  const roleWorkspacesList = [
-    { key: 'leadership', titleAr: 'القيادة والحوكمة', titleEn: 'Leadership', count: 'معتمد', subAr: 'مؤشرات الإدارة العليا', icon: ShieldCheck, color: 'text-amber-500' },
+  const roleWorkspacesList: { key: WorkspaceRoleKey; titleAr: string; titleEn: string; count: string; subAr: string; icon: React.ElementType; color: string }[] = [
+    { key: 'strategy', titleAr: 'القيادة والحوكمة', titleEn: 'Leadership', count: 'معتمد', subAr: 'مؤشرات الإدارة العليا', icon: ShieldCheck, color: 'text-amber-500' },
     { key: 'finance', titleAr: 'الإدارة المالية والمحاسبة', titleEn: 'Finance', count: 'محدث', subAr: 'دليل الحسابات والقيود', icon: Coins, color: 'text-emerald-500' },
     { key: 'programs', titleAr: 'إدارة البرامج والمشاريع', titleEn: 'Programs', count: 'جارية', subAr: 'المشاريع والخطط الميدانية', icon: Briefcase, color: 'text-blue-500' },
-    { key: 'operations', titleAr: 'العمليات الميدانية', titleEn: 'Field Ops', count: 'ميداني', subAr: 'الأنشطة الميدانية الموثقة', icon: Activity, color: 'text-cyan-500' },
+    { key: 'operations', titleAr: 'الأنشطة الميدانية', titleEn: 'Field Activities', count: `${projects.length}`, subAr: 'الأنشطة المرتبطة بالمشاريع', icon: Activity, color: 'text-cyan-500' },
+    { key: 'field_tasks', titleAr: 'توزيع المهام الميدانية', titleEn: 'Field Tasks', count: 'يومي', subAr: 'التكليف والمتابعة اليومية', icon: Target, color: 'text-sky-500' },
     { key: 'beneficiaries', titleAr: 'الرعاية وكفالات الأيتام', titleEn: 'Welfare', count: 'شامل', subAr: 'المستفيدون والأيتام المكفولون', icon: Heart, color: 'text-rose-500' },
-    { key: 'procurement', titleAr: 'المشتريات وإدارة المخازن', titleEn: 'Logistics', count: 'مركزي', subAr: 'المستودعات وسلاسل الإمداد', icon: Box, color: 'text-orange-500' },
+    { key: 'procurement', titleAr: 'المشتريات والمناقصات', titleEn: 'Procurement', count: 'P2P', subAr: 'طلبات الشراء والموردون', icon: ShoppingCart, color: 'text-orange-500' },
+    { key: 'inventory', titleAr: 'المخزون والمستودعات', titleEn: 'Inventory', count: 'مركزي', subAr: 'الأصناف والحركات والمستودعات', icon: Box, color: 'text-lime-600' },
+    { key: 'sales', titleAr: 'المبيعات والإيرادات', titleEn: 'Sales & Revenue', count: 'NEB-15', subAr: 'تنمية الموارد والتحصيل', icon: TrendingUp, color: 'text-violet-500' },
     { key: 'meal', titleAr: 'الرقابة وتقييم الجودة', titleEn: 'Quality Assurance', count: 'مطابق', subAr: 'معايير الجودة والمساءلة', icon: TrendingUp, color: 'text-indigo-500' },
-    { key: 'admin', titleAr: 'إدارة النظام والأمان', titleEn: 'SysAdmin', count: 'مؤمن', subAr: 'المستخدمون والصلاحيات', icon: ShieldCheck, color: 'text-purple-500' }
+    { key: 'admin', titleAr: 'إدارة النظام والأمان', titleEn: 'Governance & Access', count: 'مؤمن', subAr: 'الصلاحيات والتدقيق', icon: ShieldCheck, color: 'text-purple-500' },
+    { key: 'hr', titleAr: 'الموارد البشرية', titleEn: 'Human Resources', count: 'كادر', subAr: 'الملفات والحضور والتكليف', icon: Users, color: 'text-fuchsia-500' }
   ];
 
   return (
     <div className={`flex flex-col ${getSpacingClass()} animate-fade-in nexora-cards-${currentPreset.cardStyle} space-y-5`}>
       {/* Custom Styles Injection */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{ __html: String.raw`
         .nexora-cards-flat .bg-white, 
         .nexora-cards-flat .dark\\:bg-zinc-900, 
         .nexora-cards-flat .dark\\:bg-zinc-950, 
@@ -177,14 +181,7 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
         #main-dashboard-view .dark\\:bg-zinc-900,
         #main-dashboard-view .dark\\:bg-zinc-950,
         #main-dashboard-view .bg-slate-50 {
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        #main-dashboard-view .bg-white:hover,
-        #main-dashboard-view .dark\\:bg-zinc-900:hover,
-        #main-dashboard-view .dark\\:bg-zinc-950:hover,
-        #main-dashboard-view .bg-slate-50:hover {
-          transform: translateY(-2px) scale(1.01);
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
       `}} />
 
@@ -203,7 +200,7 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
                   icon: Building2, 
                   color: 'text-emerald-600 dark:text-emerald-400', 
                   bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-                  sublabel: lang === 'ar' ? `من أصل ${programs.length || 10} برامج معتمدة` : `Out of ${programs.length || 10} programs`
+                  sublabel: lang === 'ar' ? `من أصل ${programs.length} برامج معتمدة` : `Out of ${programs.length} programs`
                 };
               } else if (layoutItem.id === 'approvals') {
                 kpiDetails = {
@@ -217,11 +214,11 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
               } else if (layoutItem.id === 'beneficiaries') {
                 kpiDetails = {
                   label: lang === 'ar' ? 'الوصول والخدمة للمستفيدين' : 'Beneficiaries Served', 
-                  value: (stats?.beneficiariesCount || 418), 
+                  value: stats?.counts?.beneficiaries ?? stats?.beneficiariesCount ?? '—',
                   icon: Users, 
                   color: 'text-teal-600 dark:text-teal-400', 
                   bg: 'bg-teal-50 dark:bg-teal-950/40',
-                  sublabel: lang === 'ar' ? `و 595 كفالة يتيم نشطة` : `+ 595 orphan sponsorships`
+                  sublabel: lang === 'ar' ? 'من بيانات المستفيدين المحدثة' : 'From refreshed beneficiary data'
                 };
               } else {
                 kpiDetails = {
@@ -304,15 +301,18 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
               </button>
             </div>
 
-            {/* 8 Compact Role Desks Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {/* Compact role desks: operational domains remain individually addressable. */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {roleWorkspacesList.map((r) => {
                 const RIcon = r.icon;
                 return (
                   <button
                     key={r.key}
                     onClick={() => {
-                      try { localStorage.setItem('uamex_active_workspace', r.key); } catch {}
+                      try {
+                        localStorage.setItem(WORKSPACE_STORAGE_KEYS.active, r.key);
+                        window.dispatchEvent(new CustomEvent('uamex:workspace-selected', { detail: r.key }));
+                      } catch {}
                       onNavigate('workspaces');
                     }}
                     className="p-2.5 rounded-xl bg-slate-100/80 dark:bg-zinc-950/70 border border-slate-300/80 dark:border-zinc-700/80 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-white dark:hover:bg-zinc-850 text-right rtl:text-right ltr:text-left transition-all group cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
@@ -430,8 +430,8 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
               counts={{
                 programs: programs?.length,
                 projects: projects?.length,
-                beneficiaries: (stats?.beneficiariesCount || 418),
-                sponsorships: (stats?.sponsorshipsCount || 32)
+                beneficiaries: stats?.counts?.beneficiaries ?? stats?.beneficiariesCount ?? 0,
+                sponsorships: stats?.counts?.sponsorships ?? stats?.sponsorshipsCount ?? 0
               }}
             />
 
@@ -532,6 +532,7 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
         onSaveCustomPreset={handleSaveCustomPreset}
         onDeletePreset={handleDeletePreset}
         customPresets={customPresets}
+        availablePresets={availablePresets}
         isOpen={isCustomizerOpen}
         onClose={() => setIsCustomizerOpen(false)}
       />

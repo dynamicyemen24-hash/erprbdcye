@@ -41,7 +41,7 @@ export interface PolicyViolation {
 // ─────────────────────────────────────────────
 // In-memory policy cache (refreshed every 5 min)
 // ─────────────────────────────────────────────
-let policyCache: Map<string, Record<string, any>> = new Map();
+const policyCache: Map<string, Record<string, any>> = new Map();
 let lastCacheRefresh = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 

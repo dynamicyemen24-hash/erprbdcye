@@ -4,6 +4,7 @@
  */
 
 import logger from './logger';
+import os from 'os';
 
 // ─── Job Types ─────────────────────────────────────────
 
@@ -198,7 +199,6 @@ export function registerDefaultJobs() {
     schedule: '15min',
     enabled: true,
     handler: async () => {
-      const os = require('os');
       const memUsage = process.memoryUsage();
       const loadAvg = os.loadavg();
       // Store metrics for monitoring dashboard

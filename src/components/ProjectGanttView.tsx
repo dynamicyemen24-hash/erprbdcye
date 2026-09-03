@@ -64,6 +64,9 @@ interface ProjectGanttViewProps {
   programs?: Program[];
   lang: 'ar' | 'en';
   onRefreshProjects?: () => void;
+  /** Real engine schedule rows (projectId -> task list) from getGanttData,
+   *  used as the truthful Gantt baseline instead of generated templates. */
+  engineSchedules?: Record<string, any[] | { tasks: any[]; dependencies?: any[] }>;
 }
 
 const STORAGE_KEY_GANTT_PHASES = 'nexora_project_gantt_phases_v1';
@@ -73,7 +76,8 @@ export default function ProjectGanttView({
   projects,
   programs = [],
   lang,
-  onRefreshProjects
+  onRefreshProjects,
+  engineSchedules = {}
 }: ProjectGanttViewProps) {
   const isRtl = lang === 'ar';
 
@@ -114,7 +118,7 @@ export default function ProjectGanttView({
     } catch (e) {
       console.error('Error loading Gantt phases:', e);
     }
-    return generateDefaultPhases(projects);
+    return enginePhasesFor(projects);
   });
 
   // 5. Load or generate Resource Allocations
@@ -138,7 +142,7 @@ export default function ProjectGanttView({
       const missingProjects = projects.filter(p => !existingProjectIds.has(p.id));
       if (missingProjects.length === 0) return prev;
 
-      const newGenerated = generateDefaultPhases(missingProjects);
+      const newGenerated = enginePhasesFor(missingProjects);
       const updated = [...prev, ...newGenerated];
       try {
         localStorage.setItem(STORAGE_KEY_GANTT_PHASES, JSON.stringify(updated));
@@ -173,27 +177,29 @@ export default function ProjectGanttView({
     }
   }, [projects]);
 
-  // Helper to save phases to state and local storage
-  const savePhases = (updated: GanttPhase[]) => {
-    setPhases(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY_GANTT_PHASES, JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
-    }
-    setTimeout(() => setRedrawCounter(prev => prev + 1), 150);
-  };
-
-  // Helper to save allocations to state and local storage
-  const saveAllocations = (updated: ResourceAllocation[]) => {
-    setAllocations(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY_GANTT_ALLOCATIONS, JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
-    }
-    setTimeout(() => setRedrawCounter(prev => prev + 1), 150);
-  };
+  // Once live engine schedules arrive, replace generated template phases
+  // (phase-*) with the truthful schedules for that project.
+  useEffect(() => {
+    if (!engineSchedules || Object.keys(engineSchedules).length === 0) return;
+    setPhases(prev => {
+      let changed = false;
+      const next = prev.map(p => {
+        const raw = engineSchedules[p.projectId];
+        const scheds = Array.isArray(raw) ? raw : (raw?.tasks || []);
+        if (!scheds.length) return p;
+        if (!p.id.startsWith('phase-')) return p; // keep user-edited rows
+        const real = enginePhasesFor(projects.filter(x => x.id === p.projectId));
+        if (real.length === 0) return p;
+        changed = true;
+        return real;
+      }).flat();
+      if (!changed) return prev;
+      try {
+        localStorage.setItem(STORAGE_KEY_GANTT_PHASES, JSON.stringify(next));
+      } catch (e) { console.error('[Gantt] Failed to save engine phases:', e); }
+      return next;
+    });
+  }, [engineSchedules, projects]);
 
   // Helper to generate default phases
   function generateDefaultPhases(projs: Project[]): GanttPhase[] {
@@ -201,7 +207,7 @@ export default function ProjectGanttView({
     projs.forEach(p => {
       const startStr = p.start_date ? p.start_date.substring(0, 10) : '2026-01-01';
       const endStr = p.end_date ? p.end_date.substring(0, 10) : '2026-12-31';
-      
+
       const start = new Date(startStr);
       const end = new Date(endStr);
       const startMs = start.getTime();
@@ -210,7 +216,7 @@ export default function ProjectGanttView({
       // Phase 1: Initiation
       const p1Start = new Date(startMs);
       const p1End = new Date(startMs + totalDurationMs * 0.2);
-      
+
       // Phase 2: Procurement (depends on Phase 1)
       const p2Start = new Date(p1End.getTime() + 86400000);
       const p2End = new Date(p2Start.getTime() + totalDurationMs * 0.3);
@@ -276,6 +282,72 @@ export default function ProjectGanttView({
     });
     return list;
   }
+
+  // Build phases from REAL engine schedules (project_schedules rows) when
+  // available for a project; falls back to the generated template otherwise.
+  function enginePhasesFor(projs: Project[]): GanttPhase[] {
+    const list: GanttPhase[] = [];
+    projs.forEach(p => {
+      const raw = engineSchedules[p.id];
+      const scheds = (Array.isArray(raw) ? raw : (raw?.tasks || [])).slice().sort(
+        (a: any, b: any) => {
+          const da = a.start_date ? new Date(a.start_date).getTime() : 0;
+          const db = b.start_date ? new Date(b.start_date).getTime() : 0;
+          return (da - db) || String(a.wbs_code || '').localeCompare(String(b.wbs_code || ''));
+        }
+      );
+      if (scheds.length === 0) {
+        list.push(...generateDefaultPhases([p]));
+        return;
+      }
+      let prevId: string | undefined;
+      scheds.forEach((s: any) => {
+        const nameAr = s.task_name_ar || s.schedule_name_ar || s.name_ar || `مهمة ${s.wbs_code || ''}`.trim();
+        const nameEn = s.task_name_en || s.schedule_name_en || s.name_en || `Task ${s.wbs_code || ''}`.trim();
+        const progress = Number(s.progress_percent ?? s.progress ?? 0) || 0;
+        const statusCode =
+          progress >= 100 ? 'completed' :
+          s.is_milestone ? 'planning' :
+          progress > 0 ? 'active' : 'planning';
+        const phase: GanttPhase = {
+          id: `sched-${s.id}`,
+          projectId: p.id,
+          nameAr,
+          nameEn,
+          startDate: (s.start_date || p.start_date || '').toString().substring(0, 10),
+          endDate: (s.end_date || p.end_date || '').toString().substring(0, 10),
+          progressPercent: progress,
+          dependsOnPhaseId: prevId,
+          statusCode,
+        };
+        if (phase.startDate) list.push(phase);
+        prevId = phase.id;
+      });
+    });
+    return list;
+  }
+
+  // Helper to save phases to state and local storage
+  const savePhases = (updated: GanttPhase[]) => {
+    setPhases(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_GANTT_PHASES, JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    setTimeout(() => setRedrawCounter(prev => prev + 1), 150);
+  };
+
+  // Helper to save allocations to state and local storage
+  const saveAllocations = (updated: ResourceAllocation[]) => {
+    setAllocations(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_GANTT_ALLOCATIONS, JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+    setTimeout(() => setRedrawCounter(prev => prev + 1), 150);
+  };
 
   // Helper to generate default resource allocations
   function generateDefaultAllocations(projs: Project[]): ResourceAllocation[] {

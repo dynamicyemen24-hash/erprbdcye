@@ -1,0 +1,11 @@
+# UAMEX ERP™ — Security Contact
+# Owners: جمعية رُحماء بينهم للعمل الإنساني والتنمية (Rohamaab Foundation)
+# Domain: erprbdcye.org
+
+Contact: mailto:security@rbdcye.org
+Preferred-Languages: ar, en
+Canonical: https://erprbdcye.org/security.txt
+Expires: 2027-12-31T23:59:59.000Z
+Policy: https://erprbdcye.org/docs/SECURITY.md
+Encryption: https://erprbdcye.org/.well-known/pgp-key.txt
+Acknowledgments: https://erprbdcye.org/security/thanks

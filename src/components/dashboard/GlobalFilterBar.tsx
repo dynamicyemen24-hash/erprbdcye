@@ -18,7 +18,7 @@ export function GlobalFilterBar({ lang, onFilterChange, activeFiltersCount = 0, 
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
 
   const handleApply = (key: string, value: string) => {
-    let newFilters = {
+    const newFilters = {
       region: selectedRegion,
       sector: selectedSector,
       donor: selectedDonor,

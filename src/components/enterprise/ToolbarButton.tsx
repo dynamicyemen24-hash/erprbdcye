@@ -13,6 +13,8 @@ export function ToolbarButton({ icon: Icon, onClick, label }: ToolbarButtonProps
   const buttonNode = (
     <button 
       onClick={onClick}
+      type="button"
+      aria-label={label}
       className={`p-2 ${designTokens.borderRadius.sm} bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-600 transition-colors cursor-pointer`}
     >
       <Icon className="w-5 h-5" />

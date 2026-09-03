@@ -9,7 +9,7 @@ import { successResponse, errorResponse, extractTenantId } from '../../core/help
 
 // Import all engines
 import { PortfolioEngine, ProgramEngine } from '../../engines/portfolio.engine';
-import { ActivityEngine, ResourceAllocationEngine, GeospatialEngine } from '../../engines/operations.engine';
+import { ActivityEngine, ResourceAllocationEngine, GeospatialEngine, TaskEngine } from '../../engines/operations.engine';
 import { VolunteerEngine, CommitteeEngine, MembershipEngine } from '../../engines/community.engine';
 import { DonorEngine, GrantEngine, GrantInstallmentEngine, ProposalEngine, PartnerAgreementEngine, UtilizationReportEngine } from '../../engines/funding.engine';
 import { AssetEngine, InventoryEngine, WarehouseEngine } from '../../engines/assets.engine';
@@ -110,6 +110,19 @@ router.get('/activities/:id/wbs', async (req: AuthenticatedRequest, res: Respons
 router.post('/activities', async (req: AuthenticatedRequest, res: Response) => {
   try { successResponse(res, await ActivityEngine.create({ organizationId: extractTenantId(req), ...req.body }, auth(req)), 201); }
   catch (err: any) { errorResponse(res, err.message); }
+});
+
+/**
+ * PUT /api/v2/domains/activities/:id/progress
+ * INTELLIGENT: Update activity progress with automatic project progress recalculation
+ */
+router.put('/activities/:id/progress', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const progressPct = Number(req.body.progressPct);
+    if (Number.isNaN(progressPct)) return errorResponse(res, 'progressPct must be a number', 400);
+    const result = await ActivityEngine.updateProgress(req.params.id, progressPct, auth(req));
+    successResponse(res, result);
+  } catch (err: any) { errorResponse(res, err.message); }
 });
 
 router.put('/activities/:id', async (req: AuthenticatedRequest, res: Response) => {
@@ -490,7 +503,7 @@ router.post('/invoices', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 router.post('/invoices/:id/pay', async (req: AuthenticatedRequest, res: Response) => {
-  try { successResponse(res, await InvoiceEngine.recordPayment(req.params.id, req.body)); }
+  try { successResponse(res, await InvoiceEngine.recordPayment(req.params.id, req.body, extractTenantId(req))); }
   catch (err: any) { errorResponse(res, err.message); }
 });
 
@@ -512,6 +525,54 @@ router.get('/investments', async (req: AuthenticatedRequest, res: Response) => {
 router.post('/investments', async (req: AuthenticatedRequest, res: Response) => {
   try { successResponse(res, await InvestmentEngine.create({ organizationId: extractTenantId(req), ...req.body }, auth(req)), 201); }
   catch (err: any) { errorResponse(res, err.message); }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NEB-04/05: PROJECT TASKS (WBS Level 3+)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/v2/domains/activities/:activityId/tasks
+ * List all tasks belonging to an activity
+ */
+router.get('/activities/:activityId/tasks', async (req: AuthenticatedRequest, res: Response) => {
+  try { successResponse(res, await TaskEngine.listByActivity(req.params.activityId)); }
+  catch (err: any) { errorResponse(res, err.message); }
+});
+
+/**
+ * POST /api/v2/domains/activities/:activityId/tasks
+ * Create a new task under an activity
+ */
+router.post('/activities/:activityId/tasks', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const task = await TaskEngine.create({ activityId: req.params.activityId, ...req.body }, auth(req));
+    successResponse(res, task, 201);
+  } catch (err: any) { errorResponse(res, err.message); }
+});
+
+/**
+ * PUT /api/v2/domains/tasks/:taskId/progress
+ * INTELLIGENT: Update task progress — cascades to activity + project
+ */
+router.put('/tasks/:taskId/progress', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const progressPct = Number(req.body.progressPct);
+    if (Number.isNaN(progressPct)) return errorResponse(res, 'progressPct must be a number', 400);
+    const task = await TaskEngine.updateProgress(req.params.taskId, progressPct, auth(req));
+    successResponse(res, task);
+  } catch (err: any) { errorResponse(res, err.message); }
+});
+
+/**
+ * DELETE /api/v2/domains/tasks/:taskId
+ * Delete a task
+ */
+router.delete('/tasks/:taskId', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    await TaskEngine.delete(req.params.taskId);
+    successResponse(res, { message: 'Task deleted' });
+  } catch (err: any) { errorResponse(res, err.message); }
 });
 
 export default router;

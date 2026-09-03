@@ -71,7 +71,7 @@ function validateField(value: any, schema: FieldSchema, fieldName: string): stri
       }
       break;
 
-    case 'number':
+    case 'number': {
       const num = Number(value);
       if (isNaN(num)) {
         errors.push(`${fieldName} يجب أن يكون رقماً / ${fieldName} must be a number`);
@@ -84,6 +84,7 @@ function validateField(value: any, schema: FieldSchema, fieldName: string): stri
         errors.push(`${fieldName} يجب أن لا يتجاوز ${schema.max}`);
       }
       break;
+    }
 
     case 'boolean':
       if (typeof value !== 'boolean' && value !== 'true' && value !== 'false' && value !== 0 && value !== 1) {
@@ -91,26 +92,29 @@ function validateField(value: any, schema: FieldSchema, fieldName: string): stri
       }
       break;
 
-    case 'date':
+    case 'date': {
       const date = new Date(value);
       if (isNaN(date.getTime())) {
         errors.push(`${fieldName} يجب أن يكون تاريخاً صالحاً`);
       }
       break;
+    }
 
-    case 'email':
+    case 'email': {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
       if (!emailRegex.test(String(value))) {
         errors.push(`${fieldName} يجب أن يكون بريد إلكتروني صالحاً`);
       }
       break;
+    }
 
-    case 'uuid':
+    case 'uuid': {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(String(value))) {
         errors.push(`${fieldName} يجب أن يكون معرفاً صالحاً (UUID)`);
       }
       break;
+    }
 
     case 'array':
       if (!Array.isArray(value)) {

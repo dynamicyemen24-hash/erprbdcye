@@ -888,6 +888,34 @@ export async function runEnterpriseSchemaCompletion(poolInstance: pg.Pool): Prom
         UNIQUE(organization_id, invoice_number)
       );
 
+      -- Legacy-DB safety net: assets may predate initial_schema (idempotent)
+      CREATE TABLE IF NOT EXISTS assets (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        asset_code VARCHAR(50),
+        name_ar TEXT NOT NULL,
+        name_en TEXT,
+        category VARCHAR(50),
+        purchase_date DATE,
+        purchase_price NUMERIC(18,2) DEFAULT 0,
+        current_value NUMERIC(18,2) DEFAULT 0,
+        depreciation_rate NUMERIC(5,2) DEFAULT 0,
+        status VARCHAR(30) DEFAULT 'ACTIVE',
+        location VARCHAR(200),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- Legacy-DB safety net: audit_logs columns added post-launch (idempotent)
+      ALTER TABLE audit_logs
+        ADD COLUMN IF NOT EXISTS record_id UUID,
+        ADD COLUMN IF NOT EXISTS user_agent TEXT,
+        ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'success';
+
+      -- Legacy-DB safety net: organization_settings.setting_type (PolicyEngine)
+      ALTER TABLE organization_settings
+        ADD COLUMN IF NOT EXISTS setting_type VARCHAR(50) DEFAULT 'string';
+
       -- Asset audit trail columns (IPSAS physical verification)
       ALTER TABLE assets
         ADD COLUMN IF NOT EXISTS last_audit_at TIMESTAMP WITH TIME ZONE,
@@ -974,6 +1002,274 @@ export async function runEnterpriseSchemaCompletion(poolInstance: pg.Pool): Prom
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         deleted_at TIMESTAMP WITH TIME ZONE
       );
+    `);
+// ═══════════════════════════════════════════════════════════════
+    // NEB-15: UNIFIED REVENUE ENGINE (IPSAS 9/23)
+    // Supports ANY revenue type for various project activities with
+    // full lifecycle: DRAFT → PENDING_APPROVAL → APPROVED → POSTED → COLLECTED
+    // ═══════════════════════════════════════════════════════════════
+    await client.query(`
+      -- Revenue Streams Registry (recognition policy + default GL accounts)
+      CREATE TABLE IF NOT EXISTS revenue_streams (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        stream_code VARCHAR(60) NOT NULL,
+        name_ar VARCHAR(200) NOT NULL,
+        name_en VARCHAR(200),
+        description TEXT,
+        recognition_method VARCHAR(20) NOT NULL DEFAULT 'CASH_BASIS'
+          CHECK (recognition_method IN ('CASH_BASIS', 'ACCRUAL', 'DEFERRED')),
+        exchange_type VARCHAR(20) NOT NULL DEFAULT 'NON_EXCHANGE'
+          CHECK (exchange_type IN ('NON_EXCHANGE', 'EXCHANGE')),
+        is_restricted BOOLEAN NOT NULL DEFAULT FALSE,
+        debit_account_id UUID REFERENCES chart_of_accounts(id),
+        credit_account_id UUID REFERENCES chart_of_accounts(id),
+        deferred_account_id UUID REFERENCES chart_of_accounts(id),
+        default_currency VARCHAR(3) NOT NULL DEFAULT 'YER',
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (organization_id, stream_code)
+      );
+
+      -- Unified Revenue Records (single document for ANY revenue type)
+      CREATE TABLE IF NOT EXISTS revenue_records (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        revenue_number VARCHAR(40) NOT NULL UNIQUE,
+        stream_id UUID REFERENCES revenue_streams(id),
+        revenue_type VARCHAR(60) NOT NULL,
+        status VARCHAR(30) NOT NULL DEFAULT 'DRAFT'
+          CHECK (status IN ('DRAFT','PENDING_APPROVAL','APPROVED','POSTED',
+                            'PARTIALLY_COLLECTED','COLLECTED','REJECTED','VOIDED')),
+        counterparty_name VARCHAR(255),
+        counterparty_party_id UUID REFERENCES parties(id),
+        program_id UUID REFERENCES programs(id),
+        project_id UUID REFERENCES projects(id),
+        activity_id UUID,
+        amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
+        currency_code VARCHAR(3) NOT NULL DEFAULT 'YER',
+        exchange_rate NUMERIC(18,8) NOT NULL DEFAULT 1,
+        amount_base NUMERIC(18,2) NOT NULL DEFAULT 0,
+        collected_amount NUMERIC(18,2) NOT NULL DEFAULT 0,
+        collected_amount_base NUMERIC(18,2) NOT NULL DEFAULT 0,
+        earned_amount_base NUMERIC(18,2) NOT NULL DEFAULT 0,
+        revenue_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        due_date DATE,
+        description TEXT,
+        reference_number VARCHAR(100),
+        ledger_transaction_id UUID REFERENCES transactions(id),
+        rejection_reason TEXT,
+        metadata JSONB,
+        created_by UUID REFERENCES users(id),
+        approved_by UUID REFERENCES users(id),
+        approved_at TIMESTAMPTZ,
+        posted_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        deleted_at TIMESTAMPTZ
+      );
+      CREATE INDEX IF NOT EXISTS idx_revenue_records_org_status ON revenue_records (organization_id, status);
+      CREATE INDEX IF NOT EXISTS idx_revenue_records_org_date ON revenue_records (organization_id, revenue_date DESC);
+      CREATE INDEX IF NOT EXISTS idx_revenue_records_project ON revenue_records (project_id) WHERE project_id IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_revenue_records_activity ON revenue_records (activity_id) WHERE activity_id IS NOT NULL;
+
+      -- Revenue Collections (partial / full settlement)
+      CREATE TABLE IF NOT EXISTS revenue_collections (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        revenue_record_id UUID NOT NULL REFERENCES revenue_records(id),
+        collection_number VARCHAR(40) NOT NULL UNIQUE,
+        amount NUMERIC(18,2) NOT NULL CHECK (amount > 0),
+        currency_code VARCHAR(3) NOT NULL DEFAULT 'YER',
+        exchange_rate NUMERIC(18,8) NOT NULL DEFAULT 1,
+        amount_base NUMERIC(18,2) NOT NULL DEFAULT 0,
+        payment_method VARCHAR(50),
+        payment_reference VARCHAR(100),
+        collection_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        ledger_transaction_id UUID REFERENCES transactions(id),
+        notes TEXT,
+        created_by UUID REFERENCES users(id),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_revenue_collections_record ON revenue_collections (revenue_record_id);
+
+                  CREATE SEQUENCE IF NOT EXISTS revenue_record_seq START 1;
+      CREATE SEQUENCE IF NOT EXISTS revenue_collection_seq START 1;
+        `);
+
+    // Seed default revenue streams (13 standard types, IPSAS 9/23 aligned)
+    await client.query(`
+      INSERT INTO revenue_streams (organization_id, stream_code, name_ar, name_en,
+        recognition_method, exchange_type, is_restricted, default_currency)
+      VALUES
+        ('00000000-0000-0000-0000-000000000001', 'DONATION_GENERAL',    'تبرعات عامة',               'General Donations',           'CASH_BASIS', 'NON_EXCHANGE', FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'DONATION_RESTRICTED', 'تبرعات مقيدة على برامج',     'Restricted Donations',        'CASH_BASIS', 'NON_EXCHANGE', TRUE,  'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'GRANT_INSTITUTIONAL', 'منح حكومية ومؤسسية ودولية',  'Institutional Grants',        'ACCRUAL',    'NON_EXCHANGE', TRUE,  'USD'),
+        ('00000000-0000-0000-0000-000000000001', 'SPONSORSHIP',         'كفالات ورعايات',             'Sponsorships',                'CASH_BASIS', 'NON_EXCHANGE', FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'SERVICE_FEE',         'رسوم خدمات وتقييم ميداني',   'Service Fees',                'ACCRUAL',    'EXCHANGE',     FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'GOODS_SALES',         'مبيعات أصول ومنتجات',        'Sales of Goods',              'ACCRUAL',    'EXCHANGE',     FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'INVESTMENT_RETURN',   'عوائد استثمارية',            'Investment Returns',          'CASH_BASIS', 'NON_EXCHANGE', FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'ENDOWMENT_RETURN',    'عوائد أوقاف',                'Endowment Returns',           'CASH_BASIS', 'NON_EXCHANGE', FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'MEMBERSHIP_FEE',      'اشتراكات عضويات',            'Membership Fees',             'CASH_BASIS', 'EXCHANGE',     FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'RENTAL_INCOME',       'إيرادات إيجارات',            'Rental Income',               'ACCRUAL',    'EXCHANGE',     FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'EVENT_INCOME',        'إيرادات فعاليات وحملات',     'Event & Campaign Income',     'CASH_BASIS', 'NON_EXCHANGE', FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'IN_KIND_DONATION',    'تبرعات عينية',               'In-Kind Donations',           'CASH_BASIS', 'NON_EXCHANGE', FALSE, 'YER'),
+        ('00000000-0000-0000-0000-000000000001', 'OTHER_REVENUE',       'إيرادات أخرى متنوعة',        'Other Revenue',               'CASH_BASIS', 'NON_EXCHANGE', FALSE, 'YER')
+      ON CONFLICT (organization_id, stream_code) DO NOTHING;
+    `);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // NEB-15 Revenue Batches — Multi-Account Journal Entries
+    // ═══════════════════════════════════════════════════════════════════════
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS revenue_batches (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        batch_number VARCHAR(100) NOT NULL UNIQUE,
+        status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+        total_amount NUMERIC NOT NULL DEFAULT 0,
+        currency_code VARCHAR(10) NOT NULL DEFAULT 'YER',
+        exchange_rate NUMERIC NOT NULL DEFAULT 1,
+        batch_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        description TEXT,
+        applied_cap_id UUID,
+        cap_remaining_before NUMERIC,
+        created_by UUID NOT NULL REFERENCES users(id),
+        approved_by UUID REFERENCES users(id),
+        posted_by UUID REFERENCES users(id),
+        rejection_reason TEXT,
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        deleted_at TIMESTAMP WITH TIME ZONE
+      );
+
+      CREATE TABLE IF NOT EXISTS revenue_batch_entries (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        batch_id UUID NOT NULL REFERENCES revenue_batches(id) ON DELETE CASCADE,
+        sequence_number INT NOT NULL,
+        account_id UUID NOT NULL REFERENCES chart_of_accounts(id),
+        account_code VARCHAR(50) NOT NULL,
+        account_name_ar TEXT,
+        debit_amount NUMERIC NOT NULL DEFAULT 0,
+        credit_amount NUMERIC NOT NULL DEFAULT 0,
+        currency_code VARCHAR(10) NOT NULL DEFAULT 'YER',
+        exchange_rate NUMERIC NOT NULL DEFAULT 1,
+        amount_base NUMERIC NOT NULL DEFAULT 0,
+        project_id UUID REFERENCES projects(id),
+        activity_id UUID REFERENCES activities(id),
+        cost_center_id UUID,
+        counterparty_id UUID,
+        counterparty_name TEXT,
+        description TEXT,
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_revenue_batches_org_status ON revenue_batches(organization_id, status);
+      CREATE INDEX IF NOT EXISTS idx_revenue_batches_org_date ON revenue_batches(organization_id, batch_date DESC);
+      CREATE INDEX IF NOT EXISTS idx_revenue_batch_entries_batch ON revenue_batch_entries(batch_id);
+
+      CREATE SEQUENCE IF NOT EXISTS revenue_batch_seq START 1;
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // NEB-15 Revenue Schedules — Future-Dated & Recurring Revenue
+      // ═══════════════════════════════════════════════════════════════════════
+      CREATE TABLE IF NOT EXISTS revenue_schedules (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        schedule_number VARCHAR(100) NOT NULL UNIQUE,
+        revenue_type VARCHAR(50) NOT NULL,
+        counterparty_name TEXT NOT NULL,
+        counterparty_party_id UUID REFERENCES parties(id),
+        project_id UUID REFERENCES projects(id),
+        activity_id UUID REFERENCES activities(id),
+        stream_id UUID REFERENCES revenue_streams(id),
+        total_amount NUMERIC NOT NULL,
+        currency_code VARCHAR(10) NOT NULL DEFAULT 'YER',
+        schedule_type VARCHAR(30) NOT NULL DEFAULT 'INSTALLMENT',
+        frequency VARCHAR(20) NOT NULL DEFAULT 'MONTHLY',
+        installments_count INT NOT NULL DEFAULT 1,
+        installment_amount NUMERIC,
+        start_date DATE NOT NULL,
+        end_date DATE,
+        next_due_date DATE,
+        status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+        notes TEXT,
+        metadata JSONB DEFAULT '{}',
+        created_by UUID NOT NULL REFERENCES users(id),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        deleted_at TIMESTAMP WITH TIME ZONE
+      );
+
+      CREATE TABLE IF NOT EXISTS revenue_schedule_installments (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        schedule_id UUID NOT NULL REFERENCES revenue_schedules(id) ON DELETE CASCADE,
+        installment_number INT NOT NULL,
+        due_date DATE NOT NULL,
+        amount NUMERIC NOT NULL,
+        currency_code VARCHAR(10) NOT NULL DEFAULT 'YER',
+        amount_base NUMERIC NOT NULL DEFAULT 0,
+        status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+        linked_record_id UUID REFERENCES revenue_records(id),
+        collected_date DATE,
+        collected_amount NUMERIC DEFAULT 0,
+        notes TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_revenue_schedules_org_status ON revenue_schedules(organization_id, status);
+      CREATE INDEX IF NOT EXISTS idx_revenue_schedules_next_due ON revenue_schedules(next_due_date) WHERE status = 'ACTIVE';
+      CREATE INDEX IF NOT EXISTS idx_schedule_installments_schedule ON revenue_schedule_installments(schedule_id);
+      CREATE INDEX IF NOT EXISTS idx_schedule_installments_status ON revenue_schedule_installments(status);
+
+      CREATE SEQUENCE IF NOT EXISTS revenue_schedule_seq START 1;
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // NEB-15 Funding Caps — Ceiling Enforcement & Monitoring
+      // ═══════════════════════════════════════════════════════════════════════
+      CREATE TABLE IF NOT EXISTS funding_caps (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        cap_code VARCHAR(100) NOT NULL UNIQUE,
+        cap_name_ar TEXT NOT NULL,
+        cap_name_en TEXT,
+        cap_type VARCHAR(30) NOT NULL DEFAULT 'HARD',
+        applicable_types TEXT[] NOT NULL,
+        project_id UUID REFERENCES projects(id),
+        donor_id UUID REFERENCES donors(id),
+        grant_id UUID REFERENCES grants(id),
+        total_cap_amount NUMERIC NOT NULL,
+        currency_code VARCHAR(10) NOT NULL DEFAULT 'YER',
+        start_date DATE NOT NULL,
+        end_date DATE,
+        alert_threshold_pct INT DEFAULT 80,
+        status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+        notes TEXT,
+        metadata JSONB DEFAULT '{}',
+        created_by UUID NOT NULL REFERENCES users(id),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        deleted_at TIMESTAMP WITH TIME ZONE
+      );
+
+      CREATE TABLE IF NOT EXISTS funding_cap_utilizations (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        cap_id UUID NOT NULL REFERENCES funding_caps(id) ON DELETE CASCADE,
+        revenue_record_id UUID REFERENCES revenue_records(id),
+        revenue_batch_id UUID REFERENCES revenue_batches(id),
+        utilization_amount NUMERIC NOT NULL,
+        utilization_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        notes TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_funding_caps_org_status ON funding_caps(organization_id, status);
+      CREATE INDEX IF NOT EXISTS idx_funding_caps_project ON funding_caps(project_id) WHERE project_id IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_funding_cap_utilizations_cap ON funding_cap_utilizations(cap_id);
     `);
 
     await client.query('COMMIT');

@@ -11,6 +11,8 @@ export type ActiveTab =
   | 'programs' 
   | 'projects' 
   | 'activities' 
+  | 'field_tasks'
+  | 'portfolio_intelligence'
   | 'beneficiaries' 
   | 'sponsorships' 
   | 'finance' 
@@ -33,7 +35,8 @@ export type ActiveTab =
   | 'third-party-network'
   | 'sales'
   | 'procurement'
-  | 'business_intelligence';
+  | 'business_intelligence'
+  | 'communications';
 
 export type TabId = ActiveTab;
 

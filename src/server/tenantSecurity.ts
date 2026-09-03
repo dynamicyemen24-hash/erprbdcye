@@ -52,7 +52,7 @@ export async function authenticateTenantContext(
     }
 
     // Determine target organization ID
-    let targetOrgId = headerOrgId || tokenOrgId || DEFAULT_ORG_ID;
+    const targetOrgId = headerOrgId || tokenOrgId || DEFAULT_ORG_ID;
 
     if (userId) {
       // Verify user membership in the target organization

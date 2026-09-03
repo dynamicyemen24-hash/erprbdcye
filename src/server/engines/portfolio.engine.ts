@@ -62,8 +62,8 @@ export class PortfolioEngine {
     const overdueMilestones = await queryOne(
       `SELECT COUNT(*) as count FROM milestones m
        JOIN projects pr ON pr.id = m.project_id
-       WHERE pr.organization_id = $1 AND m.status IN ('PENDING','IN_PROGRESS')
-       AND m.target_date < CURRENT_DATE`,
+       WHERE pr.organization_id = $1 AND m.status_code IN ('PENDING','IN_PROGRESS')
+       AND m.planned_date < CURRENT_DATE`,
       [orgId]
     );
 

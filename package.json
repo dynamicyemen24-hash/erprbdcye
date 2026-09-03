@@ -10,7 +10,8 @@
     "build:server": "esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
-    "lint": "node -e \"try{require('eslint');require('child_process').execSync('eslint src/',{stdio:'inherit'})}catch(e){console.log('ESLint not present, skipping lint check.')}\"",
+    "lint": "eslint src/ --quiet",
+    "lint:strict": "eslint src/ --max-warnings=0",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "node -e \"try{require('prettier');require('child_process').execSync('prettier --check \\\"src/**/*.{ts,tsx,css}\\\"',{stdio:'inherit'})}catch(e){console.log('Prettier not present, skipping format check.')}\"",
@@ -20,6 +21,7 @@
     "typecheck": "tsc --noEmit",
     "ci": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build && npm run migration:validate && npm run security:check",
     "migration:list": "node -e \"const fs=require('fs');const path=require('path');const dir=path.join(process.cwd(),'migrations');if(!fs.existsSync(dir)){console.log('No migrations directory');process.exit(0)}const files=fs.readdirSync(dir).filter(f=>f.endsWith('.sql')).sort();console.log('Pending migrations ('+files.length+'):');files.forEach(f=>{const s=fs.statSync(path.join(dir,f));console.log('- '+f+' ('+s.size+' bytes)')})\"",
+    "migration:run": "node -e \"const fs=require('fs');const path=require('path');const dir=path.join(process.cwd(),'migrations');const files=fs.existsSync(dir)?fs.readdirSync(dir).filter(f=>f.endsWith('.sql')).sort():[];console.log('SQL migration files ('+files.length+'):');files.forEach(f=>console.log('- '+f));console.log('Migrations are applied automatically at server startup (bootstrapDatabase Phase 1.5) and tracked in the _migrations table.');\"",
     "migration:validate": "npm run migration:list",
     "security:check": "node -e \"try{require('helmet');console.log('Security middleware: OK')}catch(e){console.log('helmet not installed:',e.message)};const fs=require('fs');try{const p=fs.readFileSync('src/server/middleware/policy.middleware.ts','utf8');console.log('Policy middleware loaded:',p.length>0)}catch(e){console.log('Policy file missing:',e.message)}\""
   },

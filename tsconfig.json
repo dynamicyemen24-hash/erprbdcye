@@ -33,7 +33,12 @@
     "src",
     "server.ts",
     "vite.config.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "tests"
+  ],
+  "types": [
+    "node",
+    "vitest/globals"
   ],
   "exclude": [
     "node_modules",
@@ -44,15 +49,6 @@
     "migrations",
     "*.js",
     "*.cjs",
-    "*.mjs",
-    "file_list.ts",
-    "fast_views.ts",
-    "inspect_views.ts",
-    "query_views.ts",
-    "query_views_batch.ts",
-    "db-explore.ts",
-    "db-summary.ts",
-    "check_db.js",
-    "execution_result.cjs"
+    "*.mjs"
   ]
 }

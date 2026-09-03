@@ -127,6 +127,8 @@ export interface EVMData {
   etc: number; // Estimate to Complete
   vac: number; // Variance at Completion
   percentComplete: number;
+  tcpi?: number; // To-Complete Performance Index
+  source?: string; // 'earned_value_metrics' | 'computed'
   milestones?: {
     total: number;
     completed: number;
@@ -199,10 +201,21 @@ export interface ServiceDeliveryCreate {
 }
 
 // ─── Audit Types ───────────────────────────────────────
+export type AuditAction =
+  | 'CREATE' | 'UPDATE' | 'DELETE' | 'VIEW' | 'EXPORT' | 'LOGIN' | 'LOGOUT'
+  // Procurement & Tenders (NEB-14)
+  | 'STATUS_CHANGE' | 'BID_SUBMIT' | 'BID_EVALUATE' | 'TENDER_TRANSITION' | 'TENDER_AWARD'
+  | 'AUCTION_CREATE' | 'AUCTION_OPEN' | 'AUCTION_CLOSE' | 'AUCTION_BID' | 'AUCTION_AWARD'
+  | 'AWARD_RFQ' | 'APPROVE_PO'
+  // Funding & Grants (NEB-08)
+  | 'RECEIVE_INSTALLMENT'
+  // Unified Revenue Engine (NEB-15)
+  | 'UPSERT' | 'SUBMIT' | 'APPROVE' | 'REJECT' | 'POST' | 'COLLECT' | 'VOID';
+
 export interface AuditLogEntry {
   organizationId: string;
   userId: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'VIEW' | 'EXPORT' | 'LOGIN' | 'LOGOUT';
+  action: AuditAction;
   tableName: string;
   recordId?: string;
   ipAddress?: string;

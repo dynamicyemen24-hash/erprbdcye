@@ -20,8 +20,9 @@ export function parsePagination(params: PaginationParams): { offset: number; lim
 }
 
 export function buildOrderBy(sortBy?: string, sortOrder?: 'asc' | 'desc'): string {
+  // Allow both plain columns (created_at) and table-qualified columns (rr.created_at)
   if (!sortBy) return 'created_at DESC';
-  const allowed = /^[a-z_]+$/i.test(sortBy) ? sortBy : 'created_at';
+  const allowed = /^[a-z_]+(\.[a-z_]+)?$/i.test(sortBy) ? sortBy : 'created_at';
   const order = sortOrder === 'asc' ? 'ASC' : 'DESC';
   return `${allowed} ${order}`;
 }
@@ -34,9 +35,15 @@ export async function paginatedQuery<T>(
 ): Promise<PaginatedResult<T>> {
   const { offset, limit, page } = parsePagination(pagination);
 
+  // If the base query already carries its own ORDER BY (e.g. qualified columns
+  // in JOINed queries), do NOT append another one — appending would produce
+  // "ORDER BY ... ORDER BY ..." syntax errors.
+  const hasOwnOrderBy = /\border\s+by\b/i.test(baseQuery);
+  const orderClause = hasOwnOrderBy ? '' : ` ${buildOrderBy(pagination.sortBy, pagination.sortOrder)}`;
+
   const [countResult, dataResult] = await Promise.all([
     queryOne<{ count: string }>(countQuery, params),
-    queryMany<T>(`${baseQuery} ${buildOrderBy(pagination.sortBy, pagination.sortOrder)} LIMIT $${params.length + 1} OFFSET $${params.length + 2}`, [...params, limit, offset]),
+    queryMany<T>(`${baseQuery}${orderClause} LIMIT $${params.length + 1} OFFSET $${params.length + 2}`, [...params, limit, offset]),
   ]);
 
   const total = parseInt(countResult?.count || '0', 10);
@@ -124,16 +131,17 @@ export function sanitize(value: unknown): string | null {
 
 export async function auditLog(entry: AuditLogEntry): Promise<void> {
   try {
+    // Live audit_logs schema: entity_type/entity_id/new_values (no `details` column).
+    const recordId = entry.recordId && isValidUUID(entry.recordId) ? entry.recordId : null;
     await query(
-      `INSERT INTO audit_logs (organization_id, user_id, action, table_name, record_id, ip_address, details)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      `INSERT INTO audit_logs (organization_id, user_id, action, table_name, record_id, entity_type, entity_id, new_values, status)
+       VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $4, $5::uuid, $6::jsonb, 'SUCCESS')`,
       [
-        entry.organizationId,
-        entry.userId,
+        entry.organizationId && isValidUUID(entry.organizationId) ? entry.organizationId : null,
+        entry.userId && isValidUUID(entry.userId) ? entry.userId : null,
         entry.action,
         entry.tableName,
-        entry.recordId || null,
-        entry.ipAddress || null,
+        recordId,
         JSON.stringify(entry.details || {}),
       ]
     );

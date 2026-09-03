@@ -10,10 +10,10 @@ export { StrategicPlanEngine, StrategicGoalEngine, KPIEngine2, SWOTEngine, Strat
 export { PortfolioEngine, ProgramEngine } from './portfolio.engine';
 
 // ─── NEB-04: Project Management ────────────────────────
-export { ProjectEngine, MilestoneEngine, ScheduleEngine } from './project.engine';
+export { ProjectEngine, MilestoneEngine, ScheduleEngine, ProjectIntelligenceEngine } from './project.engine';
 
 // ─── NEB-05: Operations & Field ────────────────────────
-export { ActivityEngine, ResourceAllocationEngine, GeospatialEngine } from './operations.engine';
+export { ActivityEngine, ResourceAllocationEngine, GeospatialEngine, TaskEngine } from './operations.engine';
 
 // ─── NEB-06: Service Delivery ──────────────────────────
 export { BeneficiaryEngine, ServiceDeliveryEngine, AidDistributionEngine, SponsorshipEngine } from './serviceDelivery.engine';
@@ -42,9 +42,43 @@ export { RFQEngine, VendorBidEngine, PurchaseOrderEngine, ThreeWayMatchEngine, V
 
 // ─── NEB-15: Sales, Revenue & Fundraising ──────────────
 export { DonationEngine, InvoiceEngine, CampaignEngine, InvestmentEngine } from './sales.engine';
+export { RevenueStreamEngine, RevenueEngine, RevenueIntelligenceEngine } from './revenue.engine';
+
+// ─── NEB-10: Finance & Compliance OS — Expense Engine ───
+export {
+  ExpenseCategoryEngine,
+  ExpenseEngine,
+  ExpenseIntelligenceEngine,
+  ExpenseBatchEngine,
+  PettyCashEngine,
+  RecurringExpenseEngine
+} from './expense.engine';
 
 // ─── Reporting & Analytics ─────────────────────────────
 export { KPIEngine, ViewEngine, ReportExportEngine } from './reporting.engine';
+
+// ─── NEB-12 + NEB-13: Unified Search & Query Engine ───
+export {
+  SearchIndexEngine,
+  UnifiedSearchEngine,
+  FacetEngine,
+  SavedSearchEngine,
+  SearchTelemetryEngine,
+  RecommendationEngine,
+  SearchEngine,
+  SEARCHABLE_DOMAINS
+} from './search.engine';
+export type {
+  SearchableDomain,
+  UnifiedSearchInput,
+  UnifiedSearchHit,
+  UnifiedSearchResult,
+  FacetRequest,
+  SavedSearchInput,
+  SearchIndexRow,
+  SearchAnalyticsRow,
+  RecommendationContext
+} from './search.engine';
 
 // ─── Auth ──────────────────────────────────────────────
 export { AuthEngine } from './auth.engine';

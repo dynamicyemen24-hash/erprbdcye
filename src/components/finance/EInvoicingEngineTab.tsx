@@ -440,7 +440,7 @@ export default function EInvoicingEngineTab({
   // Print Official E-Invoice PDF (QR rendered locally from real invoice data)
   const handlePrintEInvoice = (inv: EInvoice) => {
     const qrSvgMarkup = qrPrintRef.current?.innerHTML || '';
-    let reportHTML = `
+    const reportHTML = `
       <!DOCTYPE html>
       <html lang="${lang}" dir="${isRtl ? 'rtl' : 'ltr'}">
       <head>

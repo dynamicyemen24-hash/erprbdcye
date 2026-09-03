@@ -4,6 +4,8 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest';
+import fs from 'fs';
+import path from 'path';
 
 // ─── Mock Setup ────────────────────────────────────────
 
@@ -357,8 +359,6 @@ describe('Database Core', () => {
 // ─── Complete File Structure Tests ─────────────────────
 
 describe('File Structure', () => {
-  const fs = require('fs');
-  const path = require('path');
   const baseDir = path.join(process.cwd(), 'src/server');
 
   const requiredFiles = [

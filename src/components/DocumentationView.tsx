@@ -20,12 +20,16 @@ import {
   PlayCircle,
   ChevronDown,
   ChevronRight,
+  Award,
+  HandHeart,
+  BadgeCheck,
   X
 } from 'lucide-react';
 import OperationalScenariosView from './OperationalScenariosView';
 import { EnterpriseLogo } from './EnterpriseLogo';
 import { ModuleShell } from './enterprise/ModuleShell';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
+import { REPORT_WORKSPACE_REGISTRY } from '../config/reportWorkspaceRegistry';
 
 interface DocumentationViewProps {
   lang: 'ar' | 'en';
@@ -40,6 +44,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [officialDocModal, setOfficialDocModal] = useState<'official_memo' | 'completion_certificate' | 'donation_acknowledgment' | 'volunteer_appreciation' | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     philosophy: true,
     domains: true,
@@ -48,6 +53,9 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
     instructions: true,
     data: true,
   });
+  // Lives at the component level (Rules of Hooks): the manual accordion is
+  // rendered by the renderManual() helper, but its state belongs here.
+  const [activeManualId, setActiveManualId] = useState<string | null>(null);
 
   const toggleSection = (key: string) => {
     setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -132,6 +140,7 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
               <span className="text-zinc-300 dark:text-zinc-400 font-normal px-2">| One Platform. One Organization. One Vision.</span>
             </p>
           </div>
+
         </div>
         <div className="flex items-center gap-2">
           <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-xs font-bold font-mono">
@@ -630,8 +639,6 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
       }
     ];
 
-    const [activeManualId, setActiveManualId] = useState<string | null>(null);
-
     return (
       <div className="space-y-6 text-slate-800 dark:text-zinc-200 leading-relaxed text-sm">
         {/* Header */}
@@ -835,7 +842,112 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
             <span>{docTitles.manual}</span>
           </button>
         </div>
+
+        {/* Official Arabic Documents Quick-Launch (customized from General Settings) */}
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            onClick={() => setOfficialDocModal('official_memo')}
+            className="flex items-center gap-3 p-4 bg-gradient-to-br from-emerald-50 to-emerald-100/60 dark:from-emerald-950/40 dark:to-zinc-900 border border-emerald-200 dark:border-emerald-800/60 rounded-xl hover:shadow-md hover:shadow-emerald-600/10 transition-all cursor-pointer group text-right"
+          >
+            <div className="p-2.5 rounded-lg bg-emerald-600 text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-xs font-black text-emerald-900 dark:text-emerald-200">
+                {lang === 'ar' ? 'مذكرة رسمية داخلية معتمدة' : 'Official Internal Memo'}
+              </span>
+              <span className="block text-[10px] text-emerald-700/70 dark:text-emerald-400/70 mt-0.5">
+                {lang === 'ar' ? 'خطاب رسمي على ترويسة المؤسسة وفق إعدادات عامة' : 'Organization letterhead governed by General Settings'}
+              </span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-emerald-400 ml-auto shrink-0 rtl:rotate-180" />
+          </button>
+
+          <button
+            onClick={() => setOfficialDocModal('completion_certificate')}
+            className="flex items-center gap-3 p-4 bg-gradient-to-br from-amber-50 to-amber-100/60 dark:from-amber-950/40 dark:to-zinc-900 border border-amber-200 dark:border-amber-800/60 rounded-xl hover:shadow-md hover:shadow-amber-600/10 transition-all cursor-pointer group text-right"
+          >
+            <div className="p-2.5 rounded-lg bg-amber-600 text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-xs font-black text-amber-900 dark:text-amber-200">
+                {lang === 'ar' ? 'شهادة إنجاز رسمية معتمدة' : 'Official Certificate of Completion'}
+              </span>
+              <span className="block text-[10px] text-amber-700/70 dark:text-amber-400/70 mt-0.5">
+                {lang === 'ar' ? 'توثيق استلام الأعمال المنفذة بقيمتها المالية' : 'Verified acceptance of executed works and amounts'}
+              </span>
+            </div>
+            <Award className="w-4 h-4 text-amber-400 ml-auto shrink-0" />
+          </button>
+
+          <button
+            onClick={() => setOfficialDocModal('donation_acknowledgment')}
+            className="flex items-center gap-3 p-4 bg-gradient-to-br from-sky-50 to-sky-100/60 dark:from-sky-950/40 dark:to-zinc-900 border border-sky-200 dark:border-sky-800/60 rounded-xl hover:shadow-md hover:shadow-sky-600/10 transition-all cursor-pointer group text-right"
+          >
+            <div className="p-2.5 rounded-lg bg-sky-600 text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
+              <HandHeart className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-xs font-black text-sky-900 dark:text-sky-200">
+                {lang === 'ar' ? 'خطاب شكر وتأكيد تبرع' : 'Donation Acknowledgment'}
+              </span>
+              <span className="block text-[10px] text-sky-700/70 dark:text-sky-400/70 mt-0.5">
+                {lang === 'ar' ? 'إقرار استلام التبرعات وتوجيهها وفق IPSAS' : 'Donation receipt & IPSAS fund allocation'}
+              </span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-sky-400 ml-auto shrink-0 rtl:rotate-180" />
+          </button>
+
+          <button
+            onClick={() => setOfficialDocModal('volunteer_appreciation')}
+            className="flex items-center gap-3 p-4 bg-gradient-to-br from-teal-50 to-teal-100/60 dark:from-teal-950/40 dark:to-zinc-900 border border-teal-200 dark:border-teal-800/60 rounded-xl hover:shadow-md hover:shadow-teal-600/10 transition-all cursor-pointer group text-right"
+          >
+            <div className="p-2.5 rounded-lg bg-teal-600 text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
+              <BadgeCheck className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="block text-xs font-black text-teal-900 dark:text-teal-200">
+                {lang === 'ar' ? 'شهادة شكر وتقدير للمتطوعين' : 'Volunteer Appreciation'}
+              </span>
+              <span className="block text-[10px] text-teal-700/70 dark:text-teal-400/70 mt-0.5">
+                {lang === 'ar' ? 'تكريم العطاء التطوعي (NEB-07)' : 'Community & Membership recognition (NEB-07)'}
+              </span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-teal-400 ml-auto shrink-0 rtl:rotate-180" />
+          </button>
+        </div>
       </div>
+
+      <section className="mt-5 rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.04] p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-black text-slate-900 dark:text-zinc-100">
+              {lang === 'ar' ? 'مصفوفة مستندات الوحدات المرتبطة' : 'Linked Unit Document Matrix'}
+            </h3>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400">
+              {lang === 'ar' ? 'كل وحدة لها تقرير رسمي ومساحة عمل ومخرج مستندي واضح.' : 'Every unit has an official report, workspace and document output.'}
+            </p>
+          </div>
+          <FileText className="h-5 w-5 text-indigo-500" />
+        </div>
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          {REPORT_WORKSPACE_REGISTRY.map(unit => (
+            <div key={unit.id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900/70">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-black text-slate-900 dark:text-zinc-100">{lang === 'ar' ? unit.titleAr : unit.titleEn}</p>
+                <p className="mt-0.5 truncate text-[10px] text-slate-500 dark:text-zinc-400">{lang === 'ar' ? unit.documentAr : unit.documentEn}</p>
+                <p className="mt-1 text-[9px] text-indigo-600 dark:text-indigo-300">{lang === 'ar' ? unit.standardAr : unit.standardEn}</p>
+              </div>
+              {onNavigate && (
+                <button type="button" onClick={() => onNavigate(unit.workspaceTab)} className="shrink-0 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-indigo-500">
+                  {lang === 'ar' ? 'فتح الوحدة' : 'Open unit'}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Document Content Box */}
       <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors print:border-none print:shadow-none print:p-0">
@@ -953,6 +1065,60 @@ export default function DocumentationView({ lang, onNavigate, orgName }: Documen
       data={{
         title: docTitles[activeDoc],
         subtitle: docDescriptions[activeDoc]
+      }}
+    />
+
+    {/* Official Internal Memo Modal */}
+    <PrintPDFTemplateModal
+      isOpen={officialDocModal === 'official_memo'}
+      onClose={() => setOfficialDocModal(null)}
+      lang={lang}
+      type="official_memo"
+      data={{
+        memoNumber: `م/${new Date().getFullYear()}/`,
+        dateGregorian: new Date().toLocaleDateString('en-GB'),
+        classification: 'OFFICIAL',
+        fromAr: orgName || (lang === 'ar' ? 'الإدارة التنفيذية' : 'Executive Management'),
+        toAr: lang === 'ar' ? '' : '',
+        subjectAr: '',
+        bodyAr: []
+      }}
+    />
+
+    {/* Official Completion Certificate Modal */}
+    <PrintPDFTemplateModal
+      isOpen={officialDocModal === 'completion_certificate'}
+      onClose={() => setOfficialDocModal(null)}
+      lang={lang}
+      type="completion_certificate"
+      data={{
+        certificateNumber: `ش/${new Date().getFullYear()}/`,
+        dateGregorian: new Date().toLocaleDateString('en-GB'),
+        entityNameAr: orgName || ''
+      }}
+    />
+
+    {/* Donation Acknowledgment Modal */}
+    <PrintPDFTemplateModal
+      isOpen={officialDocModal === 'donation_acknowledgment'}
+      onClose={() => setOfficialDocModal(null)}
+      lang={lang}
+      type="donation_acknowledgment"
+      data={{
+        acknowledgmentNumber: `إش/${new Date().getFullYear()}/`,
+        dateGregorian: new Date().toLocaleDateString('en-GB')
+      }}
+    />
+
+    {/* Volunteer Appreciation Modal */}
+    <PrintPDFTemplateModal
+      isOpen={officialDocModal === 'volunteer_appreciation'}
+      onClose={() => setOfficialDocModal(null)}
+      lang={lang}
+      type="volunteer_appreciation"
+      data={{
+        certificateNumber: `شك/${new Date().getFullYear()}/`,
+        dateGregorian: new Date().toLocaleDateString('en-GB')
       }}
     />
     </ModuleShell>

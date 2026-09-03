@@ -63,6 +63,10 @@ export class SalesRevenueService {
   static async createSalesInvoice(payload: CreateInvoicePayload) {
     const pool = getDatabasePool();
     const orgId = payload.organizationId || serverConfig.defaultOrgId;
+    if (!payload.donorOrClientName?.trim()) throw new Error('العميل أو الجهة الدافعة مطلوبة');
+    if (!Number.isFinite(payload.totalAmount) || payload.totalAmount <= 0) {
+      throw new Error('قيمة الفاتورة يجب أن تكون رقماً موجباً');
+    }
 
     // Use a DB-level atomic sequence to prevent race conditions in invoice number generation
     await pool.query(`
@@ -108,7 +112,10 @@ export class SalesRevenueService {
    */
   static async paySalesInvoice(invoiceId: string, paymentGateway?: string, orgId: string = serverConfig.defaultOrgId) {
     return await withTransaction(async (client) => {
-      const invRes = await client.query('SELECT * FROM sales_invoices WHERE id = $1', [invoiceId]);
+      const invRes = await client.query(
+        'SELECT * FROM sales_invoices WHERE id = $1 AND organization_id = $2 FOR UPDATE',
+        [invoiceId, orgId]
+      );
       if (invRes.rows.length === 0) {
         throw new Error('Sales invoice not found');
       }
@@ -120,26 +127,36 @@ export class SalesRevenueService {
 
       const updatedGateway = paymentGateway || invoice.payment_gateway || 'BANK_TRANSFER';
       
-      // Update invoice to PAID
-      await client.query(`
-        UPDATE sales_invoices
-        SET payment_status = 'PAID', payment_gateway = $1, updated_at = NOW()
-        WHERE id = $2
-      `, [updatedGateway, invoiceId]);
-
       // Post double-entry IPSAS Journal Voucher
-      const accountsRes = await client.query('SELECT id, account_code, name_ar, account_type FROM chart_of_accounts LIMIT 30');
+      const accountsRes = await client.query(
+        `SELECT id, account_code, name_ar, account_type
+         FROM chart_of_accounts
+         WHERE organization_id = $1 AND deleted_at IS NULL
+           AND is_active = TRUE AND is_header = FALSE
+         ORDER BY account_code`,
+        [orgId]
+      );
       const accounts = accountsRes.rows;
       
       // Cash/Bank account (Asset Debit 1xxx)
-      const cashAcc = accounts.find((a: any) => a.account_code?.startsWith('1') || a.name_ar?.includes('صندوق') || a.name_ar?.includes('بنك')) || accounts[0];
+      const cashAcc = accounts.find((a: any) => a.account_code?.startsWith('1') || a.name_ar?.includes('صندوق') || a.name_ar?.includes('بنك'));
       // Revenue account (Revenue Credit 3xxx/4xxx)
-      const revAcc = accounts.find((a: any) => a.account_code?.startsWith('3') || a.account_code?.startsWith('4') || a.name_ar?.includes('إيراد') || a.name_ar?.includes('تبرع')) || accounts[1];
+      const revAcc = accounts.find((a: any) => a.account_code?.startsWith('3') || a.account_code?.startsWith('4') || a.name_ar?.includes('إيراد') || a.name_ar?.includes('تبرع'));
 
       let postedVoucher = null;
-      if (cashAcc && revAcc && Number(invoice.total_amount) > 0) {
+      if (!cashAcc || !revAcc || cashAcc.id === revAcc.id) {
+        throw new Error('لا يوجد حساب صندوق/بنك وحساب إيراد تفصيلي نشط للترحيل');
+      }
+      if (Number(invoice.total_amount) > 0) {
         const voucherNumber = `JV-REV-${invoice.invoice_number}`;
         const total = Number(invoice.total_amount);
+        const existingVoucher = await client.query(
+          'SELECT id FROM transactions WHERE organization_id = $1 AND transaction_number = $2 LIMIT 1',
+          [orgId, voucherNumber]
+        );
+        if (existingVoucher.rows.length > 0) {
+          throw new Error('تم إنشاء قيد تحصيل لهذه الفاتورة مسبقاً');
+        }
 
         const txRes = await client.query(`
           INSERT INTO transactions (
@@ -185,6 +202,12 @@ export class SalesRevenueService {
 
         postedVoucher = { voucherNumber, transactionId: txId, amount: total };
       }
+
+      await client.query(`
+        UPDATE sales_invoices
+        SET payment_status = 'PAID', payment_gateway = $1, updated_at = NOW()
+        WHERE id = $2 AND organization_id = $3
+      `, [updatedGateway, invoiceId, orgId]);
 
       await recordAuditLog({
         organizationId: orgId,

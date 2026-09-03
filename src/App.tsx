@@ -1,4 +1,4 @@
-import './lib/apiConfig'; // Must be first — configures fetch wrapper for split deployment
+import { SYSTEM_NAME } from './core/utils';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -98,7 +98,7 @@ import {
   MobileNavigationDrawer,
   GlobalEnterpriseHeader,
   GlobalOperationalFooter
-} from './shared/components';
+} from './components';
 import { useNexoraData, useOrganizationBranding, performanceMonitor } from './core/hooks';
 import { useSessionTimeout } from './core/security/useSessionTimeout';
 import { SecureStorage } from './core/security/SecureStorage';
@@ -538,7 +538,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     const currentOrg = enterprise.orgName || (lang === 'ar' ? 'جمعية رُحماء بينهم للعمل الإنساني والتنمية' : "Rohamā'a Baynahum Charity Foundation");
-    document.title = `UAMEX ERP™ | ${currentOrg}`;
+    document.title = `${SYSTEM_NAME} | ${currentOrg}`;
   }, [lang, enterprise.orgName]);
 
   // Handle document theme mode
@@ -617,6 +617,8 @@ export default function App() {
     programs: { icon: Briefcase, title_ar: 'البرامج', title_en: 'Programs', category_ar: 'البرامج', category_en: 'Programs' },
     projects: { icon: Layers, title_ar: 'المشاريع', title_en: 'Projects', category_ar: 'المشاريع', category_en: 'Projects' },
     activities: { icon: Activity, title_ar: 'الأنشطة', title_en: 'Activities', category_ar: 'العمليات الميدانية', category_en: 'Operations' },
+    field_tasks: { icon: CheckCircle2, title_ar: 'توزيع المهام الميدانية', title_en: 'Field Task Dispatch', category_ar: 'العمليات الميدانية', category_en: 'Operations' },
+    portfolio_intelligence: { icon: Layers, title_ar: 'ذكاء المحفظة', title_en: 'Portfolio Intelligence', category_ar: 'البرامج', category_en: 'Programs' },
     beneficiaries: { icon: Users, title_ar: 'المستفيدون', title_en: 'Beneficiaries', category_ar: 'الخدمات', category_en: 'Services' },
     sponsorships: { icon: Heart, title_ar: 'الكفالات', title_en: 'Sponsorships', category_ar: 'الرعاية', category_en: 'Welfare' },
     finance: { icon: Coins, title_ar: 'المالية', title_en: 'Finance', category_ar: 'المالية والحوكمة', category_en: 'Finance' },
@@ -639,7 +641,8 @@ export default function App() {
     'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', category_ar: 'التزويد والمطالبات', category_en: 'Third-Party OS' },
     sales: { icon: Coins, title_ar: 'المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', category_ar: 'تنمية الموارد', category_en: 'Fundraising' },
     procurement: { icon: ShoppingCart, title_ar: 'المشتريات والمناقصات (P2P)', title_en: 'Procurement & Tenders OS', category_ar: 'المشتريات والعقود', category_en: 'Procurement OS' },
-    business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', category_ar: 'ذكاء الأثر الدولي', category_en: 'Business Intelligence' }
+    business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', category_ar: 'ذكاء الأثر الدولي', category_en: 'Business Intelligence' },
+    communications: { icon: FileText, title_ar: 'الاتصال الإداري الذكي', title_en: 'Intelligent Communications', category_ar: 'الاتصال المؤسسي', category_en: 'Communications' }
   };
 
   const dbConnected = !!serverStats;
@@ -777,18 +780,19 @@ export default function App() {
         
         {/* A. UNIFIED ENTERPRISE LEFT SIDEBAR */}
         <div className="hidden lg:block h-full">
-          <UnifiedLeftSidebar
-            lang={lang}
-            activeTab={activeTab}
-            onNavigate={(tab) => handleSelectTab(tab as ActiveTab)}
-            isCollapsed={!isSystemsDockPinned}
-            onToggleCollapse={() => setIsSystemsDockPinned(!isSystemsDockPinned)}
-            onOpenCopilot={() => setShowCopilotDrawer(true)}
-            onOpenDocs={() => setShowDocsModal(true)}
-            onOpenScenarios={() => setShowScenariosModal(true)}
-            onOpenHelpers={() => setShowHelpersModal(true)}
-            onOpenSystemMap={() => setShowSystemMapModal(true)}
-          />
+<UnifiedLeftSidebar
+          lang={lang}
+          activeTab={activeTab}
+          onNavigate={(tab) => handleSelectTab(tab as ActiveTab)}
+          isCollapsed={!isSystemsDockPinned}
+          onToggleCollapse={() => setIsSystemsDockPinned(!isSystemsDockPinned)}
+          onOpenCopilot={() => setShowCopilotDrawer(true)}
+          onOpenDocs={() => setShowDocsModal(true)}
+          onOpenScenarios={() => setShowScenariosModal(true)}
+          onOpenHelpers={() => setShowHelpersModal(true)}
+          onOpenSystemMap={() => setShowSystemMapModal(true)}
+          onPrintReport={(reportType) => setShowExportModal(true)}
+        />
         </div>
 
         {/* B. CENTER PRIMARY WORKSPACE */}
@@ -860,6 +864,7 @@ export default function App() {
                   sysSettings={sysSettings}
                   beneficiaries={beneficiaries}
                   sponsorships={sponsorships}
+                  activities={activities}
                   approvalRequests={approvalRequests}
                   systemAlerts={systemAlerts}
                   serverStats={serverStats}

@@ -251,6 +251,27 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
 
   const cleanQuery = activeSearchTerm.toLowerCase();
 
+  // ── Unified Search Engine: debounced backend suggestions (NEB-12) ─
+  const [smartResults, setSmartResults] = useState<any[]>([]);
+  const [smartLoading, setSmartLoading] = useState(false);
+  useEffect(() => {
+    const q = (activeSearchTerm || '').trim();
+    if (q.length < 2 || !isOpen) { setSmartResults([]); return; }
+    setSmartLoading(true);
+    const handle = setTimeout(() => {
+      const orgId = (typeof window !== 'undefined' && (window as any).__uamex_org) || '';
+      const token = (typeof window !== 'undefined' && (window as any).__uamex_token) || '';
+      fetch(`/api/v2/search/suggest?q=${encodeURIComponent(q)}&limit=6`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'x-organization-id': orgId }
+      })
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(j => { if (j?.success) setSmartResults(j.data || []); else setSmartResults([]); })
+        .catch(() => setSmartResults([]))
+        .finally(() => setSmartLoading(false));
+    }, 350);
+    return () => { clearTimeout(handle); setSmartLoading(false); };
+  }, [activeSearchTerm, isOpen]);
+
   // Search Domains matching query
   const searchDomains = domains.filter(d => {
     if (!query) return false;
@@ -296,8 +317,23 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
     return fuzzyMatchArabic(cleanQuery, targetStr) > 0;
   }).map(d => ({ ...d, searchType: 'document' as const }));
 
-  // Combine results according to category filter
+  // Combine results according to category filter (smart results from NEB-12 unified engine come FIRST)
+  const smartHitsForList = (smartResults || []).map((r: any) => ({
+    ...r,
+    id: r.id,
+    name_ar: r.title,
+    name_en: r.title,
+    full_name_ar: r.title,
+    full_name: r.title,
+    project_code: r.subtitle || '',
+    beneficiary_code: r.subtitle || '',
+    searchType: 'smart' as const,
+    _smartDomain: r.domain,
+    _smartScore: r.score,
+    _smartUrl: r.url,
+  }));
   const allResults = [
+    ...(category === 'ALL' ? smartHitsForList : []),
     ...(category === 'ALL' || category === 'DOMAINS' ? searchDomains : []),
     ...(category === 'ALL' || category === 'BENEFICIARIES' ? searchBeneficiaries : []),
     ...(category === 'ALL' || category === 'PROJECTS' ? searchProjects : []),

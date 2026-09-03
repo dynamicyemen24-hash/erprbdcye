@@ -144,9 +144,8 @@ export const CustomizableShortcutsModal: React.FC<CustomizableShortcutsModalProp
   isOpen,
   onClose
 }) => {
-  if (!isOpen) return null;
-  const isRtl = lang === 'ar';
-
+    // Hooks must run unconditionally (Rules of Hooks) — the guard below only
+  // controls rendering, never hook execution.
   const [shortcuts, setShortcuts] = useState<ShortcutDefinition[]>(DEFAULT_SHORTCUTS);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [listeningKeys, setListeningKeys] = useState<string[]>([]);
@@ -170,7 +169,8 @@ export const CustomizableShortcutsModal: React.FC<CustomizableShortcutsModalProp
     loadSaved();
   }, [isOpen]);
 
-  // Key recording listener
+  // Key recording listener — runs unconditionally (Rules of Hooks) and
+  // self-guards on `editingId`.
   useEffect(() => {
     if (!editingId) return;
 
@@ -208,6 +208,9 @@ export const CustomizableShortcutsModal: React.FC<CustomizableShortcutsModalProp
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [editingId]);
+
+  if (!isOpen) return null;
+  const isRtl = lang === 'ar';
 
   // Save all shortcuts to storage
   const handleSaveAll = async () => {

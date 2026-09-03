@@ -42,9 +42,8 @@ export const EnterpriseExperienceModeModal: React.FC<EnterpriseExperienceModeMod
   onSelectMode,
   currentUserRole = 'مدير عام / مسؤول تنفيذي'
 }) => {
-  if (!isOpen) return null;
-  const isRtl = lang === 'ar';
-
+    // Hooks must run unconditionally (Rules of Hooks) — the guard below only
+  // controls rendering, never hook execution.
   const [activeTab, setActiveTab] = useState<'comparison' | 'interactive_preview'>('comparison');
   const [selectedMode, setSelectedMode] = useState<'work_first' | 'classic_analytics'>(currentMode);
   const [persistAsDefault, setPersistAsDefault] = useState(true);
@@ -63,6 +62,9 @@ export const EnterpriseExperienceModeModal: React.FC<EnterpriseExperienceModeMod
       return true;
     }
   });
+
+  if (!isOpen) return null;
+  const isRtl = lang === 'ar';
 
   const handleApplyPersona = (persona: 'executive' | 'field_pm' | 'auditor') => {
     triggerHaptic('medium');

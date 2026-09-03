@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest';
+import jwt from 'jsonwebtoken';
 
 // ─── Mock Database (vi.hoisted ensures this runs before vi.mock hoisting) ───
 
@@ -21,6 +22,7 @@ vi.mock('../../core/database', () => ({
   queryOne: databaseMock.queryOne,
   queryMany: databaseMock.queryMany,
   transaction: databaseMock.transaction,
+  getPool: vi.fn(() => ({ query: databaseMock.query, connect: vi.fn() })),
 }));
 
 // ─── Mock Helpers ──────────────────────────────────────
@@ -116,7 +118,6 @@ describe('AuthEngine', () => {
 
   describe('verifyToken', () => {
     it('should verify a valid token', () => {
-      const jwt = require('jsonwebtoken');
       const token = jwt.sign(
         { id: '1', email: 'test@test.com', role: 'ADMIN', org_id: 'org1', security_level: 5 },
         'test-secret',
@@ -315,6 +316,7 @@ describe('ProjectEngine', () => {
     it('should calculate EVM metrics correctly', async () => {
       databaseMock.queryOne
         .mockResolvedValueOnce({ id: 'p1', budget: '100000', progress_percent: '60' }) // project
+        .mockResolvedValueOnce(null as any) // earned_value_metrics (no persisted metric -> computed path)
         .mockResolvedValueOnce({ total_activity_budget: '100000', total_actual_cost: '80000' }) // activities
         .mockResolvedValueOnce({ total: '5', completed: '3', milestone_completion_pct: '0.6' }); // milestones
 
@@ -604,6 +606,81 @@ describe('ReportExportEngine', () => {
 
     expect(report.title).toContain('المستفيدين');
     expect((report as any).summary.total).toBe('100');
+  });
+});
+
+// ─── PPM Intelligence Engine (CPM + Portfolio Dashboard) ──
+
+describe('CPMEngine', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should derive a schedule-order chain when no explicit dependencies exist', async () => {
+    const { CPMEngine } = await import('../ppm.intelligence.engine');
+    databaseMock.query
+      .mockResolvedValueOnce({ rows: [{ id: 'p1', name_ar: 'المشروع', name_en: 'Project', project_code: 'PRJ-1' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [
+        { id: 's1', task_name_ar: 'A', task_name_en: 'A', wbs_code: '1.1', start_date: '2026-01-01', end_date: '2026-01-10', duration_days: 9, progress_percent: 100, is_critical: false, is_milestone: false },
+        { id: 's2', task_name_ar: 'B', task_name_en: 'B', wbs_code: '1.2', start_date: '2026-01-11', end_date: '2026-02-20', duration_days: 41, progress_percent: 50, is_critical: false, is_milestone: false },
+        { id: 's3', task_name_ar: 'C', task_name_en: 'C', wbs_code: '1.3', start_date: '2026-02-21', end_date: '2026-03-31', duration_days: 39, progress_percent: 0, is_critical: false, is_milestone: false },
+      ], rowCount: 3 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // dependency_network empty
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }); // milestones empty
+
+    const res = await CPMEngine.compute('p1');
+
+    expect(res.isCyclic).toBe(false);
+    expect(res.derivedChain).toBe(true);
+    expect(res.network).toHaveLength(3);
+    expect(res.criticalPath).toEqual(['s1', 's2', 's3']);
+    expect(res.criticalPathLengthDays).toBe(89); // 9 + 41 + 39
+  });
+
+  it('should use explicit dependency_network edges and not flag as derived', async () => {
+    const { CPMEngine } = await import('../ppm.intelligence.engine');
+    databaseMock.query
+      .mockResolvedValueOnce({ rows: [{ id: 'p1', name_ar: 'B', name_en: 'b', project_code: 'P' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [
+        { id: 's1', task_name_ar: 'A', task_name_en: 'A', wbs_code: '1.1', start_date: '2026-01-01', end_date: '2026-01-11', duration_days: 10, progress_percent: 100, is_critical: false, is_milestone: false },
+        { id: 's2', task_name_ar: 'B', task_name_en: 'B', wbs_code: '1.2', start_date: '2026-01-12', end_date: '2026-02-01', duration_days: 20, progress_percent: 0, is_critical: false, is_milestone: false },
+      ], rowCount: 2 })
+      .mockResolvedValueOnce({ rows: [{ predecessor_id: 's1', successor_id: 's2', lag_days: 0 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await CPMEngine.compute('p1');
+
+    expect(res.derivedChain).toBe(false);
+    expect(res.criticalPath).toEqual(['s1', 's2']);
+    expect(res.criticalPathLengthDays).toBe(30);
+  });
+});
+
+describe('PortfolioDashboardEngine', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should count only high/critical risk projects as at-risk', async () => {
+    const { PortfolioDashboardEngine } = await import('../ppm.intelligence.engine');
+    databaseMock.query
+      .mockResolvedValueOnce({ rows: [{ id: 'prg1', budget: '1000' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [
+        { id: 'p1', progress_percent: 50 },
+        { id: 'p2', progress_percent: 100 },
+      ], rowCount: 2 })
+      .mockResolvedValueOnce({ rows: [
+        { project_id: 'p1', risk_level: 'منخفض' },
+        { project_id: 'p2', risk_level: 'مرتفع' },
+        { project_id: 'p3', risk_level: 'حرج' },
+        { project_id: 'p4', risk_level: 'متوسط' },
+      ], rowCount: 4 });
+
+    const res = await PortfolioDashboardEngine.overview('org1');
+
+    expect(res.summary.totalPrograms).toBe(1);
+    expect(res.summary.totalProjects).toBe(2);
+    expect(res.summary.atRiskProjects).toBe(2); // only مرتفع + حرج
   });
 });
 

@@ -146,7 +146,7 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
         <div class="max-w-4xl mx-auto mb-6 flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm no-print">
           <span class="text-xs font-bold text-slate-500">${lang === 'ar' ? 'جاهز للطباعة أو التصدير الرسمي' : 'Ready to print account ledger'}</span>
           <button onclick="window.print()" class="px-5 py-2 bg-emerald-600 text-white font-black text-xs rounded-lg cursor-pointer">
-            ${lang === 'ar' ? 'إطلاق أمر الطباعة 🖨️' : 'Print Statement 🖨️'}
+            ${lang === 'ar' ? 'إطلاق أمر الطباعة الرسمية' : 'Print Official Statement'}
           </button>
         </div>
 

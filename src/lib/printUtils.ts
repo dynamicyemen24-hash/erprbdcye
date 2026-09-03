@@ -1,8 +1,5 @@
 import { sanitizeHtml } from './htmlSanitizer';
-
-const DEFAULT_ORG_NAME_AR = "جمعية رُحماء بينهم للعمل الإنساني والتنمية";
-const DEFAULT_ORG_NAME_EN = "Rohama'a Baynahum Charity Foundation";
-const SYSTEM_NAME = "UAMEX ERP™";
+import { SYSTEM_NAME } from '../core/utils';
 
 function getActiveOrgName(lang: 'ar' | 'en' = 'ar'): string {
   try {
@@ -11,13 +8,13 @@ function getActiveOrgName(lang: 'ar' | 'en' = 'ar'): string {
   } catch (e) {
     // Fail silently in non-browser environments
   }
-  return lang === 'ar' ? DEFAULT_ORG_NAME_AR : DEFAULT_ORG_NAME_EN;
+  return lang === 'ar' ? SYSTEM_NAME : SYSTEM_NAME;
 }
 
 export function getCustomFooterHTML(lang?: 'ar' | 'en'): string {
   const currentLang = lang || (document.documentElement?.dir === 'ltr' ? 'en' : 'ar');
-  const footerAr = localStorage.getItem('rbd_report_footer_text_ar') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية - نظام يو امكس المؤسسي الشامل UAMEX ERP™';
-  const footerEn = localStorage.getItem('rbd_report_footer_text_en') || 'Rohamaa Baynahum Charity Foundation - UAMEX ERP™ Intelligent Enterprise Operating System';
+  const footerAr = localStorage.getItem('rbd_report_footer_text_ar') || 'جمعية رُحماء بينهم للعمل الإنساني والتنمية - ' + SYSTEM_NAME;
+  const footerEn = localStorage.getItem('rbd_report_footer_text_en') || 'Rohamaa Baynahum Charity Foundation - ' + SYSTEM_NAME + ' Intelligent Enterprise Operating System';
   const showSignatures = localStorage.getItem('rbd_report_signature_blocks') === 'true';
   const footerText = currentLang === 'ar' ? footerAr : footerEn;
   const accentColor = localStorage.getItem('rbd_report_accent_color') || '#059669';

@@ -1116,7 +1116,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       const hasPmoAction = histList.some(h => h.approver_role === 'PROG_MGR' || h.approver_role === 'Programs & Projects Manager');
       const hasFinanceAction = histList.some(h => h.approver_role === 'Financial Manager');
 
-      let step1Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'completed';
+      const step1Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'completed';
       let step2Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
       let step3Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
       let step4Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
@@ -1230,7 +1230,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       const hasProcurementAction = histList.some(h => h.approver_role === 'LOGISTICS_MGR' || h.approver_role === 'Procurement Officer' || h.approver_role === 'Logistics Manager');
       const hasFinanceAction = histList.some(h => h.approver_role === 'Financial Manager');
 
-      let step1Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'completed';
+      const step1Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'completed';
       let step2Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
       let step3Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
       let step4Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
@@ -1331,7 +1331,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       const hasProjectAction = histList.some(h => h.approver_role === 'PROJECT_MGR' || h.approver_role === 'Project Manager');
       const hasFinanceAction = histList.some(h => h.approver_role === 'Financial Manager');
 
-      let step1Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'completed';
+      const step1Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'completed';
       let step2Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
       let step3Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
       let step4Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
@@ -1432,7 +1432,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       const hasAuditAction = histList.some(h => h.approver_role === 'Financial Manager');
       const hasAdminAction = histList.some(h => h.approver_role === 'Administrator');
 
-      let step1Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'completed';
+      const step1Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'completed';
       let step2Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
       let step3Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';
       let step4Status: 'completed' | 'pending' | 'upcoming' | 'rejected' = 'upcoming';

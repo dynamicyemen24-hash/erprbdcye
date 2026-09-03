@@ -119,6 +119,8 @@ export class InvoiceEngine {
     totalAmount: number; currencyCode?: string;
     dueDate?: string; notes?: string;
   }, auth: AuthContext) {
+    if (data.organizationId !== auth.orgId) throw new Error('لا يمكن إنشاء فاتورة خارج نطاق المنظمة الحالية');
+    if (!Number.isFinite(data.totalAmount) || data.totalAmount <= 0) throw new Error('قيمة الفاتورة يجب أن تكون رقماً موجباً');
     return queryOne(
       `INSERT INTO sales_invoices (organization_id, project_id, invoice_number, customer_name,
         total_amount, currency_code, due_date, notes, status)
@@ -129,27 +131,36 @@ export class InvoiceEngine {
     );
   }
 
-  static async updateStatus(invoiceId: string, status: string) {
+  static async updateStatus(invoiceId: string, status: string, orgId: string) {
+    const allowedStatuses = ['DRAFT', 'ISSUED', 'PARTIALLY_PAID', 'PAID', 'CANCELLED'];
+    if (!allowedStatuses.includes(status)) throw new Error('حالة فاتورة غير معتمدة');
     return queryOne(
-      `UPDATE sales_invoices SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
-      [status, invoiceId]
+      `UPDATE sales_invoices SET status = $1, updated_at = NOW() WHERE id = $2 AND organization_id = $3 RETURNING *`,
+      [status, invoiceId, orgId]
     );
   }
 
   static async recordPayment(invoiceId: string, data: {
     amount: number; paymentDate: string; paymentMethod: string; reference?: string;
-  }) {
+  }, orgId: string) {
+    if (!Number.isFinite(data.amount) || data.amount <= 0) throw new Error('قيمة التحصيل يجب أن تكون رقماً موجباً');
+    if (!data.paymentDate || !data.paymentMethod) throw new Error('تاريخ وطريقة التحصيل مطلوبان');
     return await transaction(async (client) => {
-      const invoice = await client.query('SELECT * FROM sales_invoices WHERE id = $1', [invoiceId]);
+      const invoice = await client.query(
+        'SELECT * FROM sales_invoices WHERE id = $1 AND organization_id = $2 FOR UPDATE',
+        [invoiceId, orgId]
+      );
       if (invoice.rows.length === 0) throw new Error('Invoice not found');
 
       const newPaid = Number(invoice.rows[0].paid_amount || 0) + data.amount;
       const total = Number(invoice.rows[0].total_amount);
+      if (newPaid > total) throw new Error('قيمة التحصيل تتجاوز الرصيد المستحق للفاتورة');
       const newStatus = newPaid >= total ? 'PAID' : 'PARTIALLY_PAID';
 
       await client.query(
-        `UPDATE sales_invoices SET paid_amount = $1, status = $2, payment_date = $3 WHERE id = $4`,
-        [newPaid, newStatus, data.paymentDate, invoiceId]
+        `UPDATE sales_invoices SET paid_amount = $1, status = $2, payment_date = $3, updated_at = NOW()
+         WHERE id = $4 AND organization_id = $5`,
+        [newPaid, newStatus, data.paymentDate, invoiceId, orgId]
       );
 
       return { invoiceId, paidAmount: newPaid, remainingAmount: total - newPaid, status: newStatus };

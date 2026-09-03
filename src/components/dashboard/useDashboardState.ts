@@ -1,8 +1,9 @@
 import React from 'react';
 import { DashboardPreset, SYSTEM_PRESETS } from './SmartCustomizationPanel';
 import { KPILayoutItem } from './types';
+import { getAvailableDashboardPresets, parseDashboardExperienceConfig } from '../../config/dashboardExperienceModes';
 
-export function useDashboardState(currentUser: any) {
+export function useDashboardState(currentUser: any, organizationSettings: any[] = [], subscriptionPlan?: string) {
   const [activeSubTab, setActiveSubTab] = React.useState<'overview' | 'performance' | 'readiness'>('overview');
   const [isCustomizerOpen, setIsCustomizerOpen] = React.useState(false);
   const [isViewDropdownOpen, setIsViewDropdownOpen] = React.useState(false);
@@ -35,15 +36,31 @@ export function useDashboardState(currentUser: any) {
       if (savedPresets) {
         try { parsedCustom = JSON.parse(savedPresets); } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to parse saved dashboard presets', e); }
       }
-      if (savedActiveId) {
-        const found = SYSTEM_PRESETS.find(p => p.id === savedActiveId) || parsedCustom.find(p => p.id === savedActiveId);
+      const config = parseDashboardExperienceConfig(organizationSettings);
+      const available = getAvailableDashboardPresets(subscriptionPlan, config, parsedCustom);
+      const preferredId = config.forceDefault ? config.defaultPresetId : savedActiveId;
+      if (preferredId) {
+        const found = available.find(p => p.id === preferredId);
         if (found) return found;
       }
     } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to load active dashboard preset', e); }
     return SYSTEM_PRESETS[0];
   });
 
+  const availablePresets = React.useMemo(
+    () => getAvailableDashboardPresets(subscriptionPlan, parseDashboardExperienceConfig(organizationSettings), customPresets),
+    [organizationSettings, subscriptionPlan, customPresets]
+  );
+
+  React.useEffect(() => {
+    if (!availablePresets.some(preset => preset.id === currentPreset.id)) {
+      const fallback = availablePresets[0] || SYSTEM_PRESETS[0];
+      setCurrentPreset(fallback);
+    }
+  }, [availablePresets, currentPreset.id]);
+
   const handleApplyPreset = (preset: DashboardPreset) => {
+    if (!availablePresets.some(candidate => candidate.id === preset.id)) return;
     setCurrentPreset(preset);
     try {
       const userSuffix = currentUser?.id ? `_${currentUser.id}` : '_guest';
@@ -204,7 +221,7 @@ export function useDashboardState(currentUser: any) {
     summaryOutput, setSummaryOutput,
     isSummaryModalOpen, setIsSummaryModalOpen,
     summaryError, setSummaryError,
-    customPresets, currentPreset,
+    customPresets, currentPreset, availablePresets,
     handleApplyPreset, handleSaveCustomPreset, handleDeletePreset,
     getSpacingClass,
     kpiLayout, draggedCardId, dragOverCardId, setDragOverCardId,

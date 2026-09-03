@@ -26,6 +26,7 @@ import {
   applyEnterpriseViews,
   seedEnterpriseUsersAndOrg
 } from './src/server/database/enterprise_schema_completion';
+import { bootstrapDatabase } from './src/server/bootstrap';
 import { enforceAllPolicies, type PolicyContext, type PolicyViolation } from './src/server/services/policyEngine';
 import logger from './src/server/core/logger';
 
@@ -120,6 +121,13 @@ if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'mock-api-key-
 }
 
 const app = express();
+
+// Behind Cloudflare → Render/Railway the direct TCP peer is the edge/load-balancer
+// proxy. Trust exactly one hop so `req.ip` / rate-limit keys resolve the real client
+// IP, while direct X-Forwarded-For spoofing stays impossible (proxies overwrite it).
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 app.use((req, res, next) => {
   if (process.env.NODE_ENV !== 'production') {
     logger.info(`[EXPRESS REQUEST] ${req.method} ${req.url} - path: ${req.path}`, { context: 'http' });
@@ -130,15 +138,17 @@ app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      // Production: no unsafe-eval. Vite emits external module scripts.
+      scriptSrc: ["'self'", "https://www.gstatic.com", "https://apis.google.com", "https://www.googleapis.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://unpkg.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org", "https://maps.googleapis.com"],
-      connectSrc: ["'self'", "ws:", "wss:", "http://localhost:*", "ws://localhost:*", "https://*.neon.tech", "https://maps.googleapis.com", "https://*.googleapis.com"],
+      connectSrc: ["'self'", "ws:", "wss:", "https://*.neon.tech", "https://maps.googleapis.com", "https://*.googleapis.com", "https://*.google.com"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
+      upgradeInsecureRequests: [],
     },
   } : false,
   crossOriginEmbedderPolicy: false,
@@ -867,24 +877,11 @@ function getPool(): pg.Pool {
         logger.info("PostgreSQL connection pool initialized via core/database singleton.", { context: 'database' });
      }
 
-     // Initialize seed data and schema updates asynchronously to avoid blocking startup
-     // These are fire-and-forget operations that shouldn't prevent server startup
-     Promise.all([
-      seedFixedAssetsIfEmpty(pool).catch(err => logger.warn(`Error seeding fixed_assets: ${err.message}`, { context: 'database' })),
-        seedExchangeRatesIfEmpty(pool).catch(err => logger.warn(`Error seeding exchange_rates: ${err.message}`, { context: 'database' })),
-        seedStrategicPlanningIfEmpty(pool).catch(err => logger.warn(`Error seeding strategic_planning: ${err.message}`, { context: 'database' })),
-        seedInvestmentProjectsIfEmpty(pool).catch(err => logger.warn(`Error seeding investment_projects: ${err.message}`, { context: 'database' })),
-        ensureAdvancedDatabaseViewsAndProcedures(pool).catch(err => logger.warn(`Error ensuring advanced DB views & procs: ${err.message}`, { context: 'database' }))
-     ]).then(() => {
-       if (process.env.NODE_ENV !== 'production') {
-          logger.info("[DB INIT] Seed data and schema updates completed", { context: 'database' });
-       }
-     }).catch(err => {
-        logger.warn(`[DB INIT] Some initialization tasks failed: ${err.message}`, { context: 'database' });
+     // Enterprise bootstrap: schema completion, seed data, views, procedures, indexes
+     // Fire-and-forget to avoid blocking startup.
+     bootstrapDatabase(pool).catch(err => {
+       logger.warn(`[DB INIT] Some initialization tasks failed: ${err.message}`, { context: 'database' });
      });
-
-     // Ensure performance indexes (synchronous for startup)
-     ensureDatabasePerformanceIndexes(pool);
    }
 
    return pool;

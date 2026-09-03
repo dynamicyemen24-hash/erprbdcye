@@ -7,6 +7,8 @@ export default defineConfig({
     include: [
       'src/server/engines/**/*.test.ts',
       'src/server/__tests__/**/*.test.ts',
+      'src/lib/**/*.test.ts',
+      'tests/**/*.test.ts',
     ],
     exclude: ['node_modules', 'dist'],
     testTimeout: 10000,

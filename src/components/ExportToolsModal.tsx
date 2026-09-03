@@ -127,6 +127,7 @@ export default function ExportToolsModal({
     { id: 'sponsorships', ar: 'الكفالات', en: 'Sponsorships' },
     { id: 'sales', ar: 'المبيعات', en: 'Sales' },
     { id: 'strategy_kpi', ar: 'KPI الاستراتيجي', en: 'Strategy KPI' },
+    { id: 'master_sop', ar: 'الدليل الشامل', en: 'Master SOP' },
   ];
 
   // ═════════════════════════════════════════════════════════════════════════════

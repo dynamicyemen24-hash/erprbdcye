@@ -36,9 +36,14 @@ export function getPool(): pg.Pool {
     _pool = new Pool({
       connectionString: serverConfig.databaseUrl,
       max: parseInt(process.env.DB_POOL_MAX || '20'),
-      min: parseInt(process.env.DB_POOL_MIN || '5'),
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      // Neon scales to zero: keeping min idle clients causes stale/dead
+      // connections to accumulate. Start from zero and grow on demand.
+      min: parseInt(process.env.DB_POOL_MIN || '0'),
+      // Recycle idle connections quickly so Neon-killed sockets are replaced.
+      idleTimeoutMillis: parseInt(process.env.DB_POOL_IDLE_MS || '15000'),
+      // Neon scale-to-zero cold start can take 15-20s; allow generous connect
+      // timeout (configurable) so the first request after idle succeeds.
+      connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT_MS || '30000'),
       statement_timeout: 30000,
       query_timeout: 30000,
       keepAlive: true,
@@ -57,10 +62,10 @@ export function getPool(): pg.Pool {
     });
 
     _pool.on('error', (err) => {
-      logger.error('[DB Pool] Unexpected idle client error', { context: 'db', error: err });
-      if (err.message.includes('closed') || err.message.includes('terminated')) {
-        _pool = null;
-      }
+      // pg removes the errored client from the pool automatically; we only
+      // log. Nulling the whole pool here would race with in-flight queries
+      // and leak the previous pool's clients.
+      logger.error('[DB Pool] Unexpected idle client error (client removed by pg)', { context: 'db', error: err });
     });
   }
   return _pool;
@@ -117,6 +122,7 @@ export async function transaction<T>(
 ): Promise<T> {
   const pool = getPool();
   const client = await pool.connect();
+  let deadClient = false;
   try {
     await client.query('BEGIN');
     const result = await callback(client);
@@ -127,10 +133,16 @@ export async function transaction<T>(
       await client.query('ROLLBACK');
     } catch (rollbackErr: any) {
       logger.warn(`[DB] Rollback failed (connection likely terminated): ${rollbackErr?.message || rollbackErr}`, { context: 'db' });
+      // Signal pg to destroy this dead client instead of recycling it.
+      deadClient = true;
     }
     throw err;
   } finally {
-    client.release();
+    if (deadClient) {
+      client.release(new Error('connection terminated during transaction rollback'));
+    } else {
+      client.release();
+    }
   }
 }
 

@@ -150,7 +150,7 @@ export const UnifiedActionBar: React.FC<UnifiedActionBarProps> = ({
           </button>
           
           {isFilterOpen && (
-            <div className="absolute right-0 sm:left-auto sm:right-0 mt-1.5 w-screen max-w-[800px] z-50">
+            <div className="absolute right-0 sm:left-auto sm:right-0 mt-1.5 w-[calc(100vw-2rem)] max-w-[800px] z-50">
               <GlobalFilterBar lang={lang} onRefresh={onRefresh} />
             </div>
           )}
@@ -225,7 +225,7 @@ export const UnifiedActionBar: React.FC<UnifiedActionBarProps> = ({
 
               {/* Secondary Control: History & Audit Log */}
               <button
-                onClick={() => { onNavigate('governance'); setIsMoreDropdownOpen(false); }}
+                onClick={() => { onNavigate('audit'); setIsMoreDropdownOpen(false); }}
                 className="w-full px-3 py-2 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg flex items-center gap-2.5 transition-all cursor-pointer font-bold"
               >
                 <History className="w-3.5 h-3.5 text-blue-500" />
@@ -296,4 +296,3 @@ export const UnifiedActionBar: React.FC<UnifiedActionBarProps> = ({
   );
 };
 export default UnifiedActionBar;
-

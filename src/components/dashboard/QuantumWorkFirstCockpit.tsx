@@ -1,48 +1,35 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Zap, 
-  CheckCircle2, 
   AlertTriangle, 
   AlertOctagon, 
   Clock, 
   ArrowLeft, 
   ArrowRight, 
-  Search, 
-  Filter, 
   Coins, 
   Briefcase, 
   Layers, 
   Users, 
   Heart, 
   ShoppingCart, 
-  FileText, 
   Activity, 
-  TrendingUp, 
   Compass, 
   ShieldCheck, 
   Sparkles, 
-  Building2, 
   Target, 
-  Plus, 
-  FileCheck, 
   Receipt,
   Globe,
   SlidersHorizontal,
   LayoutDashboard,
-  ExternalLink,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Check,
   X,
   RotateCcw,
-  HelpCircle,
   Send,
   CheckSquare,
   Square,
   ArrowUpRight
 } from 'lucide-react';
-import { ActiveTab } from '../../core/types/dashboard';
 import { User } from '../../core/types/users';
 import { useResumeIntelligence } from '../../core/services/resumeIntelligence';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
@@ -181,7 +168,7 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
         titleAr: r.title || r.description || `طلب اعتماد معاملة مالية رقم #${r.id}`,
         titleEn: r.title_en || r.title || `Approval Request #${r.id}`,
         projectCode: r.project_code || 'FIN-GEN',
-        amountYer: parseFloat(r.amount || '0') || 2500000,
+        amountYer: Number.parseFloat(r.amount || '0') || 2500000,
         deadlineAr: 'قيد الانتظار',
         deadlineEn: 'Pending',
         aiCheckAr: '🟢 مسار الاعتماد الأولي مكتمل وبانتظار مصادقتك',
@@ -340,11 +327,7 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
     if (projects.length > 0) {
       return projects.slice(0, 4);
     }
-    return [
-      { id: '1', name_ar: 'مشروع مياه قرى صبر الموادم بالطاقة الشمسية', code: 'PRJ-2026-08', branch: 'تعز', budget: '45,000,000 ر.ي' },
-      { id: '2', name_ar: 'برنامج كفالة ورعاية الأيتام الشاملة', code: 'PRG-ORPH-26', branch: 'المركز الرئيسي', budget: '60,000,000 ر.ي' },
-      { id: '3', name_ar: 'مشروع الإغاثة العاجلة وتوزيع السلال الغذائية', code: 'PRJ-FOOD-26', branch: 'عدن ولحج', budget: '28,000,000 ر.ي' },
-    ];
+    return [];
   }, [projects]);
 
   return (
@@ -455,6 +438,7 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
             <div className="flex items-center gap-1 bg-slate-100 dark:bg-zinc-950 p-1 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs font-bold">
               <button
                 onClick={() => setStreamFilter('ALL')}
+                aria-pressed={streamFilter === 'ALL'}
                 className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   streamFilter === 'ALL'
                     ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs font-black'
@@ -465,6 +449,7 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
               </button>
               <button
                 onClick={() => setStreamFilter('CRITICAL')}
+                aria-pressed={streamFilter === 'CRITICAL'}
                 className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   streamFilter === 'CRITICAL'
                     ? 'bg-rose-500 text-white shadow-xs font-black'
@@ -475,6 +460,7 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
               </button>
               <button
                 onClick={() => setStreamFilter('FINANCE')}
+                aria-pressed={streamFilter === 'FINANCE'}
                 className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   streamFilter === 'FINANCE'
                     ? 'bg-emerald-600 text-white shadow-xs font-black'
@@ -485,6 +471,7 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
               </button>
               <button
                 onClick={() => setStreamFilter('FIELD')}
+                aria-pressed={streamFilter === 'FIELD'}
                 className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                   streamFilter === 'FIELD'
                     ? 'bg-teal-600 text-white shadow-xs font-black'
@@ -548,8 +535,11 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
                 >
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     {/* Multi-Select Batch Checkbox */}
-                    <div 
+                    <button
+                      type="button"
                       onClick={(e) => handleToggleBatchItem(task.id, e)}
+                      aria-label={isRtl ? 'تحديد المعاملة للاعتماد الجماعي' : 'Select transaction for batch approval'}
+                      aria-pressed={selectedBatchIds.includes(task.id)}
                       className="p-1 cursor-pointer text-slate-400 hover:text-emerald-600 transition-colors shrink-0 mt-1"
                       title={isRtl ? 'تحديد للاعتماد الجماعي' : 'Select for batch'}
                     >
@@ -558,7 +548,7 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
                       ) : (
                         <Square className="w-4 h-4 text-slate-400" />
                       )}
-                    </div>
+                    </button>
 
                     <div className={`p-2 rounded-xl mt-0.5 shrink-0 ${
                       isCritical 

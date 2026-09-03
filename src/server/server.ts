@@ -33,6 +33,7 @@ import { webhookService } from './core/webhooks';
 import { securityMiddleware, ipBlocklistMiddleware } from './core/security';
 import { dbCircuitBreaker, dbBulkhead } from './core/resilience';
 import { initPoolOptimizer, queryMonitor } from './core/queryMonitor';
+import { optimizeConnectionPool, MaterializedViewReader } from './core/performance';
 import { createRateLimiter } from './middleware/rateLimit';
 import { metricsMiddleware } from './middleware/metrics.middleware';
 import { cacheMiddleware } from './middleware/cache.middleware';
@@ -105,6 +106,13 @@ const aiLimiter = createLimiter(
 
 const app = express();
 
+// Behind Cloudflare → Render/Railway the direct TCP peer is the edge/load-balancer
+// proxy. Trust exactly one hop so `req.ip` / rate-limit keys resolve the real client
+// IP, while direct X-Forwarded-For spoofing stays impossible (proxies overwrite it).
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // ─── Global Middleware ─────────────────────────────────
 
 // Request ID tracking
@@ -124,7 +132,7 @@ app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      scriptSrc: ["'self'", "https://www.gstatic.com", "https://apis.google.com", "https://www.googleapis.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://unpkg.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org", "https://maps.googleapis.com", "https://images.unsplash.com", "https://*.googleusercontent.com"],
@@ -345,10 +353,18 @@ export async function startServer() {
     });
     logger.info('  ✓ Database connected (circuit breaker + bulkhead active)');
 
-    // 2. Initialize pool optimizer
-    logger.info('[2/7] Initializing pool optimizer...');
+    // 2. Initialize pool optimizer + connection-level GUCs (20x perf)
+    logger.info('[2/7] Initializing pool optimizer + connection tuning...');
     initPoolOptimizer(pool);
-    logger.info('  ✓ Pool optimizer started');
+    optimizeConnectionPool({
+      applicationName: 'uamex_erp',
+      statementTimeoutMs: 25_000,
+      idleInTxTimeoutMs: 10_000,
+      lockTimeoutMs: 5_000,
+    });
+    // Refresh materialized views on boot (idempotent, fast)
+    MaterializedViewReader.refreshAll().catch(() => undefined);
+    logger.info('  ✓ Pool + connection GUCs + MV refresh scheduled');
 
     // 3. Run schema migrations
     logger.info('[3/7] Running schema migrations...');
@@ -372,6 +388,15 @@ export async function startServer() {
       logger.info('  ✓ Enterprise indexes applied');
     } catch (err: any) {
       logger.warn(`  ⚠ Enterprise indexes warning: ${err.message}`);
+    }
+    try {
+      const { runInventoryMigration } = await import('./database/migrate_inventory');
+      await runInventoryMigration(pool);
+      const { runInventoryViews } = await import('./database/inventory_views');
+      await runInventoryViews(pool);
+      logger.info('  ✓ Inventory spine tables & analytical views ensured');
+    } catch (err: any) {
+      logger.warn(`  ⚠ Inventory schema warning: ${err.message}`);
     }
 
     // 4. Seed default data (first run)

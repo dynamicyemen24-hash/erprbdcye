@@ -153,10 +153,10 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
             onChange={(e) => setDimensionProgram(e.target.value)}
             className="px-3 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold text-slate-800 dark:text-zinc-200 outline-none cursor-pointer"
           >
-            <option value="ALL">{lang === 'ar' ? '🌐 كافة البرامج الإنسانية' : 'All Programs'}</option>
-            <option value="WASH">{lang === 'ar' ? '🚰 برنامج المياه والإصحاح البيئي (WASH)' : 'WASH Program'}</option>
-            <option value="FOOD">{lang === 'ar' ? '🍞 برنامج الأمن الغذائي والإغاثة' : 'Food Security Program'}</option>
-            <option value="ORPHAN">{lang === 'ar' ? '🤍 برنامج رعاية وكفالة الأيتام' : 'Orphan Care Program'}</option>
+            <option value="ALL">{lang === 'ar' ? 'كافة البرامج الإنسانية' : 'All Programs'}</option>
+            <option value="WASH">{lang === 'ar' ? 'برنامج المياه والإصحاح البيئي' : 'WASH Program'}</option>
+            <option value="FOOD">{lang === 'ar' ? 'برنامج الأمن الغذائي والإغاثة' : 'Food Security Program'}</option>
+            <option value="ORPHAN">{lang === 'ar' ? 'برنامج رعاية وكفالة الأيتام' : 'Orphan Care Program'}</option>
           </select>
 
           <select
@@ -164,7 +164,7 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
             onChange={(e) => setDimensionProject(e.target.value)}
             className="px-3 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold text-slate-800 dark:text-zinc-200 outline-none cursor-pointer"
           >
-            <option value="ALL">{lang === 'ar' ? '📁 كافة المشاريع التنفيذية' : 'All Projects'}</option>
+            <option value="ALL">{lang === 'ar' ? 'كافة المشاريع التنفيذية' : 'All Projects'}</option>
             <option value="PRJ-WASH-2026">{lang === 'ar' ? 'مشروع حفر وتأهيل الآبار (PRJ-WASH-2026)' : 'Boreholes Project'}</option>
             <option value="PRJ-FOOD-2026">{lang === 'ar' ? 'مشروع السلال الرمضانية (PRJ-FOOD-2026)' : 'Food Baskets Project'}</option>
           </select>
@@ -174,7 +174,7 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
             onChange={(e) => setDimensionFundType(e.target.value)}
             className="px-3 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold text-slate-800 dark:text-zinc-200 outline-none cursor-pointer"
           >
-            <option value="ALL">{lang === 'ar' ? '⚖️ كافة الصناديق والقيود (IPSAS Funds)' : 'All IPSAS Funds'}</option>
+            <option value="ALL">{lang === 'ar' ? 'كافة الصناديق والقيود وفق المعايير الدولية للقطاع العام' : 'All IPSAS Funds'}</option>
             <option value="UNRESTRICTED">{lang === 'ar' ? 'الأموال العامة غير المقيدة' : 'Unrestricted Funds'}</option>
             <option value="RESTRICTED">{lang === 'ar' ? 'أموال المشاريع المقيدة والمشروطة' : 'Restricted Project Funds'}</option>
             <option value="ENDOWMENT">{lang === 'ar' ? 'أصول وريع الأوقاف (Endowment Waqf)' : 'Endowment Waqf Funds'}</option>
@@ -213,7 +213,7 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
               ) : (
                 <>
                   <AlertCircle className="w-4 h-4 text-rose-600" />
-                  <span>{lang === 'ar' ? `⚠️ فارق عدم اتزان: ${trialVariance.toLocaleString()} YER` : `Variance: ${trialVariance.toLocaleString()} YER`}</span>
+                  <span>{lang === 'ar' ? `فارق عدم الاتزان: ${trialVariance.toLocaleString()} ريال يمني` : `Variance: ${trialVariance.toLocaleString()} YER`}</span>
                 </>
               )}
             </div>
@@ -377,8 +377,8 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
           }`}>
             <span>
               {isBalanceSheetBalanced 
-                ? (lang === 'ar' ? '✔ موازنة المركز المالي ممتازة ومتطابقة: الأصول = الالتزامات + حقوق الملكية' : '✔ Balance Sheet is perfectly balanced: Assets = Liabilities + Equity')
-                : (lang === 'ar' ? '✘ موازنة غير متطابقة! هنالك فروقات تسوية في المركز المالي.' : '✘ Balance Sheet is out of balance!')
+                ? (lang === 'ar' ? 'المركز المالي متزن ومطابق: مجموع الأصول يساوي مجموع الالتزامات مضافاً إليه حقوق الملكية وصافي الفائض' : 'Balance Sheet is perfectly balanced: Assets = Liabilities + Equity')
+                : (lang === 'ar' ? 'المركز المالي غير متزن؛ توجد فروقات تسوية يتعين معالجتها قبل اعتماد الإقفال' : 'Balance Sheet is out of balance!')
               }
             </span>
           </div>
