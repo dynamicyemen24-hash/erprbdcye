@@ -42,8 +42,14 @@ import { WorkspaceShell } from './enterprise/WorkspaceShell';
 import { Tooltip } from './Tooltip';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { EnterpriseLogo } from './EnterpriseLogo';
+import { Spinner } from '../design-system/components/Spinner';
 import { useTelemetry, performanceMonitor } from '../core/hooks';
 import { persistenceService } from '../core/services/persistence';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface ControlPanelViewProps {
   lang: 'ar' | 'en';
@@ -250,12 +256,9 @@ export default function ControlPanelView({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => onNavigate('dashboard')}
-          className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
-        >
+        <EnterpriseButton variant="primary" size="sm" onClick={() => onNavigate('dashboard')}>
           <span>{isRtl ? 'الانتقال للوحة القيادة الاستراتيجية ➔' : 'Strategy Dashboard ➔'}</span>
-        </button>
+        </EnterpriseButton>
       </div>
     </div>
   );
@@ -305,7 +308,7 @@ export default function ControlPanelView({
                 disabled={!!isProcessingAction}
                 className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition flex items-center gap-2 shadow-sm disabled:opacity-50"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isProcessingAction === 'clear_cache' ? 'animate-spin text-amber-400' : 'text-slate-400'}`} />
+                {isProcessingAction === 'clear_cache' ? <Spinner size="xs" variant="accent" /> : <RefreshCw className="w-3.5 h-3.5 text-slate-400" />}
                 {isRtl ? 'تفريغ الذاكرة المؤقتة' : 'Flush Cache'}
               </button>
 
@@ -314,18 +317,19 @@ export default function ControlPanelView({
                 disabled={!!isProcessingAction}
                 className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition flex items-center gap-2 shadow-sm disabled:opacity-50"
               >
-                <Database className={`w-3.5 h-3.5 ${isProcessingAction === 'test_db' ? 'animate-spin text-emerald-400' : 'text-emerald-400'}`} />
+                {isProcessingAction === 'test_db' ? <Spinner size="xs" variant="primary" /> : <Database className="w-3.5 h-3.5 text-emerald-400" />}
                 {isRtl ? 'اختبار اتصال Neon DB' : 'Test Neon DB'}
               </button>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={() => handleAction('backup_now', 'النسخ الاحتياطي اللحظي', 'Backup Snapshot')}
                 disabled={!!isProcessingAction}
-                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-900/30 transition flex items-center gap-2 disabled:opacity-50"
               >
-                <DatabaseBackup className={`w-3.5 h-3.5 ${isProcessingAction === 'backup_now' ? 'animate-spin' : ''}`} />
+                {isProcessingAction === 'backup_now' ? <Spinner size="xs" /> : <DatabaseBackup className="w-3.5 h-3.5" />}
                 {isRtl ? 'أخذ لقطة نسخة احتياطية' : 'Instant Snapshot'}
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
 
@@ -401,7 +405,7 @@ export default function ControlPanelView({
               {isLoadingHealth ? (
                 // Skeleton loaders
                 [1, 2, 3, 4].map(i => (
-                  <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm animate-pulse">
+                  <div key={i} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm animate-pulse">
                     <div className="h-3 bg-slate-200 dark:bg-zinc-700 rounded w-1/2 mb-3" />
                     <div className="h-7 bg-slate-200 dark:bg-zinc-700 rounded w-1/3 mb-2" />
                     <div className="h-3 bg-slate-200 dark:bg-zinc-700 rounded w-2/3" />
@@ -409,9 +413,9 @@ export default function ControlPanelView({
                 ))
               ) : (
                 <>
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                  <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                         {isRtl ? 'سلاسة استجابة السيرفر' : 'Avg API Response'}
                       </span>
                       <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
@@ -427,9 +431,9 @@ export default function ControlPanelView({
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                  <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                         {isRtl ? 'اتصالات Neon DB' : 'Neon DB Poolers'}
                       </span>
                       <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
@@ -445,9 +449,9 @@ export default function ControlPanelView({
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                  <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                         {isRtl ? 'بوابة الذكاء الاصطناعي' : 'Gemini AI Gateway'}
                       </span>
                       <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
@@ -463,9 +467,9 @@ export default function ControlPanelView({
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                  <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                         {isRtl ? 'الجلسات والأمان' : 'Active Admin Sessions'}
                       </span>
                       <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
@@ -485,14 +489,14 @@ export default function ControlPanelView({
             </div>
 
             {/* 13 Enterprise Systems Control Matrix */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-zinc-800">
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Layers className="w-5 h-5 text-emerald-500" />
                     {isRtl ? 'مصفوفة التحكم التشغيلي للأنظمة المؤسسية الـ 15' : 'The 15 Enterprise Systems Operational Matrix'}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                     {isRtl 
                       ? 'مراقبة فورية للجاهزية، الاستجابة التشغيلية، والدخول المباشر إلى كل نظام'
                       : 'Live operational status, response metrics, and instant launching across all modules.'}
@@ -500,7 +504,7 @@ export default function ControlPanelView({
                 </div>
                 <button
                   onClick={() => onNavigate('domains')}
-                  className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
                 >
                   <Compass className="w-4 h-4 text-emerald-500" />
                   {isRtl ? 'مركز الأنظمة الشامل' : 'Full Domain Center'}
@@ -511,7 +515,7 @@ export default function ControlPanelView({
                 {systemModules.map((mod) => (
                   <div
                     key={mod.code}
-                    className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 rounded-xl hover:border-emerald-500/50 transition group flex flex-col justify-between"
+                    className="p-4 bg-slate-50 dark:bg-zinc-950/60 border border-slate-200 dark:border-zinc-800/80 rounded-xl hover:border-emerald-500/50 transition group flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -528,14 +532,14 @@ export default function ControlPanelView({
                       </h4>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
+                    <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-zinc-800/60 flex items-center justify-between">
                       <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                         <Check className="w-3 h-3" />
                         {isRtl ? 'جاهز للخدمة' : 'Operational'}
                       </span>
                       <button
                         onClick={() => onNavigate(mod.tab)}
-                        className="text-xs font-bold text-slate-600 hover:text-emerald-500 dark:text-slate-300 dark:hover:text-emerald-400 flex items-center gap-1 transition"
+                        className="text-xs font-bold text-slate-600 hover:text-emerald-500 dark:text-zinc-300 dark:hover:text-emerald-400 flex items-center gap-1 transition"
                       >
                         {isRtl ? 'فتح' : 'Launch'}
                         {isRtl ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
@@ -552,8 +556,8 @@ export default function ControlPanelView({
         {activeTab === 'health' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Database Diagnostics */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-500/10 text-blue-500 rounded-xl">
                     <Database className="w-5 h-5" />
@@ -571,19 +575,19 @@ export default function ControlPanelView({
               </div>
 
               <div className="space-y-3">
-                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500">{isRtl ? 'حالة التجمع (Connection Pooling):' : 'Connection Pooling Status:'}</span>
                   <span className="font-bold text-emerald-500">Active (PgBouncer)</span>
                 </div>
-                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500">{isRtl ? 'زمن الاستجابة الاستعلامي (P99 Query Latency):' : 'P99 Query Latency:'}</span>
                   <span className="font-bold text-slate-900 dark:text-white">8.4 ms</span>
                 </div>
-                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500">{isRtl ? 'جدار الحماية المسموح بها (Whitelist):' : 'IP Whitelist Guard:'}</span>
                   <span className="font-bold text-emerald-500">{isRtl ? 'مفعل ومؤمن' : 'Protected'}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500">{isRtl ? 'حالة التشفير (TLS/SSL):' : 'TLS/SSL Encryption:'}</span>
                   <span className="font-bold text-emerald-500">TLS v1.3 Standard</span>
                 </div>
@@ -591,8 +595,8 @@ export default function ControlPanelView({
             </div>
 
             {/* Cloud Run / Node Engine Health */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-xl">
                     <Server className="w-5 h-5" />
@@ -610,19 +614,19 @@ export default function ControlPanelView({
               </div>
 
               <div className="space-y-3">
-                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500">{isRtl ? 'استهلاك الذاكرة العشوائية RAM:' : 'RAM Memory Usage:'}</span>
                   <span className="font-bold text-slate-900 dark:text-white">184 MB / 1024 MB (18%)</span>
                 </div>
-                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500">{isRtl ? 'منفذ الشبكة الموجه (Ingress Port):' : 'Network Ingress Port:'}</span>
                   <span className="font-bold text-emerald-500">Port 3000 (Nginx Reverse Proxy)</span>
                 </div>
-                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500">{isRtl ? 'مدة التشغيل المستمر (Uptime):' : 'Container Uptime:'}</span>
                   <span className="font-bold text-slate-900 dark:text-white">14d 08h 32m</span>
                 </div>
-                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-center text-xs p-3 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500">{isRtl ? 'إصدار البيئة (Build Standard):' : 'Engine Build:'}</span>
                   <span className="font-bold text-indigo-500">UAMEX ERP v2.6-prod</span>
                 </div>
@@ -630,8 +634,8 @@ export default function ControlPanelView({
             </div>
 
             {/* Real-time Cloud Performance Tracer & Observability Hub (Full-width expansion) */}
-            <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-xl">
                     <Gauge className="w-5 h-5 animate-pulse" />
@@ -643,7 +647,7 @@ export default function ControlPanelView({
                         OpenTelemetry Standard
                       </span>
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">
                       {isRtl ? 'تتبع فوري لمعدلات تأخير واجهات البرمجة (API Latency) ومؤشرات الويب الحيوية (Web Vitals)' : 'Direct monitoring of browser paint metrics, API transaction traces, and rendering SLAs.'}
                     </p>
                   </div>
@@ -659,7 +663,7 @@ export default function ControlPanelView({
                         showToast(isRtl ? 'تم مسح التخزين المؤقت المحلي بنجاح' : 'Offline view-model cache cleared');
                       }
                     }}
-                    className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition flex items-center gap-1.5 text-xs font-bold"
+                    className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 rounded-xl transition flex items-center gap-1.5 text-xs font-bold"
                     title={isRtl ? 'تفريغ الذاكرة المؤقتة لـ IndexedDB' : 'Flush IndexedDB cache'}
                   >
                     <Trash2 className="w-3.5 h-3.5 text-amber-500" />
@@ -673,7 +677,7 @@ export default function ControlPanelView({
                       addLog('SYS', isRtl ? 'تم تصفير ذاكرة التتبع المؤقتة للمؤشرات' : 'Telemetry logging buffer flushed.');
                       showToast(isRtl ? 'تم تصفير سجلات القياس' : 'Trace logs cleared');
                     }}
-                    className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition flex items-center gap-1.5 text-xs font-bold"
+                    className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 rounded-xl transition flex items-center gap-1.5 text-xs font-bold"
                     title={isRtl ? 'تفريغ السجلات' : 'Clear metrics'}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -693,7 +697,7 @@ export default function ControlPanelView({
 
               {/* Web Vitals Grid */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950/40 border border-slate-100 dark:border-zinc-800/80">
                   <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-extrabold uppercase block tracking-wider">TTFB (First Byte)</span>
                   <span className="text-lg font-black text-slate-900 dark:text-white mt-1 block font-mono">
                     {webVitals.ttfb ? `${webVitals.ttfb}ms` : '18.4ms'}
@@ -704,7 +708,7 @@ export default function ControlPanelView({
                   </span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950/40 border border-slate-100 dark:border-zinc-800/80">
                   <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-extrabold uppercase block tracking-wider">FCP (First Paint)</span>
                   <span className="text-lg font-black text-slate-900 dark:text-white mt-1 block font-mono">
                     {webVitals.fcp ? `${webVitals.fcp}ms` : '340ms'}
@@ -715,7 +719,7 @@ export default function ControlPanelView({
                   </span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950/40 border border-slate-100 dark:border-zinc-800/80">
                   <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-extrabold uppercase block tracking-wider">LCP (Hero Image)</span>
                   <span className="text-lg font-black text-slate-900 dark:text-white mt-1 block font-mono">
                     {webVitals.lcp ? `${webVitals.lcp}ms` : '610ms'}
@@ -726,7 +730,7 @@ export default function ControlPanelView({
                   </span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950/40 border border-slate-100 dark:border-zinc-800/80">
                   <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-extrabold uppercase block tracking-wider">FID (Interaction)</span>
                   <span className="text-lg font-black text-slate-900 dark:text-white mt-1 block font-mono">
                     {webVitals.fid ? `${webVitals.fid}ms` : '1.8ms'}
@@ -737,7 +741,7 @@ export default function ControlPanelView({
                   </span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 col-span-2 md:col-span-1">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950/40 border border-slate-100 dark:border-zinc-800/80 col-span-2 md:col-span-1">
                   <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-extrabold uppercase block tracking-wider">CLS (Layout Shift)</span>
                   <span className="text-lg font-black text-slate-900 dark:text-white mt-1 block font-mono">
                     {webVitals.cls ? webVitals.cls : '0.004'}
@@ -750,9 +754,9 @@ export default function ControlPanelView({
               </div>
 
               {/* Traces List */}
-              <div className="border border-slate-100 dark:border-slate-800/80 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
-                <div className="p-3 bg-slate-100/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <div className="border border-slate-100 dark:border-zinc-800/80 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-zinc-950/20">
+                <div className="p-3 bg-slate-100/50 dark:bg-zinc-900/50 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
                     <History className="w-4 h-4 text-emerald-500" />
                     {isRtl ? 'سجل تتبع أداء المعاملات والعمليات السحابية النشطة (Traces)' : 'Active Operational Trace Stream (SLA Checked)'}
                   </span>
@@ -762,22 +766,12 @@ export default function ControlPanelView({
                 </div>
 
                 {metrics.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <Activity className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto mb-2.5 animate-pulse" />
-                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                      {isRtl ? 'لا توجد حركات أداء مرصودة حتى الآن' : 'No dynamic traces recorded yet in this session.'}
-                    </p>
-                    <p className="text-[11px] text-slate-400 mt-1 max-w-md mx-auto">
-                      {isRtl 
-                        ? 'قم بالتنقل بين النوافذ والأنظمة أو اضغط "فحص أداء ضاغط" أعلاه لبدء رصد المعاملات فورياً.' 
-                        : 'Navigate between the 13 domains, open tools, or press "Stress Benchmarking" to capture real traces.'}
-                    </p>
-                  </div>
+                  <EmptyState variant="empty" title="" titleAr={isRtl ? 'لا توجد حركات أداء مرصودة حتى الآن' : 'No dynamic traces recorded yet in this session.'} lang={lang} />
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-slate-100/30 dark:bg-slate-900/30 text-slate-400 border-b border-slate-100 dark:border-slate-800 text-[10px] font-extrabold uppercase">
+                        <tr className="bg-slate-100/30 dark:bg-zinc-900/30 text-slate-400 border-b border-slate-100 dark:border-zinc-800 text-[10px] font-extrabold uppercase">
                           <th className="p-3 text-center w-20">{isRtl ? 'الوقت' : 'Time'}</th>
                           <th className="p-3 w-32">{isRtl ? 'التصنيف' : 'Category'}</th>
                           <th className="p-3">{isRtl ? 'اسم المعاملة / الواجهة' : 'Transaction Name / Endpoint'}</th>
@@ -785,7 +779,7 @@ export default function ControlPanelView({
                           <th className="p-3 text-center w-24">{isRtl ? 'مؤشر الـ SLA' : 'SLA Status'}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium text-slate-700 dark:text-slate-300">
+                      <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80 font-medium text-slate-700 dark:text-zinc-300">
                         {metrics.slice(0, 8).map(metric => {
                           const isSlow = metric.value > 150;
                           const isCritical = metric.value > 400;
@@ -799,10 +793,10 @@ export default function ControlPanelView({
                             metric.category === 'api_latency' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
                             metric.category === 'page_load' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
                             metric.category === 'web_vital' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' :
-                            'bg-slate-500/10 text-slate-600 dark:text-slate-400';
+                            'bg-slate-500/10 text-slate-600 dark:text-zinc-400';
 
                           return (
-                            <tr key={metric.id} className="hover:bg-slate-100/30 dark:hover:bg-slate-900/30 transition-colors">
+                            <tr key={metric.id} className="hover:bg-slate-100/30 dark:hover:bg-zinc-900/30 transition-colors">
                               <td className="p-3 font-mono text-center text-slate-400 text-[10px]">
                                 {new Date(metric.timestamp).toLocaleTimeString()}
                               </td>
@@ -836,13 +830,13 @@ export default function ControlPanelView({
 
         {/* TAB 3: CONTROL TOGGLES */}
         {activeTab === 'toggles' && (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Power className="w-5 h-5 text-amber-500" />
                 {isRtl ? 'مفاتيح التفعيل والسياسات الإدارية القاطعة' : 'Enterprise Policy & Operational Toggles'}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 {isRtl 
                   ? 'مفاتيح سيادية فورية للتحكم بسلوك النظام والأمان والنسخ الاحتياطي في الوقت الفعلي'
                   : 'Instant master switches controlling system modes, security protocols, and real-time behaviors.'}
@@ -851,7 +845,7 @@ export default function ControlPanelView({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Maintenance Mode */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="p-4 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <AlertTriangle className={`w-4 h-4 ${maintenanceMode ? 'text-rose-500' : 'text-slate-400'}`} />
@@ -867,7 +861,7 @@ export default function ControlPanelView({
                     addLog('WARN', maintenanceMode ? 'تم إيقاف وضع الصيانة' : 'تم تفعيل وضع الصيانة الطارئة');
                   }}
                   className={`w-12 h-6 rounded-full transition p-1 flex items-center ${
-                    maintenanceMode ? 'bg-rose-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                    maintenanceMode ? 'bg-rose-600 justify-end' : 'bg-slate-300 dark:bg-zinc-700 justify-start'
                   }`}
                 >
                   <span className="w-4 h-4 rounded-full bg-white shadow-md" />
@@ -875,7 +869,7 @@ export default function ControlPanelView({
               </div>
 
               {/* Biometric Gate */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="p-4 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <ShieldCheck className={`w-4 h-4 ${biometricGate ? 'text-emerald-500' : 'text-slate-400'}`} />
@@ -891,7 +885,7 @@ export default function ControlPanelView({
                     addLog('INFO', biometricGate ? 'تم تعطيل بوابة البايومترك' : 'تم تفعيل بوابة البايومترك');
                   }}
                   className={`w-12 h-6 rounded-full transition p-1 flex items-center ${
-                    biometricGate ? 'bg-emerald-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                    biometricGate ? 'bg-emerald-600 justify-end' : 'bg-slate-300 dark:bg-zinc-700 justify-start'
                   }`}
                 >
                   <span className="w-4 h-4 rounded-full bg-white shadow-md" />
@@ -899,7 +893,7 @@ export default function ControlPanelView({
               </div>
 
               {/* Financial Dual Control */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="p-4 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Lock className={`w-4 h-4 ${dualControlVoucher ? 'text-indigo-500' : 'text-slate-400'}`} />
@@ -915,7 +909,7 @@ export default function ControlPanelView({
                     addLog('INFO', dualControlVoucher ? 'تم تعطيل الاعتماد المزدوج' : 'تم تفعيل الاعتماد المزدوج');
                   }}
                   className={`w-12 h-6 rounded-full transition p-1 flex items-center ${
-                    dualControlVoucher ? 'bg-indigo-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                    dualControlVoucher ? 'bg-indigo-600 justify-end' : 'bg-slate-300 dark:bg-zinc-700 justify-start'
                   }`}
                 >
                   <span className="w-4 h-4 rounded-full bg-white shadow-md" />
@@ -923,7 +917,7 @@ export default function ControlPanelView({
               </div>
 
               {/* Read Only Protocol */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="p-4 bg-slate-50 dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <ShieldAlert className={`w-4 h-4 ${readOnlyProtocol ? 'text-amber-500' : 'text-slate-400'}`} />
@@ -939,7 +933,7 @@ export default function ControlPanelView({
                     addLog('WARN', readOnlyProtocol ? 'تم إلغاء بروتوكول القراءة فقط' : 'تم قفل البيانات ببروتوكول القراءة فقط');
                   }}
                   className={`w-12 h-6 rounded-full transition p-1 flex items-center ${
-                    readOnlyProtocol ? 'bg-amber-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                    readOnlyProtocol ? 'bg-amber-600 justify-end' : 'bg-slate-300 dark:bg-zinc-700 justify-start'
                   }`}
                 >
                   <span className="w-4 h-4 rounded-full bg-white shadow-md" />
@@ -951,13 +945,13 @@ export default function ControlPanelView({
 
         {/* TAB 4: SECURITY & ACCESS MATRIX */}
         {activeTab === 'security' && (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-indigo-500" />
                 {isRtl ? 'مصفوفة السلطة الإدارية وأمان الحسابات' : 'Role Authority & Security Gate Matrix'}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 {isRtl ? 'توزيع الصلاحيات، متابعة محاولات الدخول، وإدارة رموز الجلسات' : 'Role tiers, authentication logs, and active session tokens.'}
               </p>
             </div>
@@ -965,20 +959,20 @@ export default function ControlPanelView({
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-right dir-rtl">
                 <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-extrabold uppercase">
+                  <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-500 font-extrabold uppercase">
                     <th className="py-3 px-4">{isRtl ? 'المستوى الإداري' : 'Role Tier'}</th>
                     <th className="py-3 px-4">{isRtl ? 'نطاق الوصول' : 'Scope'}</th>
                     <th className="py-3 px-4">{isRtl ? 'المصادقة' : 'Auth Protocol'}</th>
                     <th className="py-3 px-4">{isRtl ? 'الحالة' : 'Status'}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60 font-medium">
                   <tr>
                     <td className="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <Key className="w-4 h-4 text-amber-500" />
                       {isRtl ? 'مدير النظام الفائق (Super Admin)' : 'Super Admin'}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                    <td className="py-3 px-4 text-slate-600 dark:text-zinc-300">
                       {isRtl ? 'وصول شامل لجميع الأنظمة المؤسسية الـ 15 وإعدادات السيرفر' : 'Full 15-domain & server control'}
                     </td>
                     <td className="py-3 px-4 text-emerald-500 font-bold">Hardware Passkey + Biometrics</td>
@@ -989,7 +983,7 @@ export default function ControlPanelView({
                       <Users className="w-4 h-4 text-blue-500" />
                       {isRtl ? 'مدير قطاع / برنامج (Program Director)' : 'Program Director'}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                    <td className="py-3 px-4 text-slate-600 dark:text-zinc-300">
                       {isRtl ? 'إدارة البرامج والمشاريع والمستفيدين والاعتمادات' : 'Programs, Projects & Approvals'}
                     </td>
                     <td className="py-3 px-4 text-slate-500 font-bold">2FA SMS / TOTP</td>
@@ -1000,7 +994,7 @@ export default function ControlPanelView({
                       <Building2 className="w-4 h-4 text-indigo-500" />
                       {isRtl ? 'المحاسب المالي والمدقق القانوني' : 'Financial Auditor'}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                    <td className="py-3 px-4 text-slate-600 dark:text-zinc-300">
                       {isRtl ? 'الدفاتر المحاسبية والسندات وإغلاق الحسابات' : 'Ledger, Vouchers & Audits'}
                     </td>
                     <td className="py-3 px-4 text-slate-500 font-bold">Dual Auth Gate</td>

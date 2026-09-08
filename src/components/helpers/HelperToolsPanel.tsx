@@ -966,7 +966,7 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 onClick={() => setActiveTool(tool.id)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 shrink-0 border ${
                   isActive
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md'
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-zinc-900 border-slate-900 dark:border-white shadow-md'
                     : 'bg-slate-50 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800'
                 }`}
               >
@@ -2261,7 +2261,7 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               <button
                 onClick={() => setActiveChecklist('distribution')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer transition-all ${
-                  activeChecklist === 'distribution' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300'
+                  activeChecklist === 'distribution' ? 'bg-slate-900 dark:bg-white text-white dark:text-zinc-900' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300'
                 }`}
               >
                 قائمة التوزيع الميداني
@@ -2269,7 +2269,7 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               <button
                 onClick={() => setActiveChecklist('audit')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer transition-all ${
-                  activeChecklist === 'audit' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300'
+                  activeChecklist === 'audit' ? 'bg-slate-900 dark:bg-white text-white dark:text-zinc-900' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300'
                 }`}
               >
                 التفتيش والتدقيق المالي
@@ -2277,7 +2277,7 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               <button
                 onClick={() => setActiveChecklist('warehouse')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer transition-all ${
-                  activeChecklist === 'warehouse' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300'
+                  activeChecklist === 'warehouse' ? 'bg-slate-900 dark:bg-white text-white dark:text-zinc-900' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300'
                 }`}
               >
                 جرد المخازن والأصناف
@@ -2285,7 +2285,7 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               <button
                 onClick={() => setActiveChecklist('tender')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer transition-all ${
-                  activeChecklist === 'tender' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300'
+                  activeChecklist === 'tender' ? 'bg-slate-900 dark:bg-white text-white dark:text-zinc-900' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300'
                 }`}
               >
                 لجنة المناقصات والمشتريات

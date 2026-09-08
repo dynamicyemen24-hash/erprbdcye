@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { printHTML } from '../../lib/printUtils';
 import { generateShortId, generateNumericCode } from '../../lib/idGenerator';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 interface Account {
   id: string;
@@ -1203,12 +1204,13 @@ export default function TransactionDocumentCycleTracker({
                       >
                         {isRtl ? 'إرجاع للمسودة لتعديل البنود ↩' : 'Revert to Draft'}
                       </button>
-                      <button
+                      <EnterpriseButton
+                        variant="primary"
+                        size="xs"
                         onClick={() => handleStatusChange('APPROVED')}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
                       >
                         {isRtl ? 'اعتماد ومصادقة شرعية ومالية ✓' : 'Approve & Validate'}
-                      </button>
+                      </EnterpriseButton>
                     </>
                   )}
                   {txMeta.status === 'APPROVED' && (
@@ -1327,14 +1329,14 @@ export default function TransactionDocumentCycleTracker({
                       
                       {/* Show quick pay voucher button only if this is a purchase invoice (typically a JOURNAL_ENTRY) */}
                       {selectedTx.transaction_type === 'JOURNAL_ENTRY' && (
-                        <button
-                          type="button"
+                        <EnterpriseButton
+                          variant="primary"
+                          size="xs"
+                          icon={<Plus className="w-3.5 h-3.5" />}
                           onClick={() => setShowQuickPayForm(!showQuickPayForm)}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-500 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm"
                         >
-                          <Plus className="w-3.5 h-3.5" />
                           <span>{isRtl ? 'إصدار سند صرف مباشر للمورد' : 'Issue Payment Voucher'}</span>
-                        </button>
+                        </EnterpriseButton>
                       )}
                     </div>
 
@@ -1461,14 +1463,16 @@ export default function TransactionDocumentCycleTracker({
                           >
                             {isRtl ? 'إلغاء' : 'Cancel'}
                           </button>
-                          <button
+                          <EnterpriseButton
+                            variant="primary"
+                            size="xs"
                             type="submit"
                             disabled={quickPayIsSubmitting}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black flex items-center gap-1 shadow-sm"
+                            loading={quickPayIsSubmitting}
+                            icon={!quickPayIsSubmitting ? <Plus className="w-3.5 h-3.5" /> : undefined}
                           >
-                            {quickPayIsSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
                             <span>{isRtl ? 'حفظ وتثبيت سند الصرف' : 'Post Disbursement PV'}</span>
-                          </button>
+                          </EnterpriseButton>
                         </div>
                       </form>
                     )}
@@ -1606,13 +1610,14 @@ export default function TransactionDocumentCycleTracker({
                         placeholder={isRtl ? 'اكتب ملاحظتك اللاحقة هنا...' : 'Type audit verification remark here...'}
                         className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
                       />
-                      <button
+                      <EnterpriseButton
+                        variant="primary"
+                        size="xs"
                         type="submit"
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1"
+                        icon={<Plus className="w-4 h-4" />}
                       >
-                        <Plus className="w-4 h-4" />
                         <span>{isRtl ? 'أضف ملاحظة' : 'Append Note'}</span>
-                      </button>
+                      </EnterpriseButton>
                     </form>
                   </div>
                 )}
@@ -1819,14 +1824,15 @@ export default function TransactionDocumentCycleTracker({
                       )}
 
                       <div className="flex justify-end gap-2 pt-2 border-t">
-                        <button
+                        <EnterpriseButton
+                          variant="primary"
+                          size="xs"
                           type="submit"
                           disabled={notifStatus.type === 'sending'}
-                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-black flex items-center gap-1.5 shadow-sm"
+                          icon={<Send className="w-4 h-4" />}
                         >
-                          <Send className="w-4 h-4" />
                           <span>{isRtl ? 'إرسال وتفعيل التنبيه بالبوابة' : 'Dispatch Gateway Alert'}</span>
-                        </button>
+                        </EnterpriseButton>
                       </div>
                     </form>
                   </div>

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Camera, RefreshCw, ShieldCheck, MapPin, Loader2, AlertTriangle } from 'lucide-react';
+import { Camera, RefreshCw, ShieldCheck, MapPin, AlertTriangle } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface AssetAuditViewProps {
   lang: 'ar' | 'en';
@@ -126,7 +127,7 @@ export default function AssetAuditView({ lang }: AssetAuditViewProps) {
               disabled={saving}
               className="px-4 py-2 bg-slate-800 dark:bg-zinc-800 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 disabled:opacity-50"
             >
-              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+              {saving ? <Spinner size="xs" /> : <ShieldCheck className="w-3.5 h-3.5" />}
               {lang === 'ar' ? 'توثيق التدقيق' : 'Record Audit'}
             </button>
           </form>

@@ -34,8 +34,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-
-const t = (ar: string, en: string, lang: 'ar' | 'en') => (lang === 'ar' ? ar : en);
+import { Spinner } from '../../design-system/components/Spinner';
 
 export type FilterFieldType = 'text' | 'number' | 'date' | 'select' | 'multiselect' | 'boolean' | 'range';
 export type FilterOperator =
@@ -137,6 +136,7 @@ function renderValueInput(
   lang: 'ar' | 'en'
 ): React.ReactNode {
   const placeholder = lang === 'ar' ? (field.placeholderAr || 'أدخل قيمة...') : (field.placeholderEn || 'Enter value...');
+  const t = (ar: string, en: string, _lang?: string) => (lang === 'ar' ? ar : en);
 
   if (filter.operator === 'is_empty' || filter.operator === 'is_not_empty') return null;
 
@@ -293,6 +293,7 @@ export function SmartFilter({
   const [aiSuggestions, setAiSuggestions] = useState<ActiveFilter[]>([]);
   const [isAILoading, setIsAILoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = (ar: string, en: string, _lang?: string) => (lang === 'ar' ? ar : en);
 
   // AI inference simulation
   useEffect(() => {
@@ -376,7 +377,7 @@ export function SmartFilter({
             />
             {isAILoading && (
               <div className="absolute top-1/2 -translate-y-1/2 end-3">
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                <Spinner size="sm" />
               </div>
             )}
           </div>

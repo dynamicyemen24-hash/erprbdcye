@@ -74,6 +74,12 @@ import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyButton } from '../core/security/PermissionGate';
 import { EnterpriseSkeletonTable } from './common/EnterpriseSkeletonTable';
 import { PrintableOfficialVoucherModal, OfficialVoucherData } from './finance/PrintableOfficialVoucherModal';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface FinanceViewProps {
   currencies: Currency[];
@@ -477,13 +483,14 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
           </p>
         </div>
         <div className="flex gap-2">
-          <button
+          <EnterpriseButton
+            variant="outline"
+            size="sm"
             onClick={fetchFinanceData}
-            className="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/20 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer text-white"
+            icon={<RefreshCw className="w-3.5 h-3.5" />}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
             <span>{lang === 'ar' ? 'تحديث البيانات' : 'Refresh Data'}</span>
-          </button>
+          </EnterpriseButton>
         </div>
       </div>
 
@@ -607,14 +614,10 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       {activeSubTab === 'coa' && (
         <>
           {fetchError && (
-            <div className="mb-3 px-4 py-3 rounded-2xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-xs font-bold flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>
-                {lang === 'ar'
-                  ? 'تعذّر الاتصال بنظام المعطيات الحيّ. تُعرض البيانات الفارغة الواقعية (لا لقطة قديمة). أعد المحاولة بعد تأكيد توفر الخادم.'
-                  : 'Live data source unavailable. Showing the real empty state (no stale snapshot). Verify server connectivity and retry.'}
-              </span>
-            </div>
+            <ErrorState
+              onRetry={() => fetchFinanceData()}
+              lang={lang}
+            />
           )}
           <ChartOfAccountsTreeView 
           accounts={accounts} 
@@ -755,11 +758,10 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
               <tbody className="divide-y divide-zinc-100 text-slate-700">
                 {loading ? (
                   <EnterpriseSkeletonTable rows={6} columns={7} colWidths={['w-8', 'w-28', 'w-24', 'w-20', 'w-56', 'w-28', 'w-28']} />
-                ) : transactions.length === 0 ? (
+                  ) : transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-12 text-center text-zinc-400 font-bold">
-                      <AlertCircle className="w-8 h-8 text-emerald-500 mx-auto mb-3" />
-                      <h4 className="text-xs text-slate-700">{lang === 'ar' ? 'لا توجد قيود مرحلة حالياً' : 'No posted transactions found'}</h4>
+                    <td colSpan={7}>
+                      <EmptyState variant="empty" title="No transactions" titleAr="لا توجد قيود مرحلة حالياً" lang={lang} />
                     </td>
                   </tr>
                 ) : (
@@ -879,8 +881,8 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
             <div className="bg-slate-50 rounded-xl border border-slate-200/80 p-5 flex flex-col justify-center">
               {parsingAi ? (
                 <div className="flex flex-col items-center justify-center text-emerald-600 py-10">
-                  <RefreshCw className="w-12 h-12 animate-spin mb-4" />
-                  <p className="text-sm font-black animate-pulse">
+                  <Spinner size="xl" variant="primary" lang={lang} />
+                  <p className="text-sm font-black animate-pulse mt-4">
                     {lang === 'ar' ? 'جاري تحليل المستند المالي واستخراج القيود...' : 'Analyzing financial document & extracting entries...'}
                   </p>
                 </div>
@@ -911,13 +913,15 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                     </div>
                   </div>
 
-                  <button
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
+                    block
                     onClick={mapParsedToEntry}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-colors flex justify-center items-center gap-2 shadow-sm"
+                    icon={<ArrowRightLeft className="w-4 h-4" />}
                   >
-                    <ArrowRightLeft className="w-4 h-4" />
                     {lang === 'ar' ? 'تحويل إلى نموذج القيد المزدوج' : 'Convert to Double-Entry Form'}
-                  </button>
+                  </EnterpriseButton>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-zinc-400 py-10 opacity-50">

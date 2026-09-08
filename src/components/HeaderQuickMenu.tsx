@@ -17,6 +17,7 @@ import {
   Command,
   Shield
 } from 'lucide-react';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface HeaderQuickMenuProps {
   lang: 'ar' | 'en';
@@ -165,8 +166,7 @@ export const HeaderQuickMenu: React.FC<HeaderQuickMenuProps> = ({
               className="w-full px-3 py-2 text-xs font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-between transition-colors text-slate-700 dark:text-zinc-200 cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <RefreshCw className={`w-4 h-4 text-blue-500 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isRtl ? 'تحديث ومزامنة البيانات' : 'Sync & Refresh Ledger'}</span>
+                <Spinner size="sm" /> <span>{isRtl ? 'تحديث ومزامنة البيانات' : 'Sync & Refresh Ledger'}</span>
               </div>
               <span className="text-[9px] font-mono text-zinc-400">F5 / Ctrl+S</span>
             </button>

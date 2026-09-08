@@ -27,6 +27,12 @@ import {
 } from 'lucide-react';
 import { User as UserType } from '../types';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface BackupViewProps {
   lang: 'ar' | 'en';
@@ -92,6 +98,10 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
 
   // Expand state for backup rows
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string>('');
+  const [confirmRestoreOpen, setConfirmRestoreOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -237,12 +247,12 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
 
   // ── Delete Backup ──────────────────────────────────────────
   const handleDeleteBackup = async (filename: string) => {
-    if (!window.confirm(
-      isRtl
-        ? `هل أنت متأكد من حذف (${filename}) نهائياً؟`
-        : `Permanently delete backup file (${filename})?`
-    )) return;
+    setDeleteTarget(filename);
+    setConfirmDeleteOpen(true);
+  };
 
+  const confirmDeleteAction = async () => {
+    const filename = deleteTarget;
     setDeleteLoading(filename);
     setErrorMessage(null);
     try {
@@ -294,12 +304,10 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
 
   const handleTriggerRestore = async () => {
     if (!restoreFile) return;
-    if (!window.confirm(
-      isRtl
-        ? 'تحذير: ستؤدي هذه العملية إلى الكتابة فوق جميع السجلات الحالية. هل تريد الاستمرار؟'
-        : 'WARNING: This will overwrite all current records. Continue?'
-    )) return;
+    setConfirmRestoreOpen(true);
+  };
 
+  const confirmRestoreAction = async () => {
     setRestoreLoading(true);
     setErrorMessage(null);
     setRestoreSuccess(false);
@@ -374,7 +382,7 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
             className="p-2 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 transition-all shadow-sm cursor-pointer"
             title={isRtl ? 'تحديث القائمة' : 'Refresh list'}
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-500' : ''}`} />
+            {loading ? <Spinner size="sm" variant="accent" /> : <RefreshCw className="w-4 h-4" />}
           </button>
           <button
             onClick={handleTriggerBackup}
@@ -382,7 +390,7 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
             className="px-4 py-2.5 bg-zinc-900 dark:bg-zinc-800 hover:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isExporting ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+              <Spinner size="xs" variant="accent" />
             ) : (
               <Database className="w-3.5 h-3.5 shrink-0" />
             )}
@@ -419,7 +427,7 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
               ) : exportProgress.phase === 'error' ? (
                 <AlertCircle className="w-5 h-5 text-rose-500" />
               ) : (
-                <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
+                <Spinner size="md" variant="accent" />
               )}
               <span className={`text-sm font-black ${
                 exportProgress.phase === 'done' ? 'text-emerald-800 dark:text-emerald-300'
@@ -471,7 +479,7 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
               ))}
               {exportProgress.currentTable && (
                 <div className="flex items-center gap-2 text-[10px] text-amber-600 dark:text-amber-400 font-mono animate-pulse">
-                  <Loader2 className="w-3 h-3 shrink-0 animate-spin" />
+                  <Spinner size="xs" />
                   <span>{exportProgress.currentTable}</span>
                 </div>
               )}
@@ -481,13 +489,14 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
           {/* Done: Download Actions */}
           {exportProgress.phase === 'done' && exportProgress.downloadUrl && (
             <div className="flex flex-wrap gap-2 pt-1">
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                icon={<Download className="w-3.5 h-3.5" />}
                 onClick={() => triggerBrowserDownload(exportProgress.downloadUrl!, exportProgress.filename!)}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all shadow-md cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>{isRtl ? 'تنزيل الملف الآن' : 'Download File Now'}</span>
-              </button>
+                {isRtl ? 'تنزيل الملف الآن' : 'Download File Now'}
+              </EnterpriseButton>
               <div className="flex items-center gap-1.5 px-3 py-2 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
                 <HardDrive className="w-3 h-3" />
                 <span>{formatBytes(exportProgress.fileSize || 0)}</span>
@@ -615,16 +624,17 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
                   </div>
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <button
+                  <EnterpriseButton
+                    variant="accent"
+                    size="xs"
+                    icon={restoreLoading ? <Spinner size="xs" /> : <Zap className="w-3 h-3" />}
+                    loading={restoreLoading}
                     onClick={handleTriggerRestore}
-                    disabled={restoreLoading}
-                    className="flex-1 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-black transition-all shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
                   >
-                    {restoreLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
                     {restoreLoading
                       ? (isRtl ? 'جاري الاستعادة...' : 'Restoring...')
                       : (isRtl ? 'تنفيذ الاستعادة' : 'Execute Restore')}
-                  </button>
+                  </EnterpriseButton>
                   <button
                     onClick={() => { setRestoreFile(null); setRestoreFileName(''); setRestoreSuccess(false); }}
                     className="px-3 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 rounded-xl text-[10px] font-bold transition-all cursor-pointer"
@@ -654,26 +664,21 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
             {/* Loading */}
             {loading ? (
               <div className="p-16 text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-500 mx-auto mb-3" />
+                <Spinner size="lg" variant="primary" lang={lang} className="mx-auto mb-3" />
                 <p className="text-xs text-zinc-400 font-bold">
                   {isRtl ? 'جارٍ قراءة مجلد النسخ الاحتياطية...' : 'Loading backup archives...'}
                 </p>
               </div>
             ) : backups.length === 0 ? (
-              /* Empty State */
-              <div className="p-16 text-center">
-                <div className="w-16 h-16 bg-slate-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Database className="w-8 h-8 text-zinc-300 dark:text-zinc-600" />
-                </div>
-                <p className="text-sm font-black text-slate-500 dark:text-zinc-400">
-                  {isRtl ? 'لا توجد نسخ احتياطية حتى الآن' : 'No backup archives yet'}
-                </p>
-                <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">
-                  {isRtl
-                    ? 'اضغط على "تصدير نسخة احتياطية" لإنشاء أول نسخة وتنزيلها فوراً.'
-                    : 'Click "Export Backup" to create your first archive and download it instantly.'}
-                </p>
-              </div>
+              <EmptyState
+                variant="empty"
+                lang={lang}
+                titleAr="لا توجد نسخ احتياطية حتى الآن"
+                title="No backup archives yet"
+                descriptionAr='اضغط على "تصدير نسخة احتياطية" لإنشاء أول نسخة وتنزيلها فوراً.'
+                description='Click "Export Backup" to create your first archive and download it instantly.'
+                className="p-16"
+              />
             ) : (
               /* Backup List */
               <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -769,7 +774,10 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
                               <Download className="w-3.5 h-3.5" />
                               {isRtl ? 'تنزيل إلى مجلد التنزيلات' : 'Download to Downloads Folder'}
                             </button>
-                            <button
+                            <EnterpriseButton
+                              variant="accent"
+                              size="sm"
+                              icon={<Server className="w-3.5 h-3.5" />}
                               onClick={() => {
                                 setRestoreFile(null);
                                 fetch(bk.downloadUrl)
@@ -777,18 +785,16 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
                                   .then(json => { setRestoreFile(json); setRestoreFileName(bk.filename); })
                                   .catch(() => setErrorMessage(isRtl ? 'تعذّر تحميل الملف للاستعادة.' : 'Failed to load backup for restore.'));
                               }}
-                              className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black transition-all shadow-sm cursor-pointer"
                             >
-                              <Server className="w-3.5 h-3.5" />
                               {isRtl ? 'استعادة هذه النسخة' : 'Restore this Backup'}
-                            </button>
+                            </EnterpriseButton>
                             <button
                               onClick={() => handleDeleteBackup(bk.filename)}
                               disabled={deleteLoading === bk.filename}
                               className="flex items-center gap-2 px-4 py-2 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 rounded-xl text-xs font-black transition-all cursor-pointer disabled:opacity-50"
                             >
                               {deleteLoading === bk.filename
-                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ? <Spinner size="xs" />
                                 : <Trash2 className="w-3.5 h-3.5" />}
                               {isRtl ? 'حذف نهائي' : 'Delete'}
                             </button>
@@ -804,6 +810,28 @@ export default function BackupView({ lang, onRefresh, currentUser }: BackupViewP
         </div>
       </div>
     </div>
+    <ConfirmDialog
+      open={confirmDeleteOpen}
+      onOpenChange={setConfirmDeleteOpen}
+      variant="destructive"
+      title="Delete Backup"
+      titleAr="حذف النسخة الاحتياطية"
+      description={isRtl ? `هل أنت متأكد من حذف (${deleteTarget}) نهائياً؟` : `Permanently delete backup file (${deleteTarget})?`}
+      descriptionAr={isRtl ? `هل أنت متأكد من حذف (${deleteTarget}) نهائياً؟` : `Permanently delete backup file (${deleteTarget})?`}
+      onConfirm={confirmDeleteAction}
+      lang={lang}
+    />
+    <ConfirmDialog
+      open={confirmRestoreOpen}
+      onOpenChange={setConfirmRestoreOpen}
+      variant="warning"
+      title="Restore Backup"
+      titleAr="استعادة النسخة الاحتياطية"
+      description={isRtl ? 'تحذير: ستؤدي هذه العملية إلى الكتابة فوق جميع السجلات الحالية. هل تريد الاستمرار؟' : 'WARNING: This will overwrite all current records. Continue?'}
+      descriptionAr={isRtl ? 'تحذير: ستؤدي هذه العملية إلى الكتابة فوق جميع السجلات الحالية. هل تريد الاستمرار؟' : 'WARNING: This will overwrite all current records. Continue?'}
+      onConfirm={confirmRestoreAction}
+      lang={lang}
+    />
     </ModuleShell>
   );
 }

@@ -33,7 +33,6 @@ export async function authenticateTenantContext(
 ) {
   try {
     const authHeader = req.headers.authorization;
-    const headerOrgId = req.headers['x-organization-id'] as string || req.headers['x-tenant-id'] as string;
     
     let userId: string | null = null;
     let userEmail: string | null = null;
@@ -45,14 +44,14 @@ export async function authenticateTenantContext(
         const decoded = jwt.verify(token, JWT_SECRET) as any;
         userId = decoded.id;
         userEmail = decoded.email;
-        tokenOrgId = decoded.organizationId || decoded.orgId;
+        tokenOrgId = decoded.organizationId || decoded.orgId || decoded.org_id;
       } catch (err) {
         // Token invalid or expired
       }
     }
 
-    // Determine target organization ID
-    const targetOrgId = headerOrgId || tokenOrgId || DEFAULT_ORG_ID;
+    // Tenant ID comes ONLY from JWT claims — never from headers (prevents cross-tenant spoofing)
+    const targetOrgId = tokenOrgId || DEFAULT_ORG_ID;
 
     if (userId) {
       // Verify user membership in the target organization

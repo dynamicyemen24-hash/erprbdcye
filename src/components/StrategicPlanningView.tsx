@@ -298,9 +298,11 @@ import {
   Check, X, Edit3, PieChart, Lock, Eye, Award, User
 } from 'lucide-react';
 import { ModuleShell } from './enterprise/ModuleShell';
-import { instantPrint } from '../core/export';
+import { instantPrint, buildOfficialStampFooter } from '../core/export';
 import { StrategicCompassSymbol } from './common/SovereignSystemIcons';
 import { generateNumericCode } from '../lib/idGenerator';
+import { cn } from '../design-system/utils/cn';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface StrategicPlanningViewProps {
   lang: 'ar' | 'en';
@@ -540,10 +542,7 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
           </tbody>
         </table>
 
-        <div class="footer">
-          <div>رئيس مجلس الإدارة: معتمد رسمياً | المراجع العام: مطابق للمعيار الاستراتيجي</div>
-          <div>رقم التوثيق الرقمي: STRAT-UAM-${Math.floor(Math.random() * 899999 + 100000)} | UAMEX ERP™</div>
-        </div>
+        ${buildOfficialStampFooter({ docCode: 'STRAT-UAM', lang: 'ar', endorsementAr: 'رئيس مجلس الإدارة: معتمد رسمياً | المراجع العام: مطابق للمعيار الاستراتيجي', contentSeed: `${plan.id || plan.title_ar}|${goalsRows}`, classification: 'OFFICIAL', complianceStandard: 'NEB-01 Strategic Planning' })}
       </body>
       </html>
     `;
@@ -651,13 +650,14 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               <span>{lang === 'ar' ? 'تحديث البيانات' : 'Refresh DB'}</span>
             </button>
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => setIsNewGoalModalOpen(true)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{lang === 'ar' ? 'هدف استراتيجي جديد' : 'New Strategic Goal'}</span>
-            </button>
+            </EnterpriseButton>
             <button
               onClick={handlePrint}
               className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl border border-zinc-700 transition-all cursor-pointer"
@@ -984,13 +984,14 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
                 {lang === 'ar' ? 'تشخيص البيئة الداخلية والخارجية لجمعية رُحماء بينهم وربط الإجراءات بالأهداف الاستراتيجية.' : 'Diagnosing internal & external drivers linked directly to strategic objectives.'}
               </p>
             </div>
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => setIsNewSwotModalOpen(true)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{lang === 'ar' ? 'إضافة عنصر SWOT' : 'Add SWOT Item'}</span>
-            </button>
+            </EnterpriseButton>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1360,19 +1361,21 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800">
-                <button
+                <EnterpriseButton
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setIsUpdateModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-slate-700 dark:text-zinc-300 font-bold rounded-xl cursor-pointer"
                 >
                   {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-                </button>
-                <button
+                </EnterpriseButton>
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md cursor-pointer"
                 >
                   {lang === 'ar' ? 'حفظ التغييرات في قاعدة البيانات' : 'Save to DB'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>
@@ -1499,19 +1502,21 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800">
-                <button
+                <EnterpriseButton
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setIsNewGoalModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-slate-700 dark:text-zinc-300 font-bold rounded-xl cursor-pointer"
                 >
                   {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-                </button>
-                <button
+                </EnterpriseButton>
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md cursor-pointer"
                 >
                   {lang === 'ar' ? 'إضافة للجدول بـ PostgreSQL' : 'Save Goal to DB'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>
@@ -1572,19 +1577,21 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800">
-                <button
+                <EnterpriseButton
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setIsNewSwotModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-slate-700 dark:text-zinc-300 font-bold rounded-xl cursor-pointer"
                 >
                   {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-                </button>
-                <button
+                </EnterpriseButton>
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md cursor-pointer"
                 >
                   {lang === 'ar' ? 'حفظ بـ SWOT Table' : 'Save SWOT Item'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>

@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { Account, Transaction, TransactionLine } from './FinanceTypes';
 import { printHTML, createPrintDocument, getCustomFooterHTML } from '../../lib/printUtils';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 export interface TreeNodeAccount extends Account {
   level: number;
@@ -999,13 +1000,14 @@ export default function ChartOfAccountsTreeView({
               <span>{isRtl ? 'طباعة معتمدة A4' : 'Print Certified A4'}</span>
             </button>
 
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => handleOpenAddModal('')}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-all cursor-pointer"
+              icon={<Plus className="w-4 h-4" />}
             >
-              <Plus className="w-4 h-4" />
-              <span>{isRtl ? 'إضافة حساب جديد' : 'New Account'}</span>
-            </button>
+              {isRtl ? 'إضافة حساب جديد' : 'New Account'}
+            </EnterpriseButton>
           </div>
         </div>
       </div>
@@ -1215,12 +1217,13 @@ export default function ChartOfAccountsTreeView({
                 >
                   {isRtl ? 'إلغاء' : 'Cancel'}
                 </button>
-                <button
+                <EnterpriseButton
                   type="submit"
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition-all cursor-pointer"
+                  variant="primary"
+                  size="sm"
                 >
                   {isRtl ? 'حفظ وإدراج في الدليل' : 'Save Account'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>

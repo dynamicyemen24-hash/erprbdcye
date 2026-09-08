@@ -7,6 +7,7 @@ import {
   Settings, Layers, Brain, BookOpen, PlayCircle, Lock, Calendar, Compass, Globe
 } from 'lucide-react';
 import { TabId } from '../types';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface AppMatrixLauncherModalProps {
   isOpen: boolean;
@@ -401,17 +402,14 @@ export default function AppMatrixLauncherModal({
           {/* Horizontal Category Scrollbar */}
           <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
             {categories.map((cat) => (
-              <button
+              <EnterpriseButton
                 key={cat.id}
+                variant={activeCategory === cat.id ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  activeCategory === cat.id
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-                }`}
               >
                 {lang === 'ar' ? cat.label_ar : cat.label_en}
-              </button>
+              </EnterpriseButton>
             ))}
           </div>
         </div>
@@ -454,7 +452,7 @@ export default function AppMatrixLauncherModal({
                           <button
                             onClick={(e) => toggleFavorite(app.code, e)}
                             className={`p-1 rounded-lg transition-colors cursor-pointer ${
-                              isFav ? 'text-amber-500' : 'text-zinc-300 dark:text-slate-600 hover:text-amber-400'
+                              isFav ? 'text-amber-500' : 'text-zinc-300 dark:text-zinc-600 hover:text-amber-400'
                             }`}
                             title={lang === 'ar' ? 'تفضيل التطبيق' : 'Favorite app'}
                           >
@@ -476,7 +474,7 @@ export default function AppMatrixLauncherModal({
 
                     {/* App Footer Launch Bar */}
                     <div className="pt-3 mt-4 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-zinc-400 dark:text-slate-500">
+                      <span className="text-[10px] font-mono font-bold text-zinc-400 dark:text-zinc-500">
                         {app.stat}
                       </span>
 

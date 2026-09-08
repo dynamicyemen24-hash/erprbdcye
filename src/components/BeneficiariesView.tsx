@@ -51,6 +51,12 @@ import SmartAutocompleteInput from './common/SmartAutocompleteInput';
 import GlobalAddressCascadePicker from './common/GlobalAddressCascadePicker';
 import CrossEntityLineageView from '../features/traceability/CrossEntityLineageView';
 import GlobalAddressManagerView from '../features/organization/GlobalAddressManagerView';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface BeneficiariesViewProps {
   beneficiaries: any[];
@@ -138,6 +144,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   // Lineage modal state
   const [showLineageModal, setShowLineageModal] = useState(false);
   const [lineageTargetBeneficiary, setLineageTargetBeneficiary] = useState<any | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   // Global Address & Maps Workspace modal state
   const [showAddressManagerModal, setShowAddressManagerModal] = useState(false);
@@ -628,12 +636,6 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   };
 
   const handleDelete = async (id: string) => {
-    const confirmation = lang === 'ar'
-      ? 'هل أنت متأكد من أرشفة/حذف سجل هذا المستفيد؟ سيتم تجميد العمليات المرتبطة به.'
-      : 'Are you sure you want to archive/delete this beneficiary? Associated operations might be frozen.';
-
-    if (!window.confirm(confirmation)) return;
-
     try {
       const response = await fetch(`/api/tables/beneficiaries/${id}`, {
         method: 'DELETE'
@@ -706,45 +708,22 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         </div>
         
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={() => setShowAddressManagerModal(true)}
-            className="bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            title={lang === 'ar' ? 'منظومة إدارة العناوين والتقسيمات والخرائط العالمية' : 'Global Addresses & Maps OS'}
-          >
-            <Globe className="w-4 h-4 text-teal-200" />
-            <span>{lang === 'ar' ? 'دليل العناوين والخرائط' : 'Addresses & Maps'}</span>
-          </button>
-          <button
-            onClick={() => setShowLineageModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            title={lang === 'ar' ? 'سلسلة التتبع والتكامل المؤسسي الشامل' : 'Cross-Entity Lineage & Traceability'}
-          >
-            <GitCommit className="w-4 h-4 text-indigo-200" />
-            <span>{lang === 'ar' ? 'التتبع المؤسسي' : 'Cross Lineage'}</span>
-          </button>
-          <button
-            onClick={() => setIsPDFModalOpen(true)}
-            className="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            title={lang === 'ar' ? 'طباعة كشف المستفيدين المعتمد (A4 PDF)' : 'Print Certified Beneficiaries Registry'}
-          >
-            <Printer className="w-4 h-4 text-emerald-200" />
-            <span>{lang === 'ar' ? 'طباعة كشف معتمد' : 'Print Certified'}</span>
-          </button>
-          <button
-            onClick={() => setIsExportModalOpen(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md hover:shadow-emerald-600/10 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
-            <span>{lang === 'ar' ? 'تصدير السجل' : 'Export Registry'}</span>
-          </button>
+          <EnterpriseButton variant="secondary" size="sm" onClick={() => setShowAddressManagerModal(true)} icon={<Globe className="w-4 h-4 text-teal-200" />} title={lang === 'ar' ? 'منظومة إدارة العناوين والتقسيمات والخرائط العالمية' : 'Global Addresses & Maps OS'}>
+            {lang === 'ar' ? 'دليل العناوين والخرائط' : 'Addresses & Maps'}
+          </EnterpriseButton>
+          <EnterpriseButton variant="secondary" size="sm" onClick={() => setShowLineageModal(true)} icon={<GitCommit className="w-4 h-4 text-indigo-200" />} title={lang === 'ar' ? 'سلسلة التتبع والتكامل المؤسسي الشامل' : 'Cross-Entity Lineage & Traceability'}>
+            {lang === 'ar' ? 'التتبع المؤسسي' : 'Cross Lineage'}
+          </EnterpriseButton>
+          <EnterpriseButton variant="ghost" size="sm" onClick={() => setIsPDFModalOpen(true)} icon={<Printer className="w-4 h-4 text-emerald-200" />} title={lang === 'ar' ? 'طباعة كشف المستفيدين المعتمد (A4 PDF)' : 'Print Certified Beneficiaries Registry'}>
+            {lang === 'ar' ? 'طباعة كشف معتمد' : 'Print Certified'}
+          </EnterpriseButton>
+          <EnterpriseButton variant="primary" size="sm" onClick={() => setIsExportModalOpen(true)} icon={<FileSpreadsheet className="w-4 h-4 text-emerald-200" />}>
+            {lang === 'ar' ? 'تصدير السجل' : 'Export Registry'}
+          </EnterpriseButton>
 
-          <button
-            onClick={() => openFormModal(null)}
-            className="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md hover:shadow-amber-600/10 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{lang === 'ar' ? 'إضافة مستفيد جديد' : 'Register Beneficiary'}</span>
-          </button>
+          <EnterpriseButton variant="accent" size="sm" onClick={() => openFormModal(null)} icon={<Plus className="w-4 h-4" />}>
+            {lang === 'ar' ? 'إضافة مستفيد جديد' : 'Register Beneficiary'}
+          </EnterpriseButton>
         </div>
       </div>
 
@@ -931,15 +910,19 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-zinc-400 font-bold text-xs space-y-3">
-            <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <Spinner size="md" variant="accent" lang={lang} labelAr="جاري جلب البيانات السحابية لقاعدة البيانات..." label="Establishing remote Neon database session..." />
             <p>{lang === 'ar' ? 'جاري جلب البيانات السحابية لقاعدة البيانات...' : 'Establishing remote Neon database session...'}</p>
           </div>
         ) : filteredList.length === 0 ? (
-          <div className="p-16 text-center space-y-2">
-            <p className="text-zinc-300 text-3xl font-bold">📂</p>
-            <p className="text-xs font-black text-zinc-400">{lang === 'ar' ? 'لم يتم العثور على أي مستفيدين يطابقون هذه الخصائص' : 'No matching beneficiary cards found.'}</p>
-            <p className="text-[11px] text-zinc-400">{lang === 'ar' ? 'قم بتعديل خيارات البحث أو أضف مستفيد جديد.' : 'Adjust search queries or register a new family.'}</p>
-          </div>
+          <EmptyState
+            variant="empty"
+            titleAr="لم يتم العثور على أي مستفيدين يطابقون هذه الخصائص"
+            title="No matching beneficiary cards found."
+            descriptionAr="قم بتعديل خيارات البحث أو أضف مستفيد جديد."
+            description="Adjust search queries or register a new family."
+            actions={[{ label: 'Register Beneficiary', labelAr: 'إضافة مستفيد جديد', onClick: () => openFormModal(null) }]}
+            lang={lang}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
@@ -1036,7 +1019,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                           <Edit className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(ben.id)}
+                          onClick={() => { setPendingDeleteId(ben.id); setConfirmDelete(true); }}
                           className="p-1 bg-slate-50 border border-slate-200 rounded text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
                           title={lang === 'ar' ? 'أرشفة الحالة' : 'Archive'}
                         >
@@ -1270,7 +1253,9 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                   <span>{duplicateCheck.reasonAr}</span>
                 </div>
                 {duplicateCheck.matchedBeneficiaryId && (
-                  <button
+                  <EnterpriseButton
+                    variant="danger"
+                    size="xs"
                     type="button"
                     onClick={() => {
                       const matched = beneficiaries.find(b => b.id === duplicateCheck.matchedBeneficiaryId);
@@ -1279,10 +1264,9 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                         setViewingBeneficiary(matched);
                       }
                     }}
-                    className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-black cursor-pointer shrink-0"
                   >
                     {lang === 'ar' ? 'فتح السجل المسجل' : 'Open Record'}
-                  </button>
+                  </EnterpriseButton>
                 )}
               </div>
             )}
@@ -1714,22 +1698,19 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                 )}
 
                 {activeFormTab === 'support' && (
-                  <button
+                  <EnterpriseButton
+                    variant="accent"
+                    size="sm"
                     type="submit"
-                    disabled={formSubmitting}
-                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1 transition-all cursor-pointer"
+                    loading={formSubmitting}
+                    icon={!formSubmitting ? <Check className="w-3.5 h-3.5" /> : undefined}
                   >
-                    {formSubmitting ? (
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <Check className="w-3.5 h-3.5" />
-                    )}
                     <span>
                       {selectedBeneficiary 
                         ? (lang === 'ar' ? 'حفظ التعديلات' : 'Save Changes')
                         : (lang === 'ar' ? 'حفظ المستفيد الجديد' : 'Register Case')}
                     </span>
-                  </button>
+                  </EnterpriseButton>
                 )}
               </div>
             </form>
@@ -1800,6 +1781,18 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        variant="destructive"
+        titleAr="تأكيد الحذف"
+        title="Confirm Deletion"
+        descriptionAr="هل أنت متأكد من أرشفة/حذف سجل هذا المستفيد؟ سيتم تجميد العمليات المرتبطة به."
+        description="Are you sure you want to archive/delete this beneficiary? Associated operations might be frozen."
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteId) handleDelete(pendingDeleteId); }}
+      />
 
     </div>
     </ModuleShell>

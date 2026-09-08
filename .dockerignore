@@ -1,0 +1,71 @@
+# ═══════════════════════════════════════════════════════════════════
+# NexoraOS™ — Docker Ignore
+# Prevents secrets, node_modules, and unnecessary files from image
+# ═══════════════════════════════════════════════════════════════════
+
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Environment & secrets (NEVER in Docker image)
+.env*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Backups
+backups/
+*.sql.bak
+
+# Test files
+coverage/
+tests/
+src/**/*.test.ts
+src/**/*.test.tsx
+src/**/*.spec.ts
+__tests__/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Scripts
+scripts/debug*.cjs
+scripts/archive/
+
+# Docker (prevent recursive copy)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Temporary files
+tmp/
+*.tmp
+*.bak

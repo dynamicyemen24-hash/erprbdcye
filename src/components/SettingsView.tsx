@@ -54,6 +54,12 @@ import { PolicyDashboardView } from './settings/PolicyDashboardView';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
 import { DASHBOARD_MODE_SETTING_KEY, parseDashboardExperienceConfig } from '../config/dashboardExperienceModes';
 import { SYSTEM_PRESETS } from './dashboard/SmartCustomizationPanel';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface SettingsViewProps {
   organizations: Organization[];
@@ -1210,7 +1216,7 @@ export default function SettingsView({
                       className={`p-2.5 rounded-xl border text-right rtl:text-right transition-all cursor-pointer flex flex-col justify-between ${
                         orgArchetype === arch.id
                           ? 'bg-amber-600 text-white border-amber-600 shadow-sm font-bold'
-                          : 'bg-white dark:bg-zinc-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-zinc-700 hover:border-amber-400'
+                          : 'bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border-slate-200 dark:border-zinc-700 hover:border-amber-400'
                       }`}
                     >
                       <span className="text-xs font-black">{lang === 'ar' ? arch.nameAr : arch.nameEn}</span>
@@ -1710,33 +1716,35 @@ export default function SettingsView({
                     </p>
                   </div>
                 </div>
-                <button 
-                  type="button" 
-                  onClick={() => setActiveSubTab('subscription')} 
-                  className="shrink-0 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                <EnterpriseButton
+                  variant="accent"
+                  size="sm"
+                  icon={<Zap className="w-3.5 h-3.5" />}
+                  onClick={() => setActiveSubTab('subscription')}
                 >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>{lang === 'ar' ? 'ترقية الاشتراك والدفع' : 'Manage Subscription'}</span>
-                </button>
+                  {lang === 'ar' ? 'ترقية الاشتراك والدفع' : 'Manage Subscription'}
+                </EnterpriseButton>
               </div>
 
               <div className="flex justify-end pt-4 border-t border-slate-100">
-                <button 
-                  type="submit" 
-                  disabled={updating}
-                  className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white font-bold rounded-lg text-xs shadow flex items-center gap-1.5 transition-all"
+                <EnterpriseButton
+                  variant="accent"
+                  size="md"
+                  icon={<Save className="w-4 h-4" />}
+                  loading={updating}
+                  type="submit"
                 >
-                  {updating ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  <span>{lang === 'ar' ? 'حفظ التحديثات' : 'Save Profile Changes'}</span>
-                </button>
+                  {lang === 'ar' ? 'حفظ التحديثات' : 'Save Profile Changes'}
+                </EnterpriseButton>
               </div>
             </form>
           ) : (
-            <div className="text-center py-12 text-zinc-400">{lang === 'ar' ? 'لا يوجد ملف للمؤسسة حالياً' : 'No organization record found.'}</div>
+            <EmptyState
+              variant="empty"
+              lang={lang}
+              title={lang === 'ar' ? 'لا يوجد ملف للمؤسسة حالياً' : 'No organization record found.'}
+              titleAr="لا يوجد ملف للمؤسسة حالياً"
+            />
           )}
         </div>
       )}
@@ -2006,7 +2014,10 @@ export default function SettingsView({
                       className="w-full bg-white border border-slate-200 rounded-lg p-2 font-mono text-[11px]"
                     />
                   </div>
-                  <button
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
+                    block
                     onClick={() => {
                       if (!stripeApiKey.trim() || !stripeSecretKey.trim()) {
                         setGatewayTestStatus(lang === 'ar' ? '⚠ يرجى إدخال مفاتيح Stripe الفعلية قبل التحقق.' : '⚠ Enter your actual Stripe keys before verifying.');
@@ -2014,10 +2025,9 @@ export default function SettingsView({
                       }
                       setGatewayTestStatus(lang === 'ar' ? '✓ تم استقبال المفاتيح وجاري التحقق من بوابة Stripe...' : '✓ Keys received — verifying Stripe gateway...');
                     }}
-                    className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
                   >
                     {lang === 'ar' ? 'اختبار الاتصال بالبوابة' : 'Test Stripe Connection'}
-                  </button>
+                  </EnterpriseButton>
                 </div>
               </div>
 
@@ -2050,14 +2060,16 @@ export default function SettingsView({
                       className="w-full bg-white border border-slate-200 rounded-lg p-2 font-mono text-[11px]"
                     />
                   </div>
-                  <button 
+                  <EnterpriseButton
+                    variant="accent"
+                    size="sm"
+                    block
                     onClick={() => {
                       setGatewayTestStatus(lang === 'ar' ? '✓ تم الربط بنجاح مع بوابة حاسب الكريمي وتدفق نقد الرقمية.' : '? Local wallet integration verified.');
                     }}
-                    className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
                   >
                     {lang === 'ar' ? 'اختبار ربط المحافظ المحلية' : 'Test Local Gateway'}
-                  </button>
+                  </EnterpriseButton>
                 </div>
               </div>
 
@@ -2081,14 +2093,16 @@ export default function SettingsView({
                       className="w-full bg-white border border-slate-200 rounded-lg p-2 font-sans text-xs leading-relaxed"
                     />
                   </div>
-                  <button 
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
+                    block
                     onClick={() => {
                       setGatewayTestStatus(lang === 'ar' ? '✓ تم حفظ بيانات الحسابات البنكية وتحديث إيصالات التحصيل.' : '? Bank details updated.');
                     }}
-                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
                   >
                     {lang === 'ar' ? 'حفظ الحسابات البنكية' : 'Save Bank Details'}
-                  </button>
+                  </EnterpriseButton>
                 </div>
               </div>
             </div>
@@ -2211,9 +2225,14 @@ export default function SettingsView({
                 </label>
               ))}
             </div>
-            <button type="button" onClick={saveDashboardExperienceConfig} disabled={updating} className="mt-3 rounded-lg bg-indigo-600 px-3 py-2 text-[10px] font-black text-white hover:bg-indigo-500 disabled:opacity-50">
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
+              loading={updating}
+              onClick={saveDashboardExperienceConfig}
+            >
               {lang === 'ar' ? 'حفظ إعدادات العرض المؤسسية' : 'Save organization display settings'}
-            </button>
+            </EnterpriseButton>
           </div>
 
           <div className="overflow-x-auto">
@@ -2470,13 +2489,13 @@ export default function SettingsView({
             </div>
 
             <div className="flex justify-end pt-2">
-              <button
-                type="button"
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={handleSaveAISettings}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition-all shadow-md shadow-emerald-950/20"
               >
                 {lang === 'ar' ? 'حفظ إعدادات الذكاء الاصطناعي' : 'Save AI Configuration'}
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
 
@@ -2566,7 +2585,7 @@ export default function SettingsView({
                       disabled={smsTestLoading}
                       className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-[10px] rounded-md transition-all flex items-center justify-center gap-1"
                     >
-                      {smsTestLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                      {smsTestLoading ? <Spinner size="xs" /> : <Send className="w-3 h-3" />}
                       <span>{lang === 'ar' ? 'إرسال رسالة فحص البوابة' : 'Dispatch Test Message'}</span>
                     </button>
 
@@ -2676,7 +2695,7 @@ export default function SettingsView({
                       disabled={emailTestLoading}
                       className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-[10px] rounded-md transition-all flex items-center justify-center gap-1"
                     >
-                      {emailTestLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                      {emailTestLoading ? <Spinner size="xs" /> : <Send className="w-3 h-3" />}
                       <span>{lang === 'ar' ? 'إرسال بريد فحص الاتصال' : 'Dispatch Test Email'}</span>
                     </button>
 
@@ -2766,7 +2785,7 @@ export default function SettingsView({
                 disabled={zakatCalcLoading}
                 className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1.5"
               >
-                {zakatCalcLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Activity className="w-3.5 h-3.5" />}
+                {zakatCalcLoading ? <Spinner size="xs" /> : <Activity className="w-3.5 h-3.5" />}
                 <span>{lang === 'ar' ? 'تشغيل حاسبة الامتثال المالي' : 'Run Compliance Calculation'}</span>
               </button>
             </div>
@@ -3132,13 +3151,15 @@ export default function SettingsView({
                       className="w-full bg-slate-50 border border-zinc-200 rounded p-1.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
-                  <button
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
                     type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded transition-all shadow-sm flex items-center justify-center gap-1.5"
+                    icon={<Check className="w-3.5 h-3.5" />}
+                    block
                   >
-                    <Check className="w-3.5 h-3.5" />
                     <span>{lang === 'ar' ? 'تسجيل وتفعيل المكتب' : 'Authorize & Register'}</span>
-                  </button>
+                  </EnterpriseButton>
                 </form>
               </div>
             </div>
@@ -3149,10 +3170,7 @@ export default function SettingsView({
             <div className="space-y-6">
               {loadingDb && dbCodeCategories.length === 0 ? (
                 <div className="flex justify-center items-center py-12">
-                  <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" />
-                  <span className="mr-2 text-sm text-zinc-500">
-                    {lang === 'ar' ? 'جاري تحميل التراميز الموحدة...' : 'Loading master code categories...'}
-                  </span>
+                  <Spinner size="lg" variant="primary" />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -3283,13 +3301,15 @@ export default function SettingsView({
                             className="w-full bg-slate-50 border border-zinc-200 rounded p-1.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                           />
                         </div>
-                        <button
+                        <EnterpriseButton
+                          variant="primary"
+                          size="sm"
                           type="submit"
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded transition-all shadow-sm flex items-center justify-center gap-1.5"
+                          icon={<Check className="w-3.5 h-3.5" />}
+                          block
                         >
-                          <Check className="w-3.5 h-3.5" />
                           <span>{lang === 'ar' ? 'حفظ التصنيف في قاعدة البيانات' : 'Save Category to DB'}</span>
-                        </button>
+                        </EnterpriseButton>
                       </form>
                     </div>
                   </div>
@@ -3418,12 +3438,14 @@ export default function SettingsView({
                                       onChange={(e) => setNewDbItemValue(e.target.value)}
                                       className="w-full bg-slate-50 border border-zinc-200 rounded p-1.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                                     />
-                                    <button
+                                    <EnterpriseButton
+                                      variant="accent"
+                                      size="xs"
                                       type="submit"
-                                      className="bg-amber-500 hover:bg-amber-600 text-white rounded p-1.5 text-xs font-bold transition-all flex items-center justify-center aspect-square h-[30px]"
+                                      iconOnly
                                     >
                                       <Plus className="w-4 h-4" />
-                                    </button>
+                                    </EnterpriseButton>
                                   </div>
                                 </div>
                               </form>
@@ -3447,10 +3469,7 @@ export default function SettingsView({
             <div className="space-y-6">
               {loadingDb && dbCodingSystems.length === 0 ? (
                 <div className="flex justify-center items-center py-12">
-                  <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" />
-                  <span className="mr-2 text-sm text-zinc-500">
-                    {lang === 'ar' ? 'جاري تحميل نظام الأكواد والترميز...' : 'Loading coding system entries...'}
-                  </span>
+                  <Spinner size="lg" variant="primary" />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -3538,13 +3557,15 @@ export default function SettingsView({
                           />
                         </div>
                       </div>
-                      <button
+                      <EnterpriseButton
+                        variant="primary"
+                        size="sm"
                         type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded transition-all shadow-sm flex items-center justify-center gap-1.5"
+                        icon={<Check className="w-3.5 h-3.5" />}
+                        block
                       >
-                        <Check className="w-3.5 h-3.5" />
                         <span>{lang === 'ar' ? 'تسجيل الكود في النظام' : 'Save Code to System'}</span>
-                      </button>
+                      </EnterpriseButton>
                     </form>
                   </div>
 
@@ -3732,7 +3753,7 @@ export default function SettingsView({
                       }}
                       className="mt-3 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold py-1.5 px-3 rounded transition-all flex items-center gap-1.5"
                     >
-                      {updating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                      {updating ? <Spinner size="xs" /> : <RefreshCw className="w-3.5 h-3.5" />}
                       <span>{lang === 'ar' ? 'بدء فحص السلامة الآن' : 'Execute Integrity Scan'}</span>
                     </button>
                   </div>

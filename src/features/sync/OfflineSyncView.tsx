@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Wifi, RefreshCw, AlertTriangle, Cloud } from 'lucide-react';
 import { getSyncStatus, forceSync, SyncStatus } from '../../core/services/syncService';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface OfflineSyncViewProps {
   lang: 'ar' | 'en';
@@ -51,7 +52,7 @@ export default function OfflineSyncView({ lang }: OfflineSyncViewProps) {
         disabled={loading}
         className="w-full py-3 bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
       >
-        {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+        {loading ? <Spinner size="sm" /> : <RefreshCw className="w-4 h-4" />}
         {lang === 'ar' ? 'فرض المزامنة' : 'Force Sync'}
       </button>
 

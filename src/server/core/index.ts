@@ -24,9 +24,8 @@ export {
 } from './resilience';
 export {
   sanitizeHtml, sanitizeInput, detectSqlInjection, isPathTraversal,
-  securityMiddleware, generateCsrfToken, verifyCsrfToken,
-  generateRequestFingerprint, logAuditEvent, checkPasswordStrength,
-  isIpBlocked, blockIp, unblockIp, ipBlocklistMiddleware,
+  securityMiddleware,
+  isIpBlocked, ipBlocklistMiddleware,
 } from './security';
 export {
   successResponse, createdResponse, noContentResponse, errorResponse,

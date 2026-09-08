@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Zap, Loader2, BarChart3, TrendingUp, Sparkles, Download, Layers } from 'lucide-react';
+import { Zap, BarChart3, TrendingUp, Sparkles, Download, Layers } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function HRIntelligenceAnalyticsView({ lang }: { lang: 'ar' | 'en' }) {
@@ -50,7 +51,7 @@ export default function HRIntelligenceAnalyticsView({ lang }: { lang: 'ar' | 'en
           disabled={loading}
           className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-md shadow-emerald-950/20 disabled:opacity-50"
         >
-          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          {loading ? <Spinner size="xs" /> : <Sparkles className="w-3.5 h-3.5" />}
           <span>{isRtl ? 'تحديث التحليلات' : 'Run AI Analysis'}</span>
         </button>
       </div>
@@ -73,7 +74,7 @@ export default function HRIntelligenceAnalyticsView({ lang }: { lang: 'ar' | 'en
       <div className="relative h-60 pt-2">
         {loading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm rounded-xl z-10 gap-3">
-            <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+            <Spinner size="md" variant="primary" />
             <p className="text-xs text-slate-500 dark:text-zinc-400">
               {isRtl ? 'جارٍ تشغيل التحليلات...' : 'Running AI analysis...'}
             </p>

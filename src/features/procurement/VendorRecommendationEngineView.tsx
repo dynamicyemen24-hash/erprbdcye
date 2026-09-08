@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Loader2, Award, Zap } from 'lucide-react';
+import { ShoppingCart, Award, Zap } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 export default function VendorRecommendationEngineView({ lang }: { lang: 'ar' | 'en' }) {
   const [recommendations, setRecommendations] = useState<any[]>([]);
@@ -34,13 +35,13 @@ export default function VendorRecommendationEngineView({ lang }: { lang: 'ar' | 
         disabled={loading}
         className="w-full py-3 bg-amber-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
       >
-        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
+        {loading ? <Spinner size="sm" /> : <ShoppingCart className="w-4 h-4" />}
         {lang === 'ar' ? 'الحصول على توصيات' : 'Get Recommendations'}
       </button>
 
       {loading && recommendations.length === 0 && (
         <div className="mt-6 flex flex-col items-center justify-center py-8 gap-3">
-          <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
+          <Spinner size="md" variant="accent" />
           <p className="text-xs text-slate-500 dark:text-zinc-400">
             {lang === 'ar' ? 'جارٍ تحليل الموردين...' : 'Analyzing vendors...'}
           </p>

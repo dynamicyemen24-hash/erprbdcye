@@ -17,6 +17,7 @@ import {
   Layers,
   ArrowRightLeft
 } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -743,7 +744,7 @@ export default function FinancialBIAnalyticsTab({
             className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-900/30"
           >
             {aiLoading ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <Spinner size="sm" />
             ) : (
               <BrainCircuit className="w-4 h-4" />
             )}
@@ -753,7 +754,7 @@ export default function FinancialBIAnalyticsTab({
 
         {aiLoading && (
           <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
-            <RefreshCw className="w-10 h-10 animate-spin text-emerald-500" />
+            <Spinner size="xl" variant="primary" />
             <p className="text-xs font-black text-emerald-400 animate-pulse">
               {lang === 'ar' ? 'جاري قراءة دفاتر الحسابات وبناء التحليل المالي الاستراتيجي...' : 'Auditing balances, examining variance vectors, and generating report...'}
             </p>

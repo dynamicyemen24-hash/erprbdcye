@@ -119,7 +119,7 @@ export class AuthEngine {
     );
 
     // 5. Store refresh token hash
-    const refreshHash = await bcrypt.hash(refreshToken, 10);
+    const refreshHash = await bcrypt.hash(refreshToken, serverConfig.bcryptRounds || 12);
     await query(
       `INSERT INTO refresh_tokens (user_id, token_hash, expires_at, ip_address)
        VALUES ($1, $2, NOW() + INTERVAL '7 days', $3)

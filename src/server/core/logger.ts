@@ -9,6 +9,41 @@ import crypto from 'crypto';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
+// ─── Sensitive Data Masking ──────────────────────────────────
+const SENSITIVE_PATTERNS = [
+  { pattern: /password["\s:=]+\S+/gi, replacement: 'password: [REDACTED]' },
+  { pattern: /token["\s:=]+\S+/gi, replacement: 'token: [REDACTED]' },
+  { pattern: /secret["\s:=]+\S+/gi, replacement: 'secret: [REDACTED]' },
+  { pattern: /authorization["\s:=]+Bearer\s+\S+/gi, replacement: 'authorization: Bearer [REDACTED]' },
+  { pattern: /jwt["\s:=]+\S+/gi, replacement: 'jwt: [REDACTED]' },
+  { pattern: /(?:api[_-]?key|apikey)["\s:=]+\S+/gi, replacement: 'api_key: [REDACTED]' },
+  { pattern: /npg_[A-Za-z0-9]+/g, replacement: '[REDACTED_DB_CREDENTIAL]' },
+  { pattern: /postgresql:\/\/[^:]+:[^@]+@/g, replacement: 'postgresql://[REDACTED]:[REDACTED]@' },
+];
+
+function maskSensitiveData(data: any): any {
+  if (typeof data === 'string') {
+    let masked = data;
+    for (const { pattern, replacement } of SENSITIVE_PATTERNS) {
+      masked = masked.replace(pattern, replacement);
+    }
+    return masked;
+  }
+  if (typeof data === 'object' && data !== null) {
+    const masked: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      const lowerKey = key.toLowerCase();
+      if (['password', 'token', 'secret', 'apikey', 'api_key', 'authorization'].some(s => lowerKey.includes(s))) {
+        masked[key] = '[REDACTED]';
+      } else {
+        masked[key] = maskSensitiveData(value);
+      }
+    }
+    return masked;
+  }
+  return data;
+}
+
 interface LogEntry {
   timestamp: string;
   level: LogLevel;
@@ -110,9 +145,11 @@ class Logger {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
-      message,
+      message: maskSensitiveData(message) as string,
       ...extra,
     };
+    if (entry.error) entry.error.message = maskSensitiveData(entry.error.message) as string;
+    if (entry.meta) entry.meta = maskSensitiveData(entry.meta) as Record<string, any>;
     if (this.config.console) console.log(this.formatEntry(entry));
     if (this.stream) this.stream.write(this.formatEntry(entry) + '\n');
   }

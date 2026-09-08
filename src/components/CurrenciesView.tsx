@@ -15,6 +15,12 @@ import { Currency } from '../types';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { PolicyViolationError, type PolicyViolation } from '../core/utils/apiHelpers';
 import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface CurrenciesViewProps {
   currencies: Currency[];
@@ -30,6 +36,8 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
   const [formError, setFormError] = useState<string | null>(null);
   const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // Form states
   const [code, setCode] = useState('');
@@ -112,12 +120,6 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
   };
 
   const handleDelete = async (id: string) => {
-    const confirmation = lang === 'ar'
-      ? 'هل أنت متأكد من حذف/تعطيل هذه العملة؟ سيتم إخفاء العملة من شاشات المطابقة النشطة.'
-      : 'Are you sure you want to delete/disable this currency? It will be soft-deleted in the database.';
-
-    if (!window.confirm(confirmation)) return;
-
     try {
       const response = await fetch(`/api/tables/currencies/${id}`, {
         method: 'DELETE'
@@ -146,13 +148,15 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
           </p>
         </div>
 
-        <button
+        <EnterpriseButton
+          variant="accent"
+          size="sm"
           onClick={() => openModal()}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow transition-all duration-150 self-start md:self-auto"
+          icon={<Plus className="w-4 h-4" />}
+          className="self-start md:self-auto"
         >
-          <Plus className="w-4 h-4" />
           <span>{lang === 'ar' ? 'عملة جديدة' : 'Add New Currency'}</span>
-        </button>
+        </EnterpriseButton>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -164,7 +168,9 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-zinc-400">{lang === 'ar' ? 'جاري تحميل العملات...' : 'Loading currencies...'}</div>
+            <div className="text-center py-12">
+              <Spinner size="lg" variant="primary" lang={lang} />
+            </div>
           ) : currencies.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
@@ -221,7 +227,7 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
                           </button>
                           {!curr.is_base && (
                             <button
-                              onClick={() => handleDelete(curr.id)}
+                              onClick={() => { setDeleteTargetId(curr.id); setConfirmDelete(true); }}
                               className="p-1 bg-slate-50 border border-slate-200 rounded text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
                               title={lang === 'ar' ? 'حذف' : 'Delete'}
                             >
@@ -236,7 +242,7 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
               </table>
             </div>
           ) : (
-            <div className="text-center py-12 text-zinc-400">{lang === 'ar' ? 'لا توجد عملات مضافة' : 'No currencies found.'}</div>
+            <EmptyState variant="empty" title="No currencies" titleAr="لا توجد عملات مضافة" lang={lang} />
           )}
         </div>
 
@@ -421,7 +427,7 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1 transition-all cursor-pointer"
                 >
                   {formSubmitting ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <Spinner size="xs" variant="white" />
                   ) : (
                     <Check className="w-3.5 h-3.5" />
                   )}
@@ -437,6 +443,19 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
         </div>
       )}
     </div>
+
+    <ConfirmDialog
+      open={confirmDelete}
+      onOpenChange={setConfirmDelete}
+      variant="destructive"
+      titleAr="تأكيد حذف العملة"
+      title="Confirm Currency Deletion"
+      descriptionAr="هل أنت متأكد من حذف/تعطيل هذه العملة؟ سيتم إخفاء العملة من شاشات المطابقة النشطة."
+      description="Are you sure you want to delete/disable this currency?"
+      onConfirm={() => { if (deleteTargetId) handleDelete(deleteTargetId); setDeleteTargetId(null); }}
+      lang={lang}
+    />
+
     </ModuleShell>
   );
 }

@@ -31,6 +31,7 @@ import {
 import { Project, Program } from '../core/types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 
 export interface GanttPhase {
   id: string;
@@ -99,6 +100,8 @@ export default function ProjectGanttView({
   // Gantt Chart Container Ref (used to calculate SVG coordinates dynamically)
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [redrawCounter, setRedrawCounter] = useState(0);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   // Trigger SVG redraw on window resize or scroll
   useEffect(() => {
@@ -693,19 +696,18 @@ export default function ProjectGanttView({
 
   // Delete phase
   const handleDeletePhase = (id: string) => {
-    const confirmMsg = isRtl 
-      ? 'هل أنت متأكد من حذف هذه المرحلة والروابط التابعة لها؟'
-      : 'Are you sure you want to delete this phase? Dependent connections will be unlinked.';
-    if (!window.confirm(confirmMsg)) return;
-
-    triggerHaptic('medium');
-    const updated = phases
-      .filter(ph => ph.id !== id)
-      .map(ph => ph.dependsOnPhaseId === id ? { ...ph, dependsOnPhaseId: undefined } : ph);
-    
-    savePhases(updated);
-    setIsEditorOpen(false);
-    setEditingPhase(null);
+    const doDelete = () => {
+      triggerHaptic('medium');
+      const updated = phases
+        .filter(ph => ph.id !== id)
+        .map(ph => ph.dependsOnPhaseId === id ? { ...ph, dependsOnPhaseId: undefined } : ph);
+      
+      savePhases(updated);
+      setIsEditorOpen(false);
+      setEditingPhase(null);
+    };
+    setPendingAction(() => doDelete);
+    setConfirmOpen(true);
   };
 
   // Open resource editor
@@ -760,15 +762,14 @@ export default function ProjectGanttView({
 
   // Delete resource allocation
   const handleDeleteAllocation = (id: string) => {
-    const confirmMsg = isRtl
-      ? 'هل أنت متأكد من إلغاء تخصيص هذا المورد الإنساني/المادي؟'
-      : 'Are you sure you want to remove this resource allocation?';
-    if (!window.confirm(confirmMsg)) return;
-
-    triggerHaptic('medium');
-    saveAllocations(allocations.filter(a => a.id !== id));
-    setIsAllocEditorOpen(false);
-    setEditingAllocation(null);
+    const doDelete = () => {
+      triggerHaptic('medium');
+      saveAllocations(allocations.filter(a => a.id !== id));
+      setIsAllocEditorOpen(false);
+      setEditingAllocation(null);
+    };
+    setPendingAction(() => doDelete);
+    setConfirmOpen(true);
   };
 
   // Redraw dependencies on render
@@ -1774,6 +1775,17 @@ export default function ProjectGanttView({
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        variant="destructive"
+        title="Confirm"
+        titleAr="تأكيد"
+        descriptionAr="هل أنت متأكد؟"
+        onConfirm={() => { pendingAction?.(); setPendingAction(null); }}
+        lang={lang || 'ar'}
+      />
 
     </div>
     </ErrorBoundary>

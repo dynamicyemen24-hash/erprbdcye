@@ -27,6 +27,9 @@ import {
 import { Currency } from '../../types';
 import { PolicyViolationError, type PolicyViolation } from '../../core/utils/apiHelpers';
 import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
+import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
+import { Spinner } from '../../design-system/components/Spinner';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 interface FinancialSettingsTabProps {
   currencies: Currency[];
@@ -54,6 +57,8 @@ export default function FinancialSettingsTab({
   onRefreshCurrencies 
 }: FinancialSettingsTabProps) {
   const isRtl = lang === 'ar';
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   
   // 1. Currencies state and Modal
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -260,26 +265,24 @@ export default function FinancialSettingsTab({
   };
 
   const handleDeleteCurrency = async (id: string) => {
-    const confirmation = lang === 'ar'
-      ? 'هل أنت متأكد من تعطيل/حذف هذه العملة؟ قد يؤثر الحذف على معالجة كشوف الربط النشطة.'
-      : 'Are you sure you want to disable/delete this currency? It may impact mappings for active transaction streams.';
-
-    if (!window.confirm(confirmation)) return;
-
-    setCurrLoading(true);
-    try {
-      const response = await fetch(`/api/tables/currencies/${id}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete currency from ledger system.');
+    const doDelete = async () => {
+      setCurrLoading(true);
+      try {
+        const response = await fetch(`/api/tables/currencies/${id}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) {
+          throw new Error('Failed to delete currency from ledger system.');
+        }
+        onRefreshCurrencies();
+      } catch (err: any) {
+        showToast({ type: 'error', title: isRtl ? 'الإعدادات المالية' : 'Financial Settings', message: err.message });
+      } finally {
+        setCurrLoading(false);
       }
-      onRefreshCurrencies();
-    } catch (err: any) {
-      showToast({ type: 'error', title: isRtl ? 'الإعدادات المالية' : 'Financial Settings', message: err.message });
-    } finally {
-      setCurrLoading(false);
-    }
+    };
+    setPendingAction(() => doDelete);
+    setConfirmOpen(true);
   };
 
   return (
@@ -374,12 +377,13 @@ export default function FinancialSettingsTab({
                               className="w-16 md:w-20 bg-transparent text-center border-none text-xs font-mono font-black text-slate-800 focus:outline-none"
                             />
                           )}
-                          <button
+                          <EnterpriseButton
+                            variant="primary"
+                            size="xs"
                             onClick={() => handleSavePolicyValue(policy.id)}
-                            className="p-1 bg-emerald-600 hover:bg-emerald-500 rounded text-white transition-all cursor-pointer"
-                          >
-                            <Check className="w-3 h-3" />
-                          </button>
+                            icon={<Check className="w-3 h-3" />}
+                            iconOnly
+                          />
                           <button
                             onClick={() => setEditingPolicyId(null)}
                             className="p-1 bg-slate-200 hover:bg-slate-300 rounded text-slate-600 transition-all cursor-pointer"
@@ -499,18 +503,19 @@ export default function FinancialSettingsTab({
                 </p>
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="xs"
                 onClick={() => openCurrencyModal()}
-                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                icon={<Plus className="w-3 h-3" />}
               >
-                <Plus className="w-3 h-3" />
-                <span>{lang === 'ar' ? 'إضافة عملة' : 'Add Currency'}</span>
-              </button>
+                {lang === 'ar' ? 'إضافة عملة' : 'Add Currency'}
+              </EnterpriseButton>
             </div>
 
             {currLoading ? (
               <div className="p-8 text-center text-zinc-400 font-bold">
-                <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1 text-emerald-500" />
+                <Spinner size="sm" variant="primary" />
                 <span>{lang === 'ar' ? 'جاري تحديث الدفاتر...' : 'Updating currency tables...'}</span>
               </div>
             ) : currencies.length > 0 ? (
@@ -744,28 +749,34 @@ export default function FinancialSettingsTab({
                 >
                   {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                 </button>
-                <button 
+                <EnterpriseButton
                   type="submit"
+                  variant="primary"
+                  size="sm"
                   disabled={formSubmitting}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-400 text-white rounded-xl text-xs font-black shadow flex items-center gap-1.5 transition-all cursor-pointer"
+                  loading={formSubmitting}
+                  icon={!formSubmitting ? <Check className="w-3.5 h-3.5" /> : undefined}
                 >
-                  {formSubmitting ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Check className="w-3.5 h-3.5" />
-                  )}
-                  <span>
-                    {selectedCurrency 
-                      ? (lang === 'ar' ? 'حفظ الخصائص' : 'Save Properties')
-                      : (lang === 'ar' ? 'معيار الحماية' : 'Register Currency')}
-                  </span>
-                </button>
+                  {selectedCurrency 
+                    ? (lang === 'ar' ? 'حفظ الخصائص' : 'Save Properties')
+                    : (lang === 'ar' ? 'معيار الحماية' : 'Register Currency')}
+                </EnterpriseButton>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        variant="destructive"
+        title="Confirm"
+        titleAr="تأكيد"
+        descriptionAr="هل أنت متأكد؟"
+        onConfirm={() => { pendingAction?.(); setPendingAction(null); }}
+        lang={lang || 'ar'}
+      />
     </div>
   );
 }

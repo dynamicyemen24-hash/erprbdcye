@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Calendar, AlertTriangle, Loader2 } from 'lucide-react';
+import { Wrench, Calendar, AlertTriangle } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface MaintenanceForecast {
   id: string;
@@ -99,8 +100,7 @@ export default function PredictiveMaintenanceView({ lang }: { lang: 'ar' | 'en' 
 
       {loading ? (
         <div className="flex items-center justify-center py-10 text-zinc-500">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" />
-          <span className="text-xs font-bold">{lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}</span>
+          <Spinner size="md" /> <span className="text-xs font-bold">{lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}</span>
         </div>
       ) : error ? (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-400">

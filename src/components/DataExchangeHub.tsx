@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import { exportToExcel, exportToCSV, fireCelebrationConfetti } from '../utils/exportHelpers';
 import { generateNumericCode } from '../lib/idGenerator';
+import { EnterpriseButton } from './common/EnterpriseButton';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface DataExchangeHubProps {
   lang: 'ar' | 'en';
@@ -510,13 +512,14 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
         </div>
 
         <div className="flex items-center gap-2 shrink-0 z-10">
-          <button
+          <EnterpriseButton
+            variant="primary"
+            size="sm"
+            icon={<Download className="w-4 h-4" />}
             onClick={handleDownloadSample}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center gap-2 shadow-lg transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4" />
             <span>{isRtl ? 'تحميل قالب الإدخال' : 'Download Template'}</span>
-          </button>
+          </EnterpriseButton>
           
           <button
             onClick={handleOpenShareModal}
@@ -619,18 +622,15 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
           {TEMPLATES.filter(t => t.category === activeCategory).map(tpl => {
             const isSelected = selectedTemplate.id === tpl.id;
             return (
-              <button
+              <EnterpriseButton
                 key={tpl.id}
+                variant={isSelected ? 'primary' : 'ghost'}
+                size="sm"
+                icon={<FileSpreadsheet className="w-3.5 h-3.5" />}
                 onClick={() => handleTemplateSelect(tpl)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-                  isSelected
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
-                }`}
               >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
                 <span>{isRtl ? tpl.titleAr : tpl.titleEn}</span>
-              </button>
+              </EnterpriseButton>
             );
           })}
         </div>
@@ -682,7 +682,7 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
                 className="hidden"
               />
               <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                {isParsing ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
+                {isParsing ? <Spinner size="md" /> : <Upload className="w-6 h-6" />}
               </div>
               <div>
                 <h4 className="font-extrabold text-xs text-slate-800 dark:text-zinc-200">
@@ -716,14 +716,16 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
             <span className="text-[11px] font-mono font-bold text-slate-500">
               {importedRows.length > 0 ? `${importedRows.length} ${isRtl ? 'سجل جاهز' : 'Rows Ready'}` : ''}
             </span>
-            <button
-              onClick={handleCommitImport}
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
+              icon={!isSubmitting ? <Check className="w-4 h-4" /> : undefined}
+              loading={isSubmitting}
               disabled={isSubmitting || importedRows.length === 0}
-              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-extrabold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer"
+              onClick={handleCommitImport}
             >
-              {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               <span>{isRtl ? 'اعتماد وحفظ الاستيراد في النظام' : 'Commit Import to Database'}</span>
-            </button>
+            </EnterpriseButton>
           </div>
         </div>
 
@@ -854,12 +856,13 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
               <span>{isRtl ? 'تحميل نموذج تجريبي' : 'Load Sample Data'}</span>
             </button>
 
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="xs"
               onClick={handleAddNewRow}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <span>+ {isRtl ? 'إضافة صف جديد' : 'Add Row'}</span>
-            </button>
+            </EnterpriseButton>
 
             <span className="text-[10px] font-mono font-bold px-2.5 py-1 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 rounded-lg">
               {importedRows.length > 0 ? (isRtl ? 'بيانات قابلة للتعديل' : 'Editable Active Rows') : (isRtl ? 'نموذج بيانات افتراضي' : 'Sample Preset Data')}
@@ -979,13 +982,14 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
+                  icon={<Send className="w-4 h-4" />}
                   onClick={handleShareWhatsApp}
-                  className="p-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
                 >
-                  <Send className="w-4 h-4" />
                   <span>{isRtl ? 'إرسال عبر واتساب' : 'Share WhatsApp'}</span>
-                </button>
+                </EnterpriseButton>
 
                 <button
                   onClick={handleCopyShareLink}

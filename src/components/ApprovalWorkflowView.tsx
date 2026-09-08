@@ -182,9 +182,15 @@ import {
 import { Project, Program, ApprovalRequest, ApprovalHistory, WorkflowDefinition } from '../types';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
-import { instantPrint } from '../core/export';
+import { instantPrint, buildOfficialStampFooter } from '../core/export';
 import { MultiSignWorkflowSymbol, ClearanceDelegationSymbol } from './common/SovereignSystemIcons';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface UserProfile {
   id: string;
@@ -824,10 +830,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
           </tbody>
         </table>
 
-        <div class="footer">
-          <div>المراجع المالي: معتمد | المدير التنفيذي: مصادق إلكترونياً</div>
-          <div>ختم الاعتماد الرقمي المشفر: WF-UAM-${Math.floor(Math.random() * 899999 + 100000)} | UAMEX ERP™</div>
-        </div>
+        ${buildOfficialStampFooter({ docCode: 'WF-UAM', lang: 'ar', endorsementAr: 'المراجع المالي: معتمد | المدير التنفيذي: مصادق إلكترونياً', contentSeed: rows, classification: 'OFFICIAL', complianceStandard: 'IPSAS & Sphere CHS' })}
       </body>
       </html>
     `;
@@ -998,20 +1001,19 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
               </div>
             </div>
 
-            <button
+            <EnterpriseButton
+              variant="accent"
+              size="sm"
               onClick={() => setIsNewDelegationOpen(true)}
-              className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-zinc-950 font-black text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-amber-600/15"
+              icon={<Plus className="w-4 h-4" />}
             >
-              <Plus className="w-4 h-4" />
               <span>{lang === 'ar' ? 'إصدار تفويض مالي جديد' : 'Issue New Delegation'}</span>
-            </button>
+            </EnterpriseButton>
           </div>
 
           <div className="space-y-3">
             {approvalDelegations.length === 0 ? (
-              <div className="text-center p-8 text-zinc-400 text-xs font-bold">
-                {lang === 'ar' ? 'لا توجد أي تفويضات مالية نشطة حالياً.' : 'No active delegations found.'}
-              </div>
+              <EmptyState variant="empty" lang={lang} title={lang === 'ar' ? 'لا توجد تفويضات' : 'No delegations'} titleAr="لا توجد تفويضات" />
             ) : (
               approvalDelegations.map((del) => {
                 const delegatorName = userMap.get(del.delegator_id) || (lang === 'ar' ? 'المدير التنفيذي' : 'Executive Director');
@@ -1565,13 +1567,14 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
         </div>
 
         <div className="flex items-center gap-2">
-          <button 
+          <EnterpriseButton
+            variant="accent"
+            size="sm"
             onClick={() => setIsNewRequestOpen(true)}
-            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-zinc-950 font-black text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-amber-600/15"
+            icon={<Plus className="w-4 h-4" />}
           >
-            <Plus className="w-4 h-4" />
             <span>{lang === 'ar' ? 'طلب موافقة جديد' : 'Submit for Approval'}</span>
-          </button>
+          </EnterpriseButton>
           
           <button 
             onClick={loadData}
@@ -1740,13 +1743,12 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
           {/* Requests Cards List */}
           {loading ? (
             <div className="p-12 text-center bg-white border border-slate-200 rounded-xl">
-              <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-xs text-slate-500 font-bold">{lang === 'ar' ? 'جاري الاتصال والتحقق من التواقيع الرقمية...' : 'Synchronizing cryptographic signature keys...'}</p>
+              <Spinner size="lg" variant="primary" lang={lang} />
+              <p className="text-xs text-slate-500 font-bold mt-3">{lang === 'ar' ? 'جاري الاتصال والتحقق من التواقيع الرقمية...' : 'Synchronizing cryptographic signature keys...'}</p>
             </div>
           ) : filteredRequests.length === 0 ? (
-            <div className="p-12 text-center bg-white border border-slate-200 rounded-xl text-zinc-400">
-              <AlertCircle className="w-10 h-10 mx-auto mb-3 text-zinc-300" />
-              <p className="text-xs font-bold">{lang === 'ar' ? 'لا توجد طلبات اعتماد مطابقة لمعايير البحث حالياً.' : 'No active approval items match your criteria currently.'}</p>
+            <div className="bg-white border border-slate-200 rounded-xl">
+              <EmptyState variant="empty" title="No approval requests" titleAr="لا توجد طلبات اعتماد مطابقة لمعايير البحث حالياً" lang={lang} />
             </div>
           ) : (
             <div className="space-y-3">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Wifi, WifiOff, RefreshCw, CheckCircle2, CloudCheck, X } from 'lucide-react';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface OfflineSyncTelemetryBarProps {
   lang: 'ar' | 'en';
@@ -107,7 +108,7 @@ export const OfflineSyncTelemetryBar: React.FC<OfflineSyncTelemetryBarProps> = (
               disabled={isSyncing}
               className="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[11px] font-bold border border-emerald-500/30 flex items-center gap-1 transition-all cursor-pointer"
             >
-              <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+              <Spinner size="xs" />
               <span>{isRtl ? 'مزامنة' : 'Sync'}</span>
             </button>
           )}

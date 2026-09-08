@@ -46,3 +46,9 @@ scripts/probe_*.cjs
 *.swp
 tmp_*.txt
 summary.txt
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

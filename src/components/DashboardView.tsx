@@ -11,6 +11,11 @@ import { DashboardViewProps } from './dashboard/types';
 import { ExecutiveQuantumCockpit } from './ExecutiveQuantumCockpit';
 import { QuantumWorkFirstCockpit } from './dashboard/QuantumWorkFirstCockpit';
 import { Activity, RefreshCw, AlertTriangle, Zap, LayoutDashboard, SlidersHorizontal } from 'lucide-react';
+import { cn } from '../design-system/utils/cn';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 // Error Boundary for graceful crash recovery
 class DashboardErrorBoundary extends Component<
@@ -32,26 +37,10 @@ class DashboardErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
-          <div className="w-16 h-16 bg-red-50 dark:bg-red-950/30 rounded-2xl flex items-center justify-center mb-4">
-            <AlertTriangle className="w-8 h-8 text-red-500" />
-          </div>
-          <h3 className="text-base font-black text-slate-900 dark:text-white mb-2">
-            {this.props.lang === 'ar' ? 'حدث خطأ غير متوقع' : 'An Unexpected Error Occurred'}
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mb-4 max-w-md">
-            {this.props.lang === 'ar'
-              ? 'تعذر تحميل لوحة القيادة. يرجى إعادة المحاولة أو العودة للصفحة الرئيسية.'
-              : 'Failed to load the dashboard. Please try again or return to the home page.'}
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            {this.props.lang === 'ar' ? 'إعادة المحاولة' : 'Retry'}
-          </button>
-        </div>
+        <ErrorState
+          onRetry={() => window.location.reload()}
+          lang={this.props.lang}
+        />
       );
     }
     return this.props.children;
@@ -317,13 +306,14 @@ export default function DashboardView({
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <button
+                      <EnterpriseButton
+                        variant="primary"
+                        size="sm"
                         onClick={() => handleSetHomeMode('work_first')}
-                        className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
                       >
                         <Zap className="w-3.5 h-3.5" />
                         <span>{lang === 'ar' ? 'التبديل إلى قمرة الإنجاز الفوري (Work-First)' : 'Switch to Quantum Work-First'}</span>
-                      </button>
+                      </EnterpriseButton>
 
                       {onOpenExperienceModeModal && (
                         <button

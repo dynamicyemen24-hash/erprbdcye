@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Fingerprint, ShieldAlert, RefreshCw } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
+import { Spinner } from '../../design-system/components/Spinner';
 import { logAuditEvent } from '../../lib/audit';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -205,7 +207,7 @@ export default function BiometricSecuritySettingsView({ lang, currentUser }: { l
       <div className="overflow-x-auto">
         {usersLoading ? (
           <div className="py-10 text-center">
-            <RefreshCw className="w-7 h-7 text-emerald-500 animate-spin mx-auto" />
+            <Spinner size="lg" variant="primary" />
             <p className="mt-2 text-xs font-bold text-slate-500">{isAr ? 'جاري جلب المستخدمين الحقيقيين...' : 'Loading real users...'}</p>
           </div>
         ) : usersError ? (

@@ -15,8 +15,11 @@ import ProactiveBriefingView from './ProactiveBriefingView';
 import { EmployeeContributionView, AIWorkloadBalancerView } from '../features/hr';
 import { ForensicAuditView } from '../features/security';
 import { OfflineSyncView } from '../features/sync';
-import { YoYPerformanceView, StrategicRiskSimulator, GlobalKPITrendView, GlobalBranchKPIComparisonView } from '../features/dashboard';
-import { AIResourceOptimizer } from '../features/projects';
+import YoYPerformanceView from '../features/dashboard/YoYPerformanceView';
+import StrategicRiskSimulator from '../features/dashboard/StrategicRiskSimulator';
+import GlobalKPITrendView from '../features/dashboard/GlobalKPITrendView';
+import GlobalBranchKPIComparisonView from '../features/dashboard/GlobalBranchKPIComparisonView';
+import AIResourceOptimizer from '../features/projects/AIResourceOptimizer';
 import { IPSASComplianceAuditLedger } from '../features/audit';
 import { useDashboardLayout } from '../hooks/useDashboardLayout';
 

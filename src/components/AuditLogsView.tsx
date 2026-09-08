@@ -60,6 +60,12 @@ import { Workspace } from './enterprise/shell/Workspace';
 import { WidgetFrame } from './enterprise/widgets/WidgetFrame';
 import { EnterpriseDataGrid, ColumnDef } from './enterprise/tables/EnterpriseDataGrid';
 import { PerformanceProfilerTab } from './PerformanceProfilerTab';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 export type ActionType = 
   | 'all'
@@ -602,34 +608,33 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
 
       {/* Header Quick Controls */}
       <div className="flex items-center gap-2 shrink-0">
-        <button
+        <EnterpriseButton
+          variant={isLiveStreaming ? 'primary' : 'secondary'}
+          size="sm"
+          icon={isLiveStreaming ? <Pause className="w-3.5 h-3.5 text-amber-300" /> : <Play className="w-3.5 h-3.5 text-emerald-500" />}
           onClick={() => setIsLiveStreaming(!isLiveStreaming)}
-          className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 border transition-all cursor-pointer ${
-            isLiveStreaming 
-              ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm' 
-              : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 border-slate-200 dark:border-zinc-700'
-          }`}
         >
-          {isLiveStreaming ? <Pause className="w-3.5 h-3.5 text-amber-300" /> : <Play className="w-3.5 h-3.5 text-emerald-500" />}
-          <span>{isLiveStreaming ? (lang === 'ar' ? 'تدشين نشاط جديد' : 'Pause Live Feed') : (lang === 'ar' ? 'إيقاف البث الحي' : 'Resume Live Feed')}</span>
-        </button>
+          {isLiveStreaming ? (lang === 'ar' ? 'تدشين نشاط جديد' : 'Pause Live Feed') : (lang === 'ar' ? 'إيقاف البث الحي' : 'Resume Live Feed')}
+        </EnterpriseButton>
 
-        <button
+        <EnterpriseButton
+          variant="primary"
+          size="sm"
+          icon={<Printer className="w-3.5 h-3.5" />}
           onClick={() => setIsPDFModalOpen(true)}
-          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
           title={lang === 'ar' ? 'طباعة تقرير التدقيق الأمني والرقابي المعتمد (PDF)' : 'Print Certified Security Audit Report (PDF)'}
         >
-          <Printer className="w-3.5 h-3.5" />
-          <span>{lang === 'ar' ? 'تقرير التدقيق المعتمد' : 'Print Audit Report'}</span>
-        </button>
-        <button
+          {lang === 'ar' ? 'تقرير التدقيق المعتمد' : 'Print Audit Report'}
+        </EnterpriseButton>
+        <EnterpriseButton
+          variant="secondary"
+          size="sm"
+          icon={<Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
           onClick={handleExportCSV}
-          className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer"
           title={lang === 'ar' ? 'تصدير السجلات إلى ملف CSV' : 'Export Audit Logs to CSV'}
         >
-          <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span>{lang === 'ar' ? 'تصدير CSV' : 'Export CSV'}</span>
-        </button>
+          {lang === 'ar' ? 'تصدير CSV' : 'Export CSV'}
+        </EnterpriseButton>
       </div>
     </div>
   );
@@ -725,13 +730,14 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
+              icon={<RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />}
               onClick={fetchLogs}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              <span>{lang === 'ar' ? 'تحديث السجل الآن' : 'Refresh Now'}</span>
-            </button>
+              {lang === 'ar' ? 'تحديث السجل الآن' : 'Refresh Now'}
+            </EnterpriseButton>
           </div>
         </div>
 
@@ -1072,20 +1078,22 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
 
             {/* Modal Footer */}
             <div className="h-14 px-6 bg-slate-50 dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
-              <button
+              <EnterpriseButton
+                variant="secondary"
+                size="sm"
+                icon={<Printer className="w-3.5 h-3.5" />}
                 onClick={() => handlePrintAuditCertificate(selectedLog)}
-                className="px-4 py-1.5 bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                <Printer className="w-3.5 h-3.5" />
-                <span>{lang === 'ar' ? 'طباعة تقرير التدقيق' : 'Print Audit Certificate'}</span>
-              </button>
+                {lang === 'ar' ? 'طباعة تقرير التدقيق' : 'Print Audit Certificate'}
+              </EnterpriseButton>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={() => setSelectedLog(null)}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-colors cursor-pointer"
               >
                 {lang === 'ar' ? 'تأكيد الحجز والتخصيص' : 'Close Inspector'}
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
         </div>

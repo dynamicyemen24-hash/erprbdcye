@@ -24,6 +24,7 @@ import {
   Eye,
   X
 } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import {
   STANDARD_ORGANIZATIONAL_UNITS,
   STANDARD_JOB_POSITIONS,
@@ -464,13 +465,14 @@ export default function InstitutionalOrgStructureView({
               <span>{isRtl ? 'تصدير Excel (CSV)' : 'Export CSV'}</span>
             </button>
 
-            <button
+            <EnterpriseButton
               onClick={() => setShowAddUnitModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition-all cursor-pointer"
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
             >
-              <Plus className="w-4 h-4" />
-              <span>{isRtl ? 'إضافة وحدة / إدارة' : 'Add Unit'}</span>
-            </button>
+              {isRtl ? 'إضافة وحدة / إدارة' : 'Add Unit'}
+            </EnterpriseButton>
           </div>
         </div>
 
@@ -966,12 +968,13 @@ export default function InstitutionalOrgStructureView({
                 >
                   {isRtl ? 'إلغاء' : 'Cancel'}
                 </button>
-                <button
+                <EnterpriseButton
                   type="submit"
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black transition-all cursor-pointer shadow-xs"
+                  variant="primary"
+                  size="sm"
                 >
                   {isRtl ? 'حفظ الوحدة التنظيمية' : 'Save Unit'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>

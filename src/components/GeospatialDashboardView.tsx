@@ -35,6 +35,12 @@ import { Project, Program } from '../types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 // Import Google Maps SDK components
 import { APIProvider, Map as GoogleMap, AdvancedMarker, Pin, InfoWindow } from '@vis.gl/react-google-maps';
@@ -410,13 +416,14 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
               </div>
             )}
 
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
+              icon={<Download className="w-4 h-4" />}
               onClick={handleExportGeoJSON}
-              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
             >
-              <Download className="w-4 h-4" />
-              <span>{isRtl ? 'تصدير GeoJSON' : 'Export GeoJSON'}</span>
-            </button>
+              {isRtl ? 'تصدير GeoJSON' : 'Export GeoJSON'}
+            </EnterpriseButton>
           </div>
         </div>
 
@@ -561,7 +568,7 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
 
                         <button
                           onClick={() => setSelectedProjectPin(proj)}
-                          className="w-full py-1 bg-emerald-600 text-white rounded text-[10px] font-bold mt-1"
+                          className="w-full py-1 bg-emerald-600 text-white rounded text-[10px] font-bold mt-1 cursor-pointer"
                         >
                           {isRtl ? 'عرض التفاصيل الميدانية' : 'View Field Details'}
                         </button>
@@ -667,12 +674,13 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
                     <div>3. الصق المفتاح واضغط Enter للتحديث التلقائي</div>
                   </div>
 
-                  <button
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
                     onClick={() => setMapEngine('leaflet')}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
                   >
                     {isRtl ? 'التبديل الفوري لمحرّك OpenStreetMap GIS المجاني' : 'Switch to OpenStreetMap GIS Engine'}
-                  </button>
+                  </EnterpriseButton>
                 </div>
               </div>
             )
@@ -854,12 +862,13 @@ export const GeospatialDashboardView: React.FC<GeospatialDashboardViewProps> = (
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <button
+              <EnterpriseButton
+                variant="secondary"
+                size="sm"
                 onClick={() => setSelectedProjectPin(null)}
-                className="px-4 py-2 bg-zinc-800 text-white rounded-xl text-xs font-bold cursor-pointer"
               >
                 {isRtl ? 'إغلاق المعاينة' : 'Close Inspector'}
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
         </div>

@@ -16,6 +16,12 @@ import { useOrganizationBranding } from '../core/hooks/useOrganizationBranding';
 import { TabId } from '../types';
 import { ORGANIZATION_CONFIG } from '../core/config';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 // -------------------------------------------------------------
 // Type Definitions
@@ -667,65 +673,55 @@ This draft shows your prompt only. It will be replaced with real analysis once t
       {/* Modern Horizontal Segmented Tabs Navigation Bar (The 5 Layers of NexoraOS™ Architecture) */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded-xl p-2 shadow-sm">
         <div className="flex flex-wrap items-center gap-1.5 justify-start">
-          <button
+          <EnterpriseButton
+            variant={activeSegmentTab === 'domains' ? 'primary' : 'ghost'}
+            size="md"
             onClick={() => { setActiveSegmentTab('domains'); setSearchTerm(''); }}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
-              activeSegmentTab === 'domains'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
-            }`}
+            className="flex-1 min-w-[130px]"
           >
             <Grid className="w-4 h-4" />
             <span>{isRtl ? '١٥ نظاماً مؤسسياً' : '15 Core Systems'}</span>
-          </button>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant={activeSegmentTab === 'tools' ? 'primary' : 'ghost'}
+            size="md"
             onClick={() => { setActiveSegmentTab('tools'); setSearchTerm(''); }}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
-              activeSegmentTab === 'tools'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
-            }`}
+            className="flex-1 min-w-[130px]"
           >
             <Wrench className="w-4 h-4" />
             <span>{isRtl ? '٢٠ أداة عمل مشتركة' : '20 Work Tools'}</span>
-          </button>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant={activeSegmentTab === 'field' ? 'primary' : 'ghost'}
+            size="md"
             onClick={() => { setActiveSegmentTab('field'); setSearchTerm(''); }}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
-              activeSegmentTab === 'field'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
-            }`}
+            className="flex-1 min-w-[130px]"
           >
             <MapPin className="w-4 h-4" />
             <span>{isRtl ? '١٠ قدرات ميدانية GIS' : '10 Field GIS'}</span>
-          </button>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant={activeSegmentTab === 'ai' ? 'primary' : 'ghost'}
+            size="md"
             onClick={() => { setActiveSegmentTab('ai'); setSearchTerm(''); }}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
-              activeSegmentTab === 'ai'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
-            }`}
+            className="flex-1 min-w-[130px]"
           >
             <Sparkles className="w-4 h-4 animate-pulse" />
             <span>{isRtl ? '١١ طبقة ذكاء اصطناعي' : '11 AI Layer'}</span>
-          </button>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant={activeSegmentTab === 'admin' ? 'primary' : 'ghost'}
+            size="md"
             onClick={() => { setActiveSegmentTab('admin'); setSearchTerm(''); }}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
-              activeSegmentTab === 'admin'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-400'
-            }`}
+            className="flex-1 min-w-[130px]"
           >
             <Settings className="w-4 h-4" />
             <span>{isRtl ? '١١ مجمعاً إدارياً' : '11 Admin Suite'}</span>
-          </button>
+          </EnterpriseButton>
         </div>
       </div>
 
@@ -869,13 +865,14 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button
+                      <EnterpriseButton
+                        variant="primary"
+                        size="sm"
                         onClick={() => onNavigate(domain.targetTab)}
-                        className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2 group/btn"
                       >
                         <span>{isRtl ? 'عرض تفاصيل المجال' : 'View Workspace'}</span>
                         {isRtl ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
-                      </button>
+                      </EnterpriseButton>
 
                       <button
                         onClick={() => setSelectedDomainModal(domain)}
@@ -972,21 +969,23 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                         <span>{isRtl ? 'مقدم الطلب: ' : 'By: '}{app.requester}</span>
                         {app.status === 'pending' ? (
                           <div className="flex items-center gap-1">
-                            <button
+                            <EnterpriseButton
+                              variant="primary"
+                              size="sm"
                               onClick={() => {
                                 setApprovalsList(prev => prev.map(a => a.id === app.id ? { ...a, status: 'approved' } : a));
                                 showToast({ type: 'success', title: isRtl ? 'اعتماد وترحيل' : 'Authorized & Posted', message: isRtl ? 'تم التوقيع الإلكتروني المؤمّن والترحيل لشجرة الحسابات والدليل المحاسبي المعتمد بنجاح ✓' : 'Authorized & posted to IPSAS double-entry ledger successfully ✓' });
                               }}
-                              className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold cursor-pointer transition-colors"
                             >
                               {isRtl ? 'تعميد' : 'Approve'}
-                            </button>
-                            <button
+                            </EnterpriseButton>
+                            <EnterpriseButton
+                              variant="danger"
+                              size="sm"
                               onClick={() => setApprovalsList(prev => prev.map(a => a.id === app.id ? { ...a, status: 'rejected' } : a))}
-                              className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded font-bold cursor-pointer transition-colors"
                             >
                               {isRtl ? 'رفض' : 'Reject'}
-                            </button>
+                            </EnterpriseButton>
                           </div>
                         ) : (
                           <span className={`font-black uppercase text-[9px] ${app.status === 'approved' ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -1041,16 +1040,17 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                         className={`w-4.5 h-4.5 rounded-full bg-blue-200 border ${noteColor.includes('blue') ? 'ring-2 ring-blue-500' : ''}`}
                       />
                     </div>
-                    <button
+                    <EnterpriseButton
+                      variant="primary"
+                      size="xs"
                       onClick={() => {
                         if (!newNoteText.trim()) return;
                         setStickyNotes(prev => [...prev, { id: Date.now(), text: newNoteText, color: noteColor }]);
                         setNewNoteText('');
                       }}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black cursor-pointer"
                     >
                       {isRtl ? 'إضافة ملاحظة' : 'Add Note'}
-                    </button>
+                    </EnterpriseButton>
                   </div>
                 </div>
               </div>
@@ -1228,7 +1228,10 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
+                    block
                     onClick={() => {
                       if (!selectedSurveyChecklist.headOfHousehold.trim()) {
                         showToast({ type: 'warning', title: isRtl ? 'بيانات غير مكتملة' : 'Missing Information', message: isRtl ? 'يرجى إدخال اسم المستفيد للمتابعة!' : 'Please enter beneficiary name!' });
@@ -1239,10 +1242,9 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                       setSelectedSurveyChecklist({ headOfHousehold: '', familySize: 1, governorate: 'Taiz', needsWaterAid: false, needsFoodAid: false, needsHealthAid: false, notes: '' });
                       showToast({ type: 'success', title: isRtl ? 'تقييم ميداني معتمد' : 'Field Survey Verified', message: isRtl ? 'تم تقديم التقييم بنجاح وتوثيق إحداثيات الـ GPS الميدانية ✓' : 'Socioeconomic survey submitted successfully with live GPS proof ✓' });
                     }}
-                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-xs text-center"
                   >
                     {isRtl ? 'إرسال التقييم الجغرافي المعمد' : 'Submit Verified Field Survey'}
-                  </button>
+                  </EnterpriseButton>
                 </div>
               </div>
             </div>
@@ -1633,17 +1635,18 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                 {isRtl ? 'إغلاق' : 'Close'}
               </button>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={() => {
                   const target = selectedDomainModal.targetTab;
                   setSelectedDomainModal(null);
                   onNavigate(target);
                 }}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-2"
               >
                 <span>{isRtl ? 'الانتقال للوحة التحكم والعمليات' : 'Launch Workspace'}</span>
                 {isRtl ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-              </button>
+              </EnterpriseButton>
             </div>
 
           </div>
@@ -1722,13 +1725,14 @@ This draft shows your prompt only. It will be replaced with real analysis once t
 
             {/* Print Buttons */}
             <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-200">
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                icon={<Printer className="w-4 h-4" />}
                 onClick={() => window.print()}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <Printer className="w-4 h-4" />
                 <span>طباعة التقرير (Print PDF)</span>
-              </button>
+              </EnterpriseButton>
               
               <button
                 onClick={() => setShowPrintPreview(false)}

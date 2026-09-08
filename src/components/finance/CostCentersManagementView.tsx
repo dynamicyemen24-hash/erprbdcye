@@ -34,6 +34,7 @@ import {
   CostDriverAllocation
 } from '../../core/data/costCentersData';
 import { printHTML, createPrintDocument, getCustomFooterHTML } from '../../lib/printUtils';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 interface CostCentersManagementViewProps {
   lang: 'ar' | 'en';
@@ -391,29 +392,32 @@ export default function CostCentersManagementView({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <EnterpriseButton
+              variant="outline"
+              size="sm"
               onClick={handlePrintCostCentersReport}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-black transition-all cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>{isRtl ? 'طباعة تقرير مراكز التكلفة A4' : 'Print A4 Report'}</span>
-            </button>
+            </EnterpriseButton>
 
-            <button
+            <EnterpriseButton
+              variant="ghost"
+              size="sm"
               onClick={handleExportCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-black transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-emerald-600" />
               <span>{isRtl ? 'تصدير Excel (CSV)' : 'Export CSV'}</span>
-            </button>
+            </EnterpriseButton>
 
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{isRtl ? 'إضافة مركز تكلفة' : 'New Cost Center'}</span>
-            </button>
+            </EnterpriseButton>
           </div>
         </div>
 
@@ -953,7 +957,10 @@ export default function CostCentersManagementView({
             )}
 
             <div className="pt-4 border-t border-slate-100 dark:border-zinc-800 space-y-2">
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                block
                 onClick={() => {
                   setSelectedCC(null);
                   if (onSelectCostCenterForVoucher) {
@@ -962,10 +969,9 @@ export default function CostCentersManagementView({
                     onNavigateToTab('entry');
                   }
                 }}
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs"
               >
                 {isRtl ? 'تسجيل قيد / سند صرف على هذا المركز' : 'Add Voucher for Cost Center'}
-              </button>
+              </EnterpriseButton>
 
               <button
                 onClick={() => setSelectedCC(null)}
@@ -1077,12 +1083,13 @@ export default function CostCentersManagementView({
                 >
                   {isRtl ? 'إلغاء' : 'Cancel'}
                 </button>
-                <button
+                <EnterpriseButton
                   type="submit"
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black transition-all cursor-pointer shadow-xs"
+                  variant="primary"
+                  size="sm"
                 >
                   {isRtl ? 'حفظ مركز التكلفة' : 'Save Center'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>

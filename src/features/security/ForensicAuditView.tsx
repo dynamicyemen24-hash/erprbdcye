@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Loader2, Search, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Search, AlertTriangle } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 export default function ForensicAuditView({ lang }: { lang: 'ar' | 'en' }) {
   const [scanning, setScanning] = useState(false);
@@ -31,13 +32,13 @@ export default function ForensicAuditView({ lang }: { lang: 'ar' | 'en' }) {
         disabled={scanning}
         className="w-full py-3 bg-rose-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
       >
-        {scanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+        {scanning ? <Spinner size="sm" /> : <Search className="w-4 h-4" />}
         {lang === 'ar' ? 'بدء فحص النظام' : 'Initiate System Scan'}
       </button>
 
       {scanning && findings.length === 0 && (
         <div className="mt-6 flex flex-col items-center justify-center py-8 gap-3">
-          <Loader2 className="w-6 h-6 text-rose-500 animate-spin" />
+          <Spinner size="md" variant="primary" />
           <p className="text-xs text-slate-500 dark:text-zinc-400">
             {lang === 'ar' ? 'جارٍ فحص النظام...' : 'Scanning system...'}
           </p>

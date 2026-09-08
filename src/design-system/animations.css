@@ -1,0 +1,191 @@
+/* ═══════════════════════════════════════════════════════════════════════════════════════
+   UAMEX ERP™ — Premium Animation System v3.0
+   Tailwind-compatible keyframes + utility classes
+   ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Fade Transitions ────────────────────────────────────────────────────────────── */
+@keyframes ux-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ux-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes ux-fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ux-fade-in-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ux-fade-in-scale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ─── Slide Transitions ───────────────────────────────────────────────────────────── */
+@keyframes ux-slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes ux-slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+@keyframes ux-slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes ux-slide-out-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+@keyframes ux-slide-in-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes ux-slide-in-down {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+/* ─── Scale Transitions ───────────────────────────────────────────────────────────── */
+@keyframes ux-scale-in {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes ux-scale-out {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.9); opacity: 0; }
+}
+@keyframes ux-pop-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  70% { transform: scale(1.02); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ─── Shimmer / Skeleton ──────────────────────────────────────────────────────────── */
+@keyframes ux-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ─── Spin / Rotate ───────────────────────────────────────────────────────────────── */
+@keyframes ux-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes ux-pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ─── Bounce / Spring ─────────────────────────────────────────────────────────────── */
+@keyframes ux-bounce-in {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes ux-spring {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ─── Notification / Toast ────────────────────────────────────────────────────────── */
+@keyframes ux-toast-in {
+  from { transform: translateX(calc(100% + 1rem)); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes ux-toast-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(calc(100% + 1rem)); opacity: 0; }
+}
+
+/* ─── Glow / Accent ───────────────────────────────────────────────────────────────── */
+@keyframes ux-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(5, 150, 105, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(5, 150, 105, 0.4); }
+}
+@keyframes ux-glow-accent {
+  0%, 100% { box-shadow: 0 0 5px rgba(217, 119, 6, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(217, 119, 6, 0.4); }
+}
+
+/* ─── Progress Bar ────────────────────────────────────────────────────────────────── */
+@keyframes ux-progress-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+/* ─── Utility Classes ─────────────────────────────────────────────────────────────── */
+.ux-animate-fade-in { animation: ux-fade-in var(--ux-duration-normal) var(--ux-ease-out) both; }
+.ux-animate-fade-out { animation: ux-fade-out var(--ux-duration-normal) var(--ux-ease-in) both; }
+.ux-animate-fade-in-up { animation: ux-fade-in-up var(--ux-duration-moderate) var(--ux-ease-spring) both; }
+.ux-animate-fade-in-down { animation: ux-fade-in-down var(--ux-duration-moderate) var(--ux-ease-spring) both; }
+.ux-animate-fade-in-scale { animation: ux-fade-in-scale var(--ux-duration-moderate) var(--ux-ease-spring) both; }
+.ux-animate-slide-in-right { animation: ux-slide-in-right var(--ux-duration-moderate) var(--ux-ease-out) both; }
+.ux-animate-slide-in-left { animation: ux-slide-in-left var(--ux-duration-moderate) var(--ux-ease-out) both; }
+.ux-animate-slide-in-up { animation: ux-slide-in-up var(--ux-duration-moderate) var(--ux-ease-out) both; }
+.ux-animate-slide-in-down { animation: ux-slide-in-down var(--ux-duration-moderate) var(--ux-ease-out) both; }
+.ux-animate-scale-in { animation: ux-scale-in var(--ux-duration-moderate) var(--ux-ease-spring) both; }
+.ux-animate-pop-in { animation: ux-pop-in var(--ux-duration-slow) var(--ux-ease-spring) both; }
+.ux-animate-bounce-in { animation: ux-bounce-in 500ms var(--ux-ease-bounce) both; }
+.ux-animate-spring { animation: ux-spring 400ms var(--ux-ease-spring) both; }
+.ux-animate-spin { animation: ux-spin 1s linear infinite; }
+.ux-animate-pulse-ring { animation: ux-pulse-ring 1.5s ease-out infinite; }
+.ux-animate-glow { animation: ux-glow 2s ease-in-out infinite; }
+.ux-animate-glow-accent { animation: ux-glow-accent 2s ease-in-out infinite; }
+.ux-animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.15) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: ux-shimmer 1.5s infinite;
+}
+.ux-animate-toast-in { animation: ux-toast-in 300ms var(--ux-ease-spring) both; }
+.ux-animate-toast-out { animation: ux-toast-out 200ms var(--ux-ease-in) both; }
+
+/* ─── Stagger Delays ──────────────────────────────────────────────────────────────── */
+.ux-delay-0 { animation-delay: 0ms; }
+.ux-delay-50 { animation-delay: 50ms; }
+.ux-delay-100 { animation-delay: 100ms; }
+.ux-delay-150 { animation-delay: 150ms; }
+.ux-delay-200 { animation-delay: 200ms; }
+.ux-delay-300 { animation-delay: 300ms; }
+.ux-delay-400 { animation-delay: 400ms; }
+.ux-delay-500 { animation-delay: 500ms; }
+
+/* ─── Transition Utilities ────────────────────────────────────────────────────────── */
+.ux-transition-all { transition: all var(--ux-duration-normal) var(--ux-ease-standard); }
+.ux-transition-fast { transition: all var(--ux-duration-fast) var(--ux-ease-standard); }
+.ux-transition-moderate { transition: all var(--ux-duration-moderate) var(--ux-ease-standard); }
+.ux-transition-slow { transition: all var(--ux-duration-slow) var(--ux-ease-standard); }
+.ux-transition-spring { transition: all var(--ux-duration-moderate) var(--ux-ease-spring); }
+
+/* ─── Hover Interactions ──────────────────────────────────────────────────────────── */
+.ux-hover-lift { transition: transform var(--ux-duration-fast) var(--ux-ease-standard), box-shadow var(--ux-duration-fast) var(--ux-ease-standard); }
+.ux-hover-lift:hover { transform: translateY(-2px); box-shadow: var(--ux-shadow-lg); }
+
+.ux-hover-glow { transition: box-shadow var(--ux-duration-normal) var(--ux-ease-standard); }
+.ux-hover-glow:hover { box-shadow: var(--ux-shadow-glow); }
+.ux-hover-glow-accent:hover { box-shadow: var(--ux-shadow-glow-accent); }
+
+/* ─── Press / Active State ────────────────────────────────────────────────────────── */
+.ux-active-press { transition: transform 100ms ease; }
+.ux-active-press:active { transform: scale(0.97); }
+
+/* ─── Reduced Motion ──────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── RTL Slide Reversals ─────────────────────────────────────────────────────────── */
+[dir="rtl"] .ux-animate-slide-in-right { animation-name: ux-slide-in-left; }
+[dir="rtl"] .ux-animate-slide-out-right { animation-name: ux-slide-out-left; }
+[dir="rtl"] .ux-animate-slide-in-left { animation-name: ux-slide-in-right; }

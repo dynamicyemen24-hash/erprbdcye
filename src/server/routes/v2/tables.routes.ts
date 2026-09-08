@@ -12,6 +12,11 @@ import { apiCache } from '../../core/cache';
 import logger from '../../core/logger';
 import { enforceAllPolicies, type PolicyContext, type PolicyViolation } from '../../services/policyEngine';
 import { authenticateToken } from '../../middleware/auth.middleware';
+import { validateBody } from '../../middleware/validation.middleware';
+import { createCommitmentSchema, createObligationSchema } from '../../validators/schemas';
+import { serverConfig } from '../../config/index';
+
+const BCRYPT_ROUNDS = serverConfig.bcryptRounds || 12;
 
 const router = Router();
 
@@ -195,6 +200,26 @@ router.post('/:table', authenticateToken, async (req: any, res: any) => {
     return res.status(403).json({ error: `Table '${table}' is not in the whitelist.` });
   }
 
+  // Apply Zod validation for critical tables
+  const TABLE_VALIDATORS: Record<string, any> = {
+    commitments: createCommitmentSchema,
+    obligations: createObligationSchema,
+  };
+  const validator = TABLE_VALIDATORS[table];
+  if (validator) {
+    try {
+      req.body = validator.parse(req.body);
+    } catch (err: any) {
+      if (err.errors) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: err.errors.map((e: any) => ({ field: e.path.join('.'), message: e.message })),
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+  }
+
   if (SENSITIVE_TABLES.includes(table)) {
     const callerLevel = req.user?.security_level ?? 0;
     if (callerLevel < 4) {
@@ -288,10 +313,10 @@ router.post('/:table', authenticateToken, async (req: any, res: any) => {
 
     if (table === 'users') {
       if (record.password) {
-        insertData['password_hash'] = await bcrypt.hash(record.password, 10);
+        insertData['password_hash'] = await bcrypt.hash(record.password, BCRYPT_ROUNDS);
       } else if (!insertData['password_hash']) {
         const tempPassword = crypto.randomBytes(12).toString('base64url').slice(0, 16);
-        insertData['password_hash'] = await bcrypt.hash(tempPassword, 10);
+        insertData['password_hash'] = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS);
         insertData['_temp_password'] = tempPassword;
       }
       if (record.name && !insertData['name_ar']) {
@@ -456,7 +481,7 @@ router.put('/:table/:id', authenticateToken, async (req: any, res: any) => {
     }
 
     if (table === 'users' && record.password) {
-      updateData['password_hash'] = await bcrypt.hash(record.password, 10);
+      updateData['password_hash'] = await bcrypt.hash(record.password, BCRYPT_ROUNDS);
     }
 
     const keys = Object.keys(updateData);

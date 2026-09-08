@@ -29,6 +29,7 @@ import { initHealthMonitor, requestMetrics } from './core/healthMonitor';
 import { cache } from './core/cache';
 import { seedDatabase } from './core/dbOptimization';
 import { scheduler, registerDefaultJobs } from './core/scheduler';
+import { queue, registerWorkers } from './queue';
 import { webhookService } from './core/webhooks';
 import { securityMiddleware, ipBlocklistMiddleware } from './core/security';
 import { dbCircuitBreaker, dbBulkhead } from './core/resilience';
@@ -39,7 +40,7 @@ import { metricsMiddleware } from './middleware/metrics.middleware';
 import { cacheMiddleware } from './middleware/cache.middleware';
 import { requestLogger as detailedRequestLogger } from './middleware/requestLogger';
 import { timeoutMiddleware } from './middleware/timeout';
-import { tracingMiddleware } from './middleware/tracing';
+import { requestTracing as tracingMiddleware } from './middleware/tracing';
 import { smartCompression } from './middleware/compression';
 import { deduplicationMiddleware } from './middleware/dedup';
 
@@ -419,6 +420,12 @@ export async function startServer() {
     scheduler.start();
     logger.info('  ✓ Scheduler started');
 
+    // 6b. Initialize job queue and register workers
+    logger.info('[6b] Initializing job queue...');
+    registerWorkers();
+    queue.start();
+    logger.info('  ✓ Job queue started with workers');
+
     // 7. Start HTTP server
     logger.info('[7/7] Starting HTTP server...');
     server = app.listen(config.port, () => {
@@ -465,6 +472,7 @@ async function gracefulShutdown(signal: string) {
       queryCache.destroy();
       sessionCache.destroy();
       scheduler.stop();
+      await queue.stop();
     } catch (error) {
       logger.error('Error cleaning up services', { error: { name: (error as Error).name, message: (error as Error).message } });
     }

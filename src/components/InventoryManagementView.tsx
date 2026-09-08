@@ -85,6 +85,8 @@ import { printHTML, createPrintDocument } from '../lib/printUtils';
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { generateId, generateShortId, generateRefCode, generateNumericCode } from '../lib/idGenerator';
+import { EnterpriseButton } from './common/EnterpriseButton';
+import { Spinner } from '../design-system/components/Spinner';
 
 // Helper: Calculate Straight-Line Depreciation per IPSAS-17
 export function calculateDepreciation(
@@ -2286,7 +2288,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       case 'WASH':
         return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">{isRtl ? 'مياه وإزميل صحي' : 'WASH'}</span>;
       default:
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">{isRtl ? 'تعليم وتجهيزات' : 'Education'}</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/10 text-slate-600 dark:text-zinc-400 border border-slate-500/20">{isRtl ? 'تعليم وتجهيزات' : 'Education'}</span>;
     }
   };
 
@@ -2513,7 +2515,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-3">
-          <RefreshCw className="w-8 h-8 text-emerald-500 animate-spin mx-auto" />
+          <Spinner size="lg" variant="primary" />
           <p className="text-sm text-slate-500 dark:text-zinc-400 font-medium">
             {isRtl ? 'جاري تحميل بيانات المخزون من قاعدة البيانات...' : 'Loading inventory data from database...'}
           </p>
@@ -2598,23 +2600,27 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             <span>{isRtl ? 'تحويل عيني بين المخازن' : 'In-Kind Transfer'}</span>
           </button>
 
-          <button
+          <EnterpriseButton
+            variant="primary"
+            size="sm"
             onClick={() => setIsNewItemModalOpen(true)}
-            className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+            icon={<Plus className="w-4 h-4" />}
           >
-            <Plus className="w-4 h-4" />
             <span>{isRtl ? 'إضافة مادة إغاثية' : 'Add Relief SKU'}</span>
-          </button>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant="primary"
+            size="sm"
             onClick={() => setIsMaterialIssueModalOpen(true)}
-            className="px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer"
+            icon={<Target className="w-4 h-4 text-amber-300" />}
           >
-            <Target className="w-4 h-4 text-amber-300" />
             <span>{isRtl ? 'طلب صرف مواد لمشروع ميداني' : 'WBS Material Issue Request'}</span>
-          </button>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant="accent"
+            size="sm"
             onClick={() => {
               setMovementForm({
                 itemId: items[0]?.id || '',
@@ -2631,11 +2637,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               });
               setIsMovementModalOpen(true);
             }}
-            className="px-3.5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+            icon={<ClipboardList className="w-4 h-4" />}
           >
-            <ClipboardList className="w-4 h-4" />
             <span>{isRtl ? 'إذن توريد / صرف' : 'Receipt / Disburse'}</span>
-          </button>
+          </EnterpriseButton>
 
           <button
             onClick={() => setIsNewWarehouseModalOpen(true)}
@@ -2795,33 +2800,34 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               <span className="text-[10px] font-mono text-amber-400">
                 SKU: {activePushToast.item.sku}
               </span>
-              <button
-                onClick={() => {
-                  if (activePushToast.item) {
-                    setMovementForm({
-                      itemId: activePushToast.item.id,
-                      sourceWarehouseId: activePushToast.item.warehouse_id,
-                      targetWarehouseId: '',
-                      type: 'RECEIVE',
-                      qty: String(activePushToast.item.reorder_level * 2 || 200),
-                      recipientOrDonor: isRtl ? 'شحنة توريد طارئة معالجة لتنبيه الدفع المباشر' : 'Emergency Order triggered by Push Alert',
-                      refNo: `PUSH-PO-2026-${generateNumericCode(100, 999)}`,
-                      waybillNo: '',
-                      driverName: '',
-                      vehiclePlate: '',
-                      notes: isRtl 
-                        ? `إصدار توريد طارئ بعد استلام تنبيه دفع نفاذ المخزون. الرصيد المتبقي: ${activePushToast.item.qty}` 
-                        : `Emergency receive issued following critical stock push notification. Remaining qty: ${activePushToast.item.qty}`
-                    });
-                    setIsMovementModalOpen(true);
-                    setActivePushToast(null);
-                  }
-                }}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <Zap className="w-3 h-3 fill-current" />
-                <span>{isRtl ? 'إصدار أمر توريد طارئ فوري' : 'Issue Emergency Order'}</span>
-              </button>
+                <EnterpriseButton
+                  variant="primary"
+                  size="xs"
+                  onClick={() => {
+                    if (activePushToast.item) {
+                      setMovementForm({
+                        itemId: activePushToast.item.id,
+                        sourceWarehouseId: activePushToast.item.warehouse_id,
+                        targetWarehouseId: '',
+                        type: 'RECEIVE',
+                        qty: String(activePushToast.item.reorder_level * 2 || 200),
+                        recipientOrDonor: isRtl ? 'شحنة توريد طارئة معالجة لتنبيه الدفع المباشر' : 'Emergency Order triggered by Push Alert',
+                        refNo: `PUSH-PO-2026-${generateNumericCode(100, 999)}`,
+                        waybillNo: '',
+                        driverName: '',
+                        vehiclePlate: '',
+                        notes: isRtl 
+                          ? `إصدار توريد طارئ بعد استلام تنبيه دفع نفاذ المخزون. الرصيد المتبقي: ${activePushToast.item.qty}` 
+                          : `Emergency receive issued following critical stock push notification. Remaining qty: ${activePushToast.item.qty}`
+                      });
+                      setIsMovementModalOpen(true);
+                      setActivePushToast(null);
+                    }
+                  }}
+                  icon={<Zap className="w-3 h-3 fill-current" />}
+                >
+                  <span>{isRtl ? 'إصدار أمر توريد طارئ فوري' : 'Issue Emergency Order'}</span>
+                </EnterpriseButton>
             </div>
           )}
         </div>
@@ -2860,13 +2866,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 <span>{isRtl ? 'إشعارات المتصفح مفعّلة' : 'Push Granted'}</span>
               </span>
             ) : (
-              <button
+              <EnterpriseButton
+                variant="accent"
+                size="sm"
                 onClick={requestPushPermission}
-                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                icon={<Bell className="w-3.5 h-3.5" />}
               >
-                <Bell className="w-3.5 h-3.5" />
                 <span>{isRtl ? 'تفعيل إشعارات الدفع Push' : 'Authorize Web Push'}</span>
-              </button>
+              </EnterpriseButton>
             )}
 
             {/* Sound Toggle */}
@@ -2924,28 +2931,29 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 <div key={ci.id} className="flex items-center gap-2 px-2.5 py-1 bg-zinc-950/80 border border-rose-500/30 rounded-lg text-[11px] shrink-0">
                   <span className="font-black text-white">{isRtl ? ci.name_ar : ci.name_en}</span>
                   <span className="font-mono font-bold text-rose-400">{ci.qty} / {ci.reorder_level} {isRtl ? ci.unit_ar : ci.unit_en}</span>
-                  <button
-                    onClick={() => {
-                      setMovementForm({
-                        itemId: ci.id,
-                        sourceWarehouseId: ci.warehouse_id,
-                        targetWarehouseId: '',
-                        type: 'RECEIVE',
-                        qty: String(ci.reorder_level * 2 || 200),
-                        recipientOrDonor: isRtl ? 'أمر توريد طارئ سريع لتغذية المخزون الميداني' : 'Fast Emergency Reorder Receive',
-                        refNo: `ALERT-PO-2026-${generateNumericCode(100, 999)}`,
-                        waybillNo: '',
-                        driverName: '',
-                        vehiclePlate: '',
-                        notes: isRtl ? `طلب توريد طارئ بعد وصول الرصيد إلى ${ci.qty}` : `Emergency reorder as qty reached ${ci.qty}`
-                      });
-                      setIsMovementModalOpen(true);
-                    }}
-                    className="px-2 py-0.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-[10px] rounded transition cursor-pointer flex items-center gap-1"
-                  >
-                    <Zap className="w-2.5 h-2.5 fill-current" />
-                    <span>{isRtl ? 'تغذية' : 'Reorder'}</span>
-                  </button>
+                    <EnterpriseButton
+                      variant="accent"
+                      size="xs"
+                      onClick={() => {
+                        setMovementForm({
+                          itemId: ci.id,
+                          sourceWarehouseId: ci.warehouse_id,
+                          targetWarehouseId: '',
+                          type: 'RECEIVE',
+                          qty: String((ci.reorder_level * 2) - ci.qty || 200),
+                          recipientOrDonor: isRtl ? 'أمر توريد طارئ سريع لتغذية المخزون الميداني' : 'Fast Emergency Reorder Receive',
+                          refNo: `ALERT-PO-2026-${generateNumericCode(100, 999)}`,
+                          waybillNo: '',
+                          driverName: '',
+                          vehiclePlate: '',
+                          notes: isRtl ? `طلب توريد طارئ بعد وصول الرصيد إلى ${ci.qty}` : `Emergency reorder as qty reached ${ci.qty}`
+                        });
+                        setIsMovementModalOpen(true);
+                      }}
+                      icon={<Zap className="w-2.5 h-2.5 fill-current" />}
+                    >
+                      <span>{isRtl ? 'تغذية' : 'Reorder'}</span>
+                    </EnterpriseButton>
                 </div>
               ))}
             </div>
@@ -2999,15 +3007,16 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 {/* Reset / Run Model Button */}
-                <button
+                <EnterpriseButton
+                  variant="accent"
+                  size="sm"
                   onClick={() => {
                     setSeasonalityMultiplier(1.35);
                   }}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                  icon={<Zap className="w-3.5 h-3.5 fill-current" />}
                 >
-                  <Zap className="w-3.5 h-3.5 fill-current" />
                   <span>{isRtl ? 'محاكاة ذروة الطوارئ (135%)' : 'Simulate Emergency Peak'}</span>
-                </button>
+                </EnterpriseButton>
               </div>
             </div>
 
@@ -3424,30 +3433,32 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                       </td>
 
                       <td className="p-3.5 text-center">
-                        <button
-                          onClick={() => {
-                            setMovementForm({
-                              itemId: i.id,
-                              sourceWarehouseId: i.warehouse_id,
-                              targetWarehouseId: '',
-                              type: 'RECEIVE',
-                              qty: String(i.recommendedReorderQty || 100),
-                              recipientOrDonor: isRtl ? 'أمر توريد آلي معتمد بناءً على توقعات الطلب' : 'Automated Order based on Demand Forecast',
-                              refNo: `AUTO-PO-2026-${generateNumericCode(100, 999)}`,
-                              waybillNo: '',
-                              driverName: '',
-                              vehiclePlate: '',
-                              notes: isRtl 
-                                ? `أمر توريد تلقائي لتفادي نفاد المخزون. أيام التغطية المتبقية: ${i.daysRemaining} يوم` 
-                                : `Automated reorder to prevent stockout. Remaining coverage: ${i.daysRemaining} days`
-                            });
-                            setIsMovementModalOpen(true);
-                          }}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black rounded-lg shadow-xs transition cursor-pointer flex items-center justify-center gap-1 mx-auto"
-                        >
-                          <Zap className="w-3 h-3 fill-current" />
-                          <span>{isRtl ? 'إصدار أمر توريد آلي' : 'Auto Order'}</span>
-                        </button>
+                          <EnterpriseButton
+                            variant="primary"
+                            size="xs"
+                            onClick={() => {
+                              setMovementForm({
+                                itemId: i.id,
+                                sourceWarehouseId: i.warehouse_id,
+                                targetWarehouseId: '',
+                                type: 'RECEIVE',
+                                qty: String(i.recommendedReorderQty || 100),
+                                recipientOrDonor: isRtl ? 'أمر توريد آلي معتمد بناءً على توقعات الطلب' : 'Automated Order based on Demand Forecast',
+                                refNo: `AUTO-PO-2026-${generateNumericCode(100, 999)}`,
+                                waybillNo: '',
+                                driverName: '',
+                                vehiclePlate: '',
+                                notes: isRtl 
+                                  ? `أمر توريد تلقائي لتفادي نفاد المخزون. أيام التغطية المتبقية: ${i.daysRemaining} يوم` 
+                                  : `Automated reorder to prevent stockout. Remaining coverage: ${i.daysRemaining} days`
+                              });
+                              setIsMovementModalOpen(true);
+                            }}
+                            icon={<Zap className="w-3 h-3 fill-current" />}
+                            block
+                          >
+                            <span>{isRtl ? 'إصدار أمر توريد آلي' : 'Auto-Reorder'}</span>
+                          </EnterpriseButton>
                       </td>
                     </tr>
                   ))}
@@ -3489,13 +3500,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2 flex-wrap">
-                <button
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   onClick={() => setIsRegisterAssetModalOpen(true)}
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer"
+                  icon={<Plus className="w-4 h-4" />}
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>{isRtl ? 'تسجيل أصل عيني/ثابت جديد' : 'Register New Asset'}</span>
-                </button>
+                  <span>{isRtl ? 'تسجيل أصل ميداني جديد' : 'Register New Field Asset'}</span>
+                </EnterpriseButton>
 
                 <button
                   onClick={() => {
@@ -4101,17 +4113,19 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                             </td>
 
                             <td className="p-3.5 text-center">
-                              <button
+                              <EnterpriseButton
+                                variant="accent"
+                                size="xs"
                                 onClick={() => triggerPushAlert(
                                   isRtl ? `📞 جاري الاتصال بالمورد (${asset.supplier_name})` : `📞 Contacting Supplier (${asset.supplier_name})`,
                                   isRtl ? `طلب صيانة بالضمان للأصل ${asset.name_ar}` : `Warranty claim requested for asset ${asset.name_en}`,
                                   'info'
                                 )}
-                                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-lg text-[10px] font-black shadow transition cursor-pointer flex items-center justify-center gap-1 mx-auto"
+                                icon={<PhoneCall className="w-3 h-3" />}
+                                block
                               >
-                                <PhoneCall className="w-3 h-3" />
-                                <span>{isRtl ? 'طلب خدمة ضمان' : 'Claim Warranty'}</span>
-                              </button>
+                                <span>{isRtl ? 'material_return' : 'material_return'}</span>
+                              </EnterpriseButton>
                             </td>
                           </tr>
                         );
@@ -4939,7 +4953,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                           <td className="p-3 text-center">
                             {isPending ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                                <Clock className="w-3 h-3 animate-spin" />
+                                <Spinner size="xs" variant="accent" />
                                 <span>{isRtl ? 'مسودة قيد المراجعة' : 'Pending Audit'}</span>
                               </span>
                             ) : isApproved ? (
@@ -4955,13 +4969,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                           </td>
                           <td className="p-3 text-center">
                             {!req ? (
-                              <button
+                              <EnterpriseButton
+                                variant="accent"
+                                size="xs"
                                 onClick={() => triggerProcurementRequisition(item, false)}
-                                className="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white text-[10.5px] font-black rounded-lg shadow-xs transition flex items-center gap-1 mx-auto cursor-pointer"
+                                icon={<Plus className="w-3 h-3" />}
                               >
-                                <Plus className="w-3 h-3" />
                                 <span>{isRtl ? 'إنشاء مسودة طلب شراء' : 'Create PO Draft'}</span>
-                              </button>
+                              </EnterpriseButton>
                             ) : (
                               <span className="text-[10px] font-mono text-slate-400">
                                 REQ-PROC-{req.id.slice(0, 6)}
@@ -4990,13 +5005,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </p>
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={() => setIsMaterialIssueModalOpen(true)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                icon={<Plus className="w-4 h-4" />}
               >
-                <Plus className="w-4 h-4" />
                 <span>{isRtl ? 'تقديم طلب صرف مادة لمشروع جديد' : 'New WBS Issue Request'}</span>
-              </button>
+              </EnterpriseButton>
             </div>
 
             <div className="overflow-x-auto">
@@ -5089,7 +5105,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                           <td className="p-3 text-center">
                             {isPending ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                                <Clock className="w-3 h-3 animate-spin" />
+                                <Spinner size="xs" variant="accent" />
                                 <span>{isRtl ? 'بانتظار الاعتماد' : 'Pending'}</span>
                               </span>
                             ) : isApproved ? (
@@ -5106,13 +5122,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                           <td className="p-3 text-center">
                             {isPending && (
-                              <button
+                              <EnterpriseButton
+                                variant="primary"
+                                size="xs"
                                 onClick={() => handleApproveAndDisburseMaterialIssueRequest(req)}
-                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10.5px] font-black rounded-lg shadow-xs transition flex items-center gap-1 mx-auto cursor-pointer"
+                                icon={<Check className="w-3 h-3" />}
                               >
-                                <Check className="w-3 h-3" />
                                 <span>{isRtl ? 'اعتماد وصرف مباشر' : 'Approve & Disburse'}</span>
-                              </button>
+                              </EnterpriseButton>
                             )}
                           </td>
                         </tr>
@@ -5361,19 +5378,19 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 />
               </div>
 
-              <button
+              <EnterpriseButton
+                variant={movementForm.type === 'TRANSFER' ? 'primary' : 'primary'}
+                size="md"
                 type="submit"
-                className={`w-full py-3 text-white rounded-xl font-black text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer ${
-                  movementForm.type === 'TRANSFER' ? 'bg-purple-600 hover:bg-purple-500' : 'bg-emerald-600 hover:bg-emerald-500'
-                }`}
+                icon={<CheckCircle2 className="w-4 h-4" />}
+                block
               >
-                <CheckCircle2 className="w-4 h-4" />
                 <span>
                   {movementForm.type === 'TRANSFER' 
                     ? (isRtl ? 'اعتماد وإصدار بوليصة التحويل العيني' : 'Approve & Issue Transfer Slip') 
                     : (isRtl ? 'اعتماد وحفظ السند المخزني' : 'Approve & Post Movement')}
                 </span>
-              </button>
+              </EnterpriseButton>
             </form>
           </div>
         </div>
@@ -5496,13 +5513,15 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="md"
                 type="submit"
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                icon={<CheckCircle2 className="w-4 h-4" />}
+                block
               >
-                <CheckCircle2 className="w-4 h-4" />
                 <span>{isRtl ? 'تسجيل المادة في سجل الأرصدة' : 'Save & Register SKU'}</span>
-              </button>
+              </EnterpriseButton>
             </form>
           </div>
         </div>
@@ -5825,14 +5844,17 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 />
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="md"
                 type="submit"
                 disabled={materialIssueSubmitting}
-                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-black text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+                loading={materialIssueSubmitting}
+                icon={<CheckCircle2 className="w-4 h-4" />}
+                block
               >
-                <CheckCircle2 className="w-4 h-4" />
                 <span>{isRtl ? 'رفع طلب الصرف وسلسلة الاعتمادات' : 'Submit Material Issue Request'}</span>
-              </button>
+              </EnterpriseButton>
             </form>
           </div>
         </div>
@@ -5995,13 +6017,15 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 />
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="accent"
+                size="md"
                 type="submit"
-                className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl font-black text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                icon={<CheckCircle2 className="w-4 h-4" />}
+                block
               >
-                <CheckCircle2 className="w-4 h-4" />
                 <span>{isRtl ? 'اعتماد كارت الصيانة وتحديث سجل الأصل' : 'Approve & Post Maintenance Record'}</span>
-              </button>
+              </EnterpriseButton>
             </form>
           </div>
         </div>
@@ -6157,14 +6181,17 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 />
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="md"
                 type="submit"
                 disabled={materialIssueSubmitting}
-                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-black text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+                loading={materialIssueSubmitting}
+                icon={<CheckCircle2 className="w-4 h-4" />}
+                block
               >
-                <CheckCircle2 className="w-4 h-4" />
                 <span>{isRtl ? 'رفع طلب الصرف وسلسلة الاعتمادات' : 'Submit Material Issue Request'}</span>
-              </button>
+              </EnterpriseButton>
             </form>
           </div>
         </div>
@@ -6485,14 +6512,15 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                   {/* Step 1 Footer Action */}
                   <div className="flex justify-end pt-2">
-                    <button
+                    <EnterpriseButton
+                      variant="primary"
+                      size="sm"
                       onClick={() => setMultiStep(2)}
                       disabled={selectedBenIds.length === 0}
-                      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
                     >
                       <span>الانتقال لاختيار استراتيجيات الأصناف والحزم الإغاثية ({selectedBenIds.length} مستفيدين)</span>
                       <ArrowRight className="w-4 h-4 rotate-180" />
-                    </button>
+                    </EnterpriseButton>
                   </div>
                 </div>
               )}
@@ -6674,14 +6702,15 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                       الرجوع لتعديل المستفيدين
                     </button>
 
-                    <button
+                    <EnterpriseButton
+                      variant="primary"
+                      size="sm"
                       onClick={() => setMultiStep(3)}
                       disabled={selectedItemIds.length === 0}
-                      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
                     >
                       <span>تكوين مصفوفة الصرف والمطابقة اللحظية</span>
                       <ArrowRight className="w-4 h-4 rotate-180" />
-                    </button>
+                    </EnterpriseButton>
                   </div>
                 </div>
               )}
@@ -6698,13 +6727,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                       </div>
                       
                       {/* Auto Cap Shortfall Action Button */}
-                      <button
+                      <EnterpriseButton
+                        variant="accent"
+                        size="xs"
                         onClick={handleAutoCapShortfall}
-                        className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-[10px] rounded-lg shadow transition cursor-pointer flex items-center gap-1"
+                        icon={<Zap className="w-3 h-3" />}
                       >
-                        <Zap className="w-3 h-3" />
                         <span>ضبط الحصص لمطابقة رصيد المخزن (Auto-Cap)</span>
-                      </button>
+                      </EnterpriseButton>
                     </div>
 
                     {/* Stock Sufficiency Badges */}
@@ -6837,13 +6867,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                       الرجوع لتغيير الأصناف الحالية
                     </button>
 
-                    <button
+                    <EnterpriseButton
+                      variant="primary"
+                      size="sm"
                       onClick={() => setMultiStep(4)}
-                      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
                     >
                       <span>الانتقال للتمرير والاعتماد الميداني</span>
                       <ArrowRight className="w-4 h-4 rotate-180" />
-                    </button>
+                    </EnterpriseButton>
                   </div>
                 </div>
               )}
@@ -6936,19 +6967,21 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <button
+                        <EnterpriseButton
+                          variant="accent"
+                          size="sm"
                           onClick={handlePrintIndividualEVouchers}
-                          className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
                         >
                           🎫 طباعة كروت/كوبونات المستفيدين
-                        </button>
-                        <button
+                        </EnterpriseButton>
+                        <EnterpriseButton
+                          variant="primary"
+                          size="sm"
                           onClick={handlePrintMultiDisbursementManifest}
-                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                          icon={<Printer className="w-4 h-4" />}
                         >
-                          <Printer className="w-4 h-4" />
                           <span>طباعة منافيست التوزيع</span>
-                        </button>
+                        </EnterpriseButton>
                       </div>
                     </div>
                   )}
@@ -6956,32 +6989,37 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   {/* Execution & Print Control Bar */}
                   <div className="space-y-3 pt-2">
                     {!isMultiExecuted ? (
-                      <button
+                      <EnterpriseButton
+                        variant="primary"
+                        size="md"
                         onClick={handleExecuteMultiDisbursement}
                         disabled={multiExecuting}
-                        className="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-amber-600 hover:from-emerald-500 hover:to-amber-500 text-white rounded-2xl font-black text-xs shadow-xl shadow-emerald-600/20 transition flex items-center justify-center gap-2 cursor-pointer"
+                        loading={multiExecuting}
+                        icon={<Spinner size="sm" variant="accent" />}
+                        block
                       >
-                        <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
                         <span>
                           {multiExecuting ? 'جاري اقتطاع المخزون وتسجيل السندات...' : 'تفعيل وتمرير الصرف المخزني المتعدد (Execute Disbursement)'}
                         </span>
-                      </button>
+                      </EnterpriseButton>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <button
+                        <EnterpriseButton
+                          variant="primary"
+                          size="md"
                           onClick={handlePrintMultiDisbursementManifest}
-                          className="py-3 bg-gradient-to-r from-emerald-700 to-teal-800 text-white rounded-xl font-black text-xs shadow-md hover:bg-emerald-600 transition flex items-center justify-center gap-2 cursor-pointer"
+                          icon={<Printer className="w-4 h-4 text-amber-300" />}
                         >
-                          <Printer className="w-4 h-4 text-amber-300" />
                           <span>طباعة كشف ومنافيست التوزيع الرسمية</span>
-                        </button>
+                        </EnterpriseButton>
 
-                        <button
+                        <EnterpriseButton
+                          variant="accent"
+                          size="md"
                           onClick={handlePrintIndividualEVouchers}
-                          className="py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl font-black text-xs shadow-md hover:bg-amber-500 transition flex items-center justify-center gap-2 cursor-pointer"
                         >
                           🎫 <span>طباعة كروت/كوبونات المستفيدين E-Vouchers</span>
-                        </button>
+                        </EnterpriseButton>
 
                         <button
                           onClick={handleExportRosterCSV}

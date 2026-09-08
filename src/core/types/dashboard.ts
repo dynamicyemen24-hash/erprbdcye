@@ -36,7 +36,9 @@ export type ActiveTab =
   | 'sales'
   | 'procurement'
   | 'business_intelligence'
-  | 'communications';
+  | 'communications'
+  | 'commitments_obligations'
+  | 'admin_control_center';
 
 export type TabId = ActiveTab;
 
@@ -49,6 +51,8 @@ export interface DashboardStats {
     currencies: number;
     beneficiaries: number;
     sponsorships: number;
+    commitments: number;
+    obligations: number;
   };
   financials: {
     totalProgramBudget: number;

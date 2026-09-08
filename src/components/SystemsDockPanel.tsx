@@ -487,8 +487,8 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
       statusAr: 'إعدادات',
       statusEn: 'Settings',
       accentColor: 'slate',
-      badgeBg: 'bg-slate-500/10 dark:bg-slate-500/20',
-      badgeText: 'text-slate-700 dark:text-slate-300 border-slate-500/20'
+      badgeBg: 'bg-slate-500/10 dark:bg-zinc-500/20',
+      badgeText: 'text-slate-700 dark:text-zinc-300 border-slate-500/20'
     },
     {
       id: 'sys-audit',
@@ -504,8 +504,8 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
       statusAr: 'تدقيق',
       statusEn: 'Audit',
       accentColor: 'slate',
-      badgeBg: 'bg-slate-500/10 dark:bg-slate-500/20',
-      badgeText: 'text-slate-700 dark:text-slate-300 border-slate-500/20'
+      badgeBg: 'bg-slate-500/10 dark:bg-zinc-500/20',
+      badgeText: 'text-slate-700 dark:text-zinc-300 border-slate-500/20'
     },
     {
       id: 'sys-backup',
@@ -521,8 +521,8 @@ export const SystemsDockPanel: React.FC<SystemsDockPanelProps> = ({
       statusAr: 'نسخ أمان',
       statusEn: 'Backup',
       accentColor: 'slate',
-      badgeBg: 'bg-slate-500/10 dark:bg-slate-500/20',
-      badgeText: 'text-slate-700 dark:text-slate-300 border-slate-500/20'
+      badgeBg: 'bg-slate-500/10 dark:bg-zinc-500/20',
+      badgeText: 'text-slate-700 dark:text-zinc-300 border-slate-500/20'
     },
     {
       id: 'sys-docs',

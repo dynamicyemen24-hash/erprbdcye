@@ -765,7 +765,7 @@ export class SovereignIdentityEngine {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed ambiguous chars
     let code = '';
     for (let i = 0; i < 12; i++) {
-      code += chars[Math.floor(Math.random() * chars.length)];
+      code += chars[crypto.randomInt(0, chars.length)];
     }
     return code.match(/.{1,4}/g)!.join('-'); // Format: XXXX-XXXX-XXXX
   }

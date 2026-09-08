@@ -69,10 +69,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// Types & Interfaces
-// ═══════════════════════════════════════════════════════════════════════════════
+import { Spinner } from '../../design-system/components/Spinner';
 
 export type CellValue = string | number | boolean | Date | null | undefined;
 export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select' | 'badge' | 'avatar' | 'actions';
@@ -1029,7 +1026,7 @@ export function PremiumDataGrid<T = Record<string, any>>(props: PremiumDataGridP
               <tr>
                 <td colSpan={orderedVisibleColumns.length + 2} className="py-12 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                    <Spinner size="md" />
                     <span className="text-xs font-medium text-slate-500 dark:text-zinc-500">
                       {t('جاري التحميل...', 'Loading...', lang)}
                     </span>

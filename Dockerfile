@@ -1,73 +1,47 @@
-# NexoraOS™ — Dockerfile (Multi-stage production build)
-# Builds the Vite frontend + Express backend into a single image
+# ═══════════════════════════════════════════════════════════════════
+# NexoraOS™ — Multi-Stage Dockerfile
+# ═══════════════════════════════════════════════════════════════════
 
-# ═══ Stage 1: Build Frontend ═══════════════════════════════
-FROM node:20-alpine AS frontend-build
-
+# ─── Stage 1: All Dependencies (for build) ────────────────────
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-# Install frontend dependencies
 COPY package.json package-lock.json* ./
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts && npm cache clean --force
 
-# Copy frontend source and build
-COPY src/ src/
-COPY index.html vite.config.ts tailwind.config.* postcss.config.* ./
-COPY tsconfig*.json ./
-RUN npm run build
-
-# ═══ Stage 2: Build Backend ═══════════════════════════════
-FROM node:20-alpine AS backend-build
-
+# ─── Stage 2: Production Dependencies Only ─────────────────────
+FROM node:20-alpine AS deps-prod
 WORKDIR /app
-
-# Install all dependencies (including devDependencies for build)
-COPY package.json package-lock.json* ./
-RUN npm ci --ignore-scripts
-
-# Copy server source
-COPY src/server/ src/server/
-COPY src/db/ src/db/
-
-# Build backend with esbuild
-RUN npx esbuild src/server/server.ts \
-  --bundle --platform=node --format=cjs \
-  --packages=external --sourcemap \
-  --outfile=dist/server.cjs
-
-# ═══ Stage 3: Production Image ═════════════════════════════
-FROM node:20-alpine AS production
-
-# Security: run as non-root
-RUN addgroup -g 1001 nexora && adduser -u 1001 -G nexora -s /bin/sh -D nexora
-
-WORKDIR /app
-
-# Install production dependencies only
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
-# Copy built backend
-COPY --from=backend-build /app/dist/ dist/
+# ─── Stage 3: Build ───────────────────────────────────────────
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
 
-# Copy built frontend
-COPY --from=frontend-build /app/dist/ public/
+# ─── Stage 4: Production ──────────────────────────────────────
+FROM node:20-alpine AS production
+RUN apk add --no-cache dumb-init wget
+RUN addgroup -g 1001 -S nexora && adduser -S nexora -u 1001 -G nexora
 
-# Environment variables must be provided at runtime via --env-file or orchestration
-# DO NOT copy .env files into the image — they may contain secrets
+WORKDIR /app
 
-# Create logs and backups directories
-RUN mkdir -p logs backups && chown -R nexora:nexora /app
+COPY --from=deps-prod /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package.json ./
+COPY public ./public
 
-USER nexora
-
-# Environment
 ENV NODE_ENV=production
 ENV PORT=3000
 
+USER nexora
+
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/v2/health/liveness || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=15s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health/liveness || exit 1
 
-CMD ["node", "dist/server.cjs"]
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/server/index.js"]

@@ -1,5 +1,6 @@
 import pg from 'pg';
 import jwt from 'jsonwebtoken';
+import { applySecurityHeaders, resolveCorsOrigin } from '../_shared/security-headers';
 
 const { Pool } = pg;
 
@@ -87,7 +88,7 @@ export default async function handler(req: any, res: any) {
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Cache-Control', 'no-store');
+  applySecurityHeaders(res);
 
   if (req.method === 'OPTIONS') return res.status(204).end();
 
@@ -154,8 +155,9 @@ export default async function handler(req: any, res: any) {
             security_level: decoded.security_level,
           };
 
-      const newToken = jwt.sign(claims, jwtSecret as string, { expiresIn: '8h' });
-      return res.status(200).json({ status: 'success', token: newToken, expiresIn: 8 * 60 * 60 });
+      const accessExpiry = process.env.JWT_ACCESS_EXPIRES || '1h';
+      const newToken = jwt.sign(claims, jwtSecret as string, { expiresIn: accessExpiry });
+      return res.status(200).json({ status: 'success', token: newToken, refreshToken: undefined });
     } catch (e: any) {
       console.error('[API/Auth] refresh error:', e.message);
       return res.status(500).json({ error: 'Internal server error' });

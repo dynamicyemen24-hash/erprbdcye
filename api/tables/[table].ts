@@ -1,5 +1,6 @@
 import pg from 'pg';
 import jwt from 'jsonwebtoken';
+import { applySecurityHeaders, resolveCorsOrigin } from '../_shared/security-headers';
 
 const { Pool } = pg;
 
@@ -70,6 +71,7 @@ const ALLOWED_TABLES = new Set([
   'warehouses', 'stock_movements', 'assets', 'documents', 'knowledge_articles',
   'settings', 'exchange_rates', 'backups', 'approvals',
   'official_communications', 'official_communication_recipients',
+  'commitments', 'obligations', 'commitment_payments', 'obligation_payments', 'commitment_documents',
 ]);
 
 /**
@@ -115,6 +117,7 @@ export default async function handler(req: any, res: any) {
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-environment-mode');
+  applySecurityHeaders(res);
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();

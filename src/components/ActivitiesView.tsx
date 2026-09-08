@@ -53,6 +53,12 @@ import { ppmApi, type PpmActivity } from '../core/ppm/ppmData';
 import { generateNumericCode } from '../lib/idGenerator';
 import { instantPrint } from '../core/export';
 import { WBSActivityTreeSymbol } from './common/SovereignSystemIcons';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 // ==================== SECTOR & ACTIVITY TYPES TAXONOMY ====================
 export interface ActivitySector {
@@ -322,6 +328,8 @@ export default function ActivitiesView({
   const [isVerifyingGPS, setIsVerifyingGPS] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [fetchError, setFetchError] = useState<boolean>(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   // Form State for creating new activity
   const [formData, setFormData] = useState({
@@ -1014,31 +1022,27 @@ export default function ActivitiesView({
 
       {/* Grid of operational activities */}
       {fetchError && !loading && (
-        <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 text-xs font-bold text-amber-800 dark:text-amber-300">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>{isRtl ? 'تعذر الاتصال بقاعدة البيانات — لم يتم جلب الأنشطة الميدانية.' : 'Database connection failed — field activities could not be loaded.'}</span>
-          </div>
-          <button
-            onClick={fetchActivities}
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-[11px] font-black flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>{isRtl ? 'إعادة المحاولة' : 'Retry'}</span>
-          </button>
-        </div>
+        <ErrorState
+          lang={lang}
+          onRetry={fetchActivities}
+          messageAr="تعذر الاتصال بقاعدة البيانات — لم يتم جلب الأنشطة الميدانية."
+          message="Database connection failed — field activities could not be loaded."
+        />
       )}
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3">
-          <Clock className="w-8 h-8 text-emerald-500 animate-spin" />
+          <Spinner size="lg" variant="primary" lang={lang} labelAr="جاري جلب الأنشطة الميدانية وحلقة التحفيظ..." label="Loading operational sessions..." />
           <p className="text-xs font-bold text-slate-500">{isRtl ? 'جاري جلب الأنشطة الميدانية وحلقة التحفيظ...' : 'Loading operational sessions...'}</p>
         </div>
       ) : filteredActivities.length === 0 ? (
-        <div className="py-16 text-center bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6">
-          <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto mb-3" />
-          <h4 className="text-xs font-black text-slate-800 dark:text-white">{isRtl ? 'لا توجد أنشطة ميدانية مطابقة للبحث' : 'No field activities match filter'}</h4>
-          <p className="text-[10px] text-slate-400 font-bold mt-1">{isRtl ? 'يرجى مراجعة محددات البحث أو تدشين نشاط ميداني جديد' : 'Adjust filters or deploy a new field activity'}</p>
-        </div>
+        <EmptyState
+          variant="empty"
+          titleAr="لا توجد أنشطة ميدانية مطابقة للبحث"
+          title="No field activities match filter"
+          descriptionAr="يرجى مراجعة محددات البحث أو تدشين نشاط ميداني جديد"
+          description="Adjust filters or deploy a new field activity"
+          lang={lang}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredActivities.map((act) => {

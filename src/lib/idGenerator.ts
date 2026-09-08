@@ -12,9 +12,12 @@ export function generateId(prefix?: string): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     uuid = crypto.randomUUID();
   } else {
-    // Universal RFC4122 v4 compliant fallback for older webviews / non-secure contexts
+    const rnd = typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function'
+      ? crypto.getRandomValues(new Uint8Array(16))
+      : null;
+    let i = 0;
     uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
+      const r = rnd ? rnd[i++] & 0xf : (Date.now() + i++) % 16;
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });

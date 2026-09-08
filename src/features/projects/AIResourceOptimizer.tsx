@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Calendar, Users, Loader2, Zap } from 'lucide-react';
+import { Calendar, Users, Zap } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 export default function AIResourceOptimizer({ lang }: { lang: 'ar' | 'en' }) {
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -39,13 +40,13 @@ export default function AIResourceOptimizer({ lang }: { lang: 'ar' | 'en' }) {
         disabled={loading}
         className="w-full py-3 bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
       >
-        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
+        {loading ? <Spinner size="sm" /> : <Calendar className="w-4 h-4" />}
         {lang === 'ar' ? 'توليد اقتراحات الجدولة' : 'Generate Scheduling Suggestions'}
       </button>
 
       {loading && suggestions.length === 0 && (
         <div className="mt-6 flex flex-col items-center justify-center py-8 gap-3">
-          <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+          <Spinner size="md" variant="primary" />
           <p className="text-xs text-slate-500 dark:text-zinc-400">
             {lang === 'ar' ? 'جارٍ توليد اقتراحات الجدولة...' : 'Generating scheduling suggestions...'}
           </p>

@@ -1,5 +1,11 @@
 import { showToast } from '../../components/enterprise/EnterpriseToastContainer';
 import React, { useState, useEffect } from 'react';
+import { cn } from '../../design-system/utils/cn';
+import { EmptyState } from '../../design-system/components/EmptyState';
+import { ErrorState } from '../../design-system/components/ErrorState';
+import { Spinner } from '../../design-system/components/Spinner';
+import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import { 
   Users, 
   Building2, 
@@ -155,14 +161,15 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
             <span>{isRtl ? 'دليل الإجراءات والتوصيف واللوائح' : 'Master SOP & Bylaws'}</span>
           </button>
 
-          <button
+          <EnterpriseButton
+            variant="secondary"
+            size="sm"
+            icon={<RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />}
             onClick={fetchHRData}
             disabled={loading}
-            className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>{isRtl ? 'تحديث البيانات' : 'Refresh Data'}</span>
-          </button>
+            {isRtl ? 'تحديث البيانات' : 'Refresh Data'}
+          </EnterpriseButton>
 
           <PolicyButton
             action="create"
@@ -170,10 +177,15 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
             securityLevel={securityLevel}
             userRole={userRole}
             onClick={() => showToast({ type: 'info', title: isRtl ? 'تعيين الكوادر' : 'Workforce Onboarding', message: isRtl ? 'جاري فتح نافذة استكمال بيانات الموظف والمتطوع الجديد...' : 'Opening Employee Onboarding Gateway...' })}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 cursor-pointer"
+            className=""
           >
-            <Plus className="w-4 h-4" />
-            <span>{isRtl ? 'تعيين موظف / متطوع' : 'Onboard Workforce'}</span>
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
+            >
+              {isRtl ? 'تعيين موظف / متطوع' : 'Onboard Workforce'}
+            </EnterpriseButton>
           </PolicyButton>
         </div>
       </div>
@@ -194,17 +206,14 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
             { id: 'delegate', ar: 'مندوبو المحافظات', en: 'Field Delegates' },
             { id: 'consultant', ar: 'استشاريون وخبراء', en: 'External Consultants' },
           ].map((cat) => (
-            <button
+            <EnterpriseButton
               key={cat.id}
               onClick={() => setWorkforceCategory(cat.id as WorkforceCategory)}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                workforceCategory === cat.id
-                  ? 'bg-emerald-600 text-white font-extrabold shadow-xs'
-                  : 'bg-slate-50 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800/80'
-              }`}
+              variant={workforceCategory === cat.id ? 'primary' : 'secondary'}
+              size="xs"
             >
               {isRtl ? cat.ar : cat.en}
-            </button>
+            </EnterpriseButton>
           ))}
         </div>
       </div>
@@ -224,18 +233,15 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
           const IconComp = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button
+            <EnterpriseButton
               key={tab.id}
               onClick={() => setActiveTab(tab.id as HRTab)}
-              className={`px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
-                isActive
-                  ? 'bg-emerald-600 text-white font-extrabold shadow-md shadow-emerald-950/20'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-zinc-800'
-              }`}
+              variant={isActive ? 'primary' : 'ghost'}
+              size="md"
+              icon={<IconComp className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400 dark:text-zinc-500'}`} />}
             >
-              <IconComp className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400 dark:text-zinc-500'}`} />
-              <span>{isRtl ? tab.ar : tab.en}</span>
-            </button>
+              {isRtl ? tab.ar : tab.en}
+            </EnterpriseButton>
           );
         })}
       </div>

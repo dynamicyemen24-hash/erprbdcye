@@ -59,7 +59,11 @@ import {
 import VendorPerformanceAnalyticsView from '../features/procurement/VendorPerformanceAnalyticsView';
 import ProcurementForecastingView from '../features/procurement/ProcurementForecastingView';
 import VendorRecommendationEngineView from '../features/procurement/VendorRecommendationEngineView';
+import { EnterpriseButton } from './common/EnterpriseButton';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { cn } from '../design-system/utils/cn';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { Spinner } from '../design-system/components/Spinner';
 import { 
   Project, 
   ContractAttachment, 
@@ -228,6 +232,10 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
     procurementPoRef: `PO-YEM-2026-${generateNumericCode(100, 999)}`,
     notes: ''
   });
+
+  // Confirm Delete State
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteTargetContract, setDeleteTargetContract] = useState<any | null>(null);
 
   // Renewal Form State
   const [renewalForm, setRenewalForm] = useState({
@@ -642,7 +650,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
       {loading && (
         <div className="flex items-center justify-center py-20">
           <div className="flex items-center gap-3 px-6 py-4 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-lg">
-            <RefreshCw className="w-5 h-5 text-emerald-600 animate-spin" />
+            <Spinner size="md" variant="primary" />
             <span className="text-sm font-bold text-slate-700 dark:text-zinc-200">
               {isRtl ? 'جارٍ تحميل البيانات من الخادم...' : 'Loading data from server...'}
             </span>
@@ -674,13 +682,14 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
               onClick={() => setIsNewPoModalOpen(true)}
-              className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-md hover:shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>{isRtl ? 'أمر شراء/توريد جديد (PO)' : 'New Purchase Order'}</span>
-            </button>
+              {isRtl ? 'أمر شراء/توريد جديد (PO)' : 'New Purchase Order'}
+            </EnterpriseButton>
 
             <button
               onClick={() => setIsNewInvoiceModalOpen(true)}
@@ -1129,12 +1138,13 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                               {tr.disbursementStatus === 'DISBURSED' ? (
                                 <span className="text-emerald-600 text-[10px] font-black">✓ تم الصرف</span>
                               ) : (
-                                <button
+                                <EnterpriseButton
+                                  variant="accent"
+                                  size="xs"
                                   onClick={() => handleDisburseTranche(prt.id, tr.id)}
-                                  className="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-white rounded text-[10px] font-black cursor-pointer shadow-xs"
                                 >
                                   اعتماد وتفريغ الدفعة
-                                </button>
+                                </EnterpriseButton>
                               )}
                             </div>
                           </div>
@@ -1187,13 +1197,14 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               </p>
             </div>
 
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
               onClick={() => setIsNewPoModalOpen(true)}
-              className="px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>{isRtl ? 'إصدار امر توريد جديد' : 'Issue New PO'}</span>
-            </button>
+              {isRtl ? 'إصدار امر توريد جديد' : 'Issue New PO'}
+            </EnterpriseButton>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1534,9 +1545,8 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                         userRole={userRole}
                         actionLabel={isRtl ? 'حذف العقد' : 'Delete Contract'}
                         onClick={() => {
-                          if (window.confirm(isRtl ? 'هل أنت متأكد من حذف هذا العقد؟' : 'Are you sure you want to delete this contract?')) {
-                            setContracts(prev => prev.filter(c => c.id !== contract.id));
-                          }
+                          setDeleteTargetContract(contract);
+                          setConfirmDelete(true);
                         }}
                         className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                       >
@@ -1755,7 +1765,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
         <div className="space-y-4">
           <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white p-6 rounded-2xl border border-emerald-700/50 shadow-lg space-y-4">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-6 h-6 text-amber-300 animate-spin" />
+              <Spinner size="md" variant="accent" />
               <div>
                 <h3 className="font-extrabold text-base text-white">
                   {isRtl ? 'المساعد الذكي لتحليل المشتريات والمبيعات وترابط الأنشطة الميدانية' : 'AI Smart Procurement & Sales Analytics Copilot'}
@@ -1847,7 +1857,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setIsNewPoModalOpen(false)} className="px-4 py-2 bg-slate-100 rounded-xl text-slate-600 cursor-pointer">{isRtl ? 'إلغاء' : 'Cancel'}</button>
-                <button type="submit" className="px-5 py-2 bg-emerald-600 text-white rounded-xl font-black cursor-pointer shadow-md">{isRtl ? 'اعتماد أمر الشراء' : 'Approve & Issue PO'}</button>
+                <EnterpriseButton type="submit" variant="primary" size="sm">{isRtl ? 'اعتماد أمر الشراء' : 'Approve & Issue PO'}</EnterpriseButton>
               </div>
             </form>
           </div>
@@ -2053,7 +2063,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800">
                 <button type="button" onClick={() => setIsNewPartnershipModalOpen(false)} className="px-4 py-2 bg-slate-100 rounded-xl text-slate-600 cursor-pointer">{isRtl ? 'إلغاء' : 'Cancel'}</button>
-                <button type="submit" className="px-5 py-2 bg-violet-600 text-white rounded-xl font-black cursor-pointer shadow-md">{isRtl ? 'اعتماد وإبرام الاتفاقية' : 'Certify & Save Agreement'}</button>
+                <EnterpriseButton type="submit" variant="primary" size="sm">{isRtl ? 'اعتماد وإبرام الاتفاقية' : 'Certify & Save Agreement'}</EnterpriseButton>
               </div>
             </form>
 
@@ -2142,7 +2152,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
                 <button type="button" onClick={() => setIsPcaEvaluatorModalOpen(false)} className="px-4 py-2 bg-slate-100 rounded-xl text-slate-600 cursor-pointer">{isRtl ? 'إلغاء' : 'Cancel'}</button>
-                <button type="button" onClick={handleSavePcaEvaluation} className="px-5 py-2 bg-amber-600 text-white rounded-xl font-black cursor-pointer shadow-md">{isRtl ? 'حفظ وتحديث التقييم' : 'Save PCA Score'}</button>
+                <EnterpriseButton type="button" onClick={handleSavePcaEvaluation} variant="accent" size="sm">{isRtl ? 'حفظ وتحديث التقييم' : 'Save PCA Score'}</EnterpriseButton>
               </div>
 
             </div>
@@ -2152,6 +2162,26 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
       )}
 
     </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        variant="destructive"
+        title="Confirm Delete"
+        titleAr="تأكيد الحذف"
+        description="This action cannot be undone."
+        descriptionAr="لا يمكن التراجع عن هذا الإجراء."
+        confirmLabelAr="حذف"
+        cancelLabelAr="إلغاء"
+        onConfirm={() => {
+          if (deleteTargetContract) {
+            setContracts(prev => prev.filter(c => c.id !== deleteTargetContract.id));
+          }
+          setConfirmDelete(false);
+          setDeleteTargetContract(null);
+        }}
+        lang={isRtl ? 'ar' : 'en'}
+      />
     </ModuleShell>
   );
 };

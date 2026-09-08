@@ -117,7 +117,8 @@ export const TABLE_WHITELIST = [
   'dashboard_widgets',
   'webhooks',
   'system_performance_metrics',
-  'webhook_executions',
+   'webhook_executions',
+   'webhook_deliveries',
   'data_quality_rules',
   'password_policies',
   'data_quality_issues',
@@ -352,6 +353,20 @@ export const TABLE_WHITELIST = [
    // NEB-11: Intelligent Administrative Communications OS
    'official_communications',
    'official_communication_recipients',
+   // NEB-08/NEB-10: Commitments & Obligations OS
+   'commitments',
+   'obligations',
+   'commitment_payments',
+   'obligation_payments',
+   'commitment_documents',
+   // Security & Session Management
+    'token_blacklist',
+    'security_events',
+    'active_sessions',
+    // Schema Migrations
+    'schema_migrations',
+    // Job Queue
+    'job_queue',
 ];
 
 export function isWhitelisted(table: string): boolean {
@@ -404,4 +419,13 @@ export const TABLE_POLICY_DOMAIN: Record<string, string> = {
   official_communication_recipients: 'communications',
   strategic_goals: 'projects',
   swot_entries: 'projects',
+  commitments: 'finance',
+  commitment_payments: 'finance',
+  obligations: 'finance',
+  obligation_payments: 'finance',
+  commitment_documents: 'finance',
+  // Security & Session Management
+  token_blacklist: 'security',
+  security_events: 'security',
+  active_sessions: 'security',
 };

@@ -30,6 +30,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
 
   { id: 'inventory', domainCode: 'NEB-09', labelAr: 'المخزون والمستودعات', labelEn: 'Inventory', category: 'operations' },
   { id: 'contracts', domainCode: 'NEB-08', labelAr: 'العقود والشراكات', labelEn: 'Contracts', category: 'operations' },
+  { id: 'commitments_obligations', domainCode: 'NEB-08/NEB-10', labelAr: 'التعهدات والالتزامات', labelEn: 'Commitments & Obligations', category: 'operations' },
 
   { id: 'finance', domainCode: 'NEB-10', labelAr: 'المالية والحوكمة', labelEn: 'Financial Ledger', category: 'governance', isSecure: true },
   { id: 'investments', domainCode: 'NEB-15', labelAr: 'المشاريع الاستثمارية والأوقاف', labelEn: 'Investment & Endowment OS', category: 'governance', isSecure: true },

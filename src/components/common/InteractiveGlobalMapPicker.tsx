@@ -12,6 +12,7 @@ import {
   Globe2,
   Maximize2
 } from 'lucide-react';
+import { showToast } from '../enterprise/EnterpriseToastContainer';
 
 // Custom Pin Marker Icon
 const customPinIcon = L.divIcon({
@@ -130,7 +131,7 @@ export default function InteractiveGlobalMapPicker({
   // Browser GPS Locate Me
   const handleLocateMe = () => {
     if (!navigator.geolocation) {
-      alert(isRtl ? 'المتصفح لا يدعم خاصية تحديد الموقع الجغرافي' : 'Geolocation is not supported by your browser');
+      showToast({ type: 'error', title: 'خطأ', message: isRtl ? 'المتصفح لا يدعم خاصية تحديد الموقع الجغرافي' : 'Geolocation is not supported by your browser' });
       return;
     }
 
@@ -142,7 +143,7 @@ export default function InteractiveGlobalMapPicker({
       },
       err => {
         setIsLocating(false);
-        alert(isRtl ? 'تعذر جلب موقعك الجغرافي الحالي. يرجى التأكد من تفعيل أذونات الموقع.' : 'Unable to retrieve location.');
+        showToast({ type: 'error', title: 'خطأ', message: isRtl ? 'تعذر جلب موقعك الجغرافي الحالي. يرجى التأكد من تفعيل أذونات الموقع.' : 'Unable to retrieve location.' });
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );

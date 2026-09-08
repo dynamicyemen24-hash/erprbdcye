@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { designTokens } from '../lib/designTokens';
 import { 
   Calendar, 
@@ -34,6 +34,9 @@ import {
 import { Project, User as UserType } from '../types';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { generateShortId } from '../lib/idGenerator';
+import { cn } from '../design-system/utils/cn';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface Allocation {
   id: string;
@@ -92,7 +95,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
   const [allocLoading, setAllocLoading] = useState(true);
   const [allocFetchError, setAllocFetchError] = useState(false);
 
-  const fetchAllocations = async () => {
+  const fetchAllocations = useCallback(async () => {
     setAllocLoading(true);
     setAllocFetchError(false);
     try {
@@ -131,12 +134,11 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
     } finally {
       setAllocLoading(false);
     }
-  };
+  }, [projects]);
 
   useEffect(() => {
     fetchAllocations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchAllocations]);
 
   // 2. REAL resources pool: system users + hr_staff + fixed_assets from database
   const [dbStaff, setDbStaff] = useState<any[]>([]);
@@ -223,6 +225,8 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
 
   // Action Success Feedback
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // Automated Resource Balancing State & Simulation Controls
   const [isAutoBalanceModalOpen, setIsAutoBalanceModalOpen] = useState(false);
@@ -620,24 +624,32 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
 
   // Handler: Delete allocation
   const handleDeleteAllocation = async (id: string) => {
-    if (confirm(isRtl ? 'هل أنت متأكد من إلغاء وحذف هذا التخصيص للمورد؟' : 'Are you sure you want to release and delete this resource allocation?')) {
-      try {
-        const token = localStorage.getItem('rbd_token');
-        const res = await fetch(`/api/tables/resource_allocations/${id}`, {
-          method: 'DELETE',
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      } catch (err) {
-        console.error('[ResourceAllocation] Delete failed:', err);
-        setSuccessToast(isRtl ? 'تعذر حذف التخصيص من قاعدة البيانات.' : 'Failed to delete allocation from the database.');
-        setTimeout(() => setSuccessToast(null), 4000);
-        return;
-      }
-      setAllocations(prev => prev.filter(a => a.id !== id));
-      setSuccessToast(isRtl ? 'تم إلغاء التخصيص وإرجاع المورد للاستعداد.' : 'Allocation revoked. Resource is back to standby.');
+    setDeleteTargetId(id);
+    setConfirmDelete(true);
+  };
+
+  const confirmDeleteAction = async () => {
+    if (!deleteTargetId) return;
+    try {
+      const token = localStorage.getItem('rbd_token');
+      const res = await fetch(`/api/tables/resource_allocations/${deleteTargetId}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      console.error('[ResourceAllocation] Delete failed:', err);
+      setSuccessToast(isRtl ? 'تعذر حذف التخصيص من قاعدة البيانات.' : 'Failed to delete allocation from the database.');
       setTimeout(() => setSuccessToast(null), 4000);
+      setConfirmDelete(false);
+      setDeleteTargetId(null);
+      return;
     }
+    setAllocations(prev => prev.filter(a => a.id !== deleteTargetId));
+    setSuccessToast(isRtl ? 'تم إلغاء التخصيص وإرجاع المورد للاستعداد.' : 'Allocation revoked. Resource is back to standby.');
+    setTimeout(() => setSuccessToast(null), 4000);
+    setConfirmDelete(false);
+    setDeleteTargetId(null);
   };
 
   // 5. Timeline Math Calculations for Gantt Bar Drawing
@@ -955,7 +967,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
               {/* Rows Listing */}
               {allocLoading ? (
                 <div className="py-12 text-center bg-slate-50 dark:bg-zinc-950/40 rounded-b-xl border border-dashed border-slate-200 dark:border-zinc-800">
-                  <RefreshCw className="w-8 h-8 text-emerald-500 animate-spin mx-auto mb-2" />
+                  <Spinner size="lg" variant="primary" />
                   <p className="text-xs font-bold text-slate-500">
                     {isRtl ? 'جاري جلب التخصيصات الحقيقية من قاعدة البيانات...' : 'Loading live allocations from the database...'}
                   </p>
@@ -1937,6 +1949,20 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
       )}
 
     </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        variant="destructive"
+        title="Confirm Delete"
+        titleAr="تأكيد الحذف"
+        description="This action cannot be undone."
+        descriptionAr="لا يمكن التراجع عن هذا الإجراء."
+        confirmLabelAr="حذف"
+        cancelLabelAr="إلغاء"
+        onConfirm={confirmDeleteAction}
+        lang={isRtl ? 'ar' : 'en'}
+      />
     </ModuleShell>
   );
 }

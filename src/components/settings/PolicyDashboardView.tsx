@@ -8,6 +8,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip,
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
+import { EnterpriseButton } from '../common/EnterpriseButton';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface PolicyDashboardProps {
   lang: 'ar' | 'en';
@@ -131,7 +133,7 @@ export function PolicyDashboardView({ lang }: PolicyDashboardProps) {
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RefreshCw className="w-6 h-6 text-emerald-500 animate-spin" />
+        <Spinner size="md" variant="primary" />
         <span className="ml-2 text-sm text-slate-500 dark:text-zinc-400">
           {isRtl ? 'جاري تحميل لوحة السياسات...' : 'Loading policy dashboard...'}
         </span>
@@ -144,9 +146,9 @@ export function PolicyDashboardView({ lang }: PolicyDashboardProps) {
       <div className="p-6 text-center">
         <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-3" />
         <p className="text-sm text-red-600 dark:text-red-400 font-bold">{error}</p>
-        <button onClick={fetchDashboard} className="mt-3 px-4 py-2 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition">
+        <EnterpriseButton onClick={fetchDashboard} variant="primary" size="sm" className="mt-3">
           {isRtl ? 'إعادة المحاولة' : 'Retry'}
-        </button>
+        </EnterpriseButton>
       </div>
     );
   }
@@ -236,7 +238,7 @@ export function PolicyDashboardView({ lang }: PolicyDashboardProps) {
             disabled={loading}
             className="p-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 transition disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 ${loading ? 'animate-spin' : ''}`} />
+            <Spinner size="xs" />
           </button>
         </div>
       </div>

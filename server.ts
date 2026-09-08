@@ -1,9 +1,7 @@
 import express from 'express';
-import compression from 'compression';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
-import { LRUCache } from 'lru-cache';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
@@ -20,6 +18,32 @@ import { salesRouter } from './src/server/routes/sales.routes';
 import { fundingRouter } from './src/server/routes/funding.routes';
 import { operationalDomainRouter } from './src/server/routes/operational_domains.routes';
 import { csrfProtection } from './src/server/middleware/csrf.middleware';
+import { timeoutMiddleware } from './src/server/middleware/timeout';
+import { metricsMiddleware, correlationIdMiddleware, healthRoutes } from './src/server/observability';
+import { cacheMiddleware } from './src/server/middleware/cache.middleware';
+import { deduplicationMiddleware } from './src/server/middleware/dedup';
+import { securityMiddleware, ipBlocklistMiddleware } from './src/server/core/security';
+import { dbCircuitBreaker } from './src/server/core/resilience';
+import {
+  raspMiddleware,
+  startDebuggerDetection,
+  antiCodeInjectionMiddleware,
+  initializeIntegrityChecks,
+} from './src/server/core/antiReverseEngineering';
+import {
+  antiTamperMiddleware,
+  antiExfiltrationMiddleware,
+} from './src/server/core/antiTampering';
+import { advancedSessionMiddleware } from './src/server/core/advancedAccessControl';
+import honeypotRouter from './src/server/core/honeypot';
+import {
+  antiAutomationMiddleware,
+  behavioralAnalysisMiddleware,
+} from './src/server/core/antiAutomation';
+import { tokenRevocationMiddleware, loadBlacklistFromDb } from './src/server/core/tokenRevocation';
+import { sessionManagementMiddleware } from './src/server/core/sessionManagement';
+import { outputSecurityMiddleware } from './src/server/middleware/outputEncoding';
+import logoutRouter from './src/server/routes/v2/logout.routes';
 import {
   runEnterpriseSchemaCompletion,
   applyEnterpriseIndexes,
@@ -29,6 +53,12 @@ import {
 import { bootstrapDatabase } from './src/server/bootstrap';
 import { enforceAllPolicies, type PolicyContext, type PolicyViolation } from './src/server/services/policyEngine';
 import logger from './src/server/core/logger';
+import { swaggerRouter } from './src/server/docs';
+import { registerInternalHandlers } from './src/server/services/webhooks';
+import { connectRedis } from './src/server/redis';
+import { smartCompression } from './src/server/middleware/compression';
+import { worldClassSecurityHeaders } from './src/server/middleware/security-headers';
+import { etagMiddleware, rateLimitHeaders } from './src/server/middleware/etag';
 
 dotenv.config();
 
@@ -72,11 +102,11 @@ function validateEnvironmentConfig(): ConfigValidationResult {
     warnings.push('GEMINI_API_KEY appears to be invalid (too short)');
   }
 
-  if (!process.env.ALLOWED_ORIGINS) {
+  if (!process.env.CORS_ORIGINS) {
     if (process.env.NODE_ENV === 'production') {
-      errors.push('ALLOWED_ORIGINS must be set in production');
+      errors.push('CORS_ORIGINS must be set in production');
     } else {
-      warnings.push('ALLOWED_ORIGINS not set - CORS will allow all origins in development');
+      warnings.push('CORS_ORIGINS not set - CORS will allow all origins in development');
     }
   }
 
@@ -97,11 +127,11 @@ const configValidation = validateEnvironmentConfig();
 if (configValidation.errors.length > 0) {
   logger.error('[CONFIG ERROR] The following configuration errors were found:', { context: 'config' });
   configValidation.errors.forEach(err => logger.error(`  - ${err}`, { context: 'config' }));
-  // Do not hard-crash the process in production: a misconfigured env should
-  // surface as degraded functionality (health/static still served, DB/AI routes
-  // fail gracefully) rather than taking the whole service down with a crash loop.
-  // Operators must set the missing variables (e.g. DATABASE_URL) and restart.
-  logger.error('[CONFIG ERROR] Server will continue to boot but may be partially degraded.', { context: 'config' });
+  if (process.env.NODE_ENV === 'production') {
+    logger.error('[CONFIG ERROR] FATAL: Cannot start server in production with configuration errors. Fix the above and restart.', { context: 'config' });
+    process.exit(1);
+  }
+  logger.warn('[CONFIG WARNING] Server will continue to boot in development mode (partially degraded).', { context: 'config' });
 }
 
 if (configValidation.warnings.length > 0) {
@@ -134,41 +164,33 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.use(correlationIdMiddleware);
 app.use(helmet({
-  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
-    directives: {
-      defaultSrc: ["'self'"],
-      // Production: no unsafe-eval. Vite emits external module scripts.
-      scriptSrc: ["'self'", "https://www.gstatic.com", "https://apis.google.com", "https://www.googleapis.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://unpkg.com"],
-      imgSrc: ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org", "https://maps.googleapis.com"],
-      connectSrc: ["'self'", "ws:", "wss:", "https://*.neon.tech", "https://maps.googleapis.com", "https://*.googleapis.com", "https://*.google.com"],
-      frameSrc: ["'none'"],
-      objectSrc: ["'none'"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"],
-      upgradeInsecureRequests: [],
-    },
-  } : false,
+  // CSP is handled by worldClassSecurityHeaders middleware (nonce-based)
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
-  frameguard: { action: 'sameorigin' },
-  crossOriginOpenerPolicy: { policy: 'same-origin' },
-  crossOriginResourcePolicy: { policy: 'same-origin' },
-  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+  frameguard: false, // Handled by worldClassSecurityHeaders
+  crossOriginOpenerPolicy: false, // Handled by worldClassSecurityHeaders
+  crossOriginResourcePolicy: false, // Handled by worldClassSecurityHeaders
+  hsts: false, // Handled by worldClassSecurityHeaders
 }));
-app.use(compression());
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
-if (process.env.NODE_ENV === 'production' && ALLOWED_ORIGINS.length === 0) {
-  logger.error('[STARTUP WARNING] ALLOWED_ORIGINS is not set in production. CORS will reject all cross-origin requests.', { context: 'startup' });
+app.use(smartCompression({ threshold: 1024, level: 6, brotli: true }));
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
+if (process.env.NODE_ENV === 'production' && CORS_ORIGINS.length === 0) {
+  logger.error('[STARTUP WARNING] CORS_ORIGINS is not set in production. CORS will reject all cross-origin requests.', { context: 'startup' });
 }
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (ALLOWED_ORIGINS.length === 0 && process.env.NODE_ENV !== 'production') {
+    if (!origin) {
+      if (process.env.NODE_ENV === 'production') {
+        return callback(new Error('CORS: Origin header required in production'));
+      }
       return callback(null, true);
     }
-    if (ALLOWED_ORIGINS.includes(origin)) {
+    if (CORS_ORIGINS.length === 0 && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    if (CORS_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -176,25 +198,83 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-API-Version'],
+  maxAge: 86400, // Cache preflight for 24 hours
 }));
-app.use(morgan('[:date[iso]] :method :url :status :response-time ms - :res[content-length]')); // Enterprise structured HTTP logging
+app.use(morgan('[:date[iso]] :method :url :status :response-time ms - :res[content-length]'));
 const PORT = Number(process.env.PORT || 3000);
 
 app.use(express.json({ limit: '5mb' }));
-app.use(express.static(path.join(process.cwd(), 'public'), { maxAge: '1d' }));
+app.use(express.static(path.join(process.cwd(), 'public'), {
+  maxAge: '1y',
+  immutable: true,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('index.html')) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  }
+}));
 
-// Security Headers Middleware
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  // res.setHeader('X-Frame-Options', 'SAMEORIGIN'); // Removed for iFrame preview
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  next();
-});
+// ─── World-Class Security Headers (OWASP 2024) ─────────────────
+app.use(worldClassSecurityHeaders);
+
+// ─── ETag & Conditional Requests (RFC 7232) ────────────────────
+app.use(etagMiddleware);
+
+// ─── Rate Limit Transparency Headers ───────────────────────────
+app.use(rateLimitHeaders);
 
 // CSRF Protection — validates Origin/Referer on state-changing requests
 app.use(csrfProtection);
+
+// Request timeout (30s default) — prevents hanging queries
+app.use(timeoutMiddleware(30000));
+
+// Request metrics collection (endpoint-level tracking)
+app.use(metricsMiddleware);
+
+// Request deduplication (deduplicates concurrent identical GET requests)
+app.use(deduplicationMiddleware({ windowMs: 1000, maxAge: 5000 }));
+
+// Security hardening (input sanitization, SQL injection detection, XSS prevention)
+app.use(securityMiddleware());
+
+// IP blocklist check
+app.use(ipBlocklistMiddleware());
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADVANCED SECURITY LAYERS — Anti-Reverse-Engineering, Anti-Tampering, RASP
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// 1. RASP — Runtime Application Self-Protection (debugger detection, integrity checks)
+app.use(raspMiddleware());
+
+// 2. Anti-Code-Injection — Detect eval(), Function(), prototype pollution
+app.use(antiCodeInjectionMiddleware());
+
+// 3. Anti-Tampering — Request signature verification, replay detection
+app.use(antiTamperMiddleware());
+
+// 4. Anti-Exfiltration — Prevent data leakage via headers
+app.use(antiExfiltrationMiddleware());
+
+// 5. Anti-Automation — Block bots, detect credential stuffing
+app.use(antiAutomationMiddleware());
+
+// 6. Advanced Session — Fingerprinting, device binding, anomaly detection
+app.use(advancedSessionMiddleware());
+
+// 7. Behavioral Analysis — Detect unusual user patterns
+app.use(behavioralAnalysisMiddleware());
+
+// 8. Token Revocation — Check if JWT has been revoked
+app.use(tokenRevocationMiddleware());
+
+// 9. Session Management — Track and validate sessions
+app.use(sessionManagementMiddleware());
+
+// 10. Output Encoding — Security headers + response sanitization
+app.use(outputSecurityMiddleware());
 
 // Rate Limiting
 const apiLimiter = rateLimit({
@@ -220,6 +300,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// AI API Rate Limiter — prevents unbounded AI cost exposure
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // 30 AI requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'AI request rate limit exceeded. Max 30 per minute.' }
+});
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/gemini') || req.path.startsWith('/api/v2/domains/ai')) {
+    return aiLimiter(req, res, next);
+  }
+  next();
+});
+
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return apiLimiter(req, res, next);
@@ -228,11 +323,19 @@ app.use((req, res, next) => {
 });
 
 // Process Level Safety Guards
+let unhandledRejectionCount = 0;
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, { context: 'process' });
+  unhandledRejectionCount++;
+  logger.error(`Unhandled Rejection #${unhandledRejectionCount} at: ${promise}, reason: ${reason}`, { context: 'process' });
+  if (unhandledRejectionCount >= 10) {
+    logger.error('[FATAL] Too many unhandled rejections — triggering shutdown', { context: 'process' });
+    process.exit(1);
+  }
 });
 process.on('uncaughtException', (err) => {
-  logger.error(`Uncaught Exception: ${err}`, { context: 'process' });
+  logger.error(`Uncaught Exception: ${err.message}`, { context: 'process' });
+  logger.error('[FATAL] Uncaught exception — triggering graceful shutdown', { context: 'process' });
+  process.exit(1);
 });
 
 // Enterprise Database Query Execution — imported from core/database
@@ -952,13 +1055,6 @@ async function logTablePolicyViolation(
   }
 }
 
-// LRU Cache for schema caching
-const schemaCache = new LRUCache<string, any>({
-  max: 200,
-  ttl: 1000 * 60 * 60 * 24, // 24 hours (schema rarely changes)
-});
-
-
 // -------------------------------------------------------------
 // AUTHENTICATION
 // -------------------------------------------------------------
@@ -1047,9 +1143,14 @@ app.use('/api/backup', sensitiveOpsRateLimiter);
 app.use('/api/restore', sensitiveOpsRateLimiter);
 app.use('/api/bulk', sensitiveOpsRateLimiter);
 
-// Centralized Audit Logging Middleware — fire-and-forget for write operations
+// Centralized Audit Logging Middleware — fire-and-forget for write operations + sensitive reads
+const SENSITIVE_READ_PATHS = ['/api/tables', '/api/finance', '/api/sales', '/api/funding'];
+
 const auditLogMiddleware = (req: any, res: any, next: any) => {
-  if (!['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+  const isWriteOp = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method);
+  const isSensitiveRead = req.method === 'GET' && SENSITIVE_READ_PATHS.some(p => req.path.startsWith(p));
+
+  if (!isWriteOp && !isSensitiveRead) {
     return next();
   }
   if (req.path.startsWith('/api/health') || req.path.startsWith('/api/auth')) {
@@ -1115,6 +1216,14 @@ app.use('/api/gemini', geminiRouter);
 
 // V2 API Routes — modular engine-based routes for all NEB domains
 import v2Router from './src/server/routes/v2';
+
+// Apply cache middleware to V2 GET routes (30 second TTL)
+app.use('/api/v2', (req, res, next) => {
+  if (req.method === 'GET') {
+    return cacheMiddleware({ ttl: 30 })(req, res, next);
+  }
+  next();
+});
 app.use('/api/v2', v2Router);
 
 // V2 Health & Monitoring Routes
@@ -1129,12 +1238,15 @@ import rbacRouter from './src/server/routes/v2/rbac.routes';
 import dashboardRouter from './src/server/routes/v2/dashboard.routes';
 import strategicRouter from './src/server/routes/v2/strategic.routes';
 import integrationRouter from './src/server/routes/v2/integration.routes';
+import readinessRouter from './src/server/routes/v2/readiness.routes';
 
 app.use('/api/auth', authInlineRouter);
+app.use('/api/auth', logoutRouter);
 app.use('/api', rbacRouter);
 app.use('/api', dashboardRouter);
 app.use('/api', strategicRouter);
 app.use('/api', integrationRouter);
+app.use('/api/readiness', readinessRouter);
 
 // API ENDPOINTS
 // -------------------------------------------------------------
@@ -1184,7 +1296,9 @@ app.get('/api/health/readiness', async (req, res) => {
 app.get('/api/health', async (req, res) => {
   try {
     const dbPool = getPool();
-    const dbRes = await dbPool.query("SELECT NOW()");
+    const dbRes = await dbCircuitBreaker.execute(async () => {
+      return await dbPool.query("SELECT NOW()");
+    });
     const memUsage = process.memoryUsage();
     
     res.json({
@@ -1197,13 +1311,15 @@ app.get('/api/health', async (req, res) => {
         total: dbPool.totalCount,
         idle: dbPool.idleCount,
         waiting: dbPool.waitingCount
-      }
+      },
+      circuitBreaker: dbCircuitBreaker.getStats()
     });
   } catch (err: any) {
     res.status(500).json({
       status: 'error',
       database: 'disconnected',
-      ...(process.env.NODE_ENV !== 'production' && { message: err.message })
+      circuitBreaker: dbCircuitBreaker.getStats(),
+      ...(process.env.NODE_ENV === 'development' && { message: err.message })
     });
   }
 });
@@ -1215,8 +1331,76 @@ app.use('/api/backups', backupRoutes);
 app.use('/api/tables', tablesRoutes);
 app.use('/api/schema', schemaRouter);
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// HONEYPOT & TRAP ENDPOINTS — Decoy resources for attacker detection
+// ═══════════════════════════════════════════════════════════════════════════════
+// These endpoints are invisible to legitimate users but detect and log
+// any attempt to access them. They return fake but realistic responses
+// to keep attackers engaged while we track their activity.
+app.use('/admin', honeypotRouter);
+app.use('/wp-admin', honeypotRouter);
+app.use('/.env', honeypotRouter);
+app.use('/config', honeypotRouter);
+app.use('/db', honeypotRouter);
+app.use('/database', honeypotRouter);
+app.use('/backup', honeypotRouter);
+app.use('/phpmyadmin', honeypotRouter);
+app.use('/server-info', honeypotRouter);
+app.use('/server-status', honeypotRouter);
+
+// ─── Webhook, Queue, Email & System Routes ──────────────────────
+import webhookRoutes from './src/server/routes/v2/webhook.routes';
+import queueRoutes from './src/server/routes/v2/queue.routes';
+import emailRoutes from './src/server/routes/v2/email.routes';
+import systemRoutes from './src/server/routes/v2/system.routes';
+
+app.use('/api/webhooks', webhookRoutes);
+app.use('/api/queue', queueRoutes);
+app.use('/api/email', emailRoutes);
+app.use('/api/system', systemRoutes);
+
+// ─── Swagger / OpenAPI Documentation ──────────────────────────
+app.use('/api/docs', swaggerRouter);
+
+// Dead code trap — any request here triggers an immediate security alert
+app.all('/trap/:path(*)', (req, res) => {
+  logger.error(`[TRAP] Dead code trap triggered: ${req.method} ${req.path}`, {
+    context: 'honeypot',
+    meta: { ip: req.ip, path: req.path, userAgent: req.get('user-agent') },
+  });
+  // Return a realistic but fake response with random delay
+  const delay = Math.floor(Math.random() * 3000) + 1000;
+  setTimeout(() => {
+    res.status(200).json({ status: 'ok', message: 'Operation completed successfully' });
+  }, delay);
+});
+
 
 async function startServer() {
+  // ─────────────────────────────────────────────────────────────────────
+  // REDIS CONNECTION — Enable distributed cache & rate limiting
+  // ─────────────────────────────────────────────────────────────────────
+  try {
+    await connectRedis();
+    logger.info('[STARTUP] Redis connected — distributed cache & rate limiting active', { context: 'startup' });
+  } catch (redisErr: any) {
+    logger.warn(`[STARTUP] Redis unavailable (falling back to in-memory): ${redisErr.message}`, { context: 'startup' });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // SECURITY INITIALIZATION — RASP, debugger detection, integrity checks
+  // ─────────────────────────────────────────────────────────────────────
+  startDebuggerDetection();
+  initializeIntegrityChecks();
+  loadBlacklistFromDb().catch(() => {});
+    logger.info('[STARTUP] Advanced security layers initialized (RASP, anti-tampering, honeypots, token revocation)', { context: 'startup' });
+
+  // ─────────────────────────────────────────────────────────────────────
+  // WEBHOOK EVENT SYSTEM — Register internal event handlers
+  // ─────────────────────────────────────────────────────────────────────
+  registerInternalHandlers();
+  logger.info('[STARTUP] Webhook event system initialized', { context: 'startup' });
+
   // ─────────────────────────────────────────────────────────────────────
   // ENTERPRISE SCHEMA COMPLETION: Run on every startup (CREATE IF NOT EXISTS)
   // ─────────────────────────────────────────────────────────────────────
@@ -1256,7 +1440,15 @@ async function startServer() {
     if (fs.existsSync(distPath)) {
       app.use(express.static(distPath, { maxAge: '1y', immutable: true }));
     }
-    app.use(express.static(path.join(process.cwd(), 'public'), { maxAge: '1d' }));
+    app.use(express.static(path.join(process.cwd(), 'public'), {
+      maxAge: '1y',
+      immutable: true,
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('index.html')) {
+          res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+        }
+      }
+    }));
 
     app.get('*', (req, res) => {
       const distIndex = path.join(distPath, 'index.html');
@@ -1272,6 +1464,9 @@ async function startServer() {
     logger.info("Serving static files from dist/ in production.", { context: 'server' });
   }
 
+  // Observability — health checks and Prometheus metrics (no auth required)
+  healthRoutes(app);
+
   const server = app.listen(PORT, "0.0.0.0", () => {
     logger.info(`NexoraOS™ Intelligent Enterprise Operating System server listening on http://localhost:${PORT}`, { context: 'server' });
   });
@@ -1279,8 +1474,21 @@ async function startServer() {
   // Enterprise Graceful Shutdown handling for Kubernetes / Auto-scaling environments
   const gracefulShutdown = async (signal: string) => {
     logger.info(`\n[${signal}] Received. Initiating NexoraOS™ graceful shutdown...`, { context: 'shutdown' });
+
+    // Phase 1: Stop accepting new connections (load balancer should already be draining)
     server.close(async () => {
       logger.info('HTTP Server closed. No longer accepting new connections.', { context: 'shutdown' });
+
+      // Phase 2: Close Redis connection
+      try {
+        const { disconnectRedis } = await import('./src/server/redis');
+        await disconnectRedis();
+        logger.info('Redis connections closed gracefully.', { context: 'shutdown' });
+      } catch (e) {
+        // Redis may not have been initialized
+      }
+
+      // Phase 3: Close database pools
       try {
         const dbPool = getPool();
         if (dbPool) {
@@ -1290,7 +1498,6 @@ async function startServer() {
       } catch (e) {
         logger.error(`Error closing database connections: ${e}`, { context: 'shutdown' });
       }
-      // Also close the db.service.ts pool used by route files
       try {
         const { closeDatabasePool } = await import('./src/server/services/db.service');
         await closeDatabasePool();
@@ -1298,15 +1505,16 @@ async function startServer() {
       } catch (e) {
         // Pool may not have been initialized
       }
+
       logger.info('NexoraOS™ shutdown complete. Exiting process.', { context: 'shutdown' });
       process.exit(0);
     });
 
-    // Force shutdown if taking too long (10 seconds)
+    // Force shutdown if taking too long (25 seconds — allows for in-flight requests to complete)
     setTimeout(() => {
       logger.error('[ERROR] Could not close connections in time, forcefully shutting down', { context: 'shutdown' });
       process.exit(1);
-    }, 10000);
+    }, 25000);
   };
 
   process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

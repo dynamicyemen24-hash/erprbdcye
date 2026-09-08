@@ -14,6 +14,12 @@ import {
   Download, Layers, Ruler, Tag, Loader2, Coins,
 } from 'lucide-react';
 import { printHTML } from '../../lib/printUtils';
+import { cn } from '../../design-system/utils/cn';
+import { EmptyState } from '../../design-system/components/EmptyState';
+import { ErrorState } from '../../design-system/components/ErrorState';
+import { Spinner } from '../../design-system/components/Spinner';
+import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 import {
   MOVEMENT_TYPE_LABELS, INVENTORY_STATUS_LABELS, ADJUSTMENT_REASON_LABELS,
   INVENTORY_ROLE_PERMISSIONS,
@@ -125,9 +131,13 @@ function DataTable({ headers, rows, empty }: {
 }) {
   if (rows.length === 0) {
     return (
-      <div className="text-center py-10 text-xs text-slate-400 dark:text-zinc-500 font-bold bg-slate-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800">
-        {empty}
-      </div>
+      <EmptyState
+        variant="empty"
+        title="No data"
+        titleAr={empty}
+        lang="ar"
+        className="py-8"
+      />
     );
   }
   return (
@@ -193,17 +203,18 @@ function DashboardPanel({ refreshKey }: { refreshKey: number }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 gap-2 text-slate-400">
-        <Loader2 size={18} className="animate-spin" />
-        <span className="text-xs font-black">جارٍ تحميل لوحة القيادة...</span>
+      <div className="flex items-center justify-center py-20">
+        <Spinner size="md" variant="primary" lang="ar" labelAr="جارٍ تحميل لوحة القيادة..." />
       </div>
     );
   }
   if (!data) {
     return (
-      <div className="text-center py-16 text-xs text-slate-400 font-bold">
-        تعذر تحميل بيانات لوحة القيادة. تأكد من تشغيل الخادم ثم أعد المحاولة.
-      </div>
+      <ErrorState
+        onRetry={() => {}}
+        lang="ar"
+        messageAr="تعذر تحميل بيانات لوحة القيادة. تأكد من تشغيل الخادم ثم أعد المحاولة."
+      />
     );
   }
 
@@ -452,7 +463,7 @@ function MasterDataPanel({ refreshKey, onChanged }: { refreshKey: number; onChan
         <div className="mt-5 flex justify-end gap-2">
           <button className={BTN_GHOST} onClick={() => setShowItemModal(false)}>إلغاء</button>
           <button className={BTN_PRIMARY} onClick={saveItem} disabled={busy}>
-            {busy && <Loader2 size={14} className="animate-spin" />} حفظ الصنف
+            {busy && <Spinner size="xs" />} حفظ الصنف
           </button>
         </div>
       </Modal>
@@ -468,7 +479,7 @@ function MasterDataPanel({ refreshKey, onChanged }: { refreshKey: number; onChan
         <div className="mt-5 flex justify-end gap-2">
           <button className={BTN_GHOST} onClick={() => setShowWhModal(false)}>إلغاء</button>
           <button className={BTN_PRIMARY} onClick={saveWarehouse} disabled={busy}>
-            {busy && <Loader2 size={14} className="animate-spin" />} حفظ المخزن
+            {busy && <Spinner size="xs" />} حفظ المخزن
           </button>
         </div>
             </Modal>
@@ -620,8 +631,8 @@ function ReportsPanel({ refreshKey, lang = 'ar', isRtl = true }: { refreshKey: n
     return () => { alive = false; };
   }, [refreshKey]);
 
-  if (loading) return <div className="text-center py-16 text-slate-400"><Loader2 size={24} className="animate-spin mx-auto mb-3" /> جارٍ تحميل التقارير...</div>;
-  if (!data) return <p className="text-xs text-slate-400">لا توجد بيانات تقارير.</p>;
+  if (loading) return <div className="flex items-center justify-center py-16"><Spinner size="md" variant="primary" lang="ar" labelAr="جارٍ تحميل التقارير..." /></div>;
+  if (!data) return <ErrorState onRetry={() => {}} lang="ar" messageAr="لا توجد بيانات تقارير." />;
 
   return (
     <div className="space-y-5">
@@ -677,7 +688,7 @@ function SettingsPanel({ refreshKey, onChanged, currentUser }: { refreshKey: num
     finally { setBusy(false); }
   };
 
-  if (loading) return <div className="text-center py-16 text-slate-400"><Loader2 size={24} className="animate-spin mx-auto mb-3" /> جارٍ تحميل الإعدادات...</div>;
+  if (loading) return <div className="flex items-center justify-center py-16"><Spinner size="md" variant="primary" lang="ar" labelAr="جارٍ تحميل الإعدادات..." /></div>;
 
   return (
     <div className="space-y-5">
@@ -695,7 +706,7 @@ function SettingsPanel({ refreshKey, onChanged, currentUser }: { refreshKey: num
         </div>
         {err && <div className="mt-3 text-xs text-rose-600 font-black p-2 bg-rose-50 dark:bg-rose-950/30 rounded-xl">{err}</div>}
         <div className="mt-4 flex justify-end">
-          <button className={BTN_PRIMARY} onClick={save} disabled={busy}>{busy && <Loader2 size={14} className="animate-spin" />} حفظ السياسات</button>
+          <button className={BTN_PRIMARY} onClick={save} disabled={busy}>{busy && <Spinner size="xs" />} حفظ السياسات</button>
         </div>
       </div>
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-5">
@@ -731,7 +742,7 @@ export default function InventoryWorkspaceView({ lang, currentUser, onNavigate }
     { id: 'stocktake', label: 'الجرد الفعلي', icon: ClipboardCheck, tone: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
     { id: 'documents', label: 'المستندات', icon: FileText, tone: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
     { id: 'reports', label: 'التقارير والذكاء', icon: BarChart3, tone: 'bg-rose-500/10 text-rose-600 dark:text-rose-400' },
-    { id: 'settings', label: 'الإعدادات والصلاحيات', icon: Settings2, tone: 'bg-slate-500/10 text-slate-600 dark:text-slate-400' },
+    { id: 'settings', label: 'الإعدادات والصلاحيات', icon: Settings2, tone: 'bg-slate-500/10 text-slate-600 dark:text-zinc-400' },
   ];
 
   const renderPanel = () => {

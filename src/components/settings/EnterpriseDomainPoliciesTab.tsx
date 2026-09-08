@@ -22,6 +22,7 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import { useEnterprisePolicies } from '../../core/hooks/useEnterprisePolicies';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface EnterpriseDomainPoliciesTabProps {
   lang: 'ar' | 'en';
@@ -382,8 +383,7 @@ export default function EnterpriseDomainPoliciesTab({ lang }: EnterpriseDomainPo
           disabled={loading}
           className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-black flex items-center gap-2 border border-zinc-700 transition-all cursor-pointer shadow-md disabled:opacity-50"
         >
-          <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
-          <span>{lang === 'ar' ? 'تحديث من السحابة' : 'Refresh from DB'}</span>
+          <Spinner size="sm" /> <span>{lang === 'ar' ? 'تحديث من السحابة' : 'Refresh from DB'}</span>
         </button>
       </div>
 

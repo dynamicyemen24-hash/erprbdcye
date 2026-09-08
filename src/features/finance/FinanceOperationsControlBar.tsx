@@ -20,6 +20,8 @@ import {
   Layers,
   ArrowRightLeft
 } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface FinanceOperationsControlBarProps {
   lang: 'ar' | 'en';
@@ -125,15 +127,16 @@ export default function FinanceOperationsControlBar({
           
           {/* NEW JOURNAL VOUCHER BUTTON */}
           <div className="relative">
-            <button
+            <EnterpriseButton
               onClick={onNewVoucher}
               onMouseEnter={() => setShowTooltip('new_voucher')}
               onMouseLeave={() => setShowTooltip(null)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-950/30 transition-all flex items-center gap-1.5 cursor-pointer"
+              variant="primary"
+              size="md"
+              icon={<Plus className="w-4 h-4" />}
             >
-              <Plus className="w-4 h-4" />
-              <span>{isRtl ? 'إضافة قيد / سند جديد' : 'New Journal Voucher'}</span>
-            </button>
+              {isRtl ? 'إضافة قيد / سند جديد' : 'New Journal Voucher'}
+            </EnterpriseButton>
             {showTooltip === 'new_voucher' && (
               <div className="absolute bottom-full mb-2 right-0 bg-zinc-900 border border-zinc-700 text-zinc-200 text-[10px] p-2 rounded-lg shadow-xl w-48 z-50 animate-in fade-in">
                 {isRtl ? 'إنشاء قيد يومية جديد أو سند قبض/صرف مزدوج متزن' : 'Create new balanced journal, receipt or payment voucher.'}
@@ -169,8 +172,7 @@ export default function FinanceOperationsControlBar({
               onMouseLeave={() => setShowTooltip(null)}
               className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>{isRtl ? 'تحديث' : 'Refresh'}</span>
+              <Spinner size="xs" /> <span>{isRtl ? 'تحديث' : 'Refresh'}</span>
             </button>
             {showTooltip === 'refresh' && (
               <div className="absolute bottom-full mb-2 left-0 bg-zinc-900 border border-zinc-700 text-zinc-300 text-[10px] p-2 rounded-lg shadow-xl w-40 z-50 animate-in fade-in">

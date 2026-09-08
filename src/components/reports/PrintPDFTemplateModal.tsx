@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   X, 
   Printer, 
@@ -13,39 +13,7 @@ import {
   FileSpreadsheet,
   AlertCircle
 } from 'lucide-react';
-import { 
-  buildProjectReportHTML, 
-  buildFinancialStatementPDFHTML, 
-  buildExecutiveReportPDFHTML,
-  buildBeneficiaryReportPDFHTML,
-  buildPredictiveReportPDFHTML,
-  buildEvaluationReportPDFHTML,
-  buildInterconnectedReportPDFHTML,
-  buildStrategyReportPDFHTML,
-  buildProgramsReportPDFHTML,
-  buildActivitiesReportPDFHTML,
-  buildStaffReportPDFHTML,
-  buildOperationalManualPDFHTML,
-  buildUserManualPDFHTML,
-  buildProcurementReportPDFHTML,
-  buildInventoryReportPDFHTML,
-  buildSponsorshipReportPDFHTML,
-  buildRevenueInvestmentReportPDFHTML,
-  buildAuditReportPDFHTML,
-  buildOfficialPaymentVoucherPDFHTML,
-  buildOfficialReceiptVoucherPDFHTML,
-  buildOfficialJournalVoucherPDFHTML,
-  buildOfficialGoodsReceiptIssuePDFHTML,
-  buildOfficialPurchaseOrderPDFHTML,
-  buildOfficialBeneficiaryAidCardPDFHTML,
-  buildOfficialArabicMemoPDFHTML,
-  buildOfficialCompletionCertificatePDFHTML,
-  buildOfficialDonationAcknowledgmentPDFHTML,
-  buildOfficialVolunteerAppreciationPDFHTML,
-  generateAndDownloadPDF, 
-  printPDFHTML,
-  safeArray 
-} from '../../lib/pdfReportGenerator';
+import type * as ReportGenNS from '../../lib/pdfReportGenerator';
 import { useEnterprise } from '../../core/context/EnterpriseContext';
 import { sanitizeHtml } from '../../lib/htmlSanitizer';
 
@@ -246,7 +214,50 @@ export default function PrintPDFTemplateModal({
     excellenceAr: data.excellenceAr || ''
   });
 
+  // Lazy report engine: the heavy generator (~280KB) loads ONLY when the modal
+  // opens, and the expensive HTML build no longer runs on every parent re-render
+  // while the modal is closed.
+  const [reportGen, setReportGen] = useState<typeof ReportGenNS | null>(null);
+  useEffect(() => {
+    if (!isOpen || reportGen) return;
+    let alive = true;
+    import('../../lib/pdfReportGenerator').then((m) => { if (alive) setReportGen(m); });
+    return () => { alive = false; };
+  }, [isOpen, reportGen]);
+
   const generatedHTML = useMemo(() => {
+    if (!reportGen) return '';
+    const {
+      safeArray,
+      buildProjectReportHTML,
+      buildFinancialStatementPDFHTML,
+      buildExecutiveReportPDFHTML,
+      buildBeneficiaryReportPDFHTML,
+      buildPredictiveReportPDFHTML,
+      buildEvaluationReportPDFHTML,
+      buildInterconnectedReportPDFHTML,
+      buildStrategyReportPDFHTML,
+      buildProgramsReportPDFHTML,
+      buildActivitiesReportPDFHTML,
+      buildStaffReportPDFHTML,
+      buildOperationalManualPDFHTML,
+      buildUserManualPDFHTML,
+      buildProcurementReportPDFHTML,
+      buildInventoryReportPDFHTML,
+      buildSponsorshipReportPDFHTML,
+      buildRevenueInvestmentReportPDFHTML,
+      buildAuditReportPDFHTML,
+      buildOfficialPaymentVoucherPDFHTML,
+      buildOfficialReceiptVoucherPDFHTML,
+      buildOfficialJournalVoucherPDFHTML,
+      buildOfficialGoodsReceiptIssuePDFHTML,
+      buildOfficialPurchaseOrderPDFHTML,
+      buildOfficialBeneficiaryAidCardPDFHTML,
+      buildOfficialArabicMemoPDFHTML,
+      buildOfficialCompletionCertificatePDFHTML,
+      buildOfficialDonationAcknowledgmentPDFHTML,
+      buildOfficialVolunteerAppreciationPDFHTML,
+    } = reportGen;
     if (type === 'project' || type === 'projects') {
       return buildProjectReportHTML({
         projects: safeArray(data.projects),
@@ -618,18 +629,22 @@ export default function PrintPDFTemplateModal({
         orgNameEn: activeOrg?.name_en
       });
     }
-  }, [type, data, reportTitle, reportSubtitle, lang, accentColor, includeSummary, includeRiskMatrix, includeSignatures, activeOrg, orgName]);
+  }, [reportGen, isOpen, type, data, reportTitle, reportSubtitle, lang, accentColor, includeSummary, includeRiskMatrix, includeSignatures, activeOrg, orgName]);
 
   if (!isOpen) return null;
 
-  const handlePrint = () => {
-    printPDFHTML(generatedHTML);
+  const handlePrint = async () => {
+    const mod = reportGen || (await import('../../lib/pdfReportGenerator'));
+    if (!reportGen) setReportGen(mod);
+    mod.printPDFHTML(generatedHTML);
   };
 
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
+    const mod = reportGen || (await import('../../lib/pdfReportGenerator'));
+    if (!reportGen) setReportGen(mod);
     const cleanFileName = reportTitle.replace(/[^a-zA-Z0-9آ-ي]/g, '_') || 'NexoraOS_Report';
-    await generateAndDownloadPDF(generatedHTML, cleanFileName);
+    await mod.generateAndDownloadPDF(generatedHTML, cleanFileName);
     setIsGenerating(false);
   };
 
@@ -936,7 +951,7 @@ export default function PrintPDFTemplateModal({
             <div className="w-full max-w-[760px] bg-white shadow-2xl rounded-sm border border-slate-300 p-2 min-h-[800px] overflow-x-auto">
               {/* Dynamic HTML Output Preview */}
               <div 
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(generatedHTML) }} 
+                dangerouslySetInnerHTML={{ __html: reportGen ? sanitizeHtml(generatedHTML) : '<p style="text-align:center;color:#94a3b8;padding:48px 0;font-family:sans-serif;">جارٍ تهيئة محرك التقارير المؤسسي...</p>' }} 
                 className="w-full text-slate-900"
               />
             </div>

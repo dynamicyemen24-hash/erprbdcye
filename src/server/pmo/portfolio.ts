@@ -10,6 +10,7 @@
 // Strategic Alignment, Resource Optimization, Prioritization
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { randomInt } from 'crypto';
 import type {
   Portfolio,
   Program,
@@ -153,7 +154,7 @@ export class PortfolioManagementEngine {
     totalBudget?: number;
   }): Portfolio {
     return {
-      id: `PORT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `PORT-${Date.now()}-${randomInt(0, 1000)}`,
       portfolioCode: params.portfolioCode,
       name: params.name,
       description: params.description,
@@ -187,7 +188,7 @@ export class PortfolioManagementEngine {
     totalBudget?: number;
   }): Program {
     return {
-      id: `PROG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `PROG-${Date.now()}-${randomInt(0, 1000)}`,
       programCode: params.programCode,
       name: params.name,
       portfolioId: params.portfolioId,

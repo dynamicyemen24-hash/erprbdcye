@@ -19,6 +19,7 @@ import {
 import { enterpriseTokens } from '../../../core/theme/enterpriseDesignTokens';
 import { normalizeArabicText } from '../../../core/utils/arabicSearch';
 import { showToast } from '../EnterpriseToastContainer';
+import { Spinner } from '../../../design-system/components/Spinner';
 
 export interface ColumnDef<T> {
   key: Extract<keyof T, string>;
@@ -434,8 +435,7 @@ export function EnterpriseDataGrid<T>({
               <tr>
                 <td colSpan={visibleColumns.length + (onRowClick ? 1 : 0)} className="px-4 py-16 text-center">
                   <div className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-zinc-400">
-                    <RefreshCw className="w-4 h-4 animate-spin text-emerald-600" />
-                    <span>{isRtl ? 'جاري جلب وتحديث السجلات...' : 'Loading and calculating records...'}</span>
+                    <Spinner size="sm" /> <span>{isRtl ? 'جاري جلب وتحديث السجلات...' : 'Loading and calculating records...'}</span>
                   </div>
                 </td>
               </tr>

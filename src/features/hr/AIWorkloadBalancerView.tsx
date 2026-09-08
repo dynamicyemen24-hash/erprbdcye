@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Users, Activity, Briefcase, Zap, RefreshCw, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface StaffWorkload {
   id: string;
@@ -52,8 +53,7 @@ export default function AIWorkloadBalancerView({ lang }: { lang: 'ar' | 'en' }) 
           disabled={balancing}
           className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-indigo-950/20 disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${balancing ? 'animate-spin' : ''}`} />
-          <span>{isRtl ? 'إعادة الموازنة بالذكاء الاصطناعي' : 'Auto-Balance Workload'}</span>
+          <Spinner size="xs" /> <span>{isRtl ? 'إعادة الموازنة بالذكاء الاصطناعي' : 'Auto-Balance Workload'}</span>
         </button>
       </div>
 

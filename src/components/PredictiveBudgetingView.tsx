@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { TrendingDown, Loader2, DollarSign } from 'lucide-react';
+import { TrendingDown, DollarSign } from 'lucide-react';
 import { getBudgetForecast, BudgetForecast } from '../core/services/predictiveBudgeting';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface PredictiveBudgetingViewProps {
   ledgerEntries: any[];
@@ -36,7 +37,7 @@ export default function PredictiveBudgetingView({ ledgerEntries, lang }: Predict
         disabled={loading}
         className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center gap-2"
       >
-        {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+        {loading && <Spinner size="xs" />}
         {lang === 'ar' ? 'تشغيل التوقعات' : 'Run Forecast'}
       </button>
 

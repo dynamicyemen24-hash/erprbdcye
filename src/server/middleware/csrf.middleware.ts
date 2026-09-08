@@ -27,7 +27,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
 
   const allowedOrigins: string[] =
     serverConfig.allowedOrigins ||
-    (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
+    (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
 
   // In development with no configured origins, allow all
   if (allowedOrigins.length === 0 && process.env.NODE_ENV !== 'production') {

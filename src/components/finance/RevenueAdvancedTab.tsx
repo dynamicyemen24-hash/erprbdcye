@@ -8,6 +8,8 @@ import {
   Layers, Shield, CalendarClock, Plus, CheckCircle2, XCircle, Clock,
   AlertTriangle, ChevronRight, RefreshCw, Loader2, BarChart3, TrendingUp, Send
 } from 'lucide-react';
+import { showToast } from '../enterprise/EnterpriseToastContainer';
+import { Spinner } from '../../design-system/components/Spinner';
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -120,8 +122,8 @@ function BatchRevenuePanel({ lang, apiBase }: { lang: 'ar' | 'en'; apiBase?: str
       const res = await fetch(`${apiBase || '/api'}/v2/revenue/batches/${id}/${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       const json = await res.json();
       if (json.success) { await fetchBatches(); setSelectedBatch(null); }
-      else alert(json.message || 'Action failed');
-    } catch (e: any) { alert(e.message); }
+      else showToast({ type: 'error', title: 'خطأ', message: json.message || 'Action failed' });
+    } catch (e: any) { showToast({ type: 'error', title: 'خطأ', message: e.message }); }
     setBusyId('');
   };
 
@@ -145,7 +147,7 @@ function BatchRevenuePanel({ lang, apiBase }: { lang: 'ar' | 'en'; apiBase?: str
       {error && <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-lg text-xs text-rose-700 dark:text-rose-300">{error}</div>}
 
       {loading ? (
-        <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-emerald-600" /></div>
+        <div className="flex items-center justify-center py-8"><Spinner size="md" variant="primary" /></div>
       ) : batches.length === 0 ? (
         <div className="text-center py-8 text-slate-400 dark:text-zinc-500 text-sm">{isAr ? 'لا توجد دفعات' : 'No batches found'}</div>
       ) : (
@@ -200,7 +202,7 @@ function BatchRevenuePanel({ lang, apiBase }: { lang: 'ar' | 'en'; apiBase?: str
                       {b.status === 'DRAFT' && (
                         <button onClick={() => doAction(b.id, 'submit')} disabled={busyId === b.id}
                           className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
-                          {busyId === b.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                          {busyId === b.id ? <Spinner size="xs" /> : <Send className="w-3.5 h-3.5" />}
                           {isAr ? 'تقديم للاعتماد' : 'Submit for Approval'}
                         </button>
                       )}
@@ -219,7 +221,7 @@ function BatchRevenuePanel({ lang, apiBase }: { lang: 'ar' | 'en'; apiBase?: str
                       {b.status === 'APPROVED' && (
                         <button onClick={() => doAction(b.id, 'post')} disabled={busyId === b.id}
                           className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
-                          {busyId === b.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Layers className="w-3.5 h-3.5" />}
+                          {busyId === b.id ? <Spinner size="xs" /> : <Layers className="w-3.5 h-3.5" />}
                           {isAr ? 'ترحيل للغة الأستاذ' : 'Post to Ledger'}
                         </button>
                       )}
@@ -282,7 +284,7 @@ function FundingCapsPanel({ lang, apiBase }: { lang: 'ar' | 'en'; apiBase?: stri
       {error && <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 rounded-lg text-xs text-rose-700">{error}</div>}
 
       {loading ? (
-        <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-emerald-600" /></div>
+        <div className="flex items-center justify-center py-8"><Spinner size="md" variant="primary" /></div>
       ) : caps.length === 0 ? (
         <div className="text-center py-8 text-slate-400 text-sm">{isAr ? 'لا توجد أسقف تمويل' : 'No funding caps found'}</div>
       ) : (
@@ -376,7 +378,7 @@ function RevenueSchedulesPanel({ lang, apiBase }: { lang: 'ar' | 'en'; apiBase?:
       {error && <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700">{error}</div>}
 
       {loading ? (
-        <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-emerald-600" /></div>
+        <div className="flex items-center justify-center py-8"><Spinner size="md" variant="primary" /></div>
       ) : schedules.length === 0 ? (
         <div className="text-center py-8 text-slate-400 text-sm">{isAr ? 'لا توجد جداول' : 'No schedules found'}</div>
       ) : (

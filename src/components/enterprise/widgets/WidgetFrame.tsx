@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   Move
 } from 'lucide-react';
+import { Spinner } from '../../../design-system/components/Spinner';
 
 interface WidgetFrameProps {
   id: string;
@@ -150,7 +151,7 @@ export function WidgetFrame({
           </div>
         ) : loading && !isRefreshing ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 z-10">
-            <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <Spinner size="md" variant="accent" />
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest animate-pulse">Loading Data...</p>
           </div>
         ) : empty ? (
@@ -211,7 +212,7 @@ export function WidgetFrame({
               className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-zinc-800 rounded-md transition-colors disabled:opacity-50"
               title="Refresh Widget"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <Spinner size="xs" />
             </button>
           )}
 

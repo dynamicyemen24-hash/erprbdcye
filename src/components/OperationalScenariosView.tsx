@@ -59,8 +59,10 @@ import {
 import { ModuleShell } from './enterprise/ModuleShell';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 import { triggerHaptic } from '../helpers/hapticSwipe';
-import { instantPrint } from '../core/export';
+import { instantPrint, buildOfficialStampFooter } from '../core/export';
 import { OrgHierarchySymbol } from './common/SovereignSystemIcons';
+import { EnterpriseButton } from './common/EnterpriseButton';
+import { cn } from '../design-system/utils/cn';
 
 interface OperationalScenariosViewProps {
   lang: 'ar' | 'en';
@@ -2184,10 +2186,7 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
           `).join('')}
         </div>
 
-        <div class="footer">
-          <div>جهة الاعتماد: ${doc.sampleData.authorizer} | تدقيق الجودة والمساءلة: معتمد</div>
-          <div>رقم التحقق المشفر: DOC-UAM-${doc.code}-${Math.floor(Math.random() * 89999 + 10000)} | UAMEX ERP™</div>
-        </div>
+        ${buildOfficialStampFooter({ docCode: `DOC-UAM-${doc.code}`, lang, endorsementAr: `جهة الاعتماد: ${doc.sampleData.authorizer} | تدقيق الجودة والمساءلة: معتمد`, contentSeed: `${doc.sampleData.refNumber}|${details.join('|')}`, classification: 'OFFICIAL', complianceStandard: String(doc.standardReference || '') })}
       </body>
       </html>
     `;
@@ -2268,18 +2267,19 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
       icon={Compass}
       actions={
         <div className="flex items-center gap-2">
-          <button
+          <EnterpriseButton
+            variant="primary"
+            size="sm"
             onClick={() => {
               setPdfReportTitle(lang === 'ar' ? 'الدليل التشغيلي المؤسسي واللوائح والتوصيف الوظيفي' : 'Enterprise SOP, Governance Bylaws & Job Taxonomy');
               setPdfReportSubtitle(lang === 'ar' ? 'النواة التنظيمية المعتمدة لجمعية رُحماء بينهم للعمل الإنساني والتنمية' : 'Official Operating Core & Standard Procedures');
               setIsPDFModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors shadow-sm cursor-pointer"
+            icon={<FileText className="w-4 h-4" />}
             title={lang === 'ar' ? 'إصدار وطباعة الدليل المؤسسي كوثيقة PDF معتمدة' : 'Export Certified PDF SOP'}
           >
-            <FileText className="w-4 h-4" />
             <span>{lang === 'ar' ? 'وثيقة PDF معتمدة' : 'Official PDF Manual'}</span>
-          </button>
+          </EnterpriseButton>
 
           <button
             onClick={handleInstantPrintActiveDossier}
@@ -2473,13 +2473,15 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                         {lang === 'ar' ? tmpl.descriptionAr : tmpl.descriptionEn}
                       </p>
                     </div>
-                    <button
+                    <EnterpriseButton
+                      variant="primary"
+                      size="sm"
                       onClick={() => handleApplyTemplate(tmpl)}
-                      className="mt-3 w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black flex items-center justify-center gap-1 transition-colors"
+                      icon={<Download className="w-3.5 h-3.5" />}
+                      block
                     >
-                      <Download className="w-3.5 h-3.5" />
                       <span>{lang === 'ar' ? 'تطبيق القالب في النظام' : 'Apply Template'}</span>
-                    </button>
+                    </EnterpriseButton>
                   </div>
                 ))}
               </div>
@@ -2561,16 +2563,17 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between gap-2">
-                      <button
-                        onClick={(e) => {
+                      <EnterpriseButton
+                        variant="primary"
+                        size="sm"
+                        onClick={(e: any) => {
                           e.stopPropagation();
                           if (onNavigate) onNavigate(phase.targetTab);
                         }}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
                       >
                         <span>{lang === 'ar' ? 'فتح الشاشة الآن' : 'Open Screen'}</span>
                         <ArrowUpRight className="w-3.5 h-3.5" />
-                      </button>
+                      </EnterpriseButton>
 
                       <button
                         onClick={() => {
@@ -2717,13 +2720,14 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                   <span className={`text-xs font-black px-3 py-1 rounded-full border ${activePhase.badgeColor}`}>
                     {lang === 'ar' ? activePhase.priorityLevelAr : activePhase.priorityLevelEn}
                   </span>
-                  <button
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
                     onClick={() => onNavigate && onNavigate(activePhase.targetTab)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
+                    icon={<ArrowUpRight className="w-4 h-4" />}
                   >
-                    <ArrowUpRight className="w-4 h-4" />
                     <span>{lang === 'ar' ? 'الانتقال للشاشة التخصصية' : 'Open Target Screen'}</span>
-                  </button>
+                  </EnterpriseButton>
                 </div>
 
                 <div>
@@ -2828,13 +2832,14 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                           </div>
 
                           <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-                            <button
+                            <EnterpriseButton
+                              variant="primary"
+                              size="sm"
                               onClick={() => onNavigate && onNavigate(step.linkedScreen)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
+                              icon={<ArrowUpRight className="w-3.5 h-3.5" />}
                             >
-                              <ArrowUpRight className="w-3.5 h-3.5" />
                               <span>{lang === 'ar' ? `تنفيذ الإجراء في شاشة (${step.linkedScreen})` : `Execute in ${step.linkedScreen}`}</span>
-                            </button>
+                            </EnterpriseButton>
 
                             <button
                               onClick={() => setActiveStepAI(step)}
@@ -2911,13 +2916,14 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                     </p>
                   </div>
 
-                  <button
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
                     onClick={() => onNavigate && onNavigate(activeJobProfile.targetTab)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
+                    icon={<ArrowUpRight className="w-4 h-4" />}
                   >
-                    <ArrowUpRight className="w-4 h-4" />
                     <span>{lang === 'ar' ? 'فتح الشاشة التخصصية' : 'Open Workspace'}</span>
-                  </button>
+                  </EnterpriseButton>
                 </div>
 
                 {/* Purpose & Authority Limits */}
@@ -3082,13 +3088,14 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                       </div>
                     </div>
 
-                    <button
+                    <EnterpriseButton
+                      variant="primary"
+                      size="sm"
                       onClick={() => onNavigate && onNavigate(activeJobProfile.targetTab)}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black flex items-center gap-1 shrink-0 transition-colors"
+                      icon={<ArrowUpRight className="w-3.5 h-3.5" />}
                     >
-                      <ArrowUpRight className="w-3.5 h-3.5" />
                       <span>{lang === 'ar' ? 'نفّذ الإجراء الآن' : 'Execute Now'}</span>
-                    </button>
+                    </EnterpriseButton>
                   </div>
                 );
               })}
@@ -3147,17 +3154,18 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                 <span className="text-xs font-black text-emerald-900 dark:text-emerald-200">التقييم المؤسسي الإجمالي العام: 97.2% (مستوى الامتثال البلاتيني المتقدم)</span>
                 <p className="text-[11px] text-emerald-800/80">متوافق 100% مع متطلبات المعايير الإنسانية الدولية CHS ومعايير IPSAS للمحاسبة الدولية.</p>
               </div>
-              <button
-                onClick={() => {
-                  setPdfReportTitle(lang === 'ar' ? 'بطاقة تقييم الأداء والمتابعة والامتثال الإنساني MEAL' : 'Official MEAL Compliance & Performance Scorecard');
-                  setPdfReportSubtitle(lang === 'ar' ? 'مستوى الامتثال البلاتيني المتقدم 97.2% - معايير CHS وإسفير وIPSAS' : '97.2% Platinum Compliance - CHS, Sphere & IPSAS Standards');
-                  setIsPDFModalOpen(true);
-                }}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
-              >
-                <FileText className="w-4 h-4" />
-                <span>{lang === 'ar' ? 'طباعة بطاقة تقييم الأداء المعتمدة (PDF)' : 'Print Certified MEAL Scorecard'}</span>
-              </button>
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setPdfReportTitle(lang === 'ar' ? 'بطاقة تقييم الأداء والمتابعة والامتثال الإنساني MEAL' : 'Official MEAL Compliance & Performance Scorecard');
+                    setPdfReportSubtitle(lang === 'ar' ? 'مستوى الامتثال البلاتيني المتقدم 97.2% - معايير CHS وإسفير وIPSAS' : '97.2% Platinum Compliance - CHS, Sphere & IPSAS Standards');
+                    setIsPDFModalOpen(true);
+                  }}
+                  icon={<FileText className="w-4 h-4" />}
+                >
+                  <span>{lang === 'ar' ? 'طباعة بطاقة تقييم الأداء المعتمدة (PDF)' : 'Print Certified MEAL Scorecard'}</span>
+                </EnterpriseButton>
             </div>
           </div>
         )}
@@ -3203,13 +3211,14 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between gap-2">
-                    <button
+                    <EnterpriseButton
+                      variant="primary"
+                      size="sm"
                       onClick={() => setPreviewDoc(doc)}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
+                      icon={<Eye className="w-3.5 h-3.5" />}
                     >
-                      <Eye className="w-3.5 h-3.5" />
                       <span>{lang === 'ar' ? 'معاينة وطباعة المستند' : 'Preview & Print'}</span>
-                    </button>
+                    </EnterpriseButton>
 
                     <button
                       onClick={() => onNavigate && onNavigate(doc.targetTab)}
@@ -3291,27 +3300,29 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
               </div>
 
               <div className="p-4 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-900">
-                <button
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   onClick={() => {
                     if (onNavigate) {
                       onNavigate(previewDoc.targetTab);
                       setPreviewDoc(null);
                     }
                   }}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors"
+                  icon={<ArrowUpRight className="w-4 h-4" />}
                 >
-                  <ArrowUpRight className="w-4 h-4" />
                   <span>{lang === 'ar' ? 'الانتقال للشاشة وإصدار المعاملة' : 'Open Screen to Issue Live Voucher'}</span>
-                </button>
+                </EnterpriseButton>
 
                 <div className="flex items-center gap-2">
-                  <button
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
                     onClick={() => handleInstantPrintTemplateDoc(previewDoc!)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    icon={<Printer className="w-4 h-4" />}
                   >
-                    <Printer className="w-4 h-4" />
                     <span>{lang === 'ar' ? 'طباعة النموذج معتمد [فوري]' : 'Instant Print'}</span>
-                  </button>
+                  </EnterpriseButton>
                   <button
                     onClick={() => setPreviewDoc(null)}
                     className="px-4 py-2 bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-lg text-xs font-bold"
@@ -3362,17 +3373,18 @@ function OperationalScenariosView({ lang, onNavigate, orgName }: OperationalScen
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <button
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   onClick={() => {
                     if (onNavigate) {
                       onNavigate(activeStepAI.linkedScreen);
                       setActiveStepAI(null);
                     }
                   }}
-                  className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-black"
                 >
                   {lang === 'ar' ? 'الانتقال للشاشة والتنفيذ' : 'Open Screen'}
-                </button>
+                </EnterpriseButton>
                 <button
                   onClick={() => setActiveStepAI(null)}
                   className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 rounded-lg text-xs font-bold"

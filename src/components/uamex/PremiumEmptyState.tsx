@@ -29,8 +29,7 @@ import {
   Wrench,
   XCircle,
 } from 'lucide-react';
-
-const t = (ar: string, en: string, lang: 'ar' | 'en') => (lang === 'ar' ? ar : en);
+import { Spinner } from '../../design-system/components/Spinner';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Premium Empty State Component
@@ -210,6 +209,7 @@ export function PremiumEmptyState({
   className = '',
 }: PremiumEmptyStateProps) {
   const cfg = VARIANT_CONFIG[variant];
+  const t = (ar: string, en: string, _lang?: string) => (lang === 'ar' ? ar : en);
   const title = titleAr || cfg.defaultTitleAr;
   const titleE = titleEn || cfg.defaultTitleEn;
   const desc = descriptionAr || cfg.defaultDescAr;
@@ -443,7 +443,7 @@ export function PremiumLoadingState({ lang, messageAr, messageEn, size = 'md', f
     <div className={`flex flex-col items-center justify-center gap-3 ${fullScreen ? 'min-h-screen' : 'min-h-[300px]'} bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-zinc-950 dark:to-emerald-950/10 rounded-2xl`}>
       <div className="relative" style={{ width: s, height: s }}>
         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-600 to-teal-500 opacity-20 blur-xl animate-pulse-slow" />
-        <Loader2 className="relative w-full h-full text-emerald-600 animate-spin" strokeWidth={2.5} />
+        <Spinner size="xl" variant="primary" />
       </div>
       <div className="text-sm font-bold text-slate-700 dark:text-zinc-300">
         {lang === 'ar' ? (messageAr || 'جاري التحميل...') : (messageEn || 'Loading...')}

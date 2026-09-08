@@ -725,7 +725,7 @@ export class ContinuousComplianceEngine {
       entityId: entry.entityId,
       timestamp: entry.timestamp,
     });
-    entry.signature = crypto.createHmac('sha256', process.env.AUDIT_HMAC_SECRET || 'nexora-audit')
+    entry.signature = crypto.createHmac('sha256', process.env.AUDIT_HMAC_SECRET || crypto.createHash('sha256').update('nexora-audit-' + (process.env.JWT_SECRET || '')).digest('hex'))
       .update(signaturePayload)
       .digest('hex');
 

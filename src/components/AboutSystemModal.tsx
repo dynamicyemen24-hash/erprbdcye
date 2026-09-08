@@ -258,10 +258,10 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
           {activeTab === 'video' && (
             <div className="space-y-4 animate-fade-in">
               {/* Kinetic Motion Interactive Operational Scenario Showcase Player */}
-              <div className="relative rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-6">
+              <div className="relative rounded-2xl overflow-hidden bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 p-6 shadow-2xl space-y-6">
                 
                 {/* Header Strip with Controls */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-zinc-800">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-extrabold text-xs">
                       {SCENARIO_STEPS[currentStepIndex].step}/5
@@ -273,7 +273,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                           {isRtl ? SCENARIO_STEPS[currentStepIndex].domain : SCENARIO_STEPS[currentStepIndex].domain}
                         </span>
                       </h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      <p className="text-[10px] text-slate-500 dark:text-zinc-400">
                         {isRtl ? 'محاكاة حركية تفاعلية مدتها 5 مراحل تشغيلية تغطي دورة العمل في المنظومة' : 'Interactive 5-stage motion simulator demonstrating the full operational workflow'}
                       </p>
                     </div>
@@ -328,7 +328,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                 </div>
 
                 {/* Animated Kinetic Card Display */}
-                <div className="relative rounded-2xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-zinc-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800 p-6 min-h-[190px] flex flex-col justify-between overflow-hidden shadow-inner group">
+                <div className="relative rounded-2xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-950 border border-slate-200 dark:border-zinc-800 p-6 min-h-[190px] flex flex-col justify-between overflow-hidden shadow-inner group">
                   <div className="relative z-10 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-black font-mono text-white bg-gradient-to-r ${SCENARIO_STEPS[currentStepIndex].color} shadow-sm`}>
@@ -343,7 +343,7 @@ export const AboutSystemModal: React.FC<AboutSystemModalProps> = ({
                       {isRtl ? SCENARIO_STEPS[currentStepIndex].titleAr : SCENARIO_STEPS[currentStepIndex].titleEn}
                     </h3>
 
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl animate-in fade-in duration-300">
+                    <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed max-w-xl animate-in fade-in duration-300">
                       {isRtl ? SCENARIO_STEPS[currentStepIndex].descAr : SCENARIO_STEPS[currentStepIndex].descEn}
                     </p>
                   </div>

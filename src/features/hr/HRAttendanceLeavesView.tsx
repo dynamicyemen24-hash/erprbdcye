@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 
 interface HRAttendanceLeavesViewProps {
   lang: 'ar' | 'en';
@@ -21,9 +22,9 @@ export default function HRAttendanceLeavesView({ lang }: HRAttendanceLeavesViewP
           </p>
         </div>
 
-        <button className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer">
+        <EnterpriseButton variant="primary" size="sm">
           {isRtl ? 'طلب إجازة جديد' : 'Submit Leave Request'}
-        </button>
+        </EnterpriseButton>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -62,9 +63,9 @@ export default function HRAttendanceLeavesView({ lang }: HRAttendanceLeavesViewP
                   <span className="font-bold block text-slate-800 dark:text-zinc-200">{req.name}</span>
                   <span className="text-[10px] text-amber-600 font-bold">{req.type} ({req.days})</span>
                 </div>
-                <button className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-bold cursor-pointer">
+                <EnterpriseButton variant="primary" size="xs">
                   {isRtl ? 'اعتماد' : 'Approve'}
-                </button>
+                </EnterpriseButton>
               </div>
             ))}
           </div>

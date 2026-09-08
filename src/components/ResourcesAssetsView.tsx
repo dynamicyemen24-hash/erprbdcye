@@ -42,7 +42,9 @@ import {
 import { User, Role, Currency, Project } from '../types';
 import { InventoryManagementView } from './InventoryManagementView';
 import { generateNumericCode, generateShortId } from '../lib/idGenerator';
+import { Spinner } from '../design-system/components/Spinner';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface ResourcesAssetsViewProps {
   users: User[];
@@ -1007,23 +1009,25 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
         {/* Dynamic primary action depending on active sub-tab */}
         <div className="flex items-center gap-2">
           {activeSubTab === 'personnel' && (
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => openUserModal(null)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/10 transition-all cursor-pointer"
+              icon={<UserPlus className="w-4 h-4" />}
             >
-              <UserPlus className="w-4 h-4" />
               <span>{isRtl ? 'إضافة كادر جديد' : 'Register Staff'}</span>
-            </button>
+            </EnterpriseButton>
           )}
           {activeSubTab === 'inventory' && (
             <div className="flex flex-wrap items-center gap-2">
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="xs"
                 onClick={() => setIsNewItemModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer"
+                icon={<Plus className="w-4 h-4" />}
               >
-                <Plus className="w-4 h-4" />
                 <span>{isRtl ? 'إضافة مادة جديدة' : 'Add New Item'}</span>
-              </button>
+              </EnterpriseButton>
               <button
                 onClick={() => setIsNewWarehouseModalOpen(true)}
                 className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer"
@@ -1031,7 +1035,9 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                 <Warehouse className="w-4 h-4 text-emerald-400" />
                 <span>{isRtl ? 'تسجيل مستودع' : 'Register Depot'}</span>
               </button>
-              <button
+              <EnterpriseButton
+                variant="accent"
+                size="xs"
                 onClick={() => {
                   setStockForm({
                     itemId: inventoryItems[0]?.id || '',
@@ -1042,21 +1048,21 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   });
                   setIsStockModalOpen(true);
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-600/10 transition-all cursor-pointer"
+                icon={<ArrowRightLeft className="w-4 h-4" />}
               >
-                <ArrowRightLeft className="w-4 h-4" />
                 <span>{isRtl ? 'سند حركة مخزنية' : 'Movement Slip'}</span>
-              </button>
+              </EnterpriseButton>
             </div>
           )}
           {activeSubTab === 'assets' && (
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => setIsAssetModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/10 transition-all cursor-pointer"
+              icon={<PlusCircle className="w-4 h-4" />}
             >
-              <PlusCircle className="w-4 h-4" />
               <span>{isRtl ? 'تسجيل أصل أو وقف جديد' : 'Register Asset/Endowment'}</span>
-            </button>
+            </EnterpriseButton>
           )}
         </div>
       </div>
@@ -1181,7 +1187,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
       {activeSubTab === 'personnel' && (
         loading ? (
           <div className="flex flex-col items-center justify-center min-h-[300px] space-y-3 bg-white border border-slate-200 rounded-xl">
-            <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+            <Spinner size="lg" variant="primary" />
             <p className="text-xs text-zinc-400 font-medium">{isRtl ? 'جاري تحميل سجلات الموظفين...' : 'Loading personnel records...'}</p>
           </div>
         ) : filteredUsers.length > 0 ? (
@@ -1236,13 +1242,14 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
                 {/* Action bar */}
                 <div className="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-end">
-                  <button
+                  <EnterpriseButton
+                    variant="outline"
+                    size="xs"
                     onClick={() => openUserModal(user)}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded transition-all cursor-pointer"
+                    icon={<Edit className="w-3 h-3" />}
                   >
-                    <Edit className="w-3 h-3" />
                     <span>{isRtl ? 'تعديل السجل' : 'Edit Profile'}</span>
-                  </button>
+                  </EnterpriseButton>
                 </div>
               </div>
             ))}
@@ -1305,15 +1312,16 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   {isRtl ? 'كشف رواتب الكادر والبدلات والمستحقات الميدانية' : 'Staff Payroll & Field Allowances Ledger'}
                 </h4>
               </div>
-              <button
-                onClick={() => {
-                  setToastNotification(isRtl ? 'تم اعتماد كشف الرواتب وإرسال سندات الصرف لنظام الخزينة بنجاح.' : 'Payroll batch approved and sent to treasury.');
-                  setTimeout(() => setToastNotification(null), 4000);
-                }}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition-all cursor-pointer"
-              >
-                {isRtl ? 'إصدار وا اعتماد دفعة الرواتب' : 'Process Payroll Batch'}
-              </button>
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setToastNotification(isRtl ? 'تم اعتماد كشف الرواتب وإرسال سندات الصرف لنظام الخزينة بنجاح.' : 'Payroll batch approved and sent to treasury.');
+                    setTimeout(() => setToastNotification(null), 4000);
+                  }}
+                >
+                  {isRtl ? 'إصدار وا اعتماد دفعة الرواتب' : 'Process Payroll Batch'}
+                </EnterpriseButton>
             </div>
 
             {toastNotification && (
@@ -1412,7 +1420,9 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   {isRtl ? 'سجل عهد الأجهزة والمعدات العينية المسلمة للكادر' : 'Staff Asset Custodianship & Equipment Ledger'}
                 </h4>
               </div>
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={() => {
                   const newItem: CustodianshipItem = {
                     id: generateShortId('cust'),
@@ -1432,11 +1442,10 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   setToastNotification(isRtl ? 'تم تسجيل عهدة عينية جديدة بنجاح وترحيلها لسجل الموظف.' : 'New custodianship item assigned successfully.');
                   setTimeout(() => setToastNotification(null), 3000);
                 }}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition-all cursor-pointer flex items-center gap-1.5"
+                icon={<Plus className="w-3.5 h-3.5" />}
               >
-                <Plus className="w-3.5 h-3.5" />
                 <span>{isRtl ? 'إضافة عهدة جديدة' : 'Assign New Custodianship'}</span>
-              </button>
+              </EnterpriseButton>
             </div>
 
             {toastNotification && (
@@ -1540,7 +1549,9 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   {isRtl ? 'سجل المتطوعين والمهام الميدانية' : 'Volunteer Force & Field Tasks Registry'}
                 </h4>
               </div>
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={() => {
                   const newVol: VolunteerRecord = {
                     id: `vol-${Date.now()}`,
@@ -1560,11 +1571,10 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   setToastNotification(isRtl ? 'تم تسجيل متطوع ميداني جديد وربطه بفرق العمليات بنجاح.' : 'New volunteer registered and linked to field operations.');
                   setTimeout(() => setToastNotification(null), 3000);
                 }}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition-all cursor-pointer flex items-center gap-1.5"
+                icon={<UserPlus className="w-3.5 h-3.5" />}
               >
-                <UserPlus className="w-3.5 h-3.5" />
                 <span>{isRtl ? 'تسجيل متطوع جديد' : 'Register Volunteer'}</span>
-              </button>
+              </EnterpriseButton>
             </div>
 
             {toastNotification && (
@@ -1844,16 +1854,17 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                           <span>{logsCount} {isRtl ? 'عمليات صيانة مسجلة' : 'maintenance logs'}</span>
                         </div>
 
-                        <button
+                        <EnterpriseButton
+                          variant="outline"
+                          size="xs"
                           onClick={() => {
                             setSelectedAssetForMaintenance(asset);
                             setIsMaintenanceModalOpen(true);
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black text-emerald-800 bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-200 rounded-xl transition-all cursor-pointer shadow-xs"
+                          icon={<Wrench className="w-3.5 h-3.5" />}
                         >
-                          <Wrench className="w-3.5 h-3.5" />
                           <span>{isRtl ? 'سجل الصيانة والإنفاق العيني (Logs)' : 'Equipment Maintenance Logs'}</span>
-                        </button>
+                        </EnterpriseButton>
                       </div>
 
                     </div>
@@ -2091,18 +2102,16 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               >
                 {isRtl ? 'إلغاء' : 'Cancel'}
               </button>
-              <button 
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={handleUserSave}
                 disabled={userFormSubmitting}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1 transition-all cursor-pointer"
+                loading={userFormSubmitting}
+                icon={<Check className="w-3.5 h-3.5" />}
               >
-                {userFormSubmitting ? (
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <Check className="w-3.5 h-3.5" />
-                )}
                 <span>{isRtl ? 'حفظ الحساب' : 'Save User'}</span>
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
         </div>
@@ -2186,18 +2195,17 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                 ></textarea>
               </div>
 
-              <button 
-                type="submit" 
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                type="submit"
                 disabled={stockSubmitting}
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-400 text-white rounded-xl text-xs font-black transition-colors flex justify-center items-center gap-1.5 shadow-md shadow-emerald-700/10 cursor-pointer"
+                loading={stockSubmitting}
+                icon={<CheckCircle2 className="w-4 h-4" />}
+                block
               >
-                {stockSubmitting ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <CheckCircle2 className="w-4 h-4" />
-                )}
                 <span>{isRtl ? 'اعتماد وترحيل سند الحركة المخزنية' : 'Approve and Post Stock Movement'}</span>
-              </button>
+              </EnterpriseButton>
             </form>
           </div>
         </div>
@@ -2419,18 +2427,17 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                 </div>
               </div>
 
-              <button 
-                type="submit" 
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                type="submit"
                 disabled={assetSubmitting}
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-400 text-white rounded-xl text-xs font-black transition-colors flex justify-center items-center gap-1.5 shadow-md shadow-emerald-700/10 cursor-pointer"
+                loading={assetSubmitting}
+                icon={<CheckCircle2 className="w-4 h-4" />}
+                block
               >
-                {assetSubmitting ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <CheckCircle2 className="w-4 h-4" />
-                )}
                 <span>{isRtl ? 'اعتماد وإدخال الأصل وحساب صافي القيمة الدفترية' : 'Register Asset & Calculate Net Book Value'}</span>
-              </button>
+              </EnterpriseButton>
             </form>
           </div>
         </div>
@@ -2583,13 +2590,15 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                 />
               </div>
 
-              <button 
-                type="submit" 
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-colors flex justify-center items-center gap-1.5 shadow-md cursor-pointer"
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                type="submit"
+                icon={<CheckCircle2 className="w-4 h-4" />}
+                block
               >
-                <CheckCircle2 className="w-4 h-4" />
                 <span>{isRtl ? 'حفظ وإضافة المادة المخزنية' : 'Save & Register Inventory SKU'}</span>
-              </button>
+              </EnterpriseButton>
             </form>
           </div>
         </div>

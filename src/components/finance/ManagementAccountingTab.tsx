@@ -53,6 +53,7 @@ import { Account, Transaction, TransactionLine } from './FinanceTypes';
 import { Project } from '../../types';
 import { printHTML } from '../../lib/printUtils';
 import CostCentersManagementView from './CostCentersManagementView';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 interface ManagementAccountingTabProps {
   accounts: Account[];
@@ -472,13 +473,14 @@ export default function ManagementAccountingTab({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={handlePrintManagementReport}
-              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+              icon={<Printer className="w-4 h-4" />}
             >
-              <Printer className="w-4 h-4" />
-              <span>{isRtl ? 'طباعة تقرير المحاسب الإداري' : 'Print Management Report'}</span>
-            </button>
+              {isRtl ? 'طباعة تقرير المحاسب الإداري' : 'Print Management Report'}
+            </EnterpriseButton>
           </div>
         </div>
       </div>

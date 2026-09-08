@@ -124,7 +124,7 @@ export const UAMEXDashboardExperience: React.FC<UAMEXDashboardExperienceProps> =
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="success" size="sm" pulse lang={lang} icon={Sparkles}>
+                <Badge variant="success" size="sm" pulse lang={lang} icon={<Sparkles />}>
                   {t('منصة ذكية', 'Intelligent Platform', lang)}
                 </Badge>
                 <Badge variant="warning" size="sm" lang={lang}>
@@ -160,10 +160,10 @@ export const UAMEXDashboardExperience: React.FC<UAMEXDashboardExperienceProps> =
         <div className="mb-4">
           <Alert
             type="info"
+            title={t('تحديثات ذكية متاحة', 'Smart updates available', lang)}
             titleAr={t('تحديثات ذكية متاحة', 'Smart updates available', lang)}
-            titleEn={t('Smart updates available', 'Smart updates available', lang)}
-            descAr={t('لديك 3 توصيات جديدة من المساعد الذكي لتحسين الأداء التشغيلي', 'You have 3 new AI recommendations to improve operational performance', lang)}
-            descEn={t('You have 3 new AI recommendations to improve operational performance', 'You have 3 new AI recommendations to improve operational performance', lang)}
+            description={t('لديك 3 توصيات جديدة من المساعد الذكي لتحسين الأداء التشغيلي', 'You have 3 new AI recommendations to improve operational performance', lang)}
+            descriptionAr={t('لديك 3 توصيات جديدة من المساعد الذكي لتحسين الأداء التشغيلي', 'You have 3 new AI recommendations to improve operational performance', lang)}
             dismissible
             lang={lang}
           />
@@ -212,7 +212,7 @@ export const UAMEXDashboardExperience: React.FC<UAMEXDashboardExperienceProps> =
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="success" size="sm" lang={lang} icon={TrendingUp}>
+                  <Badge variant="success" size="sm" lang={lang} icon={<TrendingUp />}>
                     +18.4%
                   </Badge>
                 </div>

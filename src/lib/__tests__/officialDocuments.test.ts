@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   buildOfficialArabicMemoPDFHTML,
   buildOfficialCompletionCertificatePDFHTML,
@@ -7,12 +7,12 @@ import {
 } from '../pdfReportGenerator';
 
 const mem = new Map<string, string>();
-(globalThis as any).localStorage = {
+vi.stubGlobal('localStorage', {
   getItem: (k: string) => (mem.has(k) ? mem.get(k) : null),
   setItem: (k: string, v: string) => { mem.set(k, v); },
   removeItem: (k: string) => { mem.delete(k); },
   clear: () => mem.clear(),
-};
+});
 
 const SETTINGS_KEYS = [
   'rbd_org_name',

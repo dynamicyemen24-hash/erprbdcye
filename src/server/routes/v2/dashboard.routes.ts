@@ -31,7 +31,8 @@ router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => 
 
     let counts = {
       organizations: 0, programs: 0, projects: 0, users: 0,
-      currencies: 0, beneficiaries: 0, sponsorships: 0
+      currencies: 0, beneficiaries: 0, sponsorships: 0,
+      commitments: 0, obligations: 0
     };
 
     try {
@@ -43,7 +44,9 @@ router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => 
           (SELECT COUNT(*) FROM "users" WHERE "organization_id" = $1) as users,
           (SELECT COUNT(*) FROM "currencies") as currencies,
           (SELECT COUNT(*) FROM "beneficiaries" WHERE "organization_id" = $1) as beneficiaries,
-          (SELECT COUNT(*) FROM "sponsorships" WHERE "organization_id" = $1) as sponsorships
+          (SELECT COUNT(*) FROM "sponsorships" WHERE "organization_id" = $1) as sponsorships,
+          (SELECT COUNT(*) FROM "commitments" WHERE "organization_id" = $1 AND deleted_at IS NULL) as commitments,
+          (SELECT COUNT(*) FROM "obligations" WHERE "organization_id" = $1 AND deleted_at IS NULL) as obligations
       `, [tenantId]);
       if (countsResult.rows.length > 0) {
         const row = countsResult.rows[0];
@@ -54,7 +57,9 @@ router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => 
           users: parseInt(row.users || '0', 10),
           currencies: parseInt(row.currencies || '0', 10),
           beneficiaries: parseInt(row.beneficiaries || '0', 10),
-          sponsorships: parseInt(row.sponsorships || '0', 10)
+          sponsorships: parseInt(row.sponsorships || '0', 10),
+          commitments: parseInt(row.commitments || '0', 10),
+          obligations: parseInt(row.obligations || '0', 10)
         };
       }
     } catch (e: any) {
@@ -111,7 +116,7 @@ router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => 
   } catch (err: any) {
     logger.warn(`Error fetching dashboard stats: ${err.message}`, { context: 'dashboard' });
     res.json({
-      counts: { organizations: 0, programs: 0, projects: 0, users: 0, currencies: 0, beneficiaries: 0, sponsorships: 0 },
+      counts: { organizations: 0, programs: 0, projects: 0, users: 0, currencies: 0, beneficiaries: 0, sponsorships: 0, commitments: 0, obligations: 0 },
       financials: { totalProgramBudget: 0, totalDonations: 0, totalExpenses: 0, netPosition: 0 },
       executive: null,
       statisticalSummary: [],

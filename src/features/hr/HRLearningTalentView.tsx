@@ -1,5 +1,6 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 
 interface HRLearningTalentViewProps {
   lang: 'ar' | 'en';
@@ -21,9 +22,9 @@ export default function HRLearningTalentView({ lang }: HRLearningTalentViewProps
           </p>
         </div>
 
-        <button className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer">
+        <EnterpriseButton variant="primary" size="sm">
           {isRtl ? 'إضافة دورة تدريبية' : 'Add Course'}
-        </button>
+        </EnterpriseButton>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

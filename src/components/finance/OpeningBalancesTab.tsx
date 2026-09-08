@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Account } from './FinanceTypes';
 import { exportToExcel, exportToCSV } from '../../utils/exportHelpers';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 interface OpeningBalancesTabProps {
   accounts: Account[];
@@ -112,8 +113,7 @@ export default function OpeningBalancesTab({ accounts, lang, onRefresh }: Openin
     };
     loadOpeningData();
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isRtl, accounts]);
 
   const handleBalanceChange = (accountId: string, value: string) => {
     setBalances(prev => ({ ...prev, [accountId]: value }));
@@ -262,14 +262,16 @@ export default function OpeningBalancesTab({ accounts, lang, onRefresh }: Openin
           </button>
 
           {openingType === 'accounts' && (
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={handleSaveAccounts}
               disabled={saving || Object.keys(balances).length === 0}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-extrabold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer whitespace-nowrap"
+              loading={saving}
+              icon={saving ? undefined : <Save className="w-4 h-4" />}
             >
-              {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isRtl ? 'حفظ الأرصدة الافتتاحية' : 'Save Opening Balances'}</span>
-            </button>
+              {isRtl ? 'حفظ الأرصدة الافتتاحية' : 'Save Opening Balances'}
+            </EnterpriseButton>
           )}
         </div>
       </div>

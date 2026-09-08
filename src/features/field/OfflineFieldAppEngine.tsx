@@ -15,6 +15,8 @@ import {
   Database,
   Smartphone
 } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface OfflineFieldAppEngineProps {
   lang: 'ar' | 'en';
@@ -95,14 +97,15 @@ export default function OfflineFieldAppEngine({ lang }: OfflineFieldAppEnginePro
           </div>
         </div>
 
-        <button
+        <EnterpriseButton
           onClick={triggerManualSync}
           disabled={isSyncing || !isOnline}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+          variant="primary"
+          size="md"
+          icon={<Spinner size="sm" />}
         >
-          <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-          <span>{isRtl ? 'مزامنة السجلات الميدانية الآن' : 'Sync Field Logs Now'}</span>
-        </button>
+          {isRtl ? 'مزامنة السجلات الميدانية الآن' : 'Sync Field Logs Now'}
+        </EnterpriseButton>
       </div>
 
       {/* QUEUED OFFLINE TRANSACTIONS STREAM */}

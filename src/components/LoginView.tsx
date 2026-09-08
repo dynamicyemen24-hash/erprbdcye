@@ -47,6 +47,7 @@ import {
 import { User as UserType } from '../types';
 import { useResumeIntelligence } from '../core/services/resumeIntelligence';
 import { triggerHaptic } from '../helpers/hapticSwipe';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface LoginViewProps {
   users: UserType[];
@@ -1099,7 +1100,7 @@ export default function LoginView({
                     className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {loading ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <Spinner size="md" variant="white" />
                     ) : (
                       <>
                         <span>{isRtl ? 'تسجيل الدخول إلى مكتب العمل' : 'Authenticate & Open Desk'}</span>
@@ -1251,7 +1252,7 @@ export default function LoginView({
                     className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {loading ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <Spinner size="md" variant="white" />
                     ) : (
                       <>
                         <span>{isRtl ? 'تسجيل الدخول والتحقق الآمن' : 'Authenticate & Sign In'}</span>

@@ -25,6 +25,12 @@ import {
 } from 'lucide-react';
 import { TabId } from '../types';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface SalesRevenueViewProps {
   lang: 'ar' | 'en';
@@ -276,22 +282,24 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          <EnterpriseButton
+            variant="secondary"
+            size="sm"
             onClick={fetchSalesData}
-            disabled={loading}
-            className="h-9 px-3.5 bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl hover:bg-slate-200 dark:hover:bg-zinc-700 transition-all text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+            loading={loading}
+            icon={!loading ? <RefreshCw className="w-3.5 h-3.5" /> : undefined}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>{isRtl ? 'تحديث' : 'Refresh'}</span>
-          </button>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant="primary"
+            size="sm"
             onClick={() => setActiveSubTab('new_invoice')}
-            className="h-9 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all text-xs font-black flex items-center gap-1.5 shadow-sm shadow-emerald-600/30 cursor-pointer"
+            icon={<Plus className="w-4 h-4" />}
           >
-            <Plus className="w-4 h-4" />
             <span>{isRtl ? 'إصدار فاتورة جديدة' : 'Issue Invoice'}</span>
-          </button>
+          </EnterpriseButton>
         </div>
       </div>
 
@@ -501,16 +509,17 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
                           </button>
 
                           {inv.payment_status === 'PENDING' && (
-                            <button
+                            <EnterpriseButton
+                              variant="primary"
+                              size="xs"
                               onClick={() => {
                                 setInvoiceToPay(inv);
                                 setIsPayModalOpen(true);
                               }}
-                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-black transition-all cursor-pointer flex items-center gap-1"
+                              icon={<CreditCard className="w-3 h-3" />}
                             >
-                              <CreditCard className="w-3 h-3" />
                               <span>{isRtl ? 'تحصيل' : 'Collect'}</span>
-                            </button>
+                            </EnterpriseButton>
                           )}
                         </div>
                       </td>
@@ -723,14 +732,16 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
             </div>
 
             <div className="pt-3">
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="md"
+                block
                 type="submit"
-                disabled={isSubmittingNew}
-                className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all shadow-sm shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer"
+                loading={isSubmittingNew}
+                icon={!isSubmittingNew ? <Check className="w-4 h-4" /> : undefined}
               >
-                <Check className="w-4 h-4" />
                 <span>{isSubmittingNew ? (isRtl ? 'جاري الإصدار والتشفير...' : 'Issuing...') : (isRtl ? 'إصدار الفاتورة وتوليد رمز QR' : 'Issue Invoice & Generate QR')}</span>
-              </button>
+              </EnterpriseButton>
             </div>
           </form>
         </div>
@@ -781,19 +792,22 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
             </div>
 
             <div className="flex gap-2 pt-2">
-              <button
+              <EnterpriseButton
+                variant="secondary"
+                size="sm"
                 onClick={() => handlePrintSingleInvoice(selectedInvoice)}
-                className="flex-1 h-9 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                icon={<Printer className="w-3.5 h-3.5" />}
+                className="flex-1"
               >
-                <Printer className="w-3.5 h-3.5" />
                 <span>{isRtl ? 'طباعة الفاتورة' : 'Print Invoice'}</span>
-              </button>
-              <button
+              </EnterpriseButton>
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={() => setSelectedInvoice(null)}
-                className="px-4 h-9 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black cursor-pointer"
               >
                 {isRtl ? 'إغلاق' : 'Close'}
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
         </div>
@@ -862,14 +876,16 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
               >
                 {isRtl ? 'إلغاء' : 'Cancel'}
               </button>
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={handlePayInvoice}
-                disabled={isSubmittingPay}
-                className="flex-1 h-9 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-600/30"
+                loading={isSubmittingPay}
+                icon={!isSubmittingPay ? <Check className="w-3.5 h-3.5" /> : undefined}
+                className="flex-1"
               >
-                <Check className="w-3.5 h-3.5" />
                 <span>{isSubmittingPay ? (isRtl ? 'جاري الترحيل...' : 'Posting...') : (isRtl ? 'تأكيد التحصيل والترحيل' : 'Confirm & Post')}</span>
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
         </div>

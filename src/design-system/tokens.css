@@ -1,0 +1,136 @@
+/* ═══════════════════════════════════════════════════════════════════════════════════════
+   UAMEX ERP™ — Design Tokens CSS v3.0
+   Global CSS Custom Properties for theming, spacing, typography, motion
+   ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Brand Colors ──────────────────────────────────────────────────────────────── */
+  --ux-primary: #059669;
+  --ux-primary-hover: #047857;
+  --ux-primary-light: #d1fae5;
+  --ux-primary-dark: #065f46;
+  --ux-accent: #d97706;
+  --ux-accent-hover: #b45309;
+  --ux-accent-light: #fef3c7;
+
+  /* ─── Semantic Colors ────────────────────────────────────────────────────────────── */
+  --ux-success: #10b981;
+  --ux-success-light: #d1fae5;
+  --ux-warning: #f59e0b;
+  --ux-warning-light: #fef3c7;
+  --ux-danger: #ef4444;
+  --ux-danger-light: #fee2e2;
+  --ux-info: #3b82f6;
+  --ux-info-light: #dbeafe;
+
+  /* ─── Surface Colors ─────────────────────────────────────────────────────────────── */
+  --ux-bg-primary: #ffffff;
+  --ux-bg-secondary: #f8fafc;
+  --ux-bg-tertiary: #f1f5f9;
+  --ux-bg-elevated: #ffffff;
+  --ux-bg-overlay: rgba(0, 0, 0, 0.5);
+  --ux-border: #e2e8f0;
+  --ux-border-strong: #cbd5e1;
+  --ux-text-primary: #0f172a;
+  --ux-text-secondary: #475569;
+  --ux-text-tertiary: #94a3b8;
+  --ux-text-inverse: #ffffff;
+
+  /* ─── Spacing Scale ──────────────────────────────────────────────────────────────── */
+  --ux-space-0: 0;
+  --ux-space-1: 0.25rem;
+  --ux-space-2: 0.5rem;
+  --ux-space-3: 0.75rem;
+  --ux-space-4: 1rem;
+  --ux-space-5: 1.25rem;
+  --ux-space-6: 1.5rem;
+  --ux-space-8: 2rem;
+  --ux-space-10: 2.5rem;
+  --ux-space-12: 3rem;
+  --ux-space-16: 4rem;
+
+  /* ─── Border Radius ──────────────────────────────────────────────────────────────── */
+  --ux-radius-sm: 0.375rem;
+  --ux-radius-md: 0.5rem;
+  --ux-radius-lg: 0.75rem;
+  --ux-radius-xl: 1rem;
+  --ux-radius-2xl: 1.5rem;
+  --ux-radius-full: 9999px;
+
+  /* ─── Shadow Scale ───────────────────────────────────────────────────────────────── */
+  --ux-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --ux-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --ux-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --ux-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --ux-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --ux-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --ux-shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  --ux-shadow-glow: 0 0 20px rgba(5, 150, 105, 0.15);
+  --ux-shadow-glow-accent: 0 0 20px rgba(217, 119, 6, 0.15);
+
+  /* ─── Typography ─────────────────────────────────────────────────────────────────── */
+  --ux-font-sans: 'Tajawal', 'Cairo', 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --ux-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --ux-font-size-xs: 0.75rem;
+  --ux-font-size-sm: 0.875rem;
+  --ux-font-size-base: 1rem;
+  --ux-font-size-lg: 1.125rem;
+  --ux-font-size-xl: 1.25rem;
+  --ux-font-size-2xl: 1.5rem;
+  --ux-font-size-3xl: 1.875rem;
+  --ux-line-height-tight: 1.25;
+  --ux-line-height-normal: 1.5;
+  --ux-line-height-relaxed: 1.75;
+
+  /* ─── Motion / Transitions ───────────────────────────────────────────────────────── */
+  --ux-duration-instant: 0ms;
+  --ux-duration-fast: 120ms;
+  --ux-duration-normal: 200ms;
+  --ux-duration-moderate: 300ms;
+  --ux-duration-slow: 500ms;
+  --ux-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ux-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ux-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ux-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ux-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ─── Z-Index Scale ──────────────────────────────────────────────────────────────── */
+  --ux-z-base: 0;
+  --ux-z-dropdown: 100;
+  --ux-z-sticky: 200;
+  --ux-z-overlay: 300;
+  --ux-z-modal: 400;
+  --ux-z-toast: 500;
+  --ux-z-tooltip: 600;
+  --ux-z-max: 9999;
+
+  /* ─── Focus Ring ─────────────────────────────────────────────────────────────────── */
+  --ux-focus-ring: 0 0 0 2px var(--ux-bg-primary), 0 0 0 4px var(--ux-primary);
+  --ux-focus-ring-offset: 0 0 0 2px var(--ux-bg-primary), 0 0 0 4px var(--ux-primary);
+}
+
+/* ─── Dark Mode Overrides ──────────────────────────────────────────────────────────── */
+.dark {
+  --ux-bg-primary: #090d16;
+  --ux-bg-secondary: #0f172a;
+  --ux-bg-tertiary: #1e293b;
+  --ux-bg-elevated: #1e293b;
+  --ux-bg-overlay: rgba(0, 0, 0, 0.7);
+  --ux-border: #334155;
+  --ux-border-strong: #475569;
+  --ux-text-primary: #f1f5f9;
+  --ux-text-secondary: #94a3b8;
+  --ux-text-tertiary: #64748b;
+  --ux-primary: #34d399;
+  --ux-primary-hover: #6ee7b7;
+  --ux-primary-light: rgba(52, 211, 153, 0.1);
+  --ux-accent: #fbbf24;
+  --ux-accent-hover: #fcd34d;
+  --ux-accent-light: rgba(251, 191, 36, 0.1);
+  --ux-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --ux-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --ux-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --ux-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --ux-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5);
+  --ux-focus-ring: 0 0 0 2px #090d16, 0 0 0 4px var(--ux-primary);
+}

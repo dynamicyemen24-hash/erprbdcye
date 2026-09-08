@@ -4034,7 +4034,7 @@ export function buildOfficialArabicMemoPDFHTML(options: {
 } = {}): string {
   const b = resolveOfficialBranding(options);
   const isRtl = true;
-  const memoNo = options.memoNumber || `م/2026/${String(Math.floor(1000 + Math.random() * 9000))}`;
+  const memoNo = options.memoNumber || `م/2026/${generateNumericCode(1000, 9999)}`;
   const dateGreg = options.dateGregorian || new Date().toISOString().split('T')[0];
   const dateHij = options.dateHijri || '1448 هـ الموافق';
   const from = options.fromAr || 'الإدارة العامة للعمليات والبرامج التنموية';
@@ -4176,7 +4176,7 @@ export function buildOfficialCompletionCertificatePDFHTML(options: {
   orgNameEn?: string;
 } = {}): string {
   const b = resolveOfficialBranding(options);
-  const certNo = options.certificateNumber || `ش/2026/${String(Math.floor(1000 + Math.random() * 9000))}`;
+  const certNo = options.certificateNumber || `ش/2026/${generateNumericCode(1000, 9999)}`;
   const entity = options.entityNameAr || 'شركة الأمل للمقاولات والتوريدات الهندسية';
   const project = options.projectName || 'مشروع حفر وتأهيل الآبار ومحطات التحلية - تعز';
   const projectCode = options.projectCode || 'PRJ-WASH-2026';
@@ -4289,7 +4289,7 @@ export function buildOfficialDonationAcknowledgmentPDFHTML(options: {
   orgNameEn?: string;
 } = {}): string {
   const b = resolveOfficialBranding(options);
-  const ackNo = options.acknowledgmentNumber || `إش/${new Date().getFullYear()}/${String(Math.floor(1000 + Math.random() * 9000))}`;
+  const ackNo = options.acknowledgmentNumber || `إش/${new Date().getFullYear()}/${generateNumericCode(1000, 9999)}`;
   const donor = options.donorNameAr || 'المكرم: الجهة المانحة / المتبرع';
   const amount = options.amountYer ?? 0;
   const tafqeet = tafqeetArabicRials(amount);
@@ -4391,7 +4391,7 @@ export function buildOfficialVolunteerAppreciationPDFHTML(options: {
   orgNameEn?: string;
 } = {}): string {
   const b = resolveOfficialBranding(options);
-  const certNo = options.certificateNumber || `شك/${new Date().getFullYear()}/${String(Math.floor(1000 + Math.random() * 9000))}`;
+  const certNo = options.certificateNumber || `شك/${new Date().getFullYear()}/${generateNumericCode(1000, 9999)}`;
   const volunteer = options.volunteerNameAr || 'المتطوع الفاضل';
   const initiative = options.initiativeAr || 'مبادرات الإغاثة والتنمية الميدانية';
   const hours = options.hoursServed ?? 0;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sliders, CheckCircle, AlertCircle, RefreshCw, Scale } from 'lucide-react';
 import { Account, Transaction } from './FinanceTypes';
 import { generateNumericCode } from '../../lib/idGenerator';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface FinancialClosingsTabProps {
   accounts: Account[];
@@ -203,7 +204,7 @@ export default function FinancialClosingsTab({ accounts, lang, onRefresh }: Fina
             className="w-full py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
           >
             {closing ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <Spinner size="sm" />
             ) : (
               <Scale className="w-4 h-4" />
             )}

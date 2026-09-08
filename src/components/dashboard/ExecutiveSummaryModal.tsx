@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, X, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Tooltip } from '../Tooltip';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface ExecutiveSummaryModalProps {
   isOpen: boolean;
@@ -127,7 +128,7 @@ export const ExecutiveSummaryModal: React.FC<ExecutiveSummaryModalProps> = ({
           {isLoading ? (
             <div className="space-y-4 animate-pulse">
               <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-zinc-400">
-                <RefreshCw className="w-4 h-4 animate-spin text-emerald-600 dark:text-emerald-500" />
+                <Spinner size="sm" />
                 <span>
                   {lang === 'ar' 
                     ? 'يجري الآن تحليل بيانات المشاريع، وتدقيق النفقات المالية، وتجميع مؤشرات الأداء الحالية لـ NexoraOS™...' 

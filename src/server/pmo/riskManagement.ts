@@ -9,6 +9,7 @@
 // Risk Management Implementation per ISO 31000:2018 and PMBOK® Guide 7th Edition
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { randomInt } from 'crypto';
 import { z } from 'zod';
 import type {
   Risk,
@@ -162,7 +163,7 @@ export class RiskManagementEngine {
     const inherentRiskLevel = this.calculateInherentRiskLevel(params.probability, params.impact);
 
     return {
-      id: `RISK-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `RISK-${Date.now()}-${randomInt(0, 1000)}`,
       projectId: params.projectId,
       riskCode: `R-${Date.now().toString(36).toUpperCase()}`,
       title: params.title,

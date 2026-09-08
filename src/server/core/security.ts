@@ -138,65 +138,10 @@ export function securityMiddleware() {
   };
 }
 
-// ─── CSRF Token Generation ─────────────────────────────
-
-export function generateCsrfToken(): string {
-  return crypto.randomBytes(32).toString('hex');
-}
-
-export function verifyCsrfToken(token: string, sessionToken: string): boolean {
-  if (!token || !sessionToken) return false;
-  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(sessionToken));
-}
-
-// ─── Request Fingerprinting ────────────────────────────
-
-export function generateRequestFingerprint(req: Request): string {
-  const data = `${req.ip}|${req.get('user-agent') || ''}|${req.get('accept-language') || ''}`;
-  return crypto.createHash('sha256').update(data).digest('hex').substring(0, 16);
-}
-
-// ─── Audit Logger ──────────────────────────────────────
-
-export interface AuditEvent {
-  tenantId?: string;
-  userId?: string;
-  action: string;
-  resource: string;
-  resourceId?: string;
-  details?: Record<string, any>;
-  ip?: string;
-  userAgent?: string;
-  status: 'success' | 'failure';
-}
-
-export async function logAuditEvent(event: AuditEvent): Promise<void> {
-  try {
-    const { query } = await import('./database');
-    await query(
-      `INSERT INTO audit_logs (organization_id, user_id, action, table_name, record_id, details, ip_address, user_agent, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [
-        event.tenantId || null,
-        event.userId || null,
-        event.action,
-        event.resource,
-        event.resourceId || null,
-        JSON.stringify(event.details || {}),
-        event.ip || null,
-        event.userAgent || null,
-        event.status,
-      ]
-    );
-  } catch (error: any) {
-    logger.error(`Audit log failed: ${error.message}`, { context: 'audit' });
-  }
-}
-
 // ─── Password Strength Validator ───────────────────────
 
 export interface PasswordStrength {
-  score: number; // 0-4
+  score: number;
   feedback: string[];
   isStrong: boolean;
 }
@@ -218,7 +163,6 @@ export function checkPasswordStrength(password: string): PasswordStrength {
   if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) score++;
   else feedback.push('يجب أن يحتوي على رمز خاص');
 
-  // Check common patterns
   if (/(.)\1{2,}/.test(password)) { score--; feedback.push('تجنب التكرار'); }
   if (/^(password|123456|qwerty)/i.test(password)) { score = 0; feedback.push('كلمة مرور شائعة'); }
 
@@ -228,20 +172,9 @@ export function checkPasswordStrength(password: string): PasswordStrength {
 // ─── IP Allowlist / Blocklist ───────────────────────────
 
 const ipBlocklist = new Set<string>();
-const ipBlocklistFile = process.env.IP_BLOCKLIST_FILE;
 
 export function isIpBlocked(ip: string): boolean {
   return ipBlocklist.has(ip);
-}
-
-export function blockIp(ip: string, reason?: string): void {
-  ipBlocklist.add(ip);
-  logger.warn(`IP blocked: ${ip} (${reason || 'manual'})`, { context: 'security' });
-}
-
-export function unblockIp(ip: string): void {
-  ipBlocklist.delete(ip);
-  logger.info(`IP unblocked: ${ip}`, { context: 'security' });
 }
 
 export function ipBlocklistMiddleware() {

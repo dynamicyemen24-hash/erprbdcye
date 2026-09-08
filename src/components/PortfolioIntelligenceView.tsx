@@ -16,6 +16,11 @@ import {
 import { ModuleShell } from './enterprise/ModuleShell';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
 import { ppmApi } from '../core/ppm/ppmData';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface PortfolioIntelligenceViewProps {
   lang: 'ar' | 'en';
@@ -101,7 +106,7 @@ export default function PortfolioIntelligenceView({ lang, onNavigate }: Portfoli
     setLoading(false);
   }, [selectedProjectId]);
 
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  useEffect(() => { load(); }, [load]);
 
   const loadDetail = useCallback(async (projectId: string) => {
     if (!projectId) return;
@@ -146,16 +151,18 @@ export default function PortfolioIntelligenceView({ lang, onNavigate }: Portfoli
         recordCount={ranking.length}
         isLoading={loading}
         actions={
-          <button onClick={load} className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer">
-            <RefreshCw className="w-3.5 h-3.5" /> {isAr ? 'تحديث' : 'Refresh'}
-          </button>
+          <EnterpriseButton variant="primary" size="sm" onClick={load} icon={<RefreshCw className="w-3.5 h-3.5" />}>
+            {isAr ? 'تحديث' : 'Refresh'}
+          </EnterpriseButton>
         }
       >
         {error && (
-          <div className="mb-4 px-4 py-3 rounded-2xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>{isAr ? 'تعذّر جلب البيانات الحيّة من المحرك.' : 'Failed to fetch live data from engine.'} {error}</span>
-          </div>
+          <ErrorState
+            lang={lang}
+            onRetry={load}
+            messageAr={`تعذّر جلب البيانات الحيّة من المحرك. ${error}`}
+            message={`Failed to fetch live data from engine. ${error}`}
+          />
         )}
 
         {/* Executive summary strip */}
@@ -181,9 +188,12 @@ export default function PortfolioIntelligenceView({ lang, onNavigate }: Portfoli
               {isAr ? 'تصنيف الصحة الاستراتيجي (Balanced Scorecard)' : 'Strategic Health Ranking (Balanced Scorecard)'}
             </div>
             {ranking.length === 0 ? (
-              <div className="py-8 text-center text-xs font-bold text-slate-400">
-                {isAr ? 'لا مشاريع مصنّفة بعد.' : 'No ranked projects yet.'}
-              </div>
+              <EmptyState
+                variant="empty"
+                titleAr="لا مشاريع مصنّفة بعد."
+                title="No ranked projects yet."
+                lang={lang}
+              />
             ) : (
               <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
                 {ranking.map((r, i) => (
@@ -217,7 +227,10 @@ export default function PortfolioIntelligenceView({ lang, onNavigate }: Portfoli
             </div>
 
             {detailLoading ? (
-              <div className="py-8 text-center text-xs font-bold text-slate-400">{isAr ? 'جارِ التحليل...' : 'Analyzing...'}</div>
+              <div className="py-8 flex items-center justify-center gap-2 text-xs font-bold text-slate-400">
+                <Spinner size="sm" variant="primary" lang={lang} labelAr="جارِ التحليل..." label="Analyzing..." />
+                {isAr ? 'جارِ التحليل...' : 'Analyzing...'}
+              </div>
             ) : (!selectedProjectId && !detailError) ? (
               <div className="py-8 text-center text-xs font-bold text-slate-400">{isAr ? 'اختر مشروعًا من التصنيف لعرض تحليله.' : 'Select a project from the ranking to analyze.'}</div>
             ) : (

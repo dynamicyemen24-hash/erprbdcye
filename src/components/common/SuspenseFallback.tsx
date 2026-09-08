@@ -12,7 +12,7 @@ const SuspenseFallbackInner: React.FC<SuspenseFallbackProps> = ({ label, height 
       <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2" />
       <div className="h-4 bg-emerald-200/20 dark:bg-emerald-800/10 rounded w-2/3" />
       {label && (
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500 pt-2">{label}</p>
+        <p className="text-center text-xs text-slate-400 dark:text-zinc-500 pt-2">{label}</p>
       )}
     </div>
   </div>

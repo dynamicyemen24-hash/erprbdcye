@@ -6,4 +6,13 @@ export { exportToExcel, exportToCSV, exportToJSON, batchExport } from './exportE
 export type { ExportFormat, ExportOptions, ExportResult } from './exportEngine';
 
 export { getTemplate, getAllTemplates, templateToPrintConfig, detectTemplate, REPORT_TEMPLATES } from './reportTemplates';
+
+export {
+  getInstitutionalBranding,
+  generateDocStamp,
+  formatOfficialDate,
+  buildOfficialStampFooter,
+} from './reportFoundation';
+export type { InstitutionalBranding, DocumentClassification, OfficialStampFooterOptions } from './reportFoundation';
+
 export type { ReportTemplate, ReportTemplateId } from './reportTemplates';

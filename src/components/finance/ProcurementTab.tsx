@@ -8,6 +8,8 @@ import {
 import { Account, Project } from './FinanceTypes';
 import { printHTML, createPrintDocument } from '../../lib/printUtils';
 import { generateShortId, generateNumericCode } from '../../lib/idGenerator';
+import { Spinner } from '../../design-system/components/Spinner';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 interface ProcurementTabProps {
   accounts: Account[];
@@ -803,7 +805,7 @@ export default function ProcurementTab({
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center gap-3 p-12 bg-white border border-slate-200 rounded-2xl">
-          <RefreshCw className="w-5 h-5 text-emerald-600 animate-spin" />
+          <Spinner size="md" variant="primary" />
           <p className="text-xs font-bold text-slate-500">{isRtl ? 'جارٍ تحميل بيانات المشتريات من قاعدة البيانات...' : 'Loading procurement data from database...'}</p>
         </div>
       )}
@@ -1060,13 +1062,9 @@ export default function ProcurementTab({
                 ></textarea>
               </div>
 
-              <button 
-                type="submit" 
-                className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-colors flex justify-center items-center gap-1.5 shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{isRtl ? 'تسجيل وإرسال للتحقق المالي' : 'Register Requisition'}</span>
-              </button>
+              <EnterpriseButton type="submit" variant="primary" size="sm" block icon={<Plus className="w-4 h-4" />}>
+                {isRtl ? 'تسجيل وإرسال للتحقق المالي' : 'Register Requisition'}
+              </EnterpriseButton>
             </form>
           </div>
 
@@ -1272,13 +1270,9 @@ export default function ProcurementTab({
                     </div>
                   </div>
 
-                  <button 
-                    type="submit" 
-                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs transition-colors flex justify-center items-center gap-1.5 shadow-sm"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>{isRtl ? 'تسجيل عرض المورد واعتماده' : 'Submit Quotation'}</span>
-                  </button>
+                  <EnterpriseButton type="submit" variant="primary" size="sm" block icon={<Plus className="w-3.5 h-3.5" />}>
+                    {isRtl ? 'تسجيل عرض المورد واعتماده' : 'Submit Quotation'}
+                  </EnterpriseButton>
                 </div>
               </form>
             </div>
@@ -1355,7 +1349,11 @@ export default function ProcurementTab({
                                 <span>{isRtl ? 'ترسية وإرساء العقد' : 'Select Winning Bid'}</span>
                               </button>
                             ) : (
-                              <button
+                              <EnterpriseButton
+                                variant="primary"
+                                size="xs"
+                                block
+                                icon={<ArrowRight className="w-3.5 h-3.5" />}
                                 onClick={() => {
                                   setPoForm({
                                     pr_id: quote.pr_id,
@@ -1366,11 +1364,9 @@ export default function ProcurementTab({
                                   });
                                   setActiveTab('orders');
                                 }}
-                                className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                               >
-                                <ArrowRight className="w-3.5 h-3.5" />
-                                <span>{isRtl ? 'صياغة وتوليد أمر الشراء PO' : 'Formulate PO'}</span>
-                              </button>
+                                {isRtl ? 'صياغة وتوليد أمر الشراء PO' : 'Formulate PO'}
+                              </EnterpriseButton>
                             )}
                           </div>
                         );
@@ -1472,13 +1468,9 @@ export default function ProcurementTab({
                 ></textarea>
               </div>
 
-              <button 
-                type="submit" 
-                className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-colors flex justify-center items-center gap-1.5 shadow-sm"
-              >
-                <Printer className="w-4 h-4" />
-                <span>{isRtl ? 'توليد وصياغة أمر الشراء PO' : 'Formulate Official PO'}</span>
-              </button>
+              <EnterpriseButton type="submit" variant="primary" size="sm" block icon={<Printer className="w-4 h-4" />}>
+                {isRtl ? 'توليد وصياغة أمر الشراء PO' : 'Formulate Official PO'}
+              </EnterpriseButton>
             </form>
           </div>
 
@@ -1692,13 +1684,9 @@ export default function ProcurementTab({
                   ></textarea>
                 </div>
 
-                <button 
-                  type="submit" 
-                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-colors flex justify-center items-center gap-1.5 shadow-sm"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{isRtl ? 'اعتماد سند التوريد وإدخال المخزن' : 'Accept & Record GRN'}</span>
-                </button>
+                <EnterpriseButton type="submit" variant="primary" size="sm" block icon={<CheckCircle2 className="w-4 h-4" />}>
+                  {isRtl ? 'اعتماد سند التوريد وإدخال المخزن' : 'Accept & Record GRN'}
+                </EnterpriseButton>
               </form>
             )}
           </div>
@@ -1862,18 +1850,17 @@ export default function ProcurementTab({
                     ></textarea>
                   </div>
 
-                  <button 
-                    type="submit" 
+                  <EnterpriseButton
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    block
                     disabled={isSubmitting}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-400 text-white rounded-xl text-xs font-black transition-colors flex justify-center items-center gap-1.5 shadow-md shadow-emerald-700/10 cursor-pointer"
+                    loading={isSubmitting}
+                    icon={!isSubmitting ? <Workflow className="w-4 h-4" /> : undefined}
                   >
-                    {isSubmitting ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Workflow className="w-4 h-4" />
-                    )}
-                    <span>{isRtl ? 'ترحيل قيد التسوية المحاسبي المزدوج' : 'Post Double-Entry Journal Voucher'}</span>
-                  </button>
+                    {isRtl ? 'ترحيل قيد التسوية المحاسبي المزدوج' : 'Post Double-Entry Journal Voucher'}
+                  </EnterpriseButton>
                 </>
               )}
             </form>

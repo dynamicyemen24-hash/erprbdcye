@@ -4,6 +4,7 @@ import { Account, Project, Program } from './FinanceTypes';
 import { handleApiResponse, PolicyViolationError, type PolicyViolation } from '../../core/utils/apiHelpers';
 import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
 import { STANDARD_COST_CENTERS } from '../../core/data/costCentersData';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 interface AccountSearchSelectProps {
   accounts: Account[];
@@ -1524,16 +1525,15 @@ export default function VoucherEntryTab({
         </div>
 
         <div className="flex justify-end pt-4 border-t border-slate-100">
-          <button
+          <EnterpriseButton
             type="submit"
+            variant="primary"
+            size="md"
             disabled={isSubmitting || !isBalanced}
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-extrabold rounded-xl text-xs flex items-center gap-2 transition-all shadow-md cursor-pointer"
+            loading={isSubmitting}
           >
-            {isSubmitting ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : null}
-            <span>{isSubmitting ? (lang === 'ar' ? 'جاري ترحيل ومعادلة السند...' : 'Posting balanced voucher...') : (lang === 'ar' ? 'ترحيل وحفظ السند المالي' : 'Commit & Post Financial Voucher')}</span>
-          </button>
+            {isSubmitting ? (lang === 'ar' ? 'جاري ترحيل ومعادلة السند...' : 'Posting balanced voucher...') : (lang === 'ar' ? 'ترحيل وحفظ السند المالي' : 'Commit & Post Financial Voucher')}
+          </EnterpriseButton>
         </div>
       </form>
     </div>

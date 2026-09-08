@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   BookOpen
 } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import {
   GLOBAL_COUNTRIES_DIRECTORY,
   CountryAdministrativeProfile,
@@ -335,13 +336,14 @@ export default function GlobalAddressManagerView({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <EnterpriseButton
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition-all cursor-pointer"
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
             >
-              <Plus className="w-4 h-4" />
-              <span>{isRtl ? 'إضافة منطقة / قرية' : 'Add Location'}</span>
-            </button>
+              {isRtl ? 'إضافة منطقة / قرية' : 'Add Location'}
+            </EnterpriseButton>
             <button
               onClick={handlePrintA4Directory}
               className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
@@ -600,24 +602,24 @@ export default function GlobalAddressManagerView({
               <div className="space-y-1">
                 <label className="text-[11px] font-black text-slate-500">{isRtl ? 'نوع التقسيم' : 'Division Type'}</label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
+                  <EnterpriseButton
                     type="button"
                     onClick={() => setTargetType('district')}
-                    className={`p-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      targetType === 'district' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-slate-50 dark:bg-zinc-950 border-slate-200 dark:border-zinc-800 text-slate-600'
-                    }`}
+                    variant={targetType === 'district' ? 'primary' : 'secondary'}
+                    size="sm"
+                    block
                   >
                     {isRtl ? activeCountry.level2_label_ar : activeCountry.level2_label_en}
-                  </button>
-                  <button
+                  </EnterpriseButton>
+                  <EnterpriseButton
                     type="button"
                     onClick={() => setTargetType('sub_address')}
-                    className={`p-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      targetType === 'sub_address' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-slate-50 dark:bg-zinc-950 border-slate-200 dark:border-zinc-800 text-slate-600'
-                    }`}
+                    variant={targetType === 'sub_address' ? 'primary' : 'secondary'}
+                    size="sm"
+                    block
                   >
                     {isRtl ? activeCountry.level3_label_ar : activeCountry.level3_label_en}
-                  </button>
+                  </EnterpriseButton>
                 </div>
               </div>
 
@@ -652,12 +654,13 @@ export default function GlobalAddressManagerView({
                 >
                   {isRtl ? 'إلغاء' : 'Cancel'}
                 </button>
-                <button
+                <EnterpriseButton
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black cursor-pointer shadow-xs"
+                  variant="primary"
+                  size="sm"
                 >
                   {isRtl ? 'حفظ التقسيم' : 'Save'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>

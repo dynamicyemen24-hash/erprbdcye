@@ -6,6 +6,7 @@ import {
   Globe, Clock, Percent, Hash, ToggleLeft, ToggleRight,
   Building, Briefcase, HandHeart, Target, Activity
 } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface OperationalPoliciesProps {
   lang: 'ar' | 'en';
@@ -214,7 +215,7 @@ const colorMap: Record<string, { bg: string; text: string; border: string; icon:
   indigo: { bg: 'bg-indigo-50 dark:bg-indigo-950/20', text: 'text-indigo-600 dark:text-indigo-400', border: 'border-indigo-200 dark:border-indigo-800/40', icon: 'bg-indigo-500/10 text-indigo-600' },
   rose: { bg: 'bg-rose-50 dark:bg-rose-950/20', text: 'text-rose-600 dark:text-rose-400', border: 'border-rose-200 dark:border-rose-800/40', icon: 'bg-rose-500/10 text-rose-600' },
   teal: { bg: 'bg-teal-50 dark:bg-teal-950/20', text: 'text-teal-600 dark:text-teal-400', border: 'border-teal-200 dark:border-teal-800/40', icon: 'bg-teal-500/10 text-teal-600' },
-  slate: { bg: 'bg-slate-50 dark:bg-slate-950/20', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-200 dark:border-slate-800/40', icon: 'bg-slate-500/10 text-slate-600' },
+  slate: { bg: 'bg-slate-50 dark:bg-zinc-950/20', text: 'text-slate-600 dark:text-zinc-400', border: 'border-slate-200 dark:border-zinc-800/40', icon: 'bg-slate-500/10 text-slate-600' },
   orange: { bg: 'bg-orange-50 dark:bg-orange-950/20', text: 'text-orange-600 dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800/40', icon: 'bg-orange-500/10 text-orange-600' },
   violet: { bg: 'bg-violet-50 dark:bg-violet-950/20', text: 'text-violet-600 dark:text-violet-400', border: 'border-violet-200 dark:border-violet-800/40', icon: 'bg-violet-500/10 text-violet-600' },
   pink: { bg: 'bg-pink-50 dark:bg-pink-950/20', text: 'text-pink-600 dark:text-pink-400', border: 'border-pink-200 dark:border-pink-800/40', icon: 'bg-pink-500/10 text-pink-600' },
@@ -289,7 +290,7 @@ export const OperationalPoliciesSettings: React.FC<OperationalPoliciesProps> = (
             disabled={saving}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-500/25"
           >
-            {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {saving ? <Spinner size="xs" /> : <Save className="w-3.5 h-3.5" />}
             {isRtl ? 'حفظ التغييرات' : 'Save Changes'}
           </button>
         )}

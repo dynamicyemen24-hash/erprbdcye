@@ -24,3 +24,5 @@ export { ProgressBar, type ProgressBarProps, type ProgressVariant, type Progress
 export { Badge, type BadgeProps, type BadgeVariant, type BadgeSize } from './Badge';
 export { Alert, type AlertProps, type AlertType, type AlertAction } from './Alert';
 export { Tabs, type TabsProps, type TabItem, type TabsVariant, type TabsSize } from './Tabs';
+export { FormError } from './FormError';
+export { FormField } from './FormField';

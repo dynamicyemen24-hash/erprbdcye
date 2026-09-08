@@ -9,6 +9,8 @@
 // Change Management and Issue Tracking per PMBOK® Guide 7th Edition
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { randomInt } from 'crypto';
+
 import type {
   Issue,
   IssueType,
@@ -90,7 +92,7 @@ export class ChangeControlEngine {
     impact?: Partial<Pick<ChangeRequest, 'scopeImpact' | 'scheduleImpactDays' | 'costImpact'>>;
   }): ChangeRequest {
     return {
-      id: `CR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `CR-${Date.now()}-${randomInt(0, 1000)}`,
       projectId: params.projectId,
       changeNumber: `CR-${Date.now().toString(36).toUpperCase()}`,
       title: params.title,
@@ -121,7 +123,7 @@ export class ChangeControlEngine {
     dueDate?: string;
   }): Issue {
     return {
-      id: `ISS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `ISS-${Date.now()}-${randomInt(0, 1000)}`,
       projectId: params.projectId,
       issueNumber: `ISS-${Date.now().toString(36).toUpperCase()}`,
       title: params.title,

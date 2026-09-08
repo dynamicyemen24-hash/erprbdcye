@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Printer, Download, FileText, ShieldCheck, CheckCircle2, Building2, User, Globe } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 
 interface HRDocumentGeneratorModalProps {
   isOpen: boolean;
@@ -59,13 +60,15 @@ export default function HRDocumentGeneratorModal({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <EnterpriseButton
               onClick={handlePrint}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer no-print"
+              variant="primary"
+              size="xs"
+              icon={<Printer className="w-3.5 h-3.5" />}
+              className="no-print"
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'طباعة الوثيقة' : 'Print Document'}</span>
-            </button>
+              {isRtl ? 'طباعة الوثيقة' : 'Print Document'}
+            </EnterpriseButton>
             <button
               onClick={onClose}
               className="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-lg text-slate-400 no-print"
@@ -84,17 +87,14 @@ export default function HRDocumentGeneratorModal({
 
           <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar">
             {unSectors.map((sec) => (
-              <button
+              <EnterpriseButton
                 key={sec.code}
                 onClick={() => setUnSector(sec.code)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap ${
-                  unSector === sec.code
-                    ? 'bg-emerald-600 text-white font-black'
-                    : 'bg-zinc-800/80 text-zinc-300 hover:bg-zinc-700'
-                }`}
+                variant={unSector === sec.code ? 'primary' : 'secondary'}
+                size="xs"
               >
                 {isRtl ? sec.ar : sec.en}
-              </button>
+              </EnterpriseButton>
             ))}
           </div>
         </div>
@@ -109,17 +109,14 @@ export default function HRDocumentGeneratorModal({
             { id: 'coi', ar: 'إقرار النزاهة ومدونة السلوك', en: 'Integrity & COI Policy' },
             { id: 'clearance', ar: 'إخلاء طرف واستلام عهدة', en: 'Asset Clearance Form' },
           ].map((type) => (
-            <button
+            <EnterpriseButton
               key={type.id}
               onClick={() => setDocType(type.id as any)}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                docType === type.id
-                  ? 'bg-emerald-600 text-white font-extrabold shadow-xs'
-                  : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800'
-              }`}
+              variant={docType === type.id ? 'primary' : 'secondary'}
+              size="sm"
             >
               {isRtl ? type.ar : type.en}
-            </button>
+            </EnterpriseButton>
           ))}
         </div>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, RotateCcw, CheckCircle2, AlertTriangle, ShieldCheck, FileText } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface ReverseEntryModalProps {
   isOpen: boolean;
@@ -120,8 +121,7 @@ export default function ReverseEntryModal({
                 >
                   {isSubmitting ? (
                     <>
-                      <RotateCcw className="w-3.5 h-3.5 animate-spin" />
-                      <span>{isRtl ? 'جاري العكس...' : 'Generating...'}</span>
+                      <Spinner size="xs" /> <span>{isRtl ? 'جاري العكس...' : 'Generating...'}</span>
                     </>
                   ) : (
                     <>

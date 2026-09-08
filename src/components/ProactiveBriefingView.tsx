@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Loader2 } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { generateBriefing } from '../core/services/proactiveInsight';
 import { Anomaly } from '../core/services/anomalyDetection';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface ProactiveBriefingViewProps {
   anomalies: Anomaly[];
@@ -37,7 +38,7 @@ export default function ProactiveBriefingView({ anomalies, lang }: ProactiveBrie
         disabled={loading || anomalies.length === 0}
         className="px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center gap-2 disabled:opacity-50"
       >
-        {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+        {loading && <Spinner size="xs" />}
         {lang === 'ar' ? 'توليد الإحاطة' : 'Generate Briefing'}
       </button>
 

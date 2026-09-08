@@ -16,6 +16,7 @@ import {
   CheckSquare,
   AlertCircle
 } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface BatchLedgerAutomationEngineProps {
   lang: 'ar' | 'en';
@@ -69,8 +70,7 @@ export default function BatchLedgerAutomationEngine({ lang }: BatchLedgerAutomat
         >
           {isExecutingBatch ? (
             <>
-              <RotateCcw className="w-4 h-4 animate-spin" />
-              <span>{isRtl ? 'جاري تنفيذ المعالجة الجماعية...' : 'Executing Batch Jobs...'}</span>
+              <Spinner size="sm" /> <span>{isRtl ? 'جاري تنفيذ المعالجة الجماعية...' : 'Executing Batch Jobs...'}</span>
             </>
           ) : (
             <>

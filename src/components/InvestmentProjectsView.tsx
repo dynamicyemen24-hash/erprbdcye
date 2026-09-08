@@ -11,6 +11,12 @@ import {
 import { ModuleShell } from './enterprise/ModuleShell';
 import { generateNumericCode } from '../lib/idGenerator';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 export interface InvestmentProject {
   id: string;
@@ -877,35 +883,41 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => setShowAddProjectModal(true)}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-bold shadow-lg shadow-emerald-900/30 flex items-center gap-2 transition-all active:scale-95"
+              icon={<Plus className="w-4 h-4" />}
             >
-              <Plus className="w-4 h-4" />
               {isAr ? 'إضافة مشروع استثماري' : 'New Project'}
-            </button>
-            <button
+            </EnterpriseButton>
+            <EnterpriseButton
+              variant="accent"
+              size="sm"
               onClick={() => setShowAddContractModal(true)}
-              className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-lg shadow-amber-900/30 flex items-center gap-2 transition-all active:scale-95"
+              icon={<FileText className="w-4 h-4" />}
             >
-              <FileText className="w-4 h-4" />
               {isAr ? 'إضافة عقد / استئجار' : 'New Contract'}
-            </button>
-            <button
+            </EnterpriseButton>
+            <EnterpriseButton
+              variant="secondary"
+              size="sm"
               onClick={() => setShowAddActivityModal(true)}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-blue-900/30 flex items-center gap-2 transition-all active:scale-95"
+              icon={<Activity className="w-4 h-4" />}
             >
-              <Activity className="w-4 h-4" />
               {isAr ? 'نشاط تنفيذي' : 'New Activity'}
-            </button>
-            <button
+            </EnterpriseButton>
+            <EnterpriseButton
+              variant="outline"
+              size="sm"
               onClick={() => setShowFeasibilityModal(true)}
-              className="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-lg shadow-purple-900/30 flex items-center gap-1.5 transition-all active:scale-95"
+              icon={<Calculator className="w-4 h-4" />}
             >
-              <Calculator className="w-4 h-4" />
               {isAr ? 'حاسبة دراسة الجدوى' : 'Feasibility ROI'}
-            </button>
-            <button
+            </EnterpriseButton>
+            <EnterpriseButton
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setArchiveFormState({
                   doc_title: projects[0] ? `عقود صكوك ووثائق أصل الوقف - ${projects[0].project_code}` : 'وثائق واستثمارات أصل الوقف',
@@ -916,11 +928,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 });
                 setShowArchivingModal(true);
               }}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 text-xs font-bold shadow-lg flex items-center gap-1.5 transition-all active:scale-95"
+              icon={<FolderCheck className="w-4 h-4" />}
             >
-              <FolderCheck className="w-4 h-4" />
               {isAr ? 'الأرشفة المؤسسية' : 'Enterprise Archiving'}
-            </button>
+            </EnterpriseButton>
           </div>
         </div>
 
@@ -967,25 +978,22 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
       {/* Enterprise Sub-Navigation Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm">
         <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-          <button
+          <EnterpriseButton
             onClick={() => setActiveSubTab('portfolio')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeSubTab === 'portfolio'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-            }`}
+            variant={activeSubTab === 'portfolio' ? 'primary' : 'ghost'}
+            size="sm"
+            icon={<Building2 className="w-4 h-4" />}
           >
-            <Building2 className="w-4 h-4" />
             {isAr ? 'المحفظة الاستثمارية الشاملة' : 'Full Portfolio'}
             <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 font-mono">{projects.length}</span>
-          </button>
+          </EnterpriseButton>
 
           <button
             onClick={() => setActiveSubTab('micro_investments')}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
               activeSubTab === 'micro_investments'
                 ? 'bg-amber-600 text-white shadow-md shadow-amber-900/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+                : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
             }`}
           >
             <MapPin className="w-4 h-4 text-amber-400" />
@@ -995,73 +1003,58 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             </span>
           </button>
 
-          <button
+          <EnterpriseButton
             onClick={() => setActiveSubTab('activities')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeSubTab === 'activities'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-            }`}
+            variant={activeSubTab === 'activities' ? 'primary' : 'ghost'}
+            size="sm"
+            icon={<Activity className="w-4 h-4" />}
           >
-            <Activity className="w-4 h-4" />
             {isAr ? 'الأنشطة والعمليات التنفيذية' : 'Executive Operations'}
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-zinc-700 font-mono text-slate-800 dark:text-slate-200">{activities.length}</span>
-          </button>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-zinc-700 font-mono text-slate-800 dark:text-zinc-200">{activities.length}</span>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
             onClick={() => setActiveSubTab('contracts')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeSubTab === 'contracts'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-            }`}
+            variant={activeSubTab === 'contracts' ? 'primary' : 'ghost'}
+            size="sm"
+            icon={<FileText className="w-4 h-4" />}
           >
-            <FileText className="w-4 h-4" />
             {isAr ? 'العقود وعقود الإيجار' : 'Contracts & Leases'}
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-zinc-700 font-mono text-slate-800 dark:text-slate-200">{contracts.length}</span>
-          </button>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-zinc-700 font-mono text-slate-800 dark:text-zinc-200">{contracts.length}</span>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
             onClick={() => setActiveSubTab('returns')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeSubTab === 'returns'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-            }`}
+            variant={activeSubTab === 'returns' ? 'primary' : 'ghost'}
+            size="sm"
+            icon={<Coins className="w-4 h-4" />}
           >
-            <Coins className="w-4 h-4" />
             {isAr ? 'سجل العوائد والتوزيع' : 'Yield Distribution Ledger'}
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-zinc-700 font-mono text-slate-800 dark:text-slate-200">{returnsHistory.length}</span>
-          </button>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-zinc-700 font-mono text-slate-800 dark:text-zinc-200">{returnsHistory.length}</span>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
             onClick={() => setActiveSubTab('governance')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeSubTab === 'governance'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-            }`}
+            variant={activeSubTab === 'governance' ? 'primary' : 'ghost'}
+            size="sm"
+            icon={<ShieldCheck className="w-4 h-4" />}
           >
-            <ShieldCheck className="w-4 h-4" />
             {isAr ? 'الحوكمة الشرعية والوقف' : 'Shariah & Governance'}
-          </button>
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
             onClick={() => setActiveSubTab('reports')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeSubTab === 'reports'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-            }`}
+            variant={activeSubTab === 'reports' ? 'primary' : 'ghost'}
+            size="sm"
+            icon={<Printer className="w-4 h-4" />}
           >
-            <Printer className="w-4 h-4" />
             {isAr ? 'التقارير والشهادات' : 'Audit Reports'}
-          </button>
+          </EnterpriseButton>
         </div>
 
         <button 
           onClick={fetchInvestmentData}
-          className="p-2.5 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300 transition-all"
+          className="p-2.5 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-all"
           title={isAr ? 'تحديث البيانات' : 'Refresh Data'}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -1080,7 +1073,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 placeholder={isAr ? 'بحث بكود المشروع، الاسم، أو المحافظة...' : 'Search project code, name, or location...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-4 pr-10 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full pl-4 pr-10 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -1090,7 +1083,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 font-medium"
+                  className="bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-zinc-100 font-medium"
                 >
                   <option value="ALL">{isAr ? 'جميع القطاعات الاستثمارية' : 'All Sectors'}</option>
                   <option value="REAL_ESTATE_ENDOWMENT">{isAr ? 'أوقاف عقارية وتجارية' : 'Real Estate Endowment'}</option>
@@ -1105,7 +1098,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               <select
                 value={selectedRisk}
                 onChange={(e) => setSelectedRisk(e.target.value)}
-                className="bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 font-medium"
+                className="bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-zinc-100 font-medium"
               >
                 <option value="ALL">{isAr ? 'جميع مستويات المخاطر' : 'All Risk Levels'}</option>
                 <option value="LOW">{isAr ? 'مخاطر منخفضة (آمن جداً)' : 'Low Risk'}</option>
@@ -1133,7 +1126,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                         {isAr ? catInfo.ar : catInfo.en}
                       </span>
                       <div className="flex items-center gap-1">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">
                           {p.project_code}
                         </span>
                         <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center gap-1">
@@ -1148,7 +1141,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                       <h3 className="text-sm font-black text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                         {isAr ? p.title_ar : p.title_en}
                       </h3>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1 flex items-center gap-1">
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium mt-1 flex items-center gap-1">
                         <span>📍 {p.location_governorate}</span>
                         <span>•</span>
                         <span>{p.assigned_investment_manager}</span>
@@ -1158,15 +1151,15 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                     {/* Capital & Financial KPIs */}
                     <div className="p-3 bg-slate-50 dark:bg-zinc-800/80 rounded-xl space-y-2 border border-slate-100 dark:border-zinc-700/50">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">{isAr ? 'رأس المال المخصص (CapEx):' : 'CapEx Capital:'}</span>
+                        <span className="text-slate-500 dark:text-zinc-400 font-medium">{isAr ? 'رأس المال المخصص (CapEx):' : 'CapEx Capital:'}</span>
                         <span className="font-bold font-mono text-slate-900 dark:text-white">{formatYER(p.capital_allocated_yer)}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">{isAr ? 'العوائد التراكمية المحققة:' : 'Accumulated Yield:'}</span>
+                        <span className="text-slate-500 dark:text-zinc-400 font-medium">{isAr ? 'العوائد التراكمية المحققة:' : 'Accumulated Yield:'}</span>
                         <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">{formatYER(p.accumulated_returns_yer)}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs pt-1 border-t border-slate-200/60 dark:border-zinc-700/60">
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">{isAr ? 'معدل العائد الفعلي (ROI):' : 'Actual ROI:'}</span>
+                        <span className="text-slate-500 dark:text-zinc-400 font-medium">{isAr ? 'معدل العائد الفعلي (ROI):' : 'Actual ROI:'}</span>
                         <span className="font-black font-mono text-amber-600 dark:text-amber-400">{p.actual_roi_pct}% (IRR: {p.irr_pct}%)</span>
                       </div>
                     </div>
@@ -1174,20 +1167,20 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                     {/* Contracts & Operations Stats */}
                     <div className="grid grid-cols-2 gap-2 text-[11px]">
                       <div className="p-2 bg-amber-500/5 dark:bg-amber-500/10 rounded-lg border border-amber-500/20">
-                        <span className="text-slate-500 dark:text-slate-400 block text-[10px]">{isAr ? 'العقود الموثقة' : 'Contracts'}</span>
+                        <span className="text-slate-500 dark:text-zinc-400 block text-[10px]">{isAr ? 'العقود الموثقة' : 'Contracts'}</span>
                         <span className="font-bold text-amber-700 dark:text-amber-300 font-mono">{projectContracts.length} {isAr ? 'عقد استثمار' : 'Agreements'}</span>
                       </div>
                       <div className="p-2 bg-blue-500/5 dark:bg-blue-500/10 rounded-lg border border-blue-500/20">
-                        <span className="text-slate-500 dark:text-slate-400 block text-[10px]">{isAr ? 'الأنشطة الميدانية' : 'Field Operations'}</span>
+                        <span className="text-slate-500 dark:text-zinc-400 block text-[10px]">{isAr ? 'الأنشطة الميدانية' : 'Field Operations'}</span>
                         <span className="font-bold text-blue-700 dark:text-blue-300 font-mono">{projectActivities.length} {isAr ? 'نشاط' : 'Tasks'}</span>
                       </div>
                     </div>
 
                     {/* Governance Bar */}
                     <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-100 dark:border-zinc-800">
-                      <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                      <span className="text-slate-500 dark:text-zinc-400 flex items-center gap-1">
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                        {isAr ? 'الشهادة الشرعية:' : 'Shariah Cert:'} <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{p.shariah_cert_number || 'SH-2025-001'}</span>
+                        {isAr ? 'الشهادة الشرعية:' : 'Shariah Cert:'} <span className="font-mono font-bold text-slate-700 dark:text-zinc-300">{p.shariah_cert_number || 'SH-2025-001'}</span>
                       </span>
                       <span className="text-blue-600 dark:text-blue-400 font-bold">
                         {p.humanitarian_distribution_pct}% {isAr ? 'للإغاثة' : 'Relief'}
@@ -1197,20 +1190,21 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
                   {/* Card Action Footer */}
                   <div className="p-3 bg-slate-50 dark:bg-zinc-800/50 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between gap-2">
-                    <button
+                    <EnterpriseButton
                       onClick={() => {
                         setSelectedProjectForAction(p);
                         setShowAddReturnModal(true);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5"
+                      variant="primary"
+                      size="xs"
+                      icon={<Coins className="w-3.5 h-3.5" />}
                     >
-                      <Coins className="w-3.5 h-3.5" />
                       {isAr ? 'قيد عوائد' : 'Record Yield'}
-                    </button>
+                    </EnterpriseButton>
 
                     <button
                       onClick={() => setSelectedProjectForCertificate(p)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 dark:hover:bg-zinc-600 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 dark:hover:bg-zinc-600 text-slate-800 dark:text-zinc-200 text-xs font-semibold transition-all flex items-center gap-1.5"
                     >
                       <Award className="w-3.5 h-3.5 text-amber-500" />
                       {isAr ? 'الشهادة الشرعية' : 'Shariah Cert'}
@@ -1297,7 +1291,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   {isAr ? 'إضافة مقاولة وترميم' : '+ Contracting'}
                 </button>
 
-                <button
+                <EnterpriseButton
                   onClick={() => {
                     setMicroType('REAL_ESTATE');
                     setMicroForm({
@@ -1314,11 +1308,12 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                     });
                     setShowMicroWizardModal(true);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg transition-all active:scale-95 cursor-pointer"
+                  variant="primary"
+                  size="sm"
+                  icon={<Store className="w-4 h-4" />}
                 >
-                  <Store className="w-4 h-4" />
                   {isAr ? 'إضافة محلات ودكاكين' : '+ Commercial Shop'}
-                </button>
+                </EnterpriseButton>
               </div>
             </div>
 
@@ -1379,7 +1374,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                         <h4 className="text-sm font-black text-slate-900 dark:text-white">
                           {isAr ? p.title_ar : p.title_en}
                         </h4>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium flex items-center gap-1">
+                        <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5 font-medium flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-amber-500" />
                           <span>{p.location_governorate}</span>
                           <span>•</span>
@@ -1390,19 +1385,19 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                       {/* Micro Specific Details Box */}
                       <div className="p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl space-y-1.5 text-xs">
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="text-slate-500 dark:text-slate-400 font-medium">{isAr ? 'رأس المال المخصص:' : 'Capital:'}</span>
+                          <span className="text-slate-500 dark:text-zinc-400 font-medium">{isAr ? 'رأس المال المخصص:' : 'Capital:'}</span>
                           <span className="font-bold font-mono text-slate-900 dark:text-white">{formatYER(p.capital_allocated_yer)}</span>
                         </div>
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="text-slate-500 dark:text-slate-400 font-medium">{isAr ? 'صافي الربح السنوي:' : 'Net Profit:'}</span>
+                          <span className="text-slate-500 dark:text-zinc-400 font-medium">{isAr ? 'صافي الربح السنوي:' : 'Net Profit:'}</span>
                           <span className="font-bold font-mono text-emerald-600">{formatYER(p.net_annual_profit_yer)}</span>
                         </div>
                         <div className="flex justify-between items-center text-[11px]">
-                          <span className="text-slate-500 dark:text-slate-400 font-medium">{isAr ? 'معدل العائد ROI:' : 'ROI:'}</span>
+                          <span className="text-slate-500 dark:text-zinc-400 font-medium">{isAr ? 'معدل العائد ROI:' : 'ROI:'}</span>
                           <span className="font-bold font-mono text-purple-600">{p.actual_roi_pct}%</span>
                         </div>
                         <div className="flex justify-between items-center text-[11px] pt-1 border-t border-amber-200/50 dark:border-amber-900/30">
-                          <span className="text-slate-500 dark:text-slate-400 font-medium">{isAr ? 'صك البصيرة/العقد:' : 'Deed/Cert:'}</span>
+                          <span className="text-slate-500 dark:text-zinc-400 font-medium">{isAr ? 'صك البصيرة/العقد:' : 'Deed/Cert:'}</span>
                           <span className="font-mono text-[10px] text-amber-700 dark:text-amber-300 font-bold">{p.shariah_cert_number || 'صك وقفي موثق'}</span>
                         </div>
                       </div>
@@ -1438,23 +1433,24 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <Activity className="w-5 h-5 text-emerald-500" />
                 {isAr ? 'سجل الأنشطة التنفيذية والعمليات الميدانية' : 'Executive Operations & Field Activities Log'}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 {isAr ? 'جدولة ومتابعة عمليات الصيانة، جني المحاصيل، تحصيل الإيجارات، وتوزيع عوائد الصكوك.' : 'Scheduling and monitoring maintenance, harvest extraction, rental collections, and coupon disbursements.'}
               </p>
             </div>
 
-            <button
+            <EnterpriseButton
               onClick={() => setShowAddActivityModal(true)}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-emerald-900/20"
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
             >
-              <Plus className="w-4 h-4" />
               {isAr ? 'إضافة نشاط تنفيذي' : 'Schedule Activity'}
-            </button>
+            </EnterpriseButton>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 uppercase font-bold border-b border-slate-200 dark:border-zinc-700">
+              <thead className="bg-slate-50 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 uppercase font-bold border-b border-slate-200 dark:border-zinc-700">
                 <tr>
                   <th className="p-3">{isAr ? 'كود النشاط' : 'Activity Code'}</th>
                   <th className="p-3">{isAr ? 'عنوان النشاط التنفيذي' : 'Executive Operation'}</th>
@@ -1472,15 +1468,15 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                     <tr key={act.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors">
                       <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">{act.activity_code}</td>
                       <td className="p-3">
-                        <span className="font-bold text-slate-800 dark:text-slate-100 block">{isAr ? act.title_ar : act.title_en}</span>
+                        <span className="font-bold text-slate-800 dark:text-zinc-100 block">{isAr ? act.title_ar : act.title_en}</span>
                         {act.execution_notes_ar && (
                           <span className="text-[10px] text-slate-500 block">{act.execution_notes_ar}</span>
                         )}
                       </td>
-                      <td className="p-3 text-slate-600 dark:text-slate-400">{linkedProj ? (isAr ? linkedProj.title_ar : linkedProj.title_en) : 'مشروع استثماري'}</td>
-                      <td className="p-3 font-mono text-slate-600 dark:text-slate-400">{act.planned_date}</td>
+                      <td className="p-3 text-slate-600 dark:text-zinc-400">{linkedProj ? (isAr ? linkedProj.title_ar : linkedProj.title_en) : 'مشروع استثماري'}</td>
+                      <td className="p-3 font-mono text-slate-600 dark:text-zinc-400">{act.planned_date}</td>
                       <td className="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatYER(act.budget_allocated_yer)}</td>
-                      <td className="p-3 text-slate-700 dark:text-slate-300">{act.assigned_lead}</td>
+                      <td className="p-3 text-slate-700 dark:text-zinc-300">{act.assigned_lead}</td>
                       <td className="p-3">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                           act.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' :
@@ -1509,7 +1505,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <FileText className="w-5 h-5 text-amber-500" />
                 {isAr ? 'عقود الاستثمار وعقود الإيجار الموثقة' : 'Contracts & Leases Lifecycle Management'}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 {isAr ? 'إدارة عقود تأجير أصول الوقف، عقود التشغيل والصيانة O&M، وصكوك الوصاية الشرعية.' : 'Master tenant leases, O&M service agreements, and Shariah trust deeds.'}
               </p>
             </div>
@@ -1540,7 +1536,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   <div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">{isAr ? cnt.title_ar : cnt.title_en}</h4>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      {isAr ? 'الطرف الثاني:' : 'Counterparty:'} <strong className="text-slate-700 dark:text-slate-300">{cnt.second_party_name}</strong> ({cnt.second_party_type})
+                      {isAr ? 'الطرف الثاني:' : 'Counterparty:'} <strong className="text-slate-700 dark:text-zinc-300">{cnt.second_party_name}</strong> ({cnt.second_party_type})
                     </p>
                   </div>
 
@@ -1551,7 +1547,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                     </div>
                     <div>
                       <span className="text-slate-500 block text-[10px]">{isAr ? 'فترة العقد:' : 'Period:'}</span>
-                      <span className="font-mono text-slate-700 dark:text-slate-300">{cnt.start_date} → {cnt.end_date}</span>
+                      <span className="font-mono text-slate-700 dark:text-zinc-300">{cnt.start_date} → {cnt.end_date}</span>
                     </div>
                   </div>
 
@@ -1576,7 +1572,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <Coins className="w-5 h-5 text-emerald-500" />
                 {isAr ? 'سجل توزيع الأرباح وحساب العوائد التنموية' : 'Yield Distribution Ledger & Certified Audit Trail'}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 {isAr ? 'ترحيل العوائد المالية، خصم المصروفات التشغيلية، وقيد القيد المزدوج لتغذية الإغاثة وإعادة الاستثمار.' : 'Ingesting fiscal revenues, auditing OpEx, and posting double-entry splits to relief and reinvestment accounts.'}
               </p>
             </div>
@@ -1584,7 +1580,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs">
-              <thead className="bg-slate-50 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 uppercase font-bold border-b border-slate-200 dark:border-zinc-700">
+              <thead className="bg-slate-50 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 uppercase font-bold border-b border-slate-200 dark:border-zinc-700">
                 <tr>
                   <th className="p-3">{isAr ? 'الفترة المالية' : 'Fiscal Period'}</th>
                   <th className="p-3">{isAr ? 'المشروع الاستثماري' : 'Investment Project'}</th>
@@ -1609,7 +1605,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                       <td className="p-3 font-mono text-blue-600 dark:text-blue-400 font-bold">{formatYER(ret.transferred_to_charity_yer)}</td>
                       <td className="p-3 font-mono text-purple-600 dark:text-purple-400 font-bold">{formatYER(ret.reinvested_amount_yer)}</td>
                       <td className="p-3">
-                        <span className="text-[10px] bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 block">
+                        <span className="text-[10px] bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-slate-600 dark:text-zinc-300 block">
                           {ret.audited_by_cfo}
                         </span>
                       </td>
@@ -1649,7 +1645,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
             <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/50 space-y-3">
               <h4 className="text-xs font-bold text-slate-900 dark:text-white">{isAr ? 'أعضاء الهيئة الشرعية العليا للمؤسسة' : 'Board of Shariah Advisors'}</h4>
-              <ul className="text-xs space-y-2 text-slate-700 dark:text-slate-300">
+              <ul className="text-xs space-y-2 text-slate-700 dark:text-zinc-300">
                 <li className="flex items-center gap-2">
                   <CheckSquare className="w-4 h-4 text-emerald-500" />
                   <span>د. عبدالحكيم السقاف - رئيس لجنة الاستثمار والأوقاف الشرعية</span>
@@ -1674,15 +1670,15 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
             <div className="space-y-3 text-xs">
               <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-zinc-800 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-400">{isAr ? 'معدل الحماية الإجمالي:' : 'Capital Preservation:'}</span>
+                <span className="text-slate-600 dark:text-zinc-400">{isAr ? 'معدل الحماية الإجمالي:' : 'Capital Preservation:'}</span>
                 <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">100.0%</span>
               </div>
               <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-zinc-800 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-400">{isAr ? 'معامل التحوط من التضخم:' : 'Inflation Hedging:'}</span>
+                <span className="text-slate-600 dark:text-zinc-400">{isAr ? 'معامل التحوط من التضخم:' : 'Inflation Hedging:'}</span>
                 <span className="font-mono font-bold text-amber-600 dark:text-amber-400">+14.2%</span>
               </div>
               <div className="flex justify-between items-center p-2 bg-slate-50 dark:bg-zinc-800 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-400">{isAr ? 'التدفق النقدي التشغيلي:' : 'Operating Cashflow:'}</span>
+                <span className="text-slate-600 dark:text-zinc-400">{isAr ? 'التدفق النقدي التشغيلي:' : 'Operating Cashflow:'}</span>
                 <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{formatYER(metrics.totalNetAnnualProfit)}</span>
               </div>
             </div>
@@ -1699,7 +1695,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <Printer className="w-5 h-5 text-emerald-500" />
                 {isAr ? 'مركز التقارير والشهادات الاستثمارية الرسمية' : 'Executive Reports & Shariah Certificate Hub'}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
                 {isAr ? 'طباعة تقارير الأداء المالي، الشهادات الشرعية، وتصدير ملخصات المحفظة للجهات الرقابية.' : 'Generate printable audit reports, Shariah compliance deeds, and executive summaries.'}
               </p>
             </div>
@@ -1773,7 +1769,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             <form onSubmit={handleCreateProject} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'كود المشروع' : 'Project Code'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'كود المشروع' : 'Project Code'}</label>
                   <input
                     type="text"
                     value={newProjectForm.project_code}
@@ -1783,7 +1779,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'القطاع الاستثماري' : 'Sector'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'القطاع الاستثماري' : 'Sector'}</label>
                   <select
                     value={newProjectForm.category}
                     onChange={(e) => setNewProjectForm({...newProjectForm, category: e.target.value})}
@@ -1800,7 +1796,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'عنوان المشروع الاستثماري (بالعربية)' : 'Project Title (Arabic)'}</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان المشروع الاستثماري (بالعربية)' : 'Project Title (Arabic)'}</label>
                 <input
                   type="text"
                   required
@@ -1813,7 +1809,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'رأس المال المخصص (CapEx YER)' : 'CapEx Capital (YER)'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'رأس المال المخصص (CapEx YER)' : 'CapEx Capital (YER)'}</label>
                   <input
                     type="number"
                     value={newProjectForm.capital_allocated_yer}
@@ -1823,7 +1819,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'العائد السنوي المتوقع (Expected ROI %)' : 'Expected ROI %'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'العائد السنوي المتوقع (Expected ROI %)' : 'Expected ROI %'}</label>
                   <input
                     type="number"
                     step="0.1"
@@ -1836,7 +1832,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'نسبة تحويل الإغاثة (%)' : 'Relief Split %'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نسبة تحويل الإغاثة (%)' : 'Relief Split %'}</label>
                   <input
                     type="number"
                     value={newProjectForm.humanitarian_distribution_pct}
@@ -1846,7 +1842,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'المحافظة / الموقع' : 'Governorate'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المحافظة / الموقع' : 'Governorate'}</label>
                   <input
                     type="text"
                     value={newProjectForm.location_governorate}
@@ -1860,16 +1856,17 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <button
                   type="button"
                   onClick={() => setShowAddProjectModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold"
                 >
                   {isAr ? 'إلغاء' : 'Cancel'}
                 </button>
-                <button
+                <EnterpriseButton
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                  variant="primary"
+                  size="sm"
                 >
                   {isAr ? 'اعتماد وقفل أصل الوقف' : 'Approve & Lock Asset'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>
@@ -1901,7 +1898,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
             <form onSubmit={handleAddContract} className="space-y-4 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'المشروع المرتبط' : 'Linked Project'}</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المشروع المرتبط' : 'Linked Project'}</label>
                 <select
                   value={newContractForm.project_id}
                   onChange={(e) => setNewContractForm({...newContractForm, project_id: e.target.value})}
@@ -1914,7 +1911,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'عنوان العقد' : 'Contract Title'}</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان العقد' : 'Contract Title'}</label>
                 <input
                   type="text"
                   required
@@ -1927,7 +1924,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'الطرف الثاني (المستأجر/المشغل)' : 'Second Party'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'الطرف الثاني (المستأجر/المشغل)' : 'Second Party'}</label>
                   <input
                     type="text"
                     required
@@ -1939,7 +1936,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'القيمة السنوية (YER)' : 'Annual Value (YER)'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'القيمة السنوية (YER)' : 'Annual Value (YER)'}</label>
                   <input
                     type="number"
                     value={newContractForm.value_yer}
@@ -1951,7 +1948,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'تاريخ البداية' : 'Start Date'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ البداية' : 'Start Date'}</label>
                   <input
                     type="date"
                     value={newContractForm.start_date}
@@ -1961,7 +1958,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'تاريخ الانتهاء' : 'End Date'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ الانتهاء' : 'End Date'}</label>
                   <input
                     type="date"
                     value={newContractForm.end_date}
@@ -1975,7 +1972,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <button
                   type="button"
                   onClick={() => setShowAddContractModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold"
                 >
                   {isAr ? 'إلغاء' : 'Cancel'}
                 </button>
@@ -2016,7 +2013,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
             <form onSubmit={handleAddActivity} className="space-y-4 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'المشروع المرتبط' : 'Linked Project'}</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المشروع المرتبط' : 'Linked Project'}</label>
                 <select
                   value={newActivityForm.project_id}
                   onChange={(e) => setNewActivityForm({...newActivityForm, project_id: e.target.value})}
@@ -2029,7 +2026,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'عنوان النشاط التنفيذي' : 'Activity Title'}</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان النشاط التنفيذي' : 'Activity Title'}</label>
                 <input
                   type="text"
                   required
@@ -2042,7 +2039,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'الميزانية المخصصة (YER)' : 'Budget (YER)'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'الميزانية المخصصة (YER)' : 'Budget (YER)'}</label>
                   <input
                     type="number"
                     value={newActivityForm.budget_allocated_yer}
@@ -2052,7 +2049,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'تاريخ التنفيذ المخطط' : 'Planned Date'}</label>
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ التنفيذ المخطط' : 'Planned Date'}</label>
                   <input
                     type="date"
                     value={newActivityForm.planned_date}
@@ -2063,7 +2060,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'المسؤول الميداني' : 'Assigned Engineer / Lead'}</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المسؤول الميداني' : 'Assigned Engineer / Lead'}</label>
                 <input
                   type="text"
                   value={newActivityForm.assigned_lead}
@@ -2076,7 +2073,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <button
                   type="button"
                   onClick={() => setShowAddActivityModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold"
                 >
                   {isAr ? 'إلغاء' : 'Cancel'}
                 </button>
@@ -2119,7 +2116,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
             <form onSubmit={handleAddReturn} className="space-y-4 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
                   {isAr ? 'الفترة المالية (الربع/السنة)' : 'Fiscal Period'}
                 </label>
                 <input
@@ -2133,7 +2130,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'إجمالي الإيرادات (YER)' : 'Gross Revenue'}
                   </label>
                   <input
@@ -2145,7 +2142,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'المصروفات التشغيلية (YER)' : 'Op-Ex'}
                   </label>
                   <input
@@ -2159,7 +2156,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-1">
                 <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold block">{isAr ? 'معاينة توزيع الأرباح تلقائياً:' : 'Auto Profit Split Preview:'}</span>
-                <div className="flex justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
+                <div className="flex justify-between text-xs font-bold text-slate-800 dark:text-zinc-200">
                   <span>{isAr ? 'صافي الربح:' : 'Net Profit:'}</span>
                   <span>{formatYER(newReturnForm.gross_revenue_yer - newReturnForm.operational_expenses_yer)}</span>
                 </div>
@@ -2177,16 +2174,17 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <button
                   type="button"
                   onClick={() => setShowAddReturnModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold"
                 >
                   {isAr ? 'إلغاء' : 'Cancel'}
                 </button>
-                <button
+                <EnterpriseButton
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                  variant="primary"
+                  size="sm"
                 >
                   {isAr ? 'تسجيل واعتماد التوزيع' : 'Record & Distribute'}
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>
@@ -2298,7 +2296,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'رأس المال المقترح (CapEx - YER)' : 'Proposed Capital'}</label>
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'رأس المال المقترح (CapEx - YER)' : 'Proposed Capital'}</label>
                   <input
                     type="number"
                     value={newProjectForm.capex_yer}
@@ -2310,7 +2308,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'المصروفات التشغيلية السنوية (OpEx)' : 'Annual OpEx'}</label>
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المصروفات التشغيلية السنوية (OpEx)' : 'Annual OpEx'}</label>
                   <input
                     type="number"
                     value={newProjectForm.opex_annual_yer}
@@ -2322,7 +2320,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'معدل العائد المتوقع ROI (%)' : 'Target ROI %'}</label>
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'معدل العائد المتوقع ROI (%)' : 'Target ROI %'}</label>
                   <input
                     type="number"
                     step="0.5"
@@ -2332,7 +2330,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'نسبة تخصيص الإغاثة (%)' : 'Humanitarian Share %'}</label>
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نسبة تخصيص الإغاثة (%)' : 'Humanitarian Share %'}</label>
                   <input
                     type="number"
                     value={newProjectForm.humanitarian_distribution_pct}
@@ -2382,7 +2380,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <button
                   type="button"
                   onClick={() => setShowFeasibilityModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold"
                 >
                   {isAr ? 'إغلاق' : 'Close'}
                 </button>
@@ -2443,7 +2441,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               className="space-y-4 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'عنوان الوثيقة / العقد' : 'Document Title'}</label>
+                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان الوثيقة / العقد' : 'Document Title'}</label>
                 <input
                   type="text"
                   required
@@ -2455,7 +2453,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'نوع الأرشيف' : 'Archive Category'}</label>
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نوع الأرشيف' : 'Archive Category'}</label>
                   <select
                     value={archiveFormState.doc_type}
                     onChange={(e) => setArchiveFormState({ ...archiveFormState, doc_type: e.target.value })}
@@ -2468,7 +2466,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'كود المشروع المرتبط' : 'Project Code'}</label>
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'كود المشروع المرتبط' : 'Project Code'}</label>
                   <input
                     type="text"
                     value={archiveFormState.project_code}
@@ -2479,7 +2477,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'مستوى السرية والصلاحيات' : 'Confidentiality Level'}</label>
+                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'مستوى السرية والصلاحيات' : 'Confidentiality Level'}</label>
                 <select
                   value={archiveFormState.confidentiality_level}
                   onChange={(e) => setArchiveFormState({ ...archiveFormState, confidentiality_level: e.target.value })}
@@ -2493,7 +2491,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">{isAr ? 'ملاحظات الأرشفة والفرسنة' : 'Archiving Notes'}</label>
+                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'ملاحظات الأرشفة والفرسنة' : 'Archiving Notes'}</label>
                 <textarea
                   rows={2}
                   value={archiveFormState.archiving_notes}
@@ -2506,7 +2504,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <button
                   type="button"
                   onClick={() => setShowArchivingModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold"
                 >
                   {isAr ? 'إلغاء' : 'Cancel'}
                 </button>
@@ -2545,7 +2543,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
               <button
                 onClick={() => setShowMicroWizardModal(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200"
               >
                 ✕
               </button>
@@ -2590,7 +2588,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               className="space-y-4 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {isAr ? 'اسم النشاط الاستثماري' : 'Activity Title'}
                 </label>
                 <input
@@ -2604,7 +2602,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'تصنيف النشاط المصغر' : 'Micro Category'}
                   </label>
                   <select
@@ -2619,7 +2617,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'الموقع الجغرافي / المحافظة' : 'Location'}
                   </label>
                   <input
@@ -2634,7 +2632,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'رأس المال / التكلفة (YER)' : 'Capital (YER)'}
                   </label>
                   <input
@@ -2646,7 +2644,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'معدل العائد المتوقع ROI %' : 'Expected ROI %'}
                   </label>
                   <input
@@ -2662,7 +2660,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'المساحة / عدد الوحدات' : 'Area / Units'}
                   </label>
                   <input
@@ -2673,7 +2671,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'رقم الصك / عقد المقاولة' : 'Deed / Contract No.'}
                   </label>
                   <input
@@ -2686,7 +2684,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {isAr ? 'حدود الأرض / نطاق المقاولة / المواصفات' : 'Boundaries & Scope'}
                 </label>
                 <textarea
@@ -2701,7 +2699,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 <button
                   type="button"
                   onClick={() => setShowMicroWizardModal(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold"
                 >
                   {isAr ? 'إلغاء' : 'Cancel'}
                 </button>

@@ -16,6 +16,8 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { ANIMATION } from '../lib/constants';
+import { EnterpriseButton } from './common/EnterpriseButton';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface BiometricSecurityGateProps {
   lang: 'ar' | 'en';
@@ -264,21 +266,25 @@ export default function BiometricSecurityGate({
               {/* Action Buttons */}
               <div className="space-y-3 pt-2">
                 {hasRegisteredKey ? (
-                  <button
+                  <EnterpriseButton
                     onClick={handleRealAuthenticate}
-                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    variant="primary"
+                    size="md"
+                    block
+                    icon={<Fingerprint className="w-4 h-4" />}
                   >
-                    <Fingerprint className="w-4 h-4" />
                     {lang === 'ar' ? 'التحقق بـ TouchID / بصمة الإصبع' : 'Scan Fingerprint (Verify)'}
-                  </button>
+                  </EnterpriseButton>
                 ) : (
-                  <button
+                  <EnterpriseButton
                     onClick={handleRealRegister}
-                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    variant="primary"
+                    size="md"
+                    block
+                    icon={<KeyRound className="w-4 h-4" />}
                   >
-                    <KeyRound className="w-4 h-4" />
                     {lang === 'ar' ? 'تسجيل بصمة هذا الجهاز (FIDO2)' : 'Register Device Biometrics'}
-                  </button>
+                  </EnterpriseButton>
                 )}
 
                 <div className="flex justify-between items-center px-1">
@@ -320,7 +326,7 @@ export default function BiometricSecurityGate({
                   
                   {/* Progress percentage ring */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-28 h-28 border-4 border-emerald-500/10 border-t-emerald-500 rounded-full animate-spin" style={{ animationDuration: '2s' }} />
+                    <Spinner size="xl" variant="primary" />
                   </div>
                 </div>
               </div>
@@ -375,7 +381,7 @@ export default function BiometricSecurityGate({
               </div>
 
               <div className="flex items-center justify-center gap-1 text-[10px] font-mono font-black text-emerald-600">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Spinner size="xs" />
                 <span>NEXORA_SECURITY_PASSED_OK</span>
               </div>
             </div>

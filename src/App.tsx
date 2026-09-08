@@ -47,11 +47,14 @@ import {
   Sliders,
   Keyboard,
   Box,
+  Handshake,
   Warehouse,
   FileCheck,
-  ShoppingCart
+  ShoppingCart,
+  Server
 } from 'lucide-react';
 import { BINexusSymbol } from './components/bi/BIIcons';
+import { Spinner } from './design-system/components/Spinner';
 
 // Enterprise Domain Features & Shared Component Imports
 import LoginView from './components/LoginView';
@@ -115,6 +118,7 @@ import { ActiveTab } from './core/types';
 import { resumeIntelligenceService } from './core/services/resumeIntelligence';
 import { useAppNavigationStore } from './core/stores/useAppNavigationStore';
 import { useAppUIStore } from './core/stores/useAppUIStore';
+import { ThemeProvider, LocalizationProvider } from './design-system';
 
 export default function App() {
   const { isTrainingMode, environmentMode } = useEnvironmentMode();
@@ -358,6 +362,9 @@ export default function App() {
       } else if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         setIsCommandCenterOpen(prev => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('newrecord'));
       } else if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
         e.preventDefault();
         setIsShortcutsModalOpen(prev => !prev);
@@ -642,7 +649,9 @@ export default function App() {
     sales: { icon: Coins, title_ar: 'المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', category_ar: 'تنمية الموارد', category_en: 'Fundraising' },
     procurement: { icon: ShoppingCart, title_ar: 'المشتريات والمناقصات (P2P)', title_en: 'Procurement & Tenders OS', category_ar: 'المشتريات والعقود', category_en: 'Procurement OS' },
     business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', category_ar: 'ذكاء الأثر الدولي', category_en: 'Business Intelligence' },
-    communications: { icon: FileText, title_ar: 'الاتصال الإداري الذكي', title_en: 'Intelligent Communications', category_ar: 'الاتصال المؤسسي', category_en: 'Communications' }
+    communications: { icon: FileText, title_ar: 'الاتصال الإداري الذكي', title_en: 'Intelligent Communications', category_ar: 'الاتصال المؤسسي', category_en: 'Communications' },
+    commitments_obligations: { icon: Handshake, title_ar: 'التعهدات والالتزامات', title_en: 'Commitments & Obligations', category_ar: 'العقود والشراكات', category_en: 'Contract OS' },
+    admin_control_center: { icon: Server, title_ar: 'مركز التحكم', title_en: 'Admin Control Center', category_ar: 'الإدارة', category_en: 'Admin' }
   };
 
   const dbConnected = !!serverStats;
@@ -652,7 +661,7 @@ export default function App() {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950">
         <div className="text-center space-y-4">
-          <div className="w-10 h-10 border-3 border-emerald-500/30 border-t-emerald-600 rounded-full animate-spin mx-auto" />
+           <Spinner size="lg" variant="primary" />
           <p className="text-xs font-bold text-slate-500 dark:text-zinc-400">
             {lang === 'ar' ? 'جاري التحقق من الجلسة...' : 'Validating session...'}
           </p>
@@ -682,6 +691,8 @@ export default function App() {
   }
 
   return (
+    <ThemeProvider defaultMode={theme === 'dark' ? 'dark' : 'light'} defaultDirection={lang === 'ar' ? 'rtl' : 'ltr'} defaultLocale={lang}>
+      <LocalizationProvider locale={lang === 'ar' ? 'ar' : 'en'}>
     <div className="h-screen max-h-screen bg-slate-50 dark:bg-zinc-950 font-sans flex flex-col antialiased selection:bg-amber-100 selection:text-amber-900 text-slate-800 dark:text-zinc-100 transition-colors duration-200 overflow-hidden">
       
       {/* GLOBAL ENTERPRISE TOAST SYSTEM */}
@@ -1311,5 +1322,7 @@ export default function App() {
         </AnimatePresence>
       </div>
     </div>
+      </LocalizationProvider>
+    </ThemeProvider>
   );
 }

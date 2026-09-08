@@ -48,6 +48,7 @@ export function getPool(): pg.Pool {
       query_timeout: 30000,
       keepAlive: true,
       keepAliveInitialDelayMillis: 10000,
+      application_name: 'nexoraos-api',
       ssl: process.env.DB_SSL_CA
         ? { rejectUnauthorized: true, ca: process.env.DB_SSL_CA }
         : { rejectUnauthorized: process.env.DB_SSL_STRICT === 'true' },

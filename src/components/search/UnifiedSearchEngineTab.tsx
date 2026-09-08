@@ -5,6 +5,7 @@ import {
   Activity, Users, Briefcase, DollarSign, FileText, Award, Heart, Truck,
   Building, BookOpen, Zap, Eye, History, Bookmark, Lightbulb, Globe
 } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -112,7 +113,7 @@ const COLOR_CLASSES: Record<string, { bg: string; text: string; border: string; 
   lime:    { bg: 'bg-lime-100 dark:bg-lime-900/30',       text: 'text-lime-700 dark:text-lime-300',       border: 'border-lime-300 dark:border-lime-700' },
   yellow:  { bg: 'bg-yellow-100 dark:bg-yellow-900/30',   text: 'text-yellow-700 dark:text-yellow-300',   border: 'border-yellow-300 dark:border-yellow-700' },
   green:   { bg: 'bg-green-100 dark:bg-green-900/30',     text: 'text-green-700 dark:text-green-300',     border: 'border-green-300 dark:border-green-700' },
-  slate:   { bg: 'bg-slate-100 dark:bg-slate-900/30',     text: 'text-slate-700 dark:text-slate-300',     border: 'border-slate-300 dark:border-slate-700' },
+  slate:   { bg: 'bg-slate-100 dark:bg-zinc-900/30',     text: 'text-slate-700 dark:text-zinc-300',     border: 'border-slate-300 dark:border-zinc-700' },
   zinc:    { bg: 'bg-zinc-100 dark:bg-zinc-900/30',       text: 'text-zinc-700 dark:text-zinc-300',       border: 'border-zinc-300 dark:border-zinc-700' },
   red:     { bg: 'bg-red-100 dark:bg-red-900/30',         text: 'text-red-700 dark:text-red-300',         border: 'border-red-300 dark:border-red-700' },
 };
@@ -437,7 +438,7 @@ export default function UnifiedSearchEngineTab({ lang }: UnifiedSearchEngineTabP
 
             {loading && (
               <div className="text-center py-12">
-                <div className="inline-block w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                <Spinner size="lg" variant="primary" />
                 <p className="text-[11px] text-slate-500 dark:text-zinc-500 mt-2 font-bold">
                   {isAr ? 'جاري البحث…' : 'Searching…'}
                 </p>

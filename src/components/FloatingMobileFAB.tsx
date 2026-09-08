@@ -28,7 +28,9 @@ import {
   MicOff
 } from 'lucide-react';
 import { useEnterprise } from '../core/context/EnterpriseContext';
+import { EnterpriseButton } from './common/EnterpriseButton';
 import confetti from 'canvas-confetti';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface FloatingMobileFABProps {
   onNavigate: (tab: any) => void;
@@ -946,12 +948,14 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                 <span className="bg-slate-900/90 text-white dark:bg-zinc-900/90 dark:text-zinc-100 text-[11px] font-black px-3 py-1.5 rounded-xl shadow-lg border border-slate-700/50 whitespace-nowrap">
                   {isRtl ? 'إنشاء مشروع جديد' : 'Create New Project'}
                 </span>
-                <button
+                <EnterpriseButton
+                  variant="primary"
+                  size="md"
+                  iconOnly
+                  icon={<Layers className="w-5 h-5" />}
                   onClick={() => handleAction('project')}
-                  className="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-xl border-2 border-white dark:border-zinc-800 transition-transform active:scale-90"
-                >
-                  <Layers className="w-5 h-5" />
-                </button>
+                  className="!w-12 !h-12 !rounded-full shadow-xl border-2 border-white dark:border-zinc-800"
+                />
               </div>
 
               {/* Option 2: Add Beneficiary */}
@@ -1116,8 +1120,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                   <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex flex-col gap-2.5">
                     <div className="flex justify-between items-center text-xs">
                       <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 animate-pulse">
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>{scanStepText}</span>
+                        <Spinner size="xs" /> <span>{scanStepText}</span>
                       </span>
                       <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">{scanProgress}%</span>
                     </div>
@@ -1188,14 +1191,14 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
 
                         {/* Direct Action Overlay */}
                         <div className="absolute bottom-4 left-4 right-4 flex justify-center">
-                          <button
-                            type="button"
+                          <EnterpriseButton
+                            variant="primary"
+                            size="sm"
+                            icon={<Camera className="w-4 h-4" />}
                             onClick={handleCameraCapture}
-                            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl flex items-center gap-1.5 shadow-lg active:scale-95 transition-transform"
                           >
-                            <Camera className="w-4 h-4" />
                             <span>{isRtl ? 'التقاط ومسح الوثيقة 📸' : 'Capture & Analyze Document 📸'}</span>
-                          </button>
+                          </EnterpriseButton>
                         </div>
                       </div>
                     )}
@@ -1359,19 +1362,20 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                         <RefreshCw className="w-3.5 h-3.5" />
                         <span>{isRtl ? 'إعادة المسح' : 'Scan Again'}</span>
                       </button>
-                      <button
-                        type="button"
+                      <EnterpriseButton
+                        variant="primary"
+                        size="sm"
+                        icon={<Sparkles className="w-3.5 h-3.5" />}
                         onClick={handleApplyScannedData}
-                        className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 flex-[2] shadow-md active:scale-95 transition-all cursor-pointer"
+                        className="flex-[2]"
                       >
-                        <Sparkles className="w-3.5 h-3.5" />
                         <span>
                           {scannedType === 'project' 
                             ? (isRtl ? 'تطبيق وإنشاء مشروع جديد' : 'Create Prefilled Project')
                             : (isRtl ? 'تطبيق وإضافة مستفيد جديد' : 'Create Prefilled Beneficiary')
                           }
                         </span>
-                      </button>
+                      </EnterpriseButton>
                     </div>
                   </motion.div>
                 )}
@@ -1790,14 +1794,15 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                     <span>{isRtl ? 'إيقاف الاستماع ⏸️' : 'Stop Listening ⏸️'}</span>
                   </button>
                 ) : (
-                  <button
-                    type="button"
+                  <EnterpriseButton
+                    variant="primary"
+                    size="sm"
+                    block
+                    icon={<Mic className="w-4 h-4 animate-bounce" />}
                     onClick={startListening}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Mic className="w-4 h-4 animate-bounce" />
                     <span>{isRtl ? 'البدء بالتحدث 🎙️' : 'Start Speaking 🎙️'}</span>
-                  </button>
+                  </EnterpriseButton>
                 )}
               </div>
 
@@ -2096,11 +2101,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                 >
                   {voiceNoteStatus === 'saving' ? (
                     <>
-                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      <span>{isRtl ? 'جاري الحفظ والتدوين...' : 'Saving to record...'}</span>
+                      <Spinner size="sm" variant="white" /> <span>{isRtl ? 'جاري الحفظ والتدوين...' : 'Saving to record...'}</span>
                     </>
                   ) : voiceNoteStatus === 'success' ? (
                     <>

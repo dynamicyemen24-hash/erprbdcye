@@ -4,6 +4,7 @@ import {
   BarChart3, RefreshCw, Cpu, CheckCircle2, Sliders, ArrowUpRight, ArrowDownRight, Activity
 } from 'lucide-react';
 import { WidgetFrame } from '../enterprise/widgets/WidgetFrame';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface PredictiveAnalyticsWidgetProps {
   lang: 'ar' | 'en';
@@ -283,8 +284,7 @@ function PredictiveAnalyticsWidgetInner({ lang, projects = [], programs = [] }: 
                 >
                   {isSimulating ? (
                     <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>{isRtl ? 'جاري تشغيل محاكاة الذكاء الاصطناعي...' : 'Running AI Simulation...'}</span>
+                      <Spinner size="sm" /> <span>{isRtl ? 'جاري تشغيل محاكاة الذكاء الاصطناعي...' : 'Running AI Simulation...'}</span>
                     </>
                   ) : (
                     <>

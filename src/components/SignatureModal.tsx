@@ -4,6 +4,7 @@ import { Fingerprint, Lock, CheckCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { createSignature } from '../core/security/signature';
 import { logAuditEvent } from '../lib/audit';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface SignatureModalProps {
   lang: 'ar' | 'en';
@@ -42,10 +43,9 @@ export default function SignatureModal({ lang, currentUser, actionDetails, onSig
               <button onClick={onCancel} className="flex-1 py-2 text-xs font-bold rounded-lg bg-zinc-100 dark:bg-zinc-800">
                 {lang === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
-              <button onClick={handleSign} disabled={signing} className="flex-1 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white flex items-center justify-center gap-2">
+              <EnterpriseButton onClick={handleSign} disabled={signing} variant="primary" size="sm" className="flex-1" icon={<Lock className="w-3 h-3" />}>
                 {signing ? (lang === 'ar' ? 'يتم التوقيع...' : 'Signing...') : (lang === 'ar' ? 'توقيع' : 'Sign')}
-                <Lock className="w-3 h-3" />
-              </button>
+              </EnterpriseButton>
             </div>
           </>
         ) : (
@@ -56,9 +56,9 @@ export default function SignatureModal({ lang, currentUser, actionDetails, onSig
               <QRCodeSVG value={`https://rohaama.org/verify?hash=${signedSignature.hash}`} size={128} />
             </div>
             <p className="text-xs text-zinc-500 mb-6">{lang === 'ar' ? 'يمكن مسح هذا الرمز للتحقق من صحة التوقيع' : 'Scan this code to verify signature validity'}</p>
-            <button onClick={onCancel} className="w-full py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white">
+            <EnterpriseButton onClick={onCancel} variant="primary" size="sm" block>
               {lang === 'ar' ? 'إغلاق' : 'Close'}
-            </button>
+            </EnterpriseButton>
           </div>
         )}
       </div>

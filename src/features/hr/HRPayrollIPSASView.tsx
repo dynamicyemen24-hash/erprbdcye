@@ -1,5 +1,6 @@
 import React from 'react';
 import { Coins } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 
 interface HRPayrollIPSASViewProps {
   lang: 'ar' | 'en';
@@ -25,9 +26,9 @@ export default function HRPayrollIPSASView({ lang }: HRPayrollIPSASViewProps) {
           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-mono font-bold">
             {isRtl ? 'فترة أغسطس 2026 | مغلقة ومتزنة' : 'FY2026-M08 | Locked & Balanced'}
           </span>
-          <button className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer">
+          <EnterpriseButton variant="primary" size="sm">
             {isRtl ? 'اعتماد وترحيل المسير' : 'Post Payroll Ledger'}
-          </button>
+          </EnterpriseButton>
         </div>
       </div>
 

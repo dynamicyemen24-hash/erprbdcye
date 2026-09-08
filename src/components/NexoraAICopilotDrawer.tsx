@@ -35,6 +35,9 @@ import {
   Scale
 } from 'lucide-react';
 import { UAMEX_AI_MODEL_TIERS, UAMEX_AI_CONSTITUTION } from '../core/ai/UAMEXAIConstitution';
+import { showToast } from './enterprise/EnterpriseToastContainer';
+import { EnterpriseButton } from './common/EnterpriseButton';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface NexoraAICopilotDrawerProps {
   isOpen: boolean;
@@ -112,7 +115,7 @@ export default function NexoraAICopilotDrawer({
 
     Array.from(files).forEach((file) => {
       if (file.size > 5 * 1024 * 1024) {
-        alert(isRtl ? 'حجم الملف يتجاوز الحد المسموح (5 ميجابايت)' : 'File size exceeds limit (5MB)');
+        showToast({ type: 'error', title: 'خطأ', message: isRtl ? 'حجم الملف يتجاوز الحد المسموح (5 ميجابايت)' : 'File size exceeds limit (5MB)' });
         return;
       }
 
@@ -301,61 +304,46 @@ export default function NexoraAICopilotDrawer({
 
           {/* Unified Navigation Tabs */}
           <div className="flex items-center gap-1 p-2 bg-zinc-900 border-b border-zinc-800 shrink-0 text-xs font-semibold overflow-x-auto">
-            <button
+            <EnterpriseButton
               onClick={() => setActiveTab('copilot')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'copilot'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-zinc-800'
-              }`}
+              variant={activeTab === 'copilot' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={<Sparkles className="w-3.5 h-3.5" />}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'يوماكس إي آي' : 'UAMEX AI™ Copilot'}</span>
-            </button>
-            <button
+              {isRtl ? 'يوماكس إي آي' : 'UAMEX AI™ Copilot'}
+            </EnterpriseButton>
+            <EnterpriseButton
               onClick={() => setActiveTab('constitution')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'constitution'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-zinc-800'
-              }`}
+              variant={activeTab === 'constitution' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={<Scale className="w-3.5 h-3.5" />}
             >
-              <Scale className="w-3.5 h-3.5 text-amber-400" />
-              <span>{isRtl ? 'دستور الذكاء المؤسسي' : 'AI Constitution'}</span>
-            </button>
-            <button
+              {isRtl ? 'دستور الذكاء المؤسسي' : 'AI Constitution'}
+            </EnterpriseButton>
+            <EnterpriseButton
               onClick={() => setActiveTab('sops')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'sops'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-zinc-800'
-              }`}
+              variant={activeTab === 'sops' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={<BookOpen className="w-3.5 h-3.5" />}
             >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'الأدلة التشغيلية SOPs' : 'SOPs Library'}</span>
-            </button>
-            <button
+              {isRtl ? 'الأدلة التشغيلية SOPs' : 'SOPs Library'}
+            </EnterpriseButton>
+            <EnterpriseButton
               onClick={() => setActiveTab('ipsas')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'ipsas'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-zinc-800'
-              }`}
+              variant={activeTab === 'ipsas' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={<Building2 className="w-3.5 h-3.5" />}
             >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'المعايير المحاسبية' : 'Accounting Rules'}</span>
-            </button>
-            <button
+              {isRtl ? 'المعايير المحاسبية' : 'Accounting Rules'}
+            </EnterpriseButton>
+            <EnterpriseButton
               onClick={() => setActiveTab('shortcuts')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'shortcuts'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-zinc-800'
-              }`}
+              variant={activeTab === 'shortcuts' ? 'primary' : 'ghost'}
+              size="sm"
+              icon={<Command className="w-3.5 h-3.5" />}
             >
-              <Command className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'الاختصارات' : 'Shortcuts'}</span>
-            </button>
+              {isRtl ? 'الاختصارات' : 'Shortcuts'}
+            </EnterpriseButton>
           </div>
 
           {/* Drawer Body */}
@@ -462,8 +450,7 @@ export default function NexoraAICopilotDrawer({
                     >
                       {loading ? (
                         <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>{isRtl ? 'جاري التحليل السيادي...' : 'Analyzing...'}</span>
+                          <Spinner size="xs" /> <span>{isRtl ? 'جاري التحليل السيادي...' : 'Analyzing...'}</span>
                         </>
                       ) : (
                         <>

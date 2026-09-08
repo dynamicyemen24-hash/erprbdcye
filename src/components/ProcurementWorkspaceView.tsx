@@ -8,6 +8,12 @@ import {
   Package, Check, Sparkles, Building2, HelpCircle, FileCheck, ArrowUpRight
 } from 'lucide-react';
 import { printHTML, createPrintDocument } from '../lib/printUtils';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 import ProcurementTab from './finance/ProcurementTab';
 import VendorRecommendationEngineView from '../features/procurement/VendorRecommendationEngineView';
 import VendorPerformanceAnalyticsView from '../features/procurement/VendorPerformanceAnalyticsView';
@@ -582,17 +588,29 @@ export default function ProcurementWorkspaceView({
                 <option value="مواد بناء وتأهيل">{isRtl ? 'مواد بناء وتأهيل' : 'Construction & Shelter'}</option>
               </select>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                icon={<Plus className="w-4 h-4" />}
                 onClick={() => setIsRegisterVendorModalOpen(true)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-xs"
+                disabled={false}
               >
-                <Plus className="w-4 h-4" />
-                <span>{isRtl ? 'إضافة مورد' : 'Add Vendor'}</span>
-              </button>
+                {isRtl ? 'إضافة مورد' : 'Add Vendor'}
+              </EnterpriseButton>
             </div>
           </div>
 
           {/* Vendors Grid */}
+          {filteredVendors.length === 0 ? (
+            <EmptyState
+              variant="empty"
+              title="No vendors found"
+              titleAr="لا توجد نتائج مطابقة"
+              description="Try adjusting your search or category filter."
+              descriptionAr="حاول تعديل البحث أو فئة التصفية."
+              lang={lang}
+            />
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredVendors.map((vnd) => (
               <div 
@@ -654,6 +672,7 @@ export default function ProcurementWorkspaceView({
               </div>
             ))}
           </div>
+          )}
         </div>
       )}
 

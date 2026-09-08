@@ -11,3 +11,4 @@ export * from './common';
 export * from './community';
 export * from './procurement';
 export * from './administration';
+export * from './commitments';

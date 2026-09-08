@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { Microscope, Loader2, Play } from 'lucide-react';
+import { Microscope, Play } from 'lucide-react';
 import { runSimulation } from '../core/services/scenarioSimulator';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface ScenarioSimulatorViewProps {
   historicalData: any[];
@@ -50,7 +51,7 @@ export default function ScenarioSimulatorView({ historicalData, lang }: Scenario
         disabled={loading}
         className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center gap-2"
       >
-        {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+        {loading && <Spinner size="xs" />}
         {!loading && <Play className="w-3 h-3" />}
         {lang === 'ar' ? 'تشغيل المحاكاة' : 'Run Simulation'}
       </button>

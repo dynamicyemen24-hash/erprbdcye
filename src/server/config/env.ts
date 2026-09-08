@@ -95,6 +95,52 @@ function envBool(key: string, defaultValue: boolean): boolean {
   return value ? value === 'true' || value === '1' : defaultValue;
 }
 
+// Weak secret patterns that must NEVER be used in production
+const WEAK_SECRET_PATTERNS = [
+  'dev-secret',
+  'change-in-production',
+  'CHANGE_ME',
+  'your-',
+  'generate',
+  'placeholder',
+  'test-secret',
+  'secret123',
+  'password',
+];
+
+function validateProductionSecret(name: string, value: string): void {
+  const nodeEnv = process.env.NODE_ENV;
+  if (nodeEnv !== 'production') return;
+
+  // Minimum 32 characters
+  if (value.length < 32) {
+    throw new Error(
+      `[SECURITY] ${name} must be at least 32 characters in production. ` +
+      `Current length: ${value.length}. Generate with: openssl rand -base64 64`
+    );
+  }
+
+  // Check for weak/placeholder patterns
+  const lower = value.toLowerCase();
+  for (const pattern of WEAK_SECRET_PATTERNS) {
+    if (lower.includes(pattern)) {
+      throw new Error(
+        `[SECURITY] ${name} contains weak/placeholder value "${pattern}". ` +
+        `Generate a secure random value with: openssl rand -base64 64`
+      );
+    }
+  }
+
+  // Check for low entropy (all same character or sequential)
+  const uniqueChars = new Set(value).size;
+  if (uniqueChars < 10) {
+    throw new Error(
+      `[SECURITY] ${name} has low entropy (${uniqueChars} unique characters). ` +
+      `Use: openssl rand -base64 64`
+    );
+  }
+}
+
 function parseDatabaseUrl(url: string): { host: string; port: number; name: string; user: string; password: string; ssl: boolean } {
   try {
     const parsed = new URL(url);
@@ -150,10 +196,18 @@ export function loadConfig(): EnvironmentConfig {
     jwt: {
       secret: process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET
         ? (() => { throw new Error('JWT_SECRET is required in production. Generate a random 64+ character string.'); })()
-        : env('JWT_SECRET', 'dev-secret-change-in-production'),
+        : (() => {
+            const secret = env('JWT_SECRET', 'dev-secret-change-in-production');
+            validateProductionSecret('JWT_SECRET', secret);
+            return secret;
+          })(),
       refreshSecret: process.env.NODE_ENV === 'production' && !process.env.JWT_REFRESH_SECRET
         ? (() => { throw new Error('JWT_REFRESH_SECRET is required in production. Generate a random 64+ character string.'); })()
-        : env('JWT_REFRESH_SECRET', 'dev-refresh-secret-change-in-production'),
+        : (() => {
+            const secret = env('JWT_REFRESH_SECRET', 'dev-refresh-secret-change-in-production');
+            validateProductionSecret('JWT_REFRESH_SECRET', secret);
+            return secret;
+          })(),
       accessExpiresIn: env('JWT_ACCESS_EXPIRES', '1h'),
       refreshExpiresIn: env('JWT_REFRESH_EXPIRES', '7d'),
     },

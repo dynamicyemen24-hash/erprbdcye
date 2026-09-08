@@ -19,6 +19,7 @@ import {
   CheckCircle2, Building2, Award, Zap, ChevronRight, Languages,
   Scan, Shield, Cpu, Database, Wifi, Cloud
 } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 const UAMEX_LOGO = '/UAMEX_ERPLOGO.png';
 const ROHAMAAB_LOGO = '/LogoRohamaab.png';
 import { useDebounce } from '../../shared/hooks/useDebounce';
@@ -314,7 +315,7 @@ export const UAMEXLoginExperience: React.FC<UAMEXLoginExperienceProps> = ({
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black text-sm shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <>
                     {t('دخول آمن', 'Secure Sign In', lang)}
@@ -394,7 +395,7 @@ export const UAMEXLoginExperience: React.FC<UAMEXLoginExperienceProps> = ({
                 disabled={loading}
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('تأكيد', 'Verify', lang)}
+                {loading ? <Spinner size="sm" /> : t('تأكيد', 'Verify', lang)}
               </button>
 
               <button

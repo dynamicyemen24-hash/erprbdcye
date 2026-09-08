@@ -34,6 +34,7 @@ import { User } from '../../core/types/users';
 import { useResumeIntelligence } from '../../core/services/resumeIntelligence';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
 import { UniversalObjectPageModal } from '../common/UniversalObjectPageModal';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 import { showToast } from '../enterprise/EnterpriseToastContainer';
 
 interface QuantumWorkFirstCockpitProps {
@@ -636,13 +637,14 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
 
                   {/* Instant Action Buttons */}
                   <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                    <button
+                    <EnterpriseButton
                       onClick={(e) => handleQuickApprove(task.id, e)}
-                      className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                      variant="primary"
+                      size="xs"
+                      icon={<Check className="w-3.5 h-3.5" />}
                     >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{isRtl ? 'اعتماد فوري' : 'Quick Approve'}</span>
-                    </button>
+                      {isRtl ? 'اعتماد فوري' : 'Quick Approve'}
+                    </EnterpriseButton>
 
                     <button
                       onClick={(e) => handleOpenClarification(task, e)}
@@ -769,13 +771,14 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
               </div>
 
               {resumeState?.lastActiveTab && (
-                <button
+                <EnterpriseButton
                   onClick={() => onNavigate(resumeState.lastActiveTab as any)}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                  variant="primary"
+                  size="xs"
+                  iconRight={isRtl ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
                 >
-                  <span>{isRtl ? 'استئناف فوري' : 'Resume Now'}</span>
-                  {isRtl ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
-                </button>
+                  {isRtl ? 'استئناف فوري' : 'Resume Now'}
+                </EnterpriseButton>
               )}
             </div>
 
@@ -1291,13 +1294,14 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
                 {isRtl ? 'إلغاء التحديد' : 'Deselect'}
               </button>
 
-              <button
+              <EnterpriseButton
                 onClick={handleBatchApprove}
-                className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                variant="primary"
+                size="sm"
+                icon={<Check className="w-4 h-4" />}
               >
-                <Check className="w-4 h-4" />
-                <span>{isRtl ? 'اعتماد الدفعة بلمسة واحدة' : 'Approve Batch Now'}</span>
-              </button>
+                {isRtl ? 'اعتماد الدفعة بلمسة واحدة' : 'Approve Batch Now'}
+              </EnterpriseButton>
             </div>
           </div>
         </div>

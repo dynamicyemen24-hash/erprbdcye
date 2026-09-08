@@ -38,7 +38,7 @@ import {
 import { useLiveEnterpriseTables } from '../../core/hooks/useLiveEnterpriseTables';
 import { ActiveTab } from '../../types';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
-import { instantPrint } from '../../core/export';
+import { instantPrint, buildOfficialStampFooter } from '../../core/export';
 import { 
   StrategicCompassSymbol, 
   ProjectLifecycleSymbol, 
@@ -52,6 +52,12 @@ import {
   WORKSPACE_STORAGE_KEYS,
   type WorkspaceRoleKey as SharedWorkspaceRoleKey
 } from '../../config/workspaceRegistry';
+import { cn } from '../../design-system/utils/cn';
+import { EmptyState } from '../../design-system/components/EmptyState';
+import { ErrorState } from '../../design-system/components/ErrorState';
+import { Spinner } from '../../design-system/components/Spinner';
+import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 export type WorkspaceRoleKey = SharedWorkspaceRoleKey;
 
@@ -353,10 +359,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
           </tbody>
         </table>
 
-        <div class="footer">
-          <div>رئيس مجلس الإدارة: معتمد رسمياً | المراجع العام: مطابق لموازنة الخطة (285,000,000 YER)</div>
-          <div>الختم المشفر: BSC-STRAT-UAM-${Math.floor(Math.random() * 899999 + 100000)} | UAMEX ERP™</div>
-        </div>
+        ${buildOfficialStampFooter({ docCode: 'BSC-STRAT-UAM', lang: isRtl ? 'ar' : 'en', endorsementAr: 'رئيس مجلس الإدارة: معتمد رسمياً | المراجع العام: مطابق لموازنة الخطة المعتمدة', contentSeed: bscRows, classification: 'OFFICIAL', complianceStandard: 'NEB-01 Balanced Scorecard' })}
       </body>
       </html>
     `;
@@ -421,10 +424,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
           </tbody>
         </table>
 
-        <div class="footer">
-          <div>مدير الوحدة: معتمد إلكترونياً | المطابقة المحاسبية: متزن ومطابق</div>
-          <div>الرقم المشفر: UAM-${unitCode}-${Math.floor(Math.random() * 899999 + 100000)} | UAMEX ERP™</div>
-        </div>
+        ${buildOfficialStampFooter({ docCode: `UAM-${unitCode}`, lang: isRtl ? 'ar' : 'en', endorsementAr: 'مدير الوحدة: معتمد إلكترونياً | المطابقة المحاسبية: متزن ومطابق', contentSeed: rows, classification: 'OFFICIAL' })}
       </body>
       </html>
     `;
@@ -581,21 +581,23 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             </div>
 
             <div className="flex items-center gap-2 self-stretch md:self-auto flex-wrap">
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={handlePrintStrategySheet}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>طباعة بطاقة الأداء الاستراتيجي [فوري]</span>
-              </button>
+              </EnterpriseButton>
               {onNavigateToTab && (
-                <button
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   onClick={() => onNavigateToTab('strategic_planning')}
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Target className="w-3.5 h-3.5" />
                   <span>شاشة التخطيط الاستراتيجي الكاملة</span>
-                </button>
+                </EnterpriseButton>
               )}
             </div>
           </div>
@@ -858,22 +860,20 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
 
             {/* Sub-tab switcher */}
             <div className="flex items-center gap-2 bg-slate-100 dark:bg-zinc-950 p-1 rounded-xl border border-slate-200 dark:border-zinc-800">
-              <button
+              <EnterpriseButton
                 onClick={() => setProgramsSubTab('projects')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                  programsSubTab === 'projects' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-zinc-400'
-                }`}
+                variant={programsSubTab === 'projects' ? 'primary' : 'ghost'}
+                size="xs"
               >
                 المشاريع الميدانية ({filteredProjects.length})
-              </button>
-              <button
+              </EnterpriseButton>
+              <EnterpriseButton
                 onClick={() => setProgramsSubTab('programs')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                  programsSubTab === 'programs' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-zinc-400'
-                }`}
+                variant={programsSubTab === 'programs' ? 'primary' : 'ghost'}
+                size="xs"
               >
                 البرامج التنموية ({filteredPrograms.length})
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
 
@@ -912,13 +912,14 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               </div>
 
               <div className="flex items-center gap-2">
-                <button
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   onClick={() => handlePrintDeskRecords(programsSubTab === 'projects' ? filteredProjects : filteredPrograms, 'المشاريع والبرامج', 'NEB-04')}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-2xs"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>طباعة الكشف معتمد [فوري]</span>
-                </button>
+                </EnterpriseButton>
               </div>
             </div>
 
@@ -979,13 +980,14 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 <h3 className="text-lg font-black text-slate-900 dark:text-white">العمليات الميدانية وهيكل تجزئة العمل (269 نشاطاً موثقاً)</h3>
               </div>
             </div>
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => handlePrintDeskRecords(filteredActivities, 'الأنشطة والمهام الميدانية', 'NEB-05')}
-              className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>طباعة كشف الأنشطة معتمد</span>
-            </button>
+            </EnterpriseButton>
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm overflow-x-auto">
@@ -1070,31 +1072,30 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
 
             <div className="flex items-center gap-2">
               <div className="flex items-center bg-slate-100 dark:bg-zinc-950 p-1 rounded-xl border border-slate-200 dark:border-zinc-800">
-                <button
+                <EnterpriseButton
                   onClick={() => setBeneficiarySubTab('sponsorships')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                    beneficiarySubTab === 'sponsorships' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-zinc-400'
-                  }`}
+                  variant={beneficiarySubTab === 'sponsorships' ? 'primary' : 'ghost'}
+                  size="xs"
                 >
                   كفالات الأيتام ({filteredSponsorships.length})
-                </button>
-                <button
+                </EnterpriseButton>
+                <EnterpriseButton
                   onClick={() => setBeneficiarySubTab('cases')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                    beneficiarySubTab === 'cases' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-zinc-400'
-                  }`}
+                  variant={beneficiarySubTab === 'cases' ? 'primary' : 'ghost'}
+                  size="xs"
                 >
                   المستفيدين المعتمدين ({filteredBeneficiaries.length})
-                </button>
+                </EnterpriseButton>
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
                 onClick={() => handlePrintDeskRecords(beneficiarySubTab === 'sponsorships' ? filteredSponsorships : filteredBeneficiaries, 'الرعاية الاجتماعية', 'NEB-06')}
-                className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>طباعة الكشف معتمد</span>
-              </button>
+              </EnterpriseButton>
             </div>
           </div>
 
@@ -1142,13 +1143,14 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 <h3 className="text-lg font-black text-slate-900 dark:text-white">المالية والرقابة المحاسبية وفق معايير IPSAS (246 حساباً متزناً)</h3>
               </div>
             </div>
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => handlePrintDeskRecords(filteredAccounts, 'دليل الحسابات IPSAS', 'NEB-10')}
-              className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>طباعة ميزان الحسابات [فوري]</span>
-            </button>
+            </EnterpriseButton>
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm overflow-x-auto">
@@ -1191,13 +1193,14 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 <h3 className="text-lg font-black text-slate-900 dark:text-white">الإمداد والمشتريات والمخازن P2P (5 مستودعات و 11 صنفاً إغاثياً)</h3>
               </div>
             </div>
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => handlePrintDeskRecords(warehouses, 'المستودعات الإغاثية', 'NEB-14')}
-              className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>طباعة كشف المخزون معتمد</span>
-            </button>
+            </EnterpriseButton>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1264,13 +1267,14 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 <h3 className="text-lg font-black text-slate-900 dark:text-white">الهيكل المؤسسي وتدرج السلطات والموارد البشرية</h3>
               </div>
             </div>
-            <button
+            <EnterpriseButton
+              variant="primary"
+              size="sm"
               onClick={() => handlePrintDeskRecords(users, 'الكادر الوظيفي والهيكل المؤسسي', 'NEB-09')}
-              className="px-3.5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>طباعة كشف الكادر معتمد</span>
-            </button>
+            </EnterpriseButton>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">

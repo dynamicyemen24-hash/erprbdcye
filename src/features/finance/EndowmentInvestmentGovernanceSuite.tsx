@@ -10,6 +10,7 @@ import {
   AlertTriangle, 
   Printer
 } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import { Account, Transaction, TransactionLine, Project } from '../../types';
 import {
   computeFinancialAnalytics,
@@ -117,18 +118,15 @@ export default function EndowmentInvestmentGovernanceSuite({
           const IconComp = tab.icon;
           const isActive = selectedSubTab === tab.id;
           return (
-            <button
+            <EnterpriseButton
               key={tab.id}
               onClick={() => setSelectedSubTab(tab.id as any)}
-              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-                isActive
-                  ? 'bg-emerald-600 text-white font-black shadow-md'
-                  : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-              }`}
+              variant={isActive ? 'primary' : 'ghost'}
+              size="md"
+              icon={<IconComp className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />}
             >
-              <IconComp className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-              <span>{isRtl ? tab.labelAr : tab.labelEn}</span>
-            </button>
+              {isRtl ? tab.labelAr : tab.labelEn}
+            </EnterpriseButton>
           );
         })}
       </div>

@@ -20,7 +20,8 @@ import {
 import { useEnterprise } from '../core/context/EnterpriseContext';
 import { Program, Project, Beneficiary, Sponsorship, Activity, User } from '../core/types';
 import AIImpactDashboard from './AIImpactDashboard';
-import { instantPrint } from '../core/export';
+import { instantPrint, buildOfficialStampFooter } from '../core/export';
+import { cn } from '../design-system/utils/cn';
 
 interface BusinessIntelligenceViewProps {
   lang: 'ar' | 'en';
@@ -337,7 +338,16 @@ export default function BusinessIntelligenceView({
       '<table><thead><tr><th style="width: 25px;">#</th><th>' + (isRtl ? 'البرنامج الاستراتيجي' : 'Strategic Program') + '</th><th>' + (isRtl ? 'الوحدة التشغيلية' : 'Unit') + '</th><th>' + (isRtl ? 'الموازنة (YER)' : 'Budget (YER)') + '</th><th>' + (isRtl ? 'المستفيدين' : 'Beneficiaries') + '</th><th>' + (isRtl ? 'تكلفة/مستفيد' : 'Cost/Ben') + '</th><th>' + (isRtl ? 'نسبة الإنجاز' : 'Progress') + '</th><th>' + (isRtl ? 'مؤشر CHS' : 'CHS Score') + '</th></tr></thead><tbody>' +
       rowsHtml +
       '</tbody></table>' +
-      '<div class="footer"><div>نظام UAMEX ERP™ المؤسسي الشامل - قطاع الحوكمة والامتثال ومراقبة الأثر الإنساني</div><div>ختم الاعتماد الرقمي: UAM-BI-' + Math.floor(Math.random() * 899999 + 100000) + ' | SHA-256 Verified</div></div></body></html>';
+      buildOfficialStampFooter({
+        docCode: 'UAM-BI',
+        lang: isRtl ? 'ar' : 'en',
+        endorsementAr: 'نظام UAMEX ERP™ المؤسسي الشامل - قطاع الحوكمة والامتثال ومراقبة الأثر الإنساني',
+        endorsementEn: 'UAMEX ERP™ — Governance, Compliance & Humanitarian Impact Oversight',
+        contentSeed: rowsHtml,
+        classification: 'OFFICIAL',
+        complianceStandard: 'CHS 9, Sphere, OECD-DAC'
+      }) +
+      '</body></html>';
 
     instantPrint(printableHTML);
   };

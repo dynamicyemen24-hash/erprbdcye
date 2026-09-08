@@ -41,6 +41,7 @@ import { Account, Transaction, TransactionLine } from './FinanceTypes';
 import { Project } from '../../types';
 import { printHTML } from '../../lib/printUtils';
 import { generateShortId } from '../../lib/idGenerator';
+import { Spinner } from '../../design-system/components/Spinner';
 
 interface EInvoicingEngineTabProps {
   accounts: Account[];
@@ -157,7 +158,6 @@ export default function EInvoicingEngineTab({
     } finally {
       setInvLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapRowToInvoice]);
 
   useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
@@ -596,7 +596,7 @@ export default function EInvoicingEngineTab({
               onClick={fetchInvoices}
               className="px-3 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <RefreshCw className={`w-4 h-4 ${invLoading ? 'animate-spin' : ''}`} />
+              {invLoading ? <Spinner size="sm" /> : <RefreshCw className="w-4 h-4" />}
               <span>{isRtl ? 'تحديث' : 'Refresh'}</span>
             </button>
           </div>
@@ -682,7 +682,7 @@ export default function EInvoicingEngineTab({
           <div className="space-y-3">
             {invLoading ? (
               <div className="p-8 text-center bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
-                <RefreshCw className="w-7 h-7 text-emerald-500 animate-spin mx-auto mb-2" />
+                <Spinner size="lg" variant="primary" />
                 <p className="text-xs font-bold text-slate-500">
                   {isRtl ? 'جاري جلب سجل الفواتير الإلكترونية...' : 'Loading the e-invoice ledger...'}
                 </p>
@@ -1076,7 +1076,7 @@ export default function EInvoicingEngineTab({
                   disabled={formSubmitting}
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-lg cursor-pointer flex items-center gap-2 disabled:opacity-60"
                 >
-                  {formSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                  {formSubmitting ? <Spinner size="sm" /> : <ShieldCheck className="w-4 h-4" />}
                   <span>{formSubmitting ? (isRtl ? 'جاري الحفظ والختم...' : 'Saving & stamping...') : (isRtl ? 'اعتماد وختم الفاتورة إلكترونياً' : 'Approve & stamp e-invoice')}</span>
                 </button>
               </div>

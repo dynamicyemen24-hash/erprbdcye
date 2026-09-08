@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Loader2, BarChart } from 'lucide-react';
+import { AlertTriangle, BarChart } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 export default function StrategicRiskSimulator({ lang }: { lang: 'ar' | 'en' }) {
   const [riskData, setRiskData] = useState<any>(null);
@@ -35,13 +36,13 @@ export default function StrategicRiskSimulator({ lang }: { lang: 'ar' | 'en' }) 
         disabled={loading}
         className="w-full py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
       >
-        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart className="w-4 h-4" />}
+        {loading ? <Spinner size="sm" /> : <BarChart className="w-4 h-4" />}
         {lang === 'ar' ? 'تشغيل محاكاة المخاطر' : 'Run Risk Simulation'}
       </button>
 
       {loading && !riskData && (
         <div className="mt-6 flex flex-col items-center justify-center py-8 gap-3">
-          <Loader2 className="w-6 h-6 text-rose-500 animate-spin" />
+          <Spinner size="md" variant="primary" />
           <p className="text-xs text-slate-500 dark:text-zinc-400">
             {lang === 'ar' ? 'جارٍ تشغيل محاكاة المخاطر...' : 'Running risk simulation...'}
           </p>

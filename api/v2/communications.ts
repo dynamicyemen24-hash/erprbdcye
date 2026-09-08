@@ -1,5 +1,6 @@
 import pg from 'pg';
 import jwt from 'jsonwebtoken';
+import { applySecurityHeaders, resolveCorsOrigin } from '../_shared/security-headers';
 
 const { Pool } = pg;
 
@@ -232,7 +233,7 @@ async function getOverview(orgId: string) {
 }
 
 export default async function handler(req: any, res: any) {
-  // ─── CORS ───────────────────────────────────────────────────────
+  // ─── CORS + Security Headers ─────────────────────────────────────
   const corsOrigin = resolveCorsOrigin(req.headers?.origin);
   if (corsOrigin) {
     res.setHeader('Access-Control-Allow-Origin', corsOrigin);
@@ -243,6 +244,7 @@ export default async function handler(req: any, res: any) {
     'Access-Control-Allow-Headers',
     'Content-Type, Authorization, x-environment-mode',
   );
+  applySecurityHeaders(res);
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();

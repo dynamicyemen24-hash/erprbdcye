@@ -25,6 +25,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { enterpriseTokens } from '../../core/theme/enterpriseDesignTokens';
+import { Spinner } from '../../design-system/components/Spinner';
 
 export interface ModuleShellProps {
   /** Module title in Arabic */
@@ -74,7 +75,7 @@ const accentColors: Record<string, { bg: string; text: string; border: string }>
   cyan:    { bg: 'bg-cyan-500/10',    text: 'text-cyan-600 dark:text-cyan-400',       border: 'border-cyan-500/25' },
   rose:    { bg: 'bg-rose-500/10',    text: 'text-rose-600 dark:text-rose-400',       border: 'border-rose-500/25' },
   violet:  { bg: 'bg-violet-500/10',  text: 'text-violet-600 dark:text-violet-400',   border: 'border-violet-500/25' },
-  slate:   { bg: 'bg-slate-500/10',   text: 'text-slate-600 dark:text-slate-400',     border: 'border-slate-500/25' },
+  slate:   { bg: 'bg-slate-500/10',   text: 'text-slate-600 dark:text-zinc-400',     border: 'border-slate-500/25' },
 };
 
 export function ModuleShell({
@@ -159,7 +160,7 @@ export function ModuleShell({
                 {/* Loading Indicator */}
                 {isLoading && (
                   <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1 shrink-0">
-                    <RefreshCw className="w-2.5 h-2.5 animate-spin" aria-hidden="true" />
+                    <Spinner size="xs" variant="accent" />
                     {isRtl ? 'جاري التحميل' : 'Loading'}
                   </span>
                 )}

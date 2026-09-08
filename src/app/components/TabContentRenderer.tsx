@@ -48,6 +48,8 @@ const SalesRevenueView = lazyWithRetry(() => import('../../components/SalesReven
 const InstitutionalRoleWorkspaces = lazyWithRetry(() => import('../../components/workspaces/InstitutionalRoleWorkspaces'), 'InstitutionalRoleWorkspaces');
 const BusinessIntelligenceView = lazyWithRetry(() => import('../../components/BusinessIntelligenceView'), 'BusinessIntelligenceView');
 const CommunicationsView = lazyWithRetry(() => import('../../components/CommunicationsView'), 'CommunicationsView');
+const CommitmentsObligationsView = lazyWithRetry(() => import('../../components/CommitmentsObligationsView'), 'CommitmentsObligationsView');
+const AdminControlCenterView = lazyWithRetry(() => import('../../components/admin/AdminControlCenter').then(m => ({ default: m.AdminControlCenter })), 'AdminControlCenter');
 import { BINexusSymbol } from '../../components/bi/BIIcons';
 
 // Lucide Icons for Premium Window Chrome
@@ -57,7 +59,7 @@ import {
   ShieldAlert, CheckCircle2, Lock, Unlock, Database, Eye, RefreshCw,
   Columns, ChevronDown, Clock, ArrowRightLeft, Sparkles, BookOpen, 
   Sliders, Compass, Briefcase, Layers, Activity, Users, Heart, Coins, 
-  ShieldCheck, TrendingUp, User, Box, FileCheck, FileText, PlayCircle, Calendar, Globe, Settings
+  ShieldCheck, TrendingUp, User, Box, FileCheck, FileText, PlayCircle, Calendar, Globe, Settings, Handshake, Server
 } from 'lucide-react';
 
 export interface TabContentRendererProps {
@@ -228,7 +230,9 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', domainCode: 'NEB-14', desc_ar: 'إدارة أطراف العملية، مطابقة القسائم الرقمية، ومطالبات وتسويات التجار والشركاء.', desc_en: 'Third-party merchants, digital voucher fulfillment, claims processing, and settlements.' },
     sales: { icon: Coins, title_ar: 'نظام المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', domainCode: 'NEB-15', desc_ar: 'إدارة حملات التبرع، الاشتراكات والمنتجات الوقفية، الفواتير، ونمو الإيرادات المستدامة.', desc_en: 'Fundraising campaigns, endowment products, invoices, and sustainable revenue generation.' },
     business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', domainCode: 'NEB-13', desc_ar: 'ذكاء الأثر ومصفوفة الارتباط التكاملي الموزع على الوحدات التشغيلية وفق معايير CHS وإسفير وSROI.', desc_en: 'Cross-domain impact intelligence matrix distributed across operational units based on CHS, Sphere & SROI standards.' },
-    communications: { icon: FileText, title_ar: 'نظام الاتصال الإداري الذكي', title_en: 'Intelligent Communications OS', domainCode: 'NEB-11', desc_ar: 'المذكرات والتعاميم والتوجيهات الرسمية بوحدة اعتماد وتوزيع وسجل توثيق مترابط مع الوحدات.', desc_en: 'Official memoranda, circulars and directives with approval, distribution registry and cross-unit linkage.' }
+    communications: { icon: FileText, title_ar: 'نظام الاتصال الإداري الذكي', title_en: 'Intelligent Communications OS', domainCode: 'NEB-11', desc_ar: 'المذكرات والتعاميم والتوجيهات الرسمية بوحدة اعتماد وتوزيع وسجل توثيق مترابط مع الوحدات.', desc_en: 'Official memoranda, circulars and directives with approval, distribution registry and cross-unit linkage.' },
+    commitments_obligations: { icon: Handshake, title_ar: 'نظام التعهدات والالتزامات الدورية', title_en: 'Commitments & Periodic Obligations OS', domainCode: 'NEB-08/NEB-10', desc_ar: 'إدارة التعهدات المالية والالتزامات الدورية مع التقارير والتحليليات والمستندات.', desc_en: 'Manage financial commitments and periodic obligations with reports, analytics, and documents.' },
+    admin_control_center: { icon: Server, title_ar: 'مركز التحكم', title_en: 'Admin Control Center', domainCode: 'NEB-12', desc_ar: 'مراقبة النظام والإعدادات: الحالة، الطابور، ويب هوك، والإيميل.', desc_en: 'System health, queue metrics, webhooks, email status & admin controls.' }
   };
 
   const [internalHomeMode, setInternalHomeMode] = useState<'work_first' | 'classic_analytics'>(() => {
@@ -475,6 +479,23 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <HRManagementWorkspace lang={lang} />;
       case 'sales':
         return <SalesRevenueView lang={lang} onNavigate={safeNavigate} />;
+      case 'commitments_obligations':
+        return (
+          <CommitmentsObligationsView
+            lang={lang}
+            commitments={[]}
+            obligations={[]}
+            programs={programs}
+            projects={projects}
+            currencies={currencies}
+            beneficiaries={beneficiaries}
+            loading={loading}
+            onRefresh={onRefreshData}
+            onNavigate={safeNavigate}
+          />
+        );
+      case 'admin_control_center':
+        return <AdminControlCenterView lang={lang} />;
       default:
         return (
           <InstitutionalRoleWorkspaces

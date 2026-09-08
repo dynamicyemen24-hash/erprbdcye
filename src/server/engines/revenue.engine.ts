@@ -12,6 +12,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult, AuthContext } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, generateTxNumber } from '../core/helpers';
+import crypto from 'crypto';
 
 // ─── Shared Types ──────────────────────────────────────
 
@@ -404,7 +405,7 @@ export class RevenueEngine {
     const accounts = await this.resolveAccounts(stream);
     const rate = Number(record.exchange_rate) || 1;
     const amountBase = Math.round(amount * rate * 100) / 100;
-    const collectionNumber = `RCP-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1e10)).padStart(10, '0')}`;
+    const collectionNumber = `RCP-${new Date().getFullYear()}-${String(crypto.randomInt(0, 1e10)).padStart(10, '0')}`;
     const txNumber = generateTxNumber('RCP');
     const needsRecognition = record.recognition_method === 'CASH_BASIS' && !record.ledger_transaction_id;
 

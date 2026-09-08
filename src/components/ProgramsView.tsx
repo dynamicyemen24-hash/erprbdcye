@@ -23,6 +23,12 @@ import { Program } from '../types';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { Briefcase } from 'lucide-react';
 import { ppmApi, PpmOverview } from '../core/ppm/ppmData';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface ProgramsViewProps {
   programs: Program[];
@@ -73,6 +79,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
   const [priorityCode, setPriorityCode] = useState('medium');
   const [objectives, setObjectives] = useState('');
   const [riskLevel, setRiskLevel] = useState('medium');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   // Load form for editing or new creation
   const openModal = (program: Program | null = null) => {
@@ -174,12 +182,6 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
   };
 
   const handleDelete = async (id: string) => {
-    const confirmation = lang === 'ar' 
-      ? 'هل أنت متأكد من حذف هذا البرنامج؟ سيتم إخفاء البرنامج من قائمة البرامج النشطة.'
-      : 'Are you sure you want to delete this program? It will be soft-deleted in the database.';
-    
-    if (!window.confirm(confirmation)) return;
-
     try {
       const response = await fetch(`/api/tables/programs/${id}`, {
         method: 'DELETE'
@@ -293,13 +295,15 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
           </p>
         </div>
 
-        <button
+        <EnterpriseButton
+          variant="accent"
+          size="sm"
           onClick={() => openModal(null)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow transition-all duration-150 self-start md:self-auto"
+          icon={<Plus className="w-4 h-4" />}
+          className="self-start md:self-auto"
         >
-          <Plus className="w-4 h-4" />
-          <span>{lang === 'ar' ? 'برنامج جديد' : 'Add New Program'}</span>
-        </button>
+          {lang === 'ar' ? 'برنامج جديد' : 'Add New Program'}
+        </EnterpriseButton>
       </div>
 
       {/* Filters Board */}
@@ -352,7 +356,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
       {/* Program Grid */}
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-[300px] space-y-3 bg-white border border-slate-200 rounded-xl">
-          <div className="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+          <Spinner size="lg" variant="accent" lang={lang} labelAr="جاري جلب البرامج..." label="Retrieving programs list..." />
           <p className="text-xs text-zinc-400 font-medium">{lang === 'ar' ? 'جاري جلب البرامج...' : 'Retrieving programs list...'}</p>
         </div>
       ) : filtered.length > 0 ? (
@@ -460,7 +464,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                       <Edit className="w-3.5 h-3.5" />
                     </button>
                     <button 
-                      onClick={() => handleDelete(prog.id)}
+                       onClick={() => { setPendingDeleteId(prog.id); setConfirmDelete(true); }}
                       className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded transition-all"
                       title={lang === 'ar' ? 'حذف البرنامج' : 'Delete program'}
                     >
@@ -474,7 +478,7 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                 <div className="col-span-full bg-white dark:bg-zinc-900 rounded-2xl border border-emerald-200 dark:border-emerald-800 shadow-xs p-5 space-y-4 animate-in fade-in">
                   {healthLoading ? (
                     <div className="flex flex-col items-center justify-center py-8 space-y-3">
-                      <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                      <Spinner size="md" variant="primary" lang={lang} labelAr="جاري تحميل صحة البرنامج..." label="Loading program health data..." />
                       <p className="text-xs text-zinc-400 font-medium">{lang === 'ar' ? 'جاري تحميل صحة البرنامج...' : 'Loading program health data...'}</p>
                     </div>
                   ) : healthData.error && !healthData.overview ? (
@@ -606,21 +610,15 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
           })}
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-12 rounded-2xl text-center shadow-xs space-y-4">
-          <Layers className="w-12 h-12 text-zinc-300 mx-auto" />
-          <div className="space-y-1">
-            <h3 className="text-sm font-extrabold text-slate-700">{lang === 'ar' ? 'لا توجد برامج مطابقة للبحث' : 'No matching programs found'}</h3>
-            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
-              {lang === 'ar' ? 'أضف برامج جديدة لتعبئة وإكمال سجلات الأساس وإعدادات موازنات التنمية للمؤسسة.' : 'Try adjusting your search criteria or add a new program record.'}
-            </p>
-          </div>
-          <button 
-            onClick={() => openModal(null)}
-            className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-lg text-xs shadow-sm transition-colors"
-          >
-            {lang === 'ar' ? 'إضافة برنامج جديد' : 'Create Program Record'}
-          </button>
-        </div>
+        <EmptyState
+          variant="empty"
+          titleAr="لا توجد برامج مطابقة للبحث"
+          title="No matching programs found"
+          descriptionAr="أضف برامج جديدة لتعبئة وإكمال سجلات الأساس وإعدادات موازنات التنمية للمؤسسة."
+          description="Try adjusting your search criteria or add a new program record."
+          actions={[{ label: 'Create Program Record', labelAr: 'إضافة برنامج جديد', onClick: () => openModal(null) }]}
+          lang={lang}
+        />
       )}
 
       {/* Program Modal Form */}
@@ -843,30 +841,40 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
 
             {/* Modal Actions */}
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-              <button 
+              <EnterpriseButton
+                variant="secondary"
+                size="sm"
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-all"
               >
                 {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-              </button>
-              <button 
+              </EnterpriseButton>
+              <EnterpriseButton
+                variant="accent"
+                size="sm"
                 onClick={handleSave}
                 disabled={formSubmitting}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1 transition-all"
+                loading={formSubmitting}
+                icon={!formSubmitting ? <Check className="w-3.5 h-3.5" /> : undefined}
               >
-                {formSubmitting ? (
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <Check className="w-3.5 h-3.5" />
-                )}
-                <span>{lang === 'ar' ? 'حفظ السجل' : 'Save Record'}</span>
-              </button>
+                {lang === 'ar' ? 'حفظ السجل' : 'Save Record'}
+              </EnterpriseButton>
             </div>
           </div>
         </div>
       )}
     </div>
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        variant="destructive"
+        titleAr="تأكيد الحذف"
+        title="Confirm Deletion"
+        descriptionAr="هل أنت متأكد من حذف هذا البرنامج؟ سيتم إخفاء البرنامج من قائمة البرامج النشطة."
+        description="Are you sure you want to delete this program? It will be soft-deleted."
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteId) handleDelete(pendingDeleteId); }}
+      />
     </ModuleShell>
   );
 }

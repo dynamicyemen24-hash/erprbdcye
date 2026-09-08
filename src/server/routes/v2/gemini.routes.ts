@@ -252,8 +252,10 @@ Respond in ${language === 'en' ? 'English' : 'Arabic'}. Keep it concise, executi
 router.post('/strategic-anomaly-monitor', async (req: Request, res: Response) => {
   try {
     const { entries, projects, milestones } = req.body;
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Analyze these financial ledger entries: ${JSON.stringify((entries || []).slice(0, 10))}, 
     and these project milestones: ${JSON.stringify((milestones || []).slice(0, 10))}.
@@ -286,8 +288,10 @@ router.post('/strategic-anomaly-monitor', async (req: Request, res: Response) =>
 router.post('/predictive-budgeting', async (req: Request, res: Response) => {
   try {
     const { entries, stakeholders } = req.body;
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Analyze these financial ledger entries: ${JSON.stringify((entries || []).slice(0, 50))}, 
     and these stakeholder metrics: ${JSON.stringify(stakeholders)}.
@@ -308,8 +312,10 @@ router.post('/predictive-budgeting', async (req: Request, res: Response) => {
 router.post('/proactive-briefing', async (req: Request, res: Response) => {
   try {
     const { anomalies } = req.body;
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Summarize these operational bottlenecks for the General Manager as a daily morning briefing: ${JSON.stringify(anomalies)}. 
     Keep it professional, concise, and focused on key risks.`;
@@ -324,8 +330,10 @@ router.post('/proactive-briefing', async (req: Request, res: Response) => {
 
 router.post('/forensic-audit', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Perform a forensic audit scan on this financial data and identify fragmented payments or duplicate invoices: 
     Data: [ { id: 1, amount: 500, type: 'payment', vendor: 'A' }, { id: 2, amount: 500, type: 'payment', vendor: 'A' }, { id: 3, amount: 1000, type: 'payment', vendor: 'B' } ].
@@ -345,8 +353,10 @@ router.post('/forensic-audit', async (req: Request, res: Response) => {
 
 router.post('/strategic-risk-simulator', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Analyze historical project delay patterns and expenditure anomalies to predict high-risk budget categories for the upcoming quarter.
     Return JSON: { categories: ['category1', 'category2'] }`;
@@ -365,8 +375,10 @@ router.post('/strategic-risk-simulator', async (req: Request, res: Response) => 
 
 router.post('/resource-optimizer', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Analyze project activities and resources to suggest an optimal schedule.
     Return JSON: { suggestions: [{ id: '1', activity: 'Activity Name', staff: 'Staff Name' }] }`;
@@ -385,8 +397,10 @@ router.post('/resource-optimizer', async (req: Request, res: Response) => {
 
 router.post('/vendor-recommendation', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Analyze historical purchase data and supplier performance to recommend the best vendors for upcoming projects.
     Return JSON: { recommendations: [{ vendorName: 'string', reliabilityScore: number }] }`;
@@ -405,8 +419,10 @@ router.post('/vendor-recommendation', async (req: Request, res: Response) => {
 
 router.post('/hr-performance-matrix', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Analyze HR data (task completion, training hours, attendance) to map employees to a performance/potential matrix.
     Return JSON: { data: [{ performance: number, potential: number, size: number, name: string }] }`;
@@ -425,8 +441,10 @@ router.post('/hr-performance-matrix', async (req: Request, res: Response) => {
 
 router.post('/portfolio-insights', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const { projects, lang } = req.body;
     if (!projects || !Array.isArray(projects)) {
@@ -499,8 +517,10 @@ router.post('/portfolio-insights', async (req: Request, res: Response) => {
 
 router.post('/anomaly-detection', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const { projects } = req.body;
     if (!projects || !Array.isArray(projects)) {
@@ -570,7 +590,10 @@ router.post('/anomaly-detection', async (req: Request, res: Response) => {
 
 router.post('/financial-audit', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
     const ai = new GoogleGenAI({
       apiKey,
       httpOptions: {
@@ -680,7 +703,10 @@ router.post('/financial-audit', async (req: Request, res: Response) => {
 
 router.post('/predictive-impact', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
     const ai = new GoogleGenAI({
       apiKey,
       httpOptions: {
@@ -781,7 +807,10 @@ router.post('/predictive-impact', async (req: Request, res: Response) => {
 
 router.post('/smart-rebalance', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
     const ai = new GoogleGenAI({
       apiKey,
       httpOptions: {
@@ -862,7 +891,10 @@ router.post('/smart-rebalance', async (req: Request, res: Response) => {
 
 router.post('/stakeholder-pulse', async (req: Request, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
     const ai = new GoogleGenAI({
       apiKey,
       httpOptions: {
@@ -936,7 +968,10 @@ router.post('/stakeholder-pulse', async (req: Request, res: Response) => {
 
 router.post('/impact-projection', async (req: any, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
     const ai = new GoogleGenAI({
       apiKey,
       httpOptions: {
@@ -988,46 +1023,15 @@ router.post('/impact-projection', async (req: any, res: Response) => {
       status: b.status
     })), null, 2)}`;
 
-    let projectionText: string;
-
-    if (apiKey === 'MOCK_KEY') {
-      projectionText = `**Strategic Impact Projection (AI-Generated)**
-
-**Projected Beneficiary Reach:**
-Based on current portfolio execution rates, an estimated ${beneficiaryData.length} direct beneficiaries are expected to be served within the current operational cycle. The portfolio shows an aggregate progress of approximately ${portfolioData.length > 0 ? Math.round(portfolioData.reduce((sum: number, p: any) => sum + (p.progress_percent || 0), 0) / portfolioData.length) : 0}% across active projects.
-
-**Resource Utilization Forecast:**
-Total managed budget across active projects is projected to reach optimal utilization by end of the cycle. Current spending patterns indicate disciplined execution with no critical burn-rate anomalies detected in the portfolio.
-
-**Key Risks & Mitigations:**
-- **Access Constraints:** Field access disruptions in certain areas may delay beneficiary registration. *Mitigation:* Pre-position supplies and activate remote beneficiary tracking.
-- **Beneficiary Verification:** Scale-up may introduce data quality risks. *Mitigation:* Enforce biometric or ID-based verification at point of service delivery.
-
-**Narrative Summary:**
-The organization is on track to deliver measurable humanitarian impact. With disciplined financial management and adaptive field strategies, the projected outcomes align with the Foundation's strategic mandate of delivering dignified, needs-based assistance to vulnerable communities.
-
-(تمديد أثر استراتيجي - مُولَّد بالذكاء الاصطناعي)
-
-**الوصول المتوقع للمستفيدين:**
-بناءً على معدلات التنفيذ الحالية للمحفظة، يُتوقع خدمة ما يقارب ${beneficiaryData.length} مستفيد مباشر خلال دورة التشغيل الحالية.
-
-**توقعات استخدام الموارد:**
-تشير أنماط الإنفاق الحالية إلى تنفيذ منضبط دون أي شذوذات حرجة في معدل الاستهلاك.
-
-**المخاطر الرئيسية والحلول:**
-- قيود الوصول الميداني قد تؤخر تسجيل المستفيدين. الحل: تخزين مسبق للموارد وتتبع المستفيدين عن بُعد.
-- التحقق من هوية المستفيدين عند التوسع. الحل: فرض التحقق بالحيوية أو الهوية.`;
-    } else {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents,
-        config: {
-          systemInstruction,
-          responseMimeType: "text/plain"
-        }
-      });
-      projectionText = response.text || 'No projection could be generated.';
-    }
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents,
+      config: {
+        systemInstruction,
+        responseMimeType: "text/plain"
+      }
+    });
+    const projectionText = response.text || 'No projection could be generated.';
 
     // Audit log
     try {
@@ -1061,8 +1065,10 @@ The organization is on track to deliver measurable humanitarian impact. With dis
 
 router.post('/hr-analytics', async (req: any, res: Response) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
-    const ai = new GoogleGenAI({ apiKey });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ status: 'error', message: 'AI service is not configured. GEMINI_API_KEY is missing.' });
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const { scenario } = req.body;
 
@@ -1073,32 +1079,16 @@ Base the analysis on realistic humanitarian field staff metrics.`;
 
     const contents = `Run HR correlation analysis for scenario: ${scenario || 'correlation-analysis'}. Analyze training hours vs performance scores for all active staff.`;
 
-    let resultData: any;
-
-    if (apiKey === 'MOCK_KEY') {
-      resultData = {
-        data: [
-          { name: 'م. أحمد المعمري', training: 42, performance: 96, completion: 98, role: 'مدير مشاريع' },
-          { name: 'أ. ياسر باوزير', training: 36, performance: 92, completion: 95, role: 'مسؤول مالية' },
-          { name: 'د. خالد العماري', training: 28, performance: 89, completion: 90, role: 'منسق ميداني' },
-          { name: 'سارة العريقي', training: 50, performance: 98, completion: 100, role: 'أخصائية موارد' },
-          { name: 'م. علي الجائفي', training: 20, performance: 84, completion: 86, role: 'مهندس إغَاثي' },
-          { name: 'أ. نورة الحميري', training: 38, performance: 91, completion: 93, role: 'منسقة التوعية' },
-          { name: 'م. عبدالله المقطوري', training: 24, performance: 87, completion: 88, role: 'مسؤول لوجستيات' }
-        ]
-      };
-    } else {
-      const aiResult = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents,
-        config: {
-          systemInstruction,
-          responseMimeType: 'application/json'
-        }
-      });
-      const text = aiResult.text || '{}';
-      resultData = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
-    }
+    const aiResult = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents,
+      config: {
+        systemInstruction,
+        responseMimeType: 'application/json'
+      }
+    });
+    const text = aiResult.text || '{}';
+    const resultData = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
 
     // Audit log
     try {

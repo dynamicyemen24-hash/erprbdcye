@@ -37,11 +37,17 @@ import { PolicyViolationAlert } from './helpers/PolicyViolationAlert';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
 import { ModuleShell } from './enterprise/ModuleShell';
-import { instantPrint } from '../core/export';
+import { instantPrint, buildOfficialStampFooter } from '../core/export';
 import { ProjectLifecycleSymbol } from './common/SovereignSystemIcons';
 import { UniversalObjectPageModal } from './common/UniversalObjectPageModal';
 import GlobalAddressCascadePicker from './common/GlobalAddressCascadePicker';
 import GlobalAddressManagerView from '../features/organization/GlobalAddressManagerView';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface ProjectsViewProps {
   projects: Project[];
@@ -142,6 +148,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
   const [realCpmData, setRealCpmData] = useState<Record<string, any>>({});
   const [intelligenceLoading, setIntelligenceLoading] = useState(false);
   const [intelligenceErrors, setIntelligenceErrors] = useState<Record<string, string>>({});
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const openModal = (project: Project | null = null, prefilledData?: any) => {
     setSelectedProject(project);
@@ -285,12 +293,6 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
   };
 
   const handleDelete = async (id: string) => {
-    const confirmation = lang === 'ar' 
-      ? 'هل أنت متأكد من حذف هذا المشروع من السجلات؟'
-      : 'Are you sure you want to delete this project? It will be soft-deleted.';
-    
-    if (!window.confirm(confirmation)) return;
-
     try {
       const response = await fetch(`/api/tables/projects/${id}`, {
         method: 'DELETE'
@@ -409,8 +411,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
     };
     fetchAll();
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, _ganttIds]);
+  }, [viewMode, _ganttIds, ppmApi]);
 
   const formatCurrency = (amount: string | null) => {
     const val = parseFloat(amount || '0');
@@ -430,27 +431,27 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
       const prog = programs.find(pr => pr.id === p.program_id);
       const progName = prog ? (lang === 'ar' ? prog.name_ar : prog.name_en) : '-';
       return `
-        <tr style="background: \${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; text-align: center;">
-          <td style="font-weight: bold; padding: 6px; border: 1px solid #cbd5e1;">\${idx + 1}</td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold;">\${p.code || p.project_code || (lang === 'ar' ? ('مشروع-' + (idx + 1)) : 'PRJ')}</td>
-          <td style="text-align: \${lang === 'ar' ? 'right' : 'left'}; padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">
-            \${lang === 'ar' ? p.name_ar : p.name_en}
+        <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; text-align: center;">
+          <td style="font-weight: bold; padding: 6px; border: 1px solid #cbd5e1;">${idx + 1}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold;">${p.code || p.project_code || (lang === 'ar' ? ('مشروع-' + (idx + 1)) : 'PRJ')}</td>
+          <td style="text-align: ${lang === 'ar' ? 'right' : 'left'}; padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">
+            ${lang === 'ar' ? p.name_ar : p.name_en}
           </td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1;">\${progName}</td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; color: #059669;">\${p.progress_percent || 0}%</td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace;">\${parseFloat(p.budget || 0).toLocaleString()} \${lang === 'ar' ? 'ر.ي' : 'YER'}</td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1;">\${(p.actual_beneficiaries || 0).toLocaleString()} / \${(p.target_beneficiaries || 0).toLocaleString()}</td>
-          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">\${p.status_code === 'completed' ? (lang === 'ar' ? 'مكتمل' : 'Completed') : (lang === 'ar' ? 'قيد التنفيذ' : 'Active')}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1;">${progName}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; color: #059669;">${p.progress_percent || 0}%</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-family: monospace;">${parseFloat(p.budget || 0).toLocaleString()} ${lang === 'ar' ? 'ر.ي' : 'YER'}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1;">${(p.actual_beneficiaries || 0).toLocaleString()} / ${(p.target_beneficiaries || 0).toLocaleString()}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold;">${p.status_code === 'completed' ? (lang === 'ar' ? 'مكتمل' : 'Completed') : (lang === 'ar' ? 'قيد التنفيذ' : 'Active')}</td>
         </tr>
       `;
     }).join('');
 
     const html = `
       <!DOCTYPE html>
-      <html dir="\${lang === 'ar' ? 'rtl' : 'ltr'}">
+      <html dir="${lang === 'ar' ? 'rtl' : 'ltr'}">
       <head>
         <meta charset="utf-8" />
-        <title>\${title}</title>
+        <title>${title}</title>
         <style>
           @page { size: A4 landscape; margin: 12mm; }
           body { font-family: Segoe UI, Tahoma, sans-serif; color: #0f172a; margin: 0; padding: 12px; }
@@ -471,13 +472,13 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
               <div style="font-size: 10px; color: #059669; font-weight: bold;">إدارة المشاريع الميدانية ومتابعة الإنجاز (NEB-04)</div>
             </div>
           </div>
-          <div style="text-align: \${lang === 'ar' ? 'left' : 'right'};">
+          <div style="text-align: ${lang === 'ar' ? 'left' : 'right'};">
             <div style="font-size: 9px; font-weight: bold; color: #d97706;">كشف عمليات معتمد</div>
-            <div style="font-size: 8px; color: #64748b;">\${new Date().toLocaleDateString(lang === 'ar' ? 'ar-YE' : 'en-US')}</div>
+            <div style="font-size: 8px; color: #64748b;">${new Date().toLocaleDateString(lang === 'ar' ? 'ar-YE' : 'en-US')}</div>
           </div>
         </div>
 
-        <h3 style="font-size: 13px; font-weight: 900; color: #059669; margin: 0 0 8px 0;">\${title}</h3>
+        <h3 style="font-size: 13px; font-weight: 900; color: #059669; margin: 0 0 8px 0;">${title}</h3>
         <table>
           <thead>
             <tr>
@@ -492,14 +493,11 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
             </tr>
           </thead>
           <tbody>
-            \${rows}
+            ${rows}
           </tbody>
         </table>
 
-        <div class="footer">
-          <div>مدير إدارة البرامج والمشاريع: مصادق | مدير الرقابة والتقييم: مطابق للمواصفات</div>
-          <div>الختم الرقمي الموحد: PRJ-UAM-\${Math.floor(Math.random() * 899999 + 100000)} | UAMEX ERP™</div>
-        </div>
+        ${buildOfficialStampFooter({ docCode: 'PRJ-UAM', lang: 'ar', endorsementAr: 'مدير إدارة البرامج والمشاريع: مصادق | مدير الرقابة والتقييم: مطابق للمواصفات', contentSeed: rows, classification: 'OFFICIAL', complianceStandard: 'NEB-04 Project Management' })}
       </body>
       </html>
     `;
@@ -567,30 +565,33 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
         </div>
 
         <div className="flex items-center gap-2.5 self-start md:self-auto">
-          <button
+          <EnterpriseButton
+            variant="secondary"
+            size="sm"
             onClick={() => setShowAddressManagerModal(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-bold shadow transition-all duration-150 cursor-pointer"
+            icon={<Globe className="w-4 h-4 text-teal-200" />}
             title={lang === 'ar' ? 'منظومة إدارة العناوين والتقسيمات والخرائط العالمية' : 'Global Addresses & Maps OS'}
           >
-            <Globe className="w-4 h-4 text-teal-200" />
-            <span>{lang === 'ar' ? 'دليل العناوين والخرائط' : 'Addresses & Maps'}</span>
-          </button>
+            {lang === 'ar' ? 'دليل العناوين والخرائط' : 'Addresses & Maps'}
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant="ghost"
+            size="sm"
             onClick={() => setIsPDFModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow transition-all duration-150 cursor-pointer"
+            icon={<Printer className="w-4 h-4 text-emerald-400" />}
           >
-            <Printer className="w-4 h-4 text-emerald-400" />
-            <span>{lang === 'ar' ? 'طباعة تقرير المشاريع PDF' : 'Print Projects PDF'}</span>
-          </button>
+            {lang === 'ar' ? 'طباعة تقرير المشاريع PDF' : 'Print Projects PDF'}
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant="accent"
+            size="sm"
             onClick={() => openModal(null)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow transition-all duration-150 cursor-pointer"
+            icon={<Plus className="w-4 h-4" />}
           >
-            <Plus className="w-4 h-4" />
-            <span>{lang === 'ar' ? 'مشروع تنفيذي جديد' : 'Add New Project'}</span>
-          </button>
+            {lang === 'ar' ? 'مشروع تنفيذي جديد' : 'Add New Project'}
+          </EnterpriseButton>
         </div>
       </div>
 
@@ -600,8 +601,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
       {/* Toast Notification for Gestures */}
       {swipeToast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-emerald-900 text-emerald-100 border border-emerald-500 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce font-bold text-xs">
-          <Zap className="w-4 h-4 text-amber-400 animate-spin" />
-          <span>{swipeToast}</span>
+                   <Spinner size="xs" /> <span>{swipeToast}</span>
         </div>
       )}
 
@@ -719,7 +719,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
       {/* Main Content Area */}
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-[300px] space-y-3 bg-white border border-slate-200 rounded-xl">
-          <div className="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+          <Spinner size="lg" variant="accent" lang={lang} labelAr="جاري جلب المشاريع الميدانية..." label="Retrieving field projects..." />
           <p className="text-xs text-zinc-400 font-medium">{lang === 'ar' ? 'جاري جلب المشاريع الميدانية...' : 'Retrieving field projects...'}</p>
         </div>
       ) : viewMode === 'gantt' ? (
@@ -733,7 +733,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
           />
           {intelligenceLoading ? (
             <div className="flex items-center justify-center gap-3 p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl">
-              <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <Spinner size="sm" variant="primary" lang={lang} labelAr="جاري تحميل بيانات المحرك الذكي..." label="Loading engine intelligence..." />
               <span className="text-xs font-bold text-zinc-400">
                 {lang === 'ar' ? 'جاري تحميل بيانات المحرك الذكي...' : 'Loading engine intelligence...'}
               </span>
@@ -977,7 +977,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                                   <Edit className="w-3.5 h-3.5" />
                                 </button>
                                 <button 
-                                  onClick={() => handleDelete(proj.id)}
+                                  onClick={() => { setPendingDeleteId(proj.id); setConfirmDelete(true); }}
                                   className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
                                   title={lang === 'ar' ? 'حذف' : 'Delete'}
                                 >
@@ -1166,7 +1166,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                               <Edit className="w-4 h-4" />
                             </button>
                             <button 
-                              onClick={() => handleDelete(proj.id)}
+                              onClick={() => { setPendingDeleteId(proj.id); setConfirmDelete(true); }}
                               className="p-1 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-all"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1182,21 +1182,15 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
           </div>
         )
       ) : (
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-12 rounded-xl text-center shadow-sm space-y-4">
-          <Briefcase className="w-12 h-12 text-zinc-300 mx-auto" />
-          <div className="space-y-1">
-            <h3 className="text-sm font-extrabold text-slate-700 dark:text-zinc-200">{lang === 'ar' ? 'لا توجد مشاريع مطابقة للبحث' : 'No matching projects found'}</h3>
-            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
-              {lang === 'ar' ? 'أضف مشاريع جديدة لتعبئة كشوفات الإنجاز الميداني ومطابقة التمويلات لمؤسسة رحماء.' : 'Try adjusting your search criteria or add a new project record.'}
-            </p>
-          </div>
-          <button 
-            onClick={() => openModal(null)}
-            className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-lg text-xs shadow-sm transition-colors cursor-pointer"
-          >
-            {lang === 'ar' ? 'إضافة مشروع جديد' : 'Create Project Record'}
-          </button>
-        </div>
+        <EmptyState
+          variant="empty"
+          titleAr="لا توجد مشاريع مطابقة للبحث"
+          title="No matching projects found"
+          descriptionAr="أضف مشاريع جديدة لتعبئة كشوفات الإنجاز الميداني ومطابقة التمويلات لمؤسسة رحماء."
+          description="Try adjusting your search criteria or add a new project record."
+          actions={[{ label: 'Create Project Record', labelAr: 'إضافة مشروع جديد', onClick: () => openModal(null) }]}
+          lang={lang}
+        />
       )}
 
       {/* Projects Form Modal */}
@@ -1438,8 +1432,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                 className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1 transition-all"
               >
                 {formSubmitting ? (
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
+                   <Spinner size="xs" variant="white" />
+                 ) : (
                   <Check className="w-3.5 h-3.5" />
                 )}
                 <span>{lang === 'ar' ? 'حفظ السجل' : 'Save Record'}</span>
@@ -1582,6 +1576,18 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        variant="destructive"
+        titleAr="تأكيد الحذف"
+        title="Confirm Deletion"
+        descriptionAr="هل أنت متأكد من حذف هذا المشروع من السجلات؟"
+        description="Are you sure you want to delete this project? It will be soft-deleted."
+        lang={lang}
+        onConfirm={() => { if (pendingDeleteId) handleDelete(pendingDeleteId); }}
+      />
 
       {/* Global Addresses & Maps Manager Modal */}
       {showAddressManagerModal && (

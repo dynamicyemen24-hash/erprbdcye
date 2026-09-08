@@ -76,11 +76,11 @@ router.post('/rbac/matrix/update', authenticateToken, async (req: any, res) => {
   }
 });
 
-// POST /api/users/reset-password — Admin password reset
+// POST /api/users/reset-password — Admin password reset (requires admin password confirmation)
 router.post('/users/reset-password', authenticateToken, async (req: any, res) => {
-  const { user_id, new_password } = req.body;
-  if (!user_id || !new_password) {
-    return res.status(400).json({ error: 'user_id and new_password are required' });
+  const { user_id, new_password, admin_password } = req.body;
+  if (!user_id || !new_password || !admin_password) {
+    return res.status(400).json({ error: 'user_id, new_password, and admin_password (confirmation) are required' });
   }
 
   if (!user_id || typeof user_id !== 'string') {
@@ -94,8 +94,24 @@ router.post('/users/reset-password', authenticateToken, async (req: any, res) =>
   const callerLevel = req.user?.security_level ?? 0;
   const callerId = req.user?.id;
 
+  if (callerLevel < 4) {
+    return res.status(403).json({ error: 'Access Denied: Only administrators (Level 4+) can reset passwords' });
+  }
+
   try {
     const dbPool = getPool();
+
+    // Verify admin's own password for confirmation
+    const adminUser = await dbPool.query('SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL', [callerId]);
+    if (adminUser.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin user not found' });
+    }
+    const bcrypt = await import('bcryptjs');
+    const passwordValid = await bcrypt.default.compare(admin_password, adminUser.rows[0].password_hash);
+    if (!passwordValid) {
+      return res.status(403).json({ error: 'Access Denied: Invalid admin password confirmation' });
+    }
+
     const targetUser = await dbPool.query('SELECT id, security_level, organization_id FROM users WHERE id = $1 AND deleted_at IS NULL', [user_id]);
     if (targetUser.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
@@ -106,11 +122,12 @@ router.post('/users/reset-password', authenticateToken, async (req: any, res) =>
       return res.status(403).json({ error: 'Access Denied: Cannot reset password for users in another organization' });
     }
 
-    if (callerId !== user_id && callerLevel < 4) {
-      return res.status(403).json({ error: 'Access Denied: Only administrators (Level 4+) can reset other users passwords' });
+    // Prevent resetting a higher-level user's password
+    if (target.security_level >= callerLevel && callerId !== user_id) {
+      return res.status(403).json({ error: 'Access Denied: Cannot reset password of a user with equal or higher security level' });
     }
 
-    const hash = await bcrypt.hash(new_password, 10);
+    const hash = await bcrypt.default.hash(new_password, 10);
     await dbPool.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [hash, user_id]);
     res.json({ status: 'ok', message: 'Password reset successfully' });
   } catch (err: any) {

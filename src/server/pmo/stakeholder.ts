@@ -10,6 +10,7 @@
 // Power/Interest Grid, Engagement Assessment, Communication Planning
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { randomInt } from 'crypto';
 import type {
   Stakeholder,
   StakeholderPower,
@@ -443,7 +444,7 @@ export class StakeholderManagementEngine {
     }).engagementStrategy;
 
     return {
-      id: `STK-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: `STK-${Date.now()}-${randomInt(0, 1000)}`,
       projectId: params.projectId,
       stakeholderId: params.stakeholderId,
       name: params.name,

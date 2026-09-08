@@ -24,6 +24,7 @@ import {
   Info,
   Scale
 } from 'lucide-react';
+import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import { printHTML, createPrintDocument, getCustomFooterHTML } from '../../lib/printUtils';
 
 interface CrossEntityLineageViewProps {

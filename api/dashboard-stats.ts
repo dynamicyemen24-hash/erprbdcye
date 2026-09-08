@@ -1,5 +1,6 @@
 import pg from 'pg';
 import jwt from 'jsonwebtoken';
+import { applySecurityHeaders, resolveCorsOrigin } from './_shared/security-headers';
 
 const { Pool } = pg;
 
@@ -77,7 +78,7 @@ export default async function handler(req: any, res: any) {
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Cache-Control', 'no-store');
+  applySecurityHeaders(res);
 
   if (req.method === 'OPTIONS') return res.status(204).end();
 

@@ -1,1126 +1,350 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  BookOpen, 
-  FileText, 
-  ShieldCheck, 
-  Search, 
-  Download, 
-  Printer, 
-  Copy, 
-  Check, 
-  Layers, 
-  Sparkles, 
-  Code, 
-  ExternalLink, 
-  Compass, 
-  Cpu, 
-  Database, 
-  HelpCircle,
-  FolderArchive,
-  PlayCircle,
-  ChevronDown,
-  ChevronRight,
-  Award,
-  HandHeart,
-  BadgeCheck,
-  X
+import React, { useState, useCallback, useMemo } from 'react';
+import {
+  BookOpen, FileText, Search, Filter, Plus, Download, Printer,
+  Folder, FolderOpen, ChevronRight, ChevronDown, Clock, User,
+  Tag, Eye, Edit3, Trash2, ExternalLink, Lock, Unlock, Star,
+  Grid, List, SortAsc, SortDesc, Archive, AlertCircle, CheckCircle2,
+  Globe, Shield, Scale, BookMarked, Lightbulb, Zap
 } from 'lucide-react';
-import OperationalScenariosView from './OperationalScenariosView';
-import { EnterpriseLogo } from './EnterpriseLogo';
-import { ModuleShell } from './enterprise/ModuleShell';
-import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
-import { REPORT_WORKSPACE_REGISTRY } from '../config/reportWorkspaceRegistry';
+import { EnterpriseButton } from './common/EnterpriseButton';
+import { Spinner } from '../design-system/components/Spinner';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
 
-interface DocumentationViewProps {
-  lang: 'ar' | 'en';
-  onNavigate?: (tab: string) => void;
-  orgName?: string;
+type DocLang = 'ar' | 'en';
+type ViewMode = 'grid' | 'list';
+type SortBy = 'title' | 'date' | 'category' | 'status';
+
+interface Document {
+  id: string;
+  title_ar: string;
+  title_en: string;
+  description_ar: string;
+  description_en: string;
+  category: string;
+  type: 'policy' | 'procedure' | 'guideline' | 'template' | 'report' | 'form';
+  status: 'draft' | 'review' | 'approved' | 'archived';
+  version: string;
+  author: string;
+  created_at: string;
+  updated_at: string;
+  tags: string[];
+  is_public: boolean;
+  file_url?: string;
+  language: 'ar' | 'en' | 'bilingual';
 }
 
-type DocTab = 'specifications' | 'manual' | 'scenarios';
+interface DocumentationViewProps {
+  lang?: DocLang;
+}
 
-export default function DocumentationView({ lang, onNavigate, orgName }: DocumentationViewProps) {
-  const [activeDoc, setActiveDoc] = useState<DocTab>('scenarios');
+const t = (ar: string, en: string, lang: DocLang) => lang === 'ar' ? ar : en;
+
+const DOC_CATEGORIES = [
+  { id: 'all', icon: BookOpen, ar: 'الكل', en: 'All' },
+  { id: 'policies', icon: Shield, ar: 'السياسات', en: 'Policies' },
+  { id: 'procedures', icon: Zap, ar: 'الإجراءات', en: 'Procedures' },
+  { id: 'guidelines', icon: Lightbulb, ar: 'الإرشادات', en: 'Guidelines' },
+  { id: 'templates', icon: FileText, ar: 'القوالب', en: 'Templates' },
+  { id: 'reports', icon: BookMarked, ar: 'التقارير', en: 'Reports' },
+  { id: 'forms', icon: Edit3, ar: 'النماذج', en: 'Forms' },
+  { id: 'legal', icon: Scale, ar: 'القانونية', en: 'Legal' },
+];
+
+const TYPE_CONFIG: Record<string, { color: string; bg: string }> = {
+  policy: { color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+  procedure: { color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+  guideline: { color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+  template: { color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-500/10' },
+  report: { color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
+  form: { color: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-50 dark:bg-cyan-500/10' },
+};
+
+const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: any }> = {
+  draft: { color: 'text-zinc-600 dark:text-zinc-400', bg: 'bg-zinc-100 dark:bg-zinc-800', icon: Edit3 },
+  review: { color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10', icon: Clock },
+  approved: { color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10', icon: CheckCircle2 },
+  archived: { color: 'text-slate-500 dark:text-zinc-500', bg: 'bg-slate-100 dark:bg-zinc-800', icon: Archive },
+};
+
+const generateMockDocs = (): Document[] => [
+  { id: '1', title_ar: 'سياسة حماية البيانات الشخصية', title_en: 'Personal Data Protection Policy', description_ar: 'سياسة شاملة لحماية البيانات الشخصية للموظفين والمستفيدين', description_en: 'Comprehensive policy for protecting personal data of employees and beneficiaries', category: 'policies', type: 'policy', status: 'approved', version: '2.1', author: 'إدارة القانونية', created_at: '2024-01-15', updated_at: '2024-06-20', tags: ['data', 'privacy', 'GDPR'], is_public: true, language: 'bilingual' },
+  { id: '2', title_ar: 'إجراءات الشراء والمناقصات', title_en: 'Procurement & Tender Procedures', description_ar: 'دليل شامل لإجراءات الشراء والمناقصات المتوافقة مع المعايير الدولية', description_en: 'Comprehensive guide for procurement and tender procedures aligned with international standards', category: 'procedures', type: 'procedure', status: 'approved', version: '3.0', author: 'قسم المشتريات', created_at: '2024-02-10', updated_at: '2024-07-15', tags: ['procurement', 'tenders', 'compliance'], is_public: true, language: 'bilingual' },
+  { id: '3', title_ar: 'إرشادات تقييم الأثر', title_en: 'Impact Assessment Guidelines', description_ar: 'إرشادات لتنفيذ تقييمات الأثر في المشاريع الإنسانية', description_en: 'Guidelines for conducting impact assessments in humanitarian projects', category: 'guidelines', type: 'guideline', status: 'review', version: '1.2', author: 'قسم المتابعة', created_at: '2024-03-05', updated_at: '2024-08-01', tags: ['impact', 'M&E', 'humanitarian'], is_public: true, language: 'en' },
+  { id: '4', title_ar: 'قالب تقرير الميزانية', title_en: 'Budget Report Template', description_ar: 'قالب موحد لإعداد تقارير الميزانية الشهرية والربع سنوية', description_en: 'Unified template for monthly and quarterly budget reports', category: 'templates', type: 'template', status: 'approved', version: '1.0', author: 'الإدارة المالية', created_at: '2024-01-20', updated_at: '2024-05-10', tags: ['budget', 'template', 'finance'], is_public: true, language: 'ar' },
+  { id: '5', title_ar: 'تقرير الأثر السنوي 2024', title_en: 'Annual Impact Report 2024', description_ar: 'التقرير السنوي الشامل لأثر البرامج والمشاريع', description_en: 'Comprehensive annual report on program and project impact', category: 'reports', type: 'report', status: 'draft', version: '0.9', author: 'قسم الذكاء', created_at: '2024-06-01', updated_at: '2024-09-01', tags: ['impact', 'annual', 'report'], is_public: false, language: 'bilingual' },
+  { id: '6', title_ar: 'نموذج طلب الشراء', title_en: 'Purchase Request Form', description_ar: 'نموذج إلكتروني لطلب المشتريات مع سير عمل الموافقات', description_en: 'Electronic purchase request form with approval workflow', category: 'forms', type: 'form', status: 'approved', version: '2.0', author: 'قسم المشتريات', created_at: '2024-02-28', updated_at: '2024-07-20', tags: ['purchase', 'form', 'procurement'], is_public: true, language: 'ar' },
+  { id: '7', title_ar: 'سياسة الموارد البشرية', title_en: 'Human Resources Policy', description_ar: 'السياسات والإجراءات المتعلقة بالموارد البشرية والتوظيف', description_en: 'Policies and procedures related to human resources and recruitment', category: 'policies', type: 'policy', status: 'approved', version: '4.1', author: 'إدارة الموارد البشرية', created_at: '2023-11-01', updated_at: '2024-08-15', tags: ['HR', 'policy', 'recruitment'], is_public: true, language: 'bilingual' },
+  { id: '8', title_ar: 'دليل السلامة المهنية', title_en: 'Occupational Safety Guide', description_ar: 'إرشادات السلامة والصحة المهنية في بيئة العمل', description_en: 'Occupational safety and health guidelines in the workplace', category: 'guidelines', type: 'guideline', status: 'approved', version: '1.5', author: 'إدارة السلامة', created_at: '2024-01-10', updated_at: '2024-06-05', tags: ['safety', 'health', 'workplace'], is_public: true, language: 'bilingual' },
+];
+
+export function DocumentationView({ lang = 'en' }: DocumentationViewProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [officialDocModal, setOfficialDocModal] = useState<'official_memo' | 'completion_certificate' | 'donation_acknowledgment' | 'volunteer_appreciation' | null>(null);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    philosophy: true,
-    domains: true,
-    lifecycle: true,
-    scenarios: true,
-    instructions: true,
-    data: true,
-  });
-  // Lives at the component level (Rules of Hooks): the manual accordion is
-  // rendered by the renderManual() helper, but its state belongs here.
-  const [activeManualId, setActiveManualId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState<SortBy>('date');
+  const [sortDesc, setSortDesc] = useState(true);
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
 
-  const toggleSection = (key: string) => {
-    setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
-  };
+  const docs = useMemo(() => generateMockDocs(), []);
 
-  const docTitles = {
-    scenarios: lang === 'ar' ? 'دليل الإجراءات وخطة التدشين واللوائح والتوصيف الوظيفي' : 'Master SOP, Bylaws, Job Descriptions & Rollout Matrix',
-    specifications: lang === 'ar' ? 'وثيقة المواصفات الفنية والنظام' : 'System Specifications Document',
-    manual: lang === 'ar' ? 'دليل المستخدم الشامل' : 'Comprehensive User Manual'
-  };
-
-  const docDescriptions = {
-    scenarios: lang === 'ar' ? 'النواة التنظيمية الموحدة: 9 مراحل تدشين، 10 أبواب للائحة الداخلية، التوصيف الوظيفي لـ 10 كوادر، والمهام الدورية وتقييم الأداء MEAL' : 'Unified enterprise engine: 9 rollout phases, 10 bylaws chapters, 10 job profiles, duty rosters and MEAL appraisal scorecards.',
-    specifications: lang === 'ar' ? 'الهيكلية المؤسسية، الوحدات التشغيلية، وقواعد معالجة البيانات وإدارة السجلات المركزية' : 'Enterprise architecture, operational suites, data governance & central records.',
-    manual: lang === 'ar' ? 'إرشادات الاستخدام خطوة بخطوة للمدراء الماليين، منسقي المشاريع الميدانية، والمدققين' : 'Step-by-step guidance for financial managers, field coordinators, and auditors.'
-  };
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handlePrint = () => {
-    setIsPrintModalOpen(true);
-  };
-
-  const handleDirectBrowserPrint = () => {
-    window.print();
-  };
-
-  // Searchable documentation index — wired to real in-app doc content
-  const DOC_SEARCH_INDEX: { id: string; tab: DocTab; section?: string; titleAr: string; titleEn: string; snippetAr: string; snippetEn: string }[] = [
-    { id: 'philosophy', tab: 'specifications', section: 'philosophy', titleAr: 'فلسفة المنتج وسلسلة القيمة والأثر', titleEn: 'Product Philosophy & Value Pipeline', snippetAr: 'خط الرؤية والأثر: رؤية ➔ استراتيجية ➔ محفظة ➔ برامج ➔ مشاريع ➔ عمليات ➔ موارد ➔ نتائج ➔ أثر', snippetEn: 'Vision → Strategy → Portfolio → Programs → Projects → Operations → Resources → Impact' },
-    { id: 'domains', tab: 'specifications', section: 'domains', titleAr: 'النطاقات المؤسسية NEB-01 إلى NEB-15', titleEn: 'Nexora Enterprise Domains NEB-01–NEB-15', snippetAr: 'الاستراتيجية، المحافظ، البرامج، المشاريع، العمليات، المستفيدون، المجتمع، الشراكات، الموارد، المالية والمحاسبة، المعرفة، التكامل، الذكاء الاصطناعي، المشتريات، المبيعات', snippetEn: 'Strategy, Portfolio, Programs, Projects, Operations, Beneficiaries, Community, Partnerships, Resources, Finance, Knowledge, Integration, AI, Procurement, Sales' },
-    { id: 'lifecycle', tab: 'specifications', section: 'lifecycle', titleAr: 'دورة حياة المشروع والصرف والتعليم والمشتريات', titleEn: 'Project Lifecycle & Cycles', snippetAr: 'مراحل المشروع من الفكرة إلى الإغلاق ودوائر الصرف والتعليم والتوريد', snippetEn: 'Project stages from initiation to closure plus disbursement, education and procurement cycles' },
-    { id: 'data', tab: 'specifications', section: 'data', titleAr: 'قواعد البيانات والحوكمة المركزية', titleEn: 'Central Data Governance', snippetAr: 'قواعد البيانات السحابية المركزية، تجزئة البيانات بالمؤسسة، النسخ الاحتياطي وسجل التدقيق', snippetEn: 'Central Database, tenant isolation, backups and audit trail' },
-    { id: 'm01', tab: 'manual', titleAr: 'الدخول والبحث الشامل', titleEn: 'Login & Universal Search', snippetAr: 'الدخول بالبريد المعتمد واستخدام بحث النظام الشامل للوصول لأي مشروع أو مستفيد أو قيد فوراً', snippetEn: 'Log in with assigned credentials; use universal search to locate any record instantly' },
-    { id: 'm02', tab: 'manual', titleAr: 'البرامج والمشاريع وحزم العمل التنفيذية', titleEn: 'Programs, Projects & Work Packages', snippetAr: 'إنشاء البرامج أولاً ثم المشاريع وحزم العمل التنفيذية لتأطير الميزانيات وحجز الاعتمادات', snippetEn: 'Create programs first, then projects and execution work packages for budget control' },
-    { id: 'm03', tab: 'manual', titleAr: 'المالية والمحاسبة مع الماسح الذكي', titleEn: 'Finance & Smart OCR', snippetAr: 'رفع صور الفواتير للماسح الذكي لإنشاء القيد المحاسبي المزدوج آلياً', snippetEn: 'Upload invoice photos; Smart AI constructs double-entry journal vouchers automatically' },
-    { id: 'm04', tab: 'manual', titleAr: 'المشتريات ومصفوفة العروض الثلاثية', titleEn: 'Procurement & 3-Way Quote Matrix', snippetAr: 'إصدار طلبات الشراء وطرح المناقصات وتحليل العروض عبر مصفوفة المقارنة', snippetEn: 'Issue PRs, launch RFQs and analyze vendor quotes via the standard matrix' },
-    { id: 'm05', tab: 'manual', titleAr: 'بوابات التبرع الإلكترونية والإيصالات الرقمية', titleEn: 'Multi-Gateway E-Donations & Webhooks', snippetAr: 'استقبال التبرعات عبر القنوات المعتمدة مع توليد إيصالات رقمية فورية', snippetEn: 'Process donations via verified gateways with instant digital receipts' },
-    { id: 'm06', tab: 'manual', titleAr: 'التنبؤ المالي واستدامة التمويل', titleEn: 'AI Predictive BI & Sustainability', snippetAr: 'توقع التدفقات 12 شهراً وحساب فترة أمان السيولة وتحوط مخاطر تذبذب العملات', snippetEn: '12-month cashflow forecasting, liquidity runway and currency hedging' }
-  ];
-
-  const searchResults = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return [];
-    return DOC_SEARCH_INDEX.filter(e =>
-      e.titleAr.toLowerCase().includes(q) ||
-      e.titleEn.toLowerCase().includes(q) ||
-      e.snippetAr.toLowerCase().includes(q) ||
-      e.snippetEn.toLowerCase().includes(q)
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
-
-  const jumpToResult = (entry: typeof DOC_SEARCH_INDEX[number]) => {
-    setActiveDoc(entry.tab);
-    if (entry.section) {
-      setExpandedSections(prev => ({ ...prev, [entry.section!]: true }));
+  const filteredDocs = useMemo(() => {
+    let result = docs;
+    if (selectedCategory !== 'all') {
+      result = result.filter(d => d.category === selectedCategory);
     }
-    setSearchQuery('');
-  };
-
-  // Render the comprehensive specifications based on the updated SYSTEM_SPECIFICATIONS.md
-  const renderSpecifications = () => (
-    <div className="space-y-8 text-slate-800 dark:text-zinc-200 leading-relaxed text-sm">
-      {/* Header Banner */}
-      <div className="p-6 bg-gradient-to-r from-emerald-950 via-zinc-900 to-amber-950 text-white rounded-xl shadow-xl border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <EnterpriseLogo className="h-16 w-auto object-contain bg-white p-2 rounded-xl shadow-lg border border-emerald-400" />
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl font-black text-emerald-300">UAMEX ERP™</span>
-              <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-md text-xs font-bold">
-                Intelligent Enterprise Operating System
-              </span>
-            </div>
-            <p className="text-xs text-amber-400 font-extrabold">
-              {orgName}
-              <span className="text-zinc-300 dark:text-zinc-400 font-normal px-2">| One Platform. One Organization. One Vision.</span>
-            </p>
-          </div>
-
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-xs font-bold font-mono">
-            15 NEB Domains
-          </span>
-          <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full text-xs font-bold font-mono">
-            Neon + UAMEX AI™
-          </span>
-        </div>
-      </div>
-
-      {/* Product Philosophy Pipeline */}
-      <section className="space-y-3">
-        <button
-          onClick={() => toggleSection('philosophy')}
-          className="w-full text-base font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-2 cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          {expandedSections.philosophy ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-          <Sparkles className="w-5 h-5 text-emerald-600" />
-          {lang === 'ar' ? 'أولاً: فلسفة منظومة UAMEX ERP™ وسلسلة القيمة والأثر المؤسسي' : '1. UAMEX ERP™ Product Philosophy & Value Pipeline'}
-        </button>
-        
-        {expandedSections.philosophy && (
-        
-        <div className="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-xl space-y-3">
-          <p className="text-xs text-zinc-300 leading-relaxed font-semibold">
-            {lang === 'ar' 
-              ? 'منظومة UAMEX ERP™ لا تدير معاملات منفصلة، بل يدير خط الرؤية والأثر المؤسسي المتكامل في منصة موحدة واحدة:' 
-              : 'UAMEX ERP™ manages the end-to-end vision to impact pipeline in one unified intelligent operating system:'}
-          </p>
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl font-mono text-[10px] text-slate-700 dark:text-zinc-200 font-extrabold">
-            <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">Vision</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">Strategy</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">Portfolio</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">Programs</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">Projects</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">Operations</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">Resources</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">Stakeholders</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">Results</span>
-            <span className="text-amber-500">➔</span>
-            <span className="px-3 py-1 bg-emerald-600 text-white font-bold rounded shadow-lg">Impact</span>
-          </div>
-        </div>
-        )}
-      </section>
-
-      {/* The 15 Nexora Enterprise Domains */}
-      <section className="space-y-3">
-        <button
-          onClick={() => toggleSection('domains')}
-          className="w-full text-base font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-2 cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          {expandedSections.domains ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-          <Layers className="w-5 h-5 text-emerald-600" />
-          {lang === 'ar' ? 'ثانياً: الأنظمة المؤسسية الـ 15 (Nexora Enterprise Domains™)' : '2. The 15 Nexora Enterprise Domains™'}
-        </button>
-
-        {expandedSections.domains && (
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30">NEB-01</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Strategy & Performance OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام الاستراتيجية والأداء: يدير الرؤية والرسالة والأهداف والمؤشرات (KPIs).' : 'Strategy & Performance OS: Vision, mission, goals, and KPIs.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">NEB-02</span>
-              <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Portfolio Management OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام إدارة المحافظ: يدير المحافظ الاستثمارية والمبادرات الكبرى.' : 'Portfolio Management OS: Portfolios, initiatives, and capital programs.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30">NEB-03</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Program Management OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام إدارة البرامج: يدير البرامج التنموية والمجتمعية والإستثمارية.' : 'Program Management OS: Developmental, social, and educational programs.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">NEB-04</span>
-              <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Project Management OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام إدارة المشاريع: يدير المشاريع والعقود والميزانيات والمخاطر.' : 'Project Management OS: Projects, contracts, budgets, timelines, and risks.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30">NEB-05</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Operations OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام التشغيل الميداني: يدير الأنشطة الميدانية تفصيلياً، خطط التنفيذ، الحملات والفعاليات.' : 'Operations OS: Field operations, detailed activities, WBS, campaigns.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">NEB-06</span>
-              <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Service Delivery OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام تقديم الخدمات: يدير الخدمات، الطلبات، المستفيدين، وحالات التسليم.' : 'Service Delivery OS: Services, beneficiary requests, biometric delivery.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30">NEB-07</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Community & Membership OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام المجتمع والأعضاء: يدير الأعضاء، المنتسبين، والمتطوعين الميدانيين.' : 'Community & Membership OS: Members, affiliates, volunteers.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">NEB-08</span>
-              <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Partnership & Funding OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام الشراكات والتمويل: يدير المانحين، اتفاقيات التمويل، وكفالات الأيتام.' : 'Partnership & Funding OS: Donors, grant agreements, orphan sponsorships.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30">NEB-09</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Resource & Asset OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام الموارد والأصول: يدير العقارات، الأراضي الوقفية، والأصول التشغيلية.' : 'Resource & Asset OS: Real estate, waqf lands, fixed assets, HR.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">NEB-10</span>
-              <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Finance & Compliance OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'النظام المالي والامتثال: المحاسبة المعتمدة، القيود المزدوجة، الحوكمة والتدقيق.' : 'Finance & Compliance OS: double-entry accounting, auditing, governance.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30">NEB-11</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Knowledge & Document OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام المعرفة والوثائق: يدير المستندات والأرشيف والسياسات المؤسسية.' : 'Knowledge & Document OS: Documents, policy archive, institutional memory.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">NEB-12</span>
-              <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Integration & Digital Services OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'الخدمات الرقمية والتكامل: يدير قواعد البيانات المركزية، واجهات الربط APIs ومعايير الشفافية الدولية.' : 'Integration & Digital Services OS: Central database, APIs, transparency standards.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-gradient-to-r from-emerald-950/40 to-amber-950/40 rounded-xl border border-emerald-500/30 space-y-1 col-span-1 md:col-span-2 lg:col-span-3">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-2 py-0.5 bg-emerald-500/30 text-emerald-300 rounded border border-emerald-500/40">NEB-13</span>
-              <span className="text-xs font-black text-emerald-400">AI Intelligence & Impact OS</span>
-            </div>
-            <p className="text-[11px] text-zinc-300">
-              {lang === 'ar' ? 'الذكاء المؤسسي وقياس الأثر: محرك يوماكس إي آي (UAMEX AI™) للتحليلات التنبؤية، تقارير قياس الأثر، ومعايير Sphere & CHS.' : 'AI Intelligence & Impact OS: UAMEX AI™ sovereign engine for predictive analytics, Sphere/CHS humanitarian impact.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">NEB-14</span>
-              <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Procurement & Tenders OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام المشتريات والمناقصات: طلبات الشراء، RFQs، تحليل العروض، و循证 vendor management.' : 'Procurement & Tenders OS: Purchase requisitions, RFQs, quote analysis, vendor management.'}
-            </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] font-black px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30">NEB-15</span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Sales, Revenue & Fundraising OS</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-              {lang === 'ar' ? 'نظام المبيعات والإيرادات: التبرعات، الفواتير، إيرادات التمويل، وبوابات الدفع الإلكترونية.' : 'Sales, Revenue & Fundraising OS: Donations, invoicing, revenue streams, and payment gateways.'}
-            </p>
-          </div>
-        </div>
-        )}
-      </section>
-
-      {/* Program Classifications & Project Lifecycle */}
-      <section className="space-y-3">
-        <button
-          onClick={() => toggleSection('lifecycle')}
-          className="w-full text-base font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-2 cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          {expandedSections.lifecycle ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-          <Compass className="w-5 h-5 text-emerald-600" />
-          {lang === 'ar' ? 'رابعاً وخامساً: تصنيف البرامج ودورة حياة المشروع (8 مراحل)' : '4 & 5. Program Types & 8-Stage Lifecycle'}
-        </button>
-
-        {expandedSections.lifecycle && (
-        <div className="space-y-3">
-
-        {/* Categories */}
-        <div className="p-4 bg-slate-50 dark:bg-zinc-900/80 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-2">
-          <div className="font-bold text-xs text-slate-900 dark:text-zinc-100">
-            {lang === 'ar' ? 'التصنيف المعتمد للبرامج:' : 'Official Program Categories:'}
-          </div>
-          <div className="flex flex-wrap gap-2 text-[11px]">
-            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 rounded-lg">البرامج التعليمية (تحفيظ، علوم شرعية)</span>
-            <span className="px-2.5 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 rounded-lg">البرامج الدعوية (توعية، مبادرات)</span>
-            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 rounded-lg">البرامج الإغاثية (مساعدات، سلال غذائية)</span>
-            <span className="px-2.5 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 rounded-lg">برامج المياه (سقيا، آبار)</span>
-            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 rounded-lg">المطابخ الخيرية (وجبات، إطعام)</span>
-            <span className="px-2.5 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 rounded-lg">البرامج الموسمية (رمضان، أضاحي، شتاء)</span>
-            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 rounded-lg">البرامج المجتمعية (أسرية، شبابية)</span>
-          </div>
-        </div>
-
-        {/* 8 Stage Lifecycle flow */}
-        <div className="p-4 bg-slate-50 dark:bg-zinc-900 text-slate-900 dark:text-white rounded-xl border border-slate-200 dark:border-zinc-800 space-y-2">
-          <div className="font-bold text-xs text-emerald-700 dark:text-emerald-400">
-            {lang === 'ar' ? 'دورة حياة المشروع المعتمدة (Project Lifecycle):' : 'Official Project Lifecycle:'}
-          </div>
-          <div className="flex items-center justify-between overflow-x-auto py-2 gap-2 text-[10px] font-bold">
-            <span className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-emerald-700 dark:text-emerald-400 shrink-0">1. فكرة</span>
-            <span className="text-slate-400 dark:text-slate-600">➔</span>
-            <span className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-amber-700 dark:text-amber-400 shrink-0">2. دراسة</span>
-            <span className="text-slate-400 dark:text-slate-600">➔</span>
-            <span className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-emerald-700 dark:text-emerald-400 shrink-0">3. اعتماد</span>
-            <span className="text-slate-400 dark:text-slate-600">➔</span>
-            <span className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-amber-700 dark:text-amber-400 shrink-0">4. تخطيط</span>
-            <span className="text-slate-400 dark:text-slate-600">➔</span>
-            <span className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-emerald-700 dark:text-emerald-400 shrink-0">5. تنفيذ</span>
-            <span className="text-slate-400 dark:text-slate-600">➔</span>
-            <span className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-amber-700 dark:text-amber-400 shrink-0">6. متابعة</span>
-            <span className="text-slate-400 dark:text-slate-600">➔</span>
-            <span className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-emerald-700 dark:text-emerald-400 shrink-0">7. إغلاق</span>
-            <span className="text-slate-400 dark:text-slate-600">➔</span>
-            <span className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg shrink-0">8. قياس أثر</span>
-          </div>
-        </div>
-
-        </div>
-        )}
-      </section>
-
-      {/* Aid Cycle & Procurement Workflows */}
-      <section className="space-y-3">
-        <button
-          onClick={() => toggleSection('data')}
-          className="w-full text-base font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-2 cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          {expandedSections.data ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-          <Database className="w-5 h-5 text-emerald-600" />
-          {lang === 'ar' ? 'سادساً وسابعاً وثامناً: دوائر الصرف والتعليم والمشتريات' : '6, 7 & 8. Aid Disbursement, Education & Procurement Cycles'}
-        </button>
-
-        {expandedSections.data && (
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-slate-50 dark:bg-zinc-900/80 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-2">
-            <h4 className="font-bold text-xs text-emerald-700 dark:text-emerald-400">دورة الصرف والمساعدات</h4>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-300">
-              طلب ➔ دراسة حالة ➔ اعتماد مالي ➔ صرف مستحقات ➔ توثيق ميداني ➔ إغلاق المعاملة.
-            </p>
-          </div>
-
-          <div className="p-4 bg-slate-50 dark:bg-zinc-900/80 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-2">
-            <h4 className="font-bold text-xs text-amber-700 dark:text-amber-400">دورة المشتريات والتوريد</h4>
-            <p className="text-[11px] text-slate-600 dark:text-zinc-300">
-              طلب شراء ➔ اعتماد ➔ عروض أسعار ➔ اختيار المورد ➔ أمر شراء ➔ استلام ➔ سداد.
-            </p>
-          </div>
-        </div>
-        )}
-      </section>
-    </div>
-  );
-
-  // اسئلة المزيد مع مبسط + Accordion
-  const renderManual = () => {
-    const manualSections = [
-      {
-        id: 'manual-login',
-        icon: '🔐',
-        titleAr: 'تسجيل الدخول والوصول للنظام',
-        titleEn: 'Sign In & Access',
-        summaryAr: 'افتح المتصفح، أدخل بريدك الرسمي وكلمة المرور، واضغط زر "دخول" للوصول للوحة التحكم.',
-        summaryEn: 'Open browser, enter official email & password, click "Login" to reach the dashboard.',
-        detailAr: [
-          'افتح المتصفح (Chrome أو Edge أحدث إصدار) وانتقل إلى رابط النظام المعتمد.',
-          'مظهر الشاشة سريعاً: تدخل بريدك الإلكتروني الرسمي ثم كلمة المرور.',
-          'اضغط الزر الأخضر "دخول" وسيتم نقلك تلقائياً للوحة المعلومات الرئيسية.',
-          'هناك خيار "تذكر هذا الجهاز" — استخدمه فقط على أجهزتك الشخصية.',
-          'إذا أخطأت بنص كلمة المرور أو تفعيل Caps Lock سيظهر لك تنبيه تحذيري قبل الإرسال.',
-          'نسيت كلمة المرور؟ اضغط "نسيت كلمة المرور؟" ويتم إرسال طلب إعادة التعيين إلى إدارة تقنية المعلومات.'
-        ],
-        detailEn: [
-          'Open browser at the official system URL.',
-          'Enter your official email and password.',
-          'Click green "Sign In" button — you\'ll be taken to the dashboard.',
-          'Use "Remember this device" only on personal trusted machines.',
-          'Caps Lock alerts appear before submitting wrong passwords.',
-          'Forgot password? Click "Forgot Password?" to route a secure reset request.'
-        ]
-      },
-      {
-        id: 'manual-nav',
-        icon: '🗺️',
-        titleAr: 'التنقل بين الأنظمة والبحث',
-        titleEn: 'Navigation & Search',
-        summaryAr: 'استخدم القائمة الجانبية للانتقال بين الأنظمة، أو اضغط Ctrl+K للبحث السريع عن أي شاشة أو سجل.',
-        summaryEn: 'Use the side menu to switch systems, or press Ctrl+K for instant search of any screen or record.',
-        detailAr: [
-          'من الشريط الجانبي الأيسر تُعرض جميع الأنظمة مقسمة إلى مجموعات: (الاستراتيجية، العمليات، الخدمات، المالية، الحوكمة، التقنية، الذكاء).',
-          'اضغط على اسم النظام المطلوب للدخول إلى شاشته الرئيسية.',
-          'داخل كل نظام توجد علامات تبويب فرعية للتنقل بين الشاشات (مثال: البرامج، المشاريع، الأنشطة، التقارير).',
-          'البحث السريع: اضغط Ctrl+K (أو استخدم شريط البحث أعلى الصفحة) واكتب اسم أي سجل أو نظام أو مستفيد.',
-          'ستظهر النتائج فوراً عبر جميع المجالات مع إمكانية النقر عليها للانتقال المباشر.'
-        ],
-        detailEn: [
-          'Left sidebar groups all systems into logical bundles.',
-          'Click a system name to open its workspace.',
-          'Each system has sub-tabs for detailed screens.',
-          'Press Ctrl+K for universal search across all data.',
-          'Click any result to jump instantly to the record.'
-        ]
-      },
-      {
-        id: 'manual-programs',
-        icon: '📦',
-        titleAr: 'إضافة برنامج أو مشروع جديد',
-        titleEn: 'Add Program or Project',
-        summaryAr: 'من نظام "البرامج" اضغط "+ إضافة جديد"، أدخل الاسم والرمز والميزانية والجهة الممولة، ثم احفظ — وأضف المشاريع أسفل البرنامج.',
-        summaryEn: 'Open Programs module, click "+ New", fill name/code/budget/donor, save, then add projects beneath.',
-        detailAr: [
-          'افتح نظام "البرامج" من القائمة الجانبية (أو Ctrl+K واكتب "البرامج").',
-          'اضغط الزر الأخضر "+ برنامج جديد".',
-          'املأ الحقول: اسم البرنامج (عربي)، الاسم بالإنجليزية إن وجد، رقم تسلسلي (مثل PRG-2026-001)، نوع البرنامج (إغاثي، تنموي، تعليمي، صحي...).',
-          'أدخل الميزانية الإجمالية والفترة الزمنية (تاريخ البدء والنهاية) والجهة الممولة.',
-          'اضغط "حفظ". سيظهر البرنامج فوراً في قائمة البرامج النشطة.',
-          'لإضافة مشروع داخل البرنامج: افتح بطاقة البرنامج واضغط "إضافة مشروع" واملأ نفس النوع من البيانات مع ربط البرنامج.'
-        ],
-        detailEn: [
-          'Open Programs module and click "New Program".',
-          'Fill Arabic name, optional English name, code, category, budget, dates.',
-          'Assign funding source (donor/fund).',
-          'Save — program appears immediately in grid.',
-          'Add projects by opening the program card and clicking "Add Project".'
-        ]
-      },
-      {
-        id: 'manual-beneficiary',
-        icon: '🤝',
-        titleAr: 'تسجيل مستفيد جديد وتقديم المساعدة',
-        titleEn: 'Register Beneficiaries & Services',
-        summaryAr: 'من نظام "المستفيدين" اضغط "+ مستفيد جديد"، أدخل البيانات الشخصية بما فيها الحالة والدرجة، ثم احفظه ليكون جاهزاً للربط بالمساعدات.',
-        summaryEn: 'In Beneficiaries, click "+ New Beneficiary", fill personal data & vulnerability score, save.',
-        detailAr: [
-          'افتح نظام "المستفيدين" (تقديم الخدمات).',
-          'اضغط "+ مستفيد جديد".',
-          'أدخل: رمز المستفيد (مثل BN-2026-00042)، الاسم الكامل، رقم الهوية أو كود التعريف، نوع الأسرة وعدد أفرادها.',
-          'اختر المحافظة والمديرية واكتب العنوان والقرية.',
-          'حدد درجة الاحتياج أو الضعف (متقدم / متوسط / خفيف) من التقييم الاجتماعي.',
-          'حدد الحالة ("مسجل" أو "قيد التقييم") واضغط "حفظ" — يصبح المستفيد متاحاً في كامل النظام ليُربط بالبرامج والكفالات والخدمات.'
-        ],
-        detailEn: [
-          'Open Beneficiaries module.',
-          'Click Add Beneficiary, enter details & vulnerability score.',
-          'Select governorate, district, and case status.',
-          'Save to make the beneficiary available across programs and services.'
-        ]
-      },
-      {
-        id: 'manual-finance',
-        icon: '💰',
-        titleAr: 'إدخال معاملة مالية وقيد محاسبي',
-        titleEn: 'Record Financial Transactions',
-        summaryAr: 'في النظام المالي، اضغط "قيد جديد"، أدخل المبلغ والوصف، أضف الحركة (من حساب إلى حساب)، والموازنة تُفحص تلقائياً ثم تُرحل.',
-        summaryEn: 'In Finance, create voucher, enter amount and description, add journal lines; balance is auto-checked.',
-        detailAr: [
-          'افتح نظام "المالية والحسابات" (يمكن الوصول له من القائمة المالية والحوكمة).',
-          'اختر "قيود اليومية" من القائمة الفرعية.',
-          'اضغط "قيد جديد". يُنشأ رقم مرجعي تلقائياً.',
-          'حدد التاريخ المالي واكتب وصفاً للإع operation.',
-          'أضف سطراً (مدين) إلى حساب مصادر الأموال + سطراً (دائن) إلى حساب الوجهة — أو العكس.',
-          'يعيّن النظام تلقائياً أرقام الحسابات وفقاً لتصنيف الحسابات القياسي.',
-          'اضغط "ترحيل القيد" — يجب أن يكون إجمالي المدين مساوياً لإجمالي الدائن وإلا لن يسمح الحفظ.',
-          'بعد الترحيل يُسجل القيد فوراً في الأستاذ العام ومركز التكلفة المرتبط.'
-        ],
-        detailEn: [
-          'Heyboard: Finance module → Daybook Vouchers.',
-          'Create new entry: pick date, write description.',
-          'Add at least 2 lines (debit and credit).',
-          'System validates total debits = total credits.',
-          'Post voucher to update the general ledger immediately.'
-        ]
-      },
-      {
-        id: 'manual-purchase',
-        icon: '📋',
-        titleAr: 'شراء مستلزمات واعتماد توريد',
-        titleEn: 'Purchase & Approve Supplies',
-        summaryAr: 'اكتب طلب شراء، اعتمده، اطلب عروض أسعار من موردين، اختر الأفضل، ثم أرسل أمر شراء واستلم البضاعة وسجّل الإيصال.',
-        summaryEn: 'Create purchase request → approve → request quotes → select best → approve PO → receive & record.',
-        detailAr: [
-          'افتح نظام "المشتريات والتوريد".',
-          'أنشئ "طلب شراء" بأصناف وكميات وحدد المستندات والميزانية المتاحة.',
-          'أرسل الطلب للموافقة (أو وافق عليه أنت إذا كانت صلاحياتك كافية).',
-          'بعد الموافقة، أرسل "طلب عروض أسعار" إلى ثلاثة موردين محتملين على الأقل.',
-          'أدخل العروض الواردة في مصفوفة المقارنة — النظام يقيم السعر والأقل تكلفة.',
-          'اختر المورد الأنسب واضغط "اعتماد أمر شراء".',
-          'بعد الاستلام، افتح "استلام" وسجل الأصناف المستلمة — يُحدَّث المخزون تلقائياً.',
-          'أرفق الفاتورة وسند التوريد الخارجي وترحّل الدفعة للمالية.'
-        ],
-        detailEn: [
-          'Procurement module.',
-          'Create request for goods.',
-          'Get approval, issue 3-Request',
-          'Enter quotes into comparison matrix, choose best.',
-          'Approve purchase order.',
-          'On delivery, record receiving against PO and pay invoice.'
-        ]
-      },
-      {
-        id: 'manual-reports',
-        icon: '📊',
-        titleAr: 'عرض التقارير وطباعتها وتصديرها',
-        titleEn: 'Reports, Print & Export',
-        summaryAr: 'افتح مركز التقارير، اختر التقرير المطلوب ونطاقه (فترة/محافظة/حالة)، اضغط توليد، ثم اطبع أو صدّر PDF أو Excel.',
-        summaryEn: 'Reports center: pick report, filters, generate, print/PDF or Excel export.',
-        detailAr: [
-          'انتقل إلى مركز التقارير والتقارير المالية أو المتابعة أو الأثر.',
-          'حدد نوع التقرير المطلوب (مثال: ملخص الأنشطة، كشف مالي، سجل مستفيدين).',
-          'اضبط الفلاتر: الفترة الزمنية، المحافظة، مرحلة المشروع أو حالته.',
-          'اضغط "توليد التقرير" — يُعرض الجداول والرسوم البيانية فوراً.',
-          'لطباعة / لتصدير PDF: اضغط أيقونة الطابعة أو زر التصدير أعلى التقرير.',
-          'يخرج التقرير بغلاف رسمي بهوية جمعية رُحماء وشعارها ورمز QR ورقم تتبع تدقيق.'
-        ],
-        detailEn: [
-          'Open Reports Center.',
-          'Choose report type & filters.',
-          'Click Generate.',
-          'Print or export PDF/Excel with official branding and QR audit code.'
-        ]
-      },
-      {
-        id: 'manual-settings',
-        icon: '⚙️',
-        titleAr: 'الإعدادات الشخصية والحساب',
-        titleEn: 'Personal Settings & Profile',
-        summaryAr: 'اضغط على صورتك أعلى يمين الشاشة لتغيير كلمة المرور واللغة والوضع الليلي، وقفل الجلسة بـ Ctrl+L.',
-        summaryEn: 'Click profile avatar for password, language, dark mode and session lock.',
-        detailAr: [
-          'اضغط على اسمك أو صورتك أعلى يسار الصفحة لفتح قائمة الحساب.',
-          'تغيير كلمة المرور: أدخل الحالية والجديدة ثم اضغط "حفظ".',
-          'اللغة: اضغط زر EN/ع في الشريط العلوي للتبديل بين العربية والإنجليزية في أي وقت.',
-          'الوضع الليلي/النهاري: اضغط زر الشمس/القمر للتغيير فوراً (أو يتبع النظام تفضيل جهازك).',
-          'قفل الجلسة: اضغط Ctrl+L أو زر القفل لقفل الجلسة فوراً عند المغادرة.',
-          'تثبيت النظام كتطبيق على هاتفك: من إعدادات المتصفح اختر "تثبيت التطبيق" ويصبح على سطح المكتب.'
-        ]
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(d =>
+        d.title_ar.toLowerCase().includes(q) ||
+        d.title_en.toLowerCase().includes(q) ||
+        d.description_ar.toLowerCase().includes(q) ||
+        d.description_en.toLowerCase().includes(q) ||
+        d.tags.some(t => t.toLowerCase().includes(q))
+      );
+    }
+    result.sort((a, b) => {
+      const modifier = sortDesc ? -1 : 1;
+      switch (sortBy) {
+        case 'title': return modifier * (lang === 'ar' ? a.title_ar : a.title_en).localeCompare(lang === 'ar' ? b.title_ar : b.title_en);
+        case 'date': return modifier * new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+        case 'category': return modifier * a.category.localeCompare(b.category);
+        case 'status': return modifier * a.status.localeCompare(b.status);
+        default: return 0;
       }
-    ];
+    });
+    return result;
+  }, [docs, searchQuery, selectedCategory, sortBy, sortDesc, lang]);
 
-    return (
-      <div className="space-y-6 text-slate-800 dark:text-zinc-200 leading-relaxed text-sm">
-        {/* Header */}
-        <div className="p-5 bg-gradient-to-r from-amber-900/10 via-amber-800/5 to-emerald-500/10 rounded-xl border border-amber-500/20 dark:border-amber-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <EnterpriseLogo className="h-12 w-auto object-contain bg-white/90 p-1.5 rounded-xl shadow-md border border-amber-200 dark:border-amber-800" />
-            <div>
-              <h2 className="text-base font-bold text-zinc-950 dark:text-zinc-100">
-                {lang === 'ar' ? `دليل المستخدم - ${orgName}` : `User Manual - ${orgName}`}
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
-                {lang === 'ar' ? 'شرح مبسط لمعظم المهام — بسيطة ببداية كل قسم ثم تفصيل عند اشتاً أنت بالضغط' : 'Simple task guide — summaries shown; click a card for full steps.'}
-              </p>
-            </div>
-          </div>
-          <span className="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-full text-xs font-bold shrink-0">
-            {lang === 'ar' ? '🇬 دليل تفاعلي مبسط' : '🇬 Simple Interactive Guide'}
-          </span>
-        </div>
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: docs.length };
+    docs.forEach(d => { counts[d.category] = (counts[d.category] || 0) + 1; });
+    return counts;
+  }, [docs]);
 
-        {/* Accordion Cards */}
-        <div className="max-h-[70vh] overflow-y-auto custom-scrollbar pr-1 space-y-3">
-          {manualSections.map((sec, idx) => {
-            const isOpen = activeManualId === sec.id;
-            return (
-              <div
-                key={sec.id}
-                className={`bg-slate-50 dark:bg-zinc-900/70 border ${
-                  isOpen ? 'border-amber-500/50 ring-1 ring-amber-500/20' : 'border-slate-200 dark:border-zinc-800'
-                } rounded-xl overflow-hidden transition-all`}
-              >
-                {/* Summary / Header */}
-                <button
-                  onClick={() => setActiveManualId(isOpen ? null : sec.id)}
-                  className="w-full flex items-center gap-3 p-4 text-right cursor-pointer hover:bg-slate-100/50 dark:hover:bg-zinc-800/50 transition-colors"
-                >
-                  <span className="w-9 h-9 shrink-0 rounded-lg bg-gradient-to-br from-emerald-500/20 to-amber-500/20 flex items-center justify-center text-lg shadow-inner">
-                    {sec.icon}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-black text-slate-900 dark:text-zinc-100">
-                      {lang === 'ar' ? sec.titleAr : sec.titleEn}
-                    </h4>
-                    <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed line-clamp-2 mt-0.5">
-                      {lang === 'ar' ? sec.summaryAr : sec.summaryEn}
-                    </p>
-                  </div>
-                  <div className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-                    <ChevronDown className={`w-5 h-5 ${isOpen ? 'text-amber-500' : 'text-slate-400'}`} />
-                  </div>
-                </button>
-
-                {/* Expanded Detail */}
-                {isOpen && (
-                  <div className="px-4 pb-4 pt-0 border-t border-slate-100 dark:border-zinc-800/60 max-h-[40vh] overflow-y-auto custom-scrollbar">
-                    <ol className="space-y-2.5 mt-3">
-                      {((lang === 'ar' ? sec.detailAr : sec.detailEn) || []).map((step: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
-                          <span className="shrink-0 w-5 h-5 mt-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center">
-                            {i + 1}
-                          </span>
-                          <span>{step}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
 
   return (
-    <ModuleShell
-      titleAr="مركز الوثائق"
-      titleEn="Documentation Center"
-      domainCode="NEB-11"
-      icon={BookOpen}
-      lang={lang}
-    >
-    <div className="space-y-6">
-      {/* Top Header Card */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors print:hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-amber-500 p-0.5 shadow-md shrink-0">
-              <div className="w-full h-full bg-white dark:bg-zinc-900 rounded-[14px] flex items-center justify-center">
-                <BookOpen className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/5" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-zinc-100 flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-emerald-500/10">
+                <BookOpen className="w-7 h-7 text-emerald-500" />
               </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black text-slate-900 dark:text-zinc-100">
-                  {lang === 'ar' ? 'مركز الوثائق التشغيلية' : 'Documentation & System Directives'}
-                </h1>
-                <span className="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold rounded-full">
-                  /docs
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                {lang === 'ar' 
-                  ? 'المستندات الرسمية المعتمدة لجمعية رُحماء بينهم: مواصفات النظام، دليل المستخدم، ' 
-                  : 'Official documentation suite for Rohamā\'a Baynahum Charity Foundation ERP.'}
-              </p>
-            </div>
+              {t('المستندات والإرشادات', 'Documentation & Guidelines', lang)}
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
+              {t(`${filteredDocs.length} مستند متاح`, `${filteredDocs.length} documents available`, lang)}
+            </p>
           </div>
-
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => handleCopy(`Documentation files stored in /docs:\n1. /docs/SYSTEM_SPECIFICATIONS.md\n2. /docs/USER_MANUAL.md`)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-bold transition-all cursor-pointer"
-            >
-              {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? (lang === 'ar' ? 'تم النسخ!' : 'Copied!') : (lang === 'ar' ? 'نسخ المسارات' : 'Copy Paths')}</span>
-            </button>
-
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition-all cursor-pointer"
-              title={lang === 'ar' ? 'توليد وطباعة وثيقة PDF رسمية معتمدة' : 'Generate Certified Official PDF'}
-            >
-              <FileText className="w-4 h-4" />
-              <span>{lang === 'ar' ? 'وثيقة PDF معتمدة' : 'Official PDF Document'}</span>
-            </button>
-
-            <button
-              onClick={handleDirectBrowserPrint}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-xl text-xs font-bold transition-all cursor-pointer"
-              title={lang === 'ar' ? 'طباعة فورية عبر المتصفح' : 'Quick Browser Print'}
-            >
-              <Printer className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>{lang === 'ar' ? 'طباعة سريعة' : 'Quick Print'}</span>
-            </button>
+          <div className="flex items-center gap-2">
+            <EnterpriseButton variant="ghost" size="sm" icon={<Printer className="w-4 h-4" />} onClick={handlePrint}>
+              {t('طباعة', 'Print', lang)}
+            </EnterpriseButton>
+            <EnterpriseButton variant="ghost" size="sm" icon={<Download className="w-4 h-4" />}>
+              {t('تصدير', 'Export', lang)}
+            </EnterpriseButton>
+            <EnterpriseButton variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>
+              {t('مستند جديد', 'New Document', lang)}
+            </EnterpriseButton>
           </div>
         </div>
 
-        {/* Search Bar for Documentation */}
-        {activeDoc !== 'scenarios' && (
-          <div className="mt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+        {/* Search + Filters */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-4 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={lang === 'ar' ? '🔍 ابحث في الوثائق...' : '🔍 Search documentation...'}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/40 transition-all"
+                placeholder={t('بحث في المستندات...', 'Search documents...', lang)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
               />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
             </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortBy)}
+                className="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 text-sm"
+              >
+                <option value="date">{t('التاريخ', 'Date', lang)}</option>
+                <option value="title">{t('العنوان', 'Title', lang)}</option>
+                <option value="category">{t('الفئة', 'Category', lang)}</option>
+                <option value="status">{t('الحالة', 'Status', lang)}</option>
+              </select>
+              <button onClick={() => setSortDesc(!sortDesc)} className="p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800">
+                {sortDesc ? <SortDesc className="w-4 h-4" /> : <SortAsc className="w-4 h-4" />}
+              </button>
+              <div className="flex rounded-xl border border-slate-200 dark:border-zinc-700 overflow-hidden">
+                <button onClick={() => setViewMode('grid')} className={`p-2.5 ${viewMode === 'grid' ? 'bg-emerald-500 text-white' : 'bg-slate-50 dark:bg-zinc-800'}`}>
+                  <Grid className="w-4 h-4" />
+                </button>
+                <button onClick={() => setViewMode('list')} className={`p-2.5 ${viewMode === 'list' ? 'bg-emerald-500 text-white' : 'bg-slate-50 dark:bg-zinc-800'}`}>
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {DOC_CATEGORIES.map(cat => {
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
+                    selectedCategory === cat.id
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {cat[lang]}
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-black/10 text-[10px]">{categoryCounts[cat.id] || 0}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Document Grid/List */}
+        {filteredDocs.length === 0 ? (
+          <EmptyState
+            variant="search"
+            title={t('لا توجد نتائج', 'No results found', lang)}
+            lang={lang}
+            className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800"
+          />
+        ) : viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredDocs.map(doc => {
+              const typeConfig = TYPE_CONFIG[doc.type] || TYPE_CONFIG.policy;
+              const statusConfig = STATUS_CONFIG[doc.status] || STATUS_CONFIG.draft;
+              const StatusIcon = statusConfig.icon;
+              return (
+                <div
+                  key={doc.id}
+                  onClick={() => setSelectedDoc(doc)}
+                  className="group bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-5 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all cursor-pointer"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${typeConfig.bg} ${typeConfig.color}`}>
+                      {t(DOC_CATEGORIES.find(c => c.id === doc.category)?.ar || doc.category, doc.category, lang)}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${statusConfig.bg} ${statusConfig.color}`}>
+                      <StatusIcon className="w-3 h-3" />
+                      {t(doc.status === 'draft' ? 'مسودة' : doc.status === 'review' ? 'مراجعة' : doc.status === 'approved' ? 'معتمد' : 'أرشيف', doc.status, lang)}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-sm mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    {lang === 'ar' ? doc.title_ar : doc.title_en}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 mb-3">
+                    {lang === 'ar' ? doc.description_ar : doc.description_en}
+                  </p>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {doc.tags.slice(0, 3).map(tag => (
+                      <span key={tag} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-[10px] text-slate-500 dark:text-zinc-400">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-500">
+                    <span className="flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      {doc.author}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {doc.updated_at}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-zinc-800">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500">v{doc.version}</span>
+                    <div className="flex items-center gap-1">
+                      {doc.is_public ? <Globe className="w-3 h-3 text-emerald-500" /> : <Lock className="w-3 h-3 text-amber-500" />}
+                      <span className="text-[10px] text-slate-400 dark:text-zinc-500">{doc.language}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-zinc-800">
+                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400">{t('العنوان', 'Title', lang)}</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden md:table-cell">{t('الفئة', 'Category', lang)}</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden lg:table-cell">{t('الحالة', 'Status', lang)}</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden lg:table-cell">{t('الإصدار', 'Version', lang)}</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden xl:table-cell">{t('آخر تحديث', 'Updated', lang)}</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold text-slate-500 dark:text-zinc-400">{t('إجراءات', 'Actions', lang)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredDocs.map(doc => {
+                  const statusConfig = STATUS_CONFIG[doc.status] || STATUS_CONFIG.draft;
+                  const StatusIcon = statusConfig.icon;
+                  return (
+                    <tr key={doc.id} className="border-b border-slate-100 dark:border-zinc-800/50 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer" onClick={() => setSelectedDoc(doc)}>
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-bold text-slate-900 dark:text-zinc-100">{lang === 'ar' ? doc.title_ar : doc.title_en}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-0.5">{doc.author}</p>
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <span className="text-xs text-slate-600 dark:text-zinc-400">{t(DOC_CATEGORIES.find(c => c.id === doc.category)?.ar || '', doc.category, lang)}</span>
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${statusConfig.bg} ${statusConfig.color}`}>
+                          <StatusIcon className="w-3 h-3" />
+                          {t(doc.status === 'draft' ? 'مسودة' : doc.status === 'review' ? 'مراجعة' : doc.status === 'approved' ? 'معتمد' : 'أرشيف', doc.status, lang)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell text-xs text-slate-500 dark:text-zinc-400">v{doc.version}</td>
+                      <td className="px-4 py-3 hidden xl:table-cell text-xs text-slate-400 dark:text-zinc-500">{doc.updated_at}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"><Eye className="w-3.5 h-3.5 text-slate-400" /></button>
+                          <button className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"><Edit3 className="w-3.5 h-3.5 text-slate-400" /></button>
+                          <button className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"><Download className="w-3.5 h-3.5 text-slate-400" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
 
-        {/* Tab Navigation Buttons */}
-        <div className="mt-6 flex items-center gap-2 border-t border-slate-100 dark:border-zinc-800 pt-4 overflow-x-auto">
-          <button
-            onClick={() => setActiveDoc('scenarios')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-              activeDoc === 'scenarios'
-                ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
-                : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-            }`}
-          >
-            <PlayCircle className="w-4 h-4 text-amber-300" />
-            <span>{docTitles.scenarios}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveDoc('specifications')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-              activeDoc === 'specifications'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>{docTitles.specifications}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveDoc('manual')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-              activeDoc === 'manual'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>{docTitles.manual}</span>
-          </button>
-        </div>
-
-        {/* Official Arabic Documents Quick-Launch (customized from General Settings) */}
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            onClick={() => setOfficialDocModal('official_memo')}
-            className="flex items-center gap-3 p-4 bg-gradient-to-br from-emerald-50 to-emerald-100/60 dark:from-emerald-950/40 dark:to-zinc-900 border border-emerald-200 dark:border-emerald-800/60 rounded-xl hover:shadow-md hover:shadow-emerald-600/10 transition-all cursor-pointer group text-right"
-          >
-            <div className="p-2.5 rounded-lg bg-emerald-600 text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
-              <FileText className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <span className="block text-xs font-black text-emerald-900 dark:text-emerald-200">
-                {lang === 'ar' ? 'مذكرة رسمية داخلية معتمدة' : 'Official Internal Memo'}
-              </span>
-              <span className="block text-[10px] text-emerald-700/70 dark:text-emerald-400/70 mt-0.5">
-                {lang === 'ar' ? 'خطاب رسمي على ترويسة المؤسسة وفق إعدادات عامة' : 'Organization letterhead governed by General Settings'}
-              </span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-emerald-400 ml-auto shrink-0 rtl:rotate-180" />
-          </button>
-
-          <button
-            onClick={() => setOfficialDocModal('completion_certificate')}
-            className="flex items-center gap-3 p-4 bg-gradient-to-br from-amber-50 to-amber-100/60 dark:from-amber-950/40 dark:to-zinc-900 border border-amber-200 dark:border-amber-800/60 rounded-xl hover:shadow-md hover:shadow-amber-600/10 transition-all cursor-pointer group text-right"
-          >
-            <div className="p-2.5 rounded-lg bg-amber-600 text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <span className="block text-xs font-black text-amber-900 dark:text-amber-200">
-                {lang === 'ar' ? 'شهادة إنجاز رسمية معتمدة' : 'Official Certificate of Completion'}
-              </span>
-              <span className="block text-[10px] text-amber-700/70 dark:text-amber-400/70 mt-0.5">
-                {lang === 'ar' ? 'توثيق استلام الأعمال المنفذة بقيمتها المالية' : 'Verified acceptance of executed works and amounts'}
-              </span>
-            </div>
-            <Award className="w-4 h-4 text-amber-400 ml-auto shrink-0" />
-          </button>
-
-          <button
-            onClick={() => setOfficialDocModal('donation_acknowledgment')}
-            className="flex items-center gap-3 p-4 bg-gradient-to-br from-sky-50 to-sky-100/60 dark:from-sky-950/40 dark:to-zinc-900 border border-sky-200 dark:border-sky-800/60 rounded-xl hover:shadow-md hover:shadow-sky-600/10 transition-all cursor-pointer group text-right"
-          >
-            <div className="p-2.5 rounded-lg bg-sky-600 text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
-              <HandHeart className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <span className="block text-xs font-black text-sky-900 dark:text-sky-200">
-                {lang === 'ar' ? 'خطاب شكر وتأكيد تبرع' : 'Donation Acknowledgment'}
-              </span>
-              <span className="block text-[10px] text-sky-700/70 dark:text-sky-400/70 mt-0.5">
-                {lang === 'ar' ? 'إقرار استلام التبرعات وتوجيهها وفق IPSAS' : 'Donation receipt & IPSAS fund allocation'}
-              </span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-sky-400 ml-auto shrink-0 rtl:rotate-180" />
-          </button>
-
-          <button
-            onClick={() => setOfficialDocModal('volunteer_appreciation')}
-            className="flex items-center gap-3 p-4 bg-gradient-to-br from-teal-50 to-teal-100/60 dark:from-teal-950/40 dark:to-zinc-900 border border-teal-200 dark:border-teal-800/60 rounded-xl hover:shadow-md hover:shadow-teal-600/10 transition-all cursor-pointer group text-right"
-          >
-            <div className="p-2.5 rounded-lg bg-teal-600 text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
-              <BadgeCheck className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <span className="block text-xs font-black text-teal-900 dark:text-teal-200">
-                {lang === 'ar' ? 'شهادة شكر وتقدير للمتطوعين' : 'Volunteer Appreciation'}
-              </span>
-              <span className="block text-[10px] text-teal-700/70 dark:text-teal-400/70 mt-0.5">
-                {lang === 'ar' ? 'تكريم العطاء التطوعي (NEB-07)' : 'Community & Membership recognition (NEB-07)'}
-              </span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-teal-400 ml-auto shrink-0 rtl:rotate-180" />
-          </button>
-        </div>
-      </div>
-
-      <section className="mt-5 rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.04] p-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-black text-slate-900 dark:text-zinc-100">
-              {lang === 'ar' ? 'مصفوفة مستندات الوحدات المرتبطة' : 'Linked Unit Document Matrix'}
-            </h3>
-            <p className="text-[10px] text-slate-500 dark:text-zinc-400">
-              {lang === 'ar' ? 'كل وحدة لها تقرير رسمي ومساحة عمل ومخرج مستندي واضح.' : 'Every unit has an official report, workspace and document output.'}
-            </p>
-          </div>
-          <FileText className="h-5 w-5 text-indigo-500" />
-        </div>
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-          {REPORT_WORKSPACE_REGISTRY.map(unit => (
-            <div key={unit.id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900/70">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-black text-slate-900 dark:text-zinc-100">{lang === 'ar' ? unit.titleAr : unit.titleEn}</p>
-                <p className="mt-0.5 truncate text-[10px] text-slate-500 dark:text-zinc-400">{lang === 'ar' ? unit.documentAr : unit.documentEn}</p>
-                <p className="mt-1 text-[9px] text-indigo-600 dark:text-indigo-300">{lang === 'ar' ? unit.standardAr : unit.standardEn}</p>
-              </div>
-              {onNavigate && (
-                <button type="button" onClick={() => onNavigate(unit.workspaceTab)} className="shrink-0 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-indigo-500">
-                  {lang === 'ar' ? 'فتح الوحدة' : 'Open unit'}
-                </button>
-              )}
+        {/* Stats Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: t('إجمالي المستندات', 'Total Documents', lang), value: docs.length, color: 'text-emerald-500' },
+            { label: t('المعتمدة', 'Approved', lang), value: docs.filter(d => d.status === 'approved').length, color: 'text-blue-500' },
+            { label: t('قيد المراجعة', 'In Review', lang), value: docs.filter(d => d.status === 'review').length, color: 'text-amber-500' },
+            { label: t('المسودات', 'Drafts', lang), value: docs.filter(d => d.status === 'draft').length, color: 'text-slate-500' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 p-4 text-center">
+              <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 mt-1">{stat.label}</p>
             </div>
           ))}
         </div>
-      </section>
-
-      {/* Document Content Box */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors print:border-none print:shadow-none print:p-0">
-        
-        {/* Printable Official Letterhead Header (visible ONLY during print) */}
-        <div className="hidden print:block mb-8 pb-4 border-b-2 border-emerald-600">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/UAMEX_ERPLOGO.png" alt="UAMEX ERP" className="h-16 w-auto object-contain" />
-              <img src="/LogoRohamaab.png" alt="Logo Rohamaab" className="h-16 w-auto object-contain" />
-              <div>
-                <h2 className="text-lg font-black text-slate-900">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
-                <p className="text-xs text-emerald-700 font-bold">نظام يو امكس المؤسسي الشامل - UAMEX ERP™</p>
-              </div>
-            </div>
-            <div className="text-left text-xs text-slate-600">
-              <p className="font-bold">وثيقة تشغيلية رسمية معتمدة</p>
-              <p className="text-[10px] text-slate-500 font-mono">الإصدار 2026.1 • {new Date().toLocaleDateString('ar-YE')}</p>
-              <span className="inline-block px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded">IPSAS / Sphere / CHS</span>
-            </div>
-          </div>
-        </div>
-        <div className="mb-4 pb-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-zinc-100">
-              {docTitles[activeDoc]}
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-              {docDescriptions[activeDoc]}
-            </p>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-400">
-            <FolderArchive className="w-4 h-4 text-amber-500" />
-            <span>
-              {activeDoc === 'scenarios' 
-                ? '/src/components/OperationalScenariosView.tsx' 
-                : `/docs/${activeDoc === 'specifications' ? 'SYSTEM_SPECIFICATIONS.md' : 'USER_MANUAL.md'}`}
-            </span>
-          </div>
-        </div>
-
-        {activeDoc === 'scenarios' && <OperationalScenariosView lang={lang} onNavigate={onNavigate} orgName={orgName} />}
-        {searchQuery.trim() && activeDoc !== 'scenarios' ? (
-          searchResults.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">
-                {lang === 'ar'
-                  ? `تم العثور على ${searchResults.length} نتيجة مطابقة في الوثائق:`
-                  : `${searchResults.length} matching documentation entries found:`}
-              </p>
-              {searchResults.map(entry => (
-                <button
-                  key={entry.id}
-                  onClick={() => jumpToResult(entry)}
-                  className="w-full text-right p-3.5 bg-slate-50 dark:bg-zinc-800/60 hover:bg-emerald-500/10 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500/40 rounded-xl transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <h4 className="text-xs font-black text-slate-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      {lang === 'ar' ? entry.titleAr : entry.titleEn}
-                    </h4>
-                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-full text-[9px] font-bold shrink-0">
-                      {docTitles[entry.tab]}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-600 dark:text-zinc-400 mt-1 leading-relaxed">
-                    {lang === 'ar' ? entry.snippetAr : entry.snippetEn}
-                  </p>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="py-12 text-center">
-              <Search className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
-              <p className="text-xs font-bold text-slate-600 dark:text-zinc-300">
-                {lang === 'ar' ? 'لا توجد نتائج مطابقة لبحثك في الوثائق.' : 'No documentation matches your query.'}
-              </p>
-            </div>
-          )
-        ) : (
-          <>
-            {activeDoc === 'specifications' && renderSpecifications()}
-            {activeDoc === 'manual' && renderManual()}
-          </>
-        )}
-
-        {/* Printable Official Signatures & Seal Block (visible ONLY during print) */}
-        <div className="hidden print:block mt-12 pt-6 border-t-2 border-slate-300 break-inside-avoid">
-          <div className="grid grid-cols-3 gap-6 text-center text-xs">
-            <div className="p-3 border border-dashed border-slate-300 rounded-lg">
-              <p className="font-bold text-slate-700">{lang === 'ar' ? 'إعداد مسؤول التوثيق المؤسسي' : 'Prepared By'}</p>
-              <div className="mt-8 border-b border-slate-400 w-3/4 mx-auto"></div>
-              <p className="text-[10px] text-slate-500 mt-1">{lang === 'ar' ? 'التوقيع والختم' : 'Signature & Stamp'}</p>
-            </div>
-            <div className="p-3 border border-dashed border-slate-300 rounded-lg">
-              <p className="font-bold text-slate-700">{lang === 'ar' ? 'مراجعة إدارة الحوكمة والامتثال' : 'Reviewed By'}</p>
-              <div className="mt-8 border-b border-slate-400 w-3/4 mx-auto"></div>
-              <p className="text-[10px] text-slate-500 mt-1">{lang === 'ar' ? 'التوقيع والختم' : 'Signature & Stamp'}</p>
-            </div>
-            <div className="p-3 border border-dashed border-slate-300 rounded-lg">
-              <p className="font-bold text-slate-700">{lang === 'ar' ? 'اعتماد المدير التنفيذي' : 'Authorized Approval'}</p>
-              <div className="mt-8 border-b border-slate-400 w-3/4 mx-auto"></div>
-              <p className="text-[10px] text-slate-500 mt-1">{lang === 'ar' ? 'التوقيع والختم' : 'Signature & Stamp'}</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-
-    {/* Dedicated Certified PDF Print Modal */}
-    <PrintPDFTemplateModal
-      isOpen={isPrintModalOpen}
-      onClose={() => setIsPrintModalOpen(false)}
-      lang={lang}
-      type={activeDoc === 'manual' ? 'user_manual' : 'operational_manual'}
-      data={{
-        title: docTitles[activeDoc],
-        subtitle: docDescriptions[activeDoc]
-      }}
-    />
-
-    {/* Official Internal Memo Modal */}
-    <PrintPDFTemplateModal
-      isOpen={officialDocModal === 'official_memo'}
-      onClose={() => setOfficialDocModal(null)}
-      lang={lang}
-      type="official_memo"
-      data={{
-        memoNumber: `م/${new Date().getFullYear()}/`,
-        dateGregorian: new Date().toLocaleDateString('en-GB'),
-        classification: 'OFFICIAL',
-        fromAr: orgName || (lang === 'ar' ? 'الإدارة التنفيذية' : 'Executive Management'),
-        toAr: lang === 'ar' ? '' : '',
-        subjectAr: '',
-        bodyAr: []
-      }}
-    />
-
-    {/* Official Completion Certificate Modal */}
-    <PrintPDFTemplateModal
-      isOpen={officialDocModal === 'completion_certificate'}
-      onClose={() => setOfficialDocModal(null)}
-      lang={lang}
-      type="completion_certificate"
-      data={{
-        certificateNumber: `ش/${new Date().getFullYear()}/`,
-        dateGregorian: new Date().toLocaleDateString('en-GB'),
-        entityNameAr: orgName || ''
-      }}
-    />
-
-    {/* Donation Acknowledgment Modal */}
-    <PrintPDFTemplateModal
-      isOpen={officialDocModal === 'donation_acknowledgment'}
-      onClose={() => setOfficialDocModal(null)}
-      lang={lang}
-      type="donation_acknowledgment"
-      data={{
-        acknowledgmentNumber: `إش/${new Date().getFullYear()}/`,
-        dateGregorian: new Date().toLocaleDateString('en-GB')
-      }}
-    />
-
-    {/* Volunteer Appreciation Modal */}
-    <PrintPDFTemplateModal
-      isOpen={officialDocModal === 'volunteer_appreciation'}
-      onClose={() => setOfficialDocModal(null)}
-      lang={lang}
-      type="volunteer_appreciation"
-      data={{
-        certificateNumber: `شك/${new Date().getFullYear()}/`,
-        dateGregorian: new Date().toLocaleDateString('en-GB')
-      }}
-    />
-    </ModuleShell>
   );
 }
+
+export default DocumentationView;

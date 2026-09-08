@@ -17,6 +17,8 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import { Currency } from '../../types';
+import { Spinner } from '../../design-system/components/Spinner';
+import { EnterpriseButton } from '../common/EnterpriseButton';
 
 interface ExchangeRateRecord {
   id: string;
@@ -373,7 +375,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
               disabled={fetchingLive}
               className="p-1.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-500 transition-colors"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${fetchingLive ? 'animate-spin' : ''}`} />
+              {fetchingLive ? <Spinner size="xs" /> : <RefreshCw className="w-3.5 h-3.5" />}
             </button>
           </div>
 
@@ -571,14 +573,16 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
               </div>
             </div>
 
-            <button
+            <EnterpriseButton
               type="submit"
+              variant="primary"
+              size="sm"
+              block
               disabled={updatingRate}
-              className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black transition-colors flex justify-center items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
+              loading={updatingRate}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${updatingRate ? 'animate-spin' : ''}`} />
-              <span>{lang === 'ar' ? 'تثبيت وحفظ أسعار الصرف' : 'Lock & Save Exchange Rates'}</span>
-            </button>
+              {lang === 'ar' ? 'تثبيت وحفظ أسعار الصرف' : 'Lock & Save Exchange Rates'}
+            </EnterpriseButton>
           </form>
         </div>
 
@@ -650,7 +654,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
                 {loadingSponsorships ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-zinc-400 font-bold">
-                      <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-500" />
+                      <Spinner size="md" variant="primary" />
                       <span>{lang === 'ar' ? 'جاري تحميل قائمة الكفالات النشطة...' : 'Retrieving active sponsorships ledger...'}</span>
                     </td>
                   </tr>

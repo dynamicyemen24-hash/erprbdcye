@@ -42,6 +42,12 @@ import { useEnterprise } from '../core/context/EnterpriseContext';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { policyEngine, type UserDimensionScope } from '../core/security/enterprisePolicyEngine';
+import { cn } from '../design-system/utils/cn';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { Spinner } from '../design-system/components/Spinner';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface UsersViewProps {
   users: User[];
@@ -368,21 +374,23 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
         </div>
 
         <div className="flex gap-2">
-          <button
+          <EnterpriseButton
+            variant="secondary"
+            size="sm"
+            icon={<RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />}
             onClick={() => onRefresh()}
             disabled={loading}
-            className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-black flex items-center gap-2 border border-zinc-700 transition-all cursor-pointer shadow-md disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
-            <span>{isRtl ? 'تحديث السجلات' : 'Refresh'}</span>
-          </button>
-          <button
+            {isRtl ? 'تحديث السجلات' : 'Refresh'}
+          </EnterpriseButton>
+          <EnterpriseButton
+            variant="primary"
+            size="sm"
+            icon={<UserPlus className="w-4 h-4" />}
             onClick={() => openModal()}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-600/25"
           >
-            <UserPlus className="w-4 h-4" />
-            <span>{isRtl ? 'إضافة مستخدم جديد' : 'New User'}</span>
-          </button>
+            {isRtl ? 'إضافة مستخدم جديد' : 'New User'}
+          </EnterpriseButton>
         </div>
       </div>
 
@@ -489,16 +497,19 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-800 dark:text-zinc-200 font-bold">
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-zinc-400">
-                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-500" />
-                        <span>{isRtl ? 'جاري تحميل المستخدمين من قاعدة البيانات...' : 'Loading users from PostgreSQL...'}</span>
+                      <td colSpan={6} className="p-8 text-center">
+                        <Spinner size="md" variant="primary" lang={lang} labelAr="جاري تحميل المستخدمين من قاعدة البيانات..." label="Loading users from PostgreSQL..." />
                       </td>
                     </tr>
                   ) : filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-zinc-400">
-                        <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                        <span>{isRtl ? 'لا يوجد مستخدمين يطابقون معايير البحث' : 'No users found matching filter'}</span>
+                      <td colSpan={6} className="p-8 text-center">
+                        <EmptyState
+                          variant="empty"
+                          title="No users found matching filter"
+                          titleAr="لا يوجد مستخدمين يطابقون معايير البحث"
+                          lang={lang}
+                        />
                       </td>
                     </tr>
                   ) : (
@@ -616,14 +627,15 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 ))}
               </select>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                icon={<Save className="w-3.5 h-3.5" />}
                 onClick={handleSaveRolePermissions}
                 disabled={savingMatrix || !selectedRoleId}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-md disabled:opacity-50"
               >
-                <Save className="w-3.5 h-3.5" />
-                <span>{savingMatrix ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ الصلاحيات في السحابة' : 'Save to DB')}</span>
-              </button>
+                {savingMatrix ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ الصلاحيات في السحابة' : 'Save to DB')}
+              </EnterpriseButton>
             </div>
           </div>
 
@@ -814,7 +826,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="primary"
+                size="sm"
+                icon={<Save className="w-4 h-4" />}
                 onClick={() => {
                   setStatusMsg({
                     type: 'success',
@@ -822,11 +837,9 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                   });
                   setTimeout(() => setStatusMsg(null), 3500);
                 }}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-2 cursor-pointer transition-all"
               >
-                <Save className="w-4 h-4" />
-                <span>{isRtl ? 'حفظ الصلاحيات المجهرية' : 'Save Dimension Scopes'}</span>
-              </button>
+                {isRtl ? 'حفظ الصلاحيات المجهرية' : 'Save Dimension Scopes'}
+              </EnterpriseButton>
             </div>
 
             {/* USER SELECTOR STRIP */}
@@ -1296,14 +1309,16 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 >
                   {isRtl ? 'إلغاء' : 'Cancel'}
                 </button>
-                <button
+                <EnterpriseButton
                   type="submit"
+                  variant="primary"
+                  size="md"
+                  icon={<Save className="w-4 h-4" />}
                   disabled={formSubmitting}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-emerald-600/25 cursor-pointer disabled:opacity-50"
+                  loading={formSubmitting}
                 >
-                  <Save className="w-4 h-4" />
-                  <span>{formSubmitting ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ المستخدم في قاعدة البيانات' : 'Save User')}</span>
-                </button>
+                  {formSubmitting ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ المستخدم في قاعدة البيانات' : 'Save User')}
+                </EnterpriseButton>
               </div>
             </form>
           </div>

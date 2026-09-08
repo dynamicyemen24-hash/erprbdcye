@@ -195,6 +195,11 @@ router.post('/trigger', authenticateToken, async (req: any, res) => {
       }
     }));
 
+    // Add integrity checksum for restore verification
+    const payloadForChecksum = JSON.stringify(backupData.tables);
+    backupData.checksum = crypto.createHash('sha256').update(payloadForChecksum).digest('hex');
+    backupData.checksumAlgorithm = 'sha256';
+
     const BACKUP_DIR = path.join(process.cwd(), 'backups');
     if (!fs.existsSync(BACKUP_DIR)) {
       fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -296,6 +301,17 @@ router.post('/restore', authenticateToken, async (req: any, res) => {
     
     if (!backupContent || !backupContent.tables) {
       return res.status(400).json({ error: "Invalid backup payload: missing table data." });
+    }
+
+    // Verify backup integrity via checksum if provided
+    if (backupContent.checksum && backupContent.checksumAlgorithm === 'sha256') {
+      const crypto = await import('crypto');
+      const payloadForChecksum = JSON.stringify(backupContent.tables);
+      const computedChecksum = crypto.createHash('sha256').update(payloadForChecksum).digest('hex');
+      if (computedChecksum !== backupContent.checksum) {
+        logger.warn('[BACKUP RESTORE] Checksum mismatch — possible tampered backup', { context: 'backup' });
+        return res.status(400).json({ error: 'Backup integrity check failed: checksum mismatch.' });
+      }
     }
 
     const tables = backupContent.tables;

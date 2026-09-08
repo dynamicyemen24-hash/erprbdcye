@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { BrainCircuit, Loader2 } from 'lucide-react';
+import { BrainCircuit } from 'lucide-react';
+import { Spinner } from '../design-system/components/Spinner';
 
 interface ImpactProjectionViewProps {
   portfolioData: any[];
@@ -40,13 +41,13 @@ export default function ImpactProjectionView({ portfolioData, beneficiaryData, l
         disabled={loading}
         className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg flex items-center gap-2"
       >
-        {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+        {loading && <Spinner size="xs" />}
         {lang === 'ar' ? 'بدء محاكاة الأثر' : 'Run Impact Simulation'}
       </button>
 
       {loading && !projection && (
         <div className="mt-6 flex flex-col items-center justify-center py-8 gap-3">
-          <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
+          <Spinner size="md" />
           <p className="text-xs text-slate-500 dark:text-zinc-400">
             {lang === 'ar' ? 'جارٍ إنشاء توقعات الأثر...' : 'Generating impact projection...'}
           </p>

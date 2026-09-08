@@ -29,6 +29,7 @@ import {
 import { Project, Program, ProjectMilestone } from '../types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 
 interface VisualProjectTimelineProps {
   projects: Project[];
@@ -44,6 +45,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
   onRefreshProjects
 }) => {
   const isRtl = lang === 'ar';
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   // Local storage persistence key for custom milestones
   const STORAGE_KEY = 'nexora_project_milestones_v1';
@@ -579,10 +582,13 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
   };
 
   const handleDeleteMilestone = (mId: string) => {
-    if (!window.confirm(isRtl ? 'هل أنت متأكد من حذف هذا المعلم الزمني؟' : 'Delete this milestone?')) return;
-    saveMilestones(milestones.filter(m => m.id !== mId));
-    setEditingMilestone(null);
-    triggerHaptic('light');
+    const doDelete = () => {
+      saveMilestones(milestones.filter(m => m.id !== mId));
+      setEditingMilestone(null);
+      triggerHaptic('light');
+    };
+    setPendingAction(() => doDelete);
+    setConfirmOpen(true);
   };
 
   const statusColors = {
@@ -751,11 +757,13 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
           {/* Reset milestones button */}
           <button
             onClick={() => {
-              if (window.confirm(isRtl ? 'إعادة ضبط كافة المعالم إلى المخطط الافتراضي؟' : 'Reset all milestone dates to default?')) {
+              const doReset = () => {
                 const fresh = generateDefaultMilestones(projects);
                 saveMilestones(fresh);
                 triggerHaptic('success');
-              }
+              };
+              setPendingAction(() => doReset);
+              setConfirmOpen(true);
             }}
             className="p-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-colors cursor-pointer"
             title={isRtl ? 'إعادة ضبط المعالم' : 'Reset Milestones'}
@@ -1523,6 +1531,16 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
         </div>
       )}
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        variant="destructive"
+        title="Confirm"
+        titleAr="تأكيد"
+        descriptionAr="هل أنت متأكد؟"
+        onConfirm={() => { pendingAction?.(); setPendingAction(null); }}
+        lang={lang || 'ar'}
+      />
     </ErrorBoundary>
   );
 };

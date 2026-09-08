@@ -86,7 +86,7 @@ const SOURCE_CONFIG: Record<string, { label: string; color: string }> = {
   gemini: { label: 'Gemini AI', color: 'text-blue-600 dark:text-blue-400' },
   sphere: { label: 'Sphere', color: 'text-emerald-600 dark:text-emerald-400' },
   chs: { label: 'CHS', color: 'text-amber-600 dark:text-amber-400' },
-  ipsas: { label: 'IPSAS', color: 'text-slate-600 dark:text-slate-400' },
+  ipsas: { label: 'IPSAS', color: 'text-slate-600 dark:text-zinc-400' },
 };
 
 const IMPACT_BORDER: Record<string, string> = {

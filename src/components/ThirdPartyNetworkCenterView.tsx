@@ -30,6 +30,8 @@ import { ThirdPartyClaim, ThirdPartySettlement, DigitalEntitlement } from '../ty
 import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { printHTML } from '../lib/printUtils';
 import { ModuleShell } from './enterprise/ModuleShell';
+import { cn } from '../design-system/utils/cn';
+import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface ThirdPartyNetworkCenterViewProps {
   lang: 'ar' | 'en';
@@ -328,21 +330,23 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          <EnterpriseButton
+            variant="accent"
+            size="sm"
+            icon={<QrCode className="w-4 h-4" />}
             onClick={() => setIsVoucherScannerOpen(true)}
-            className="px-3.5 py-2 bg-amber-600/80 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-all shadow cursor-pointer"
           >
-            <QrCode className="w-4 h-4" />
-            <span>{isRtl ? 'التحقق من القسائم الرقمية' : 'Scan Voucher'}</span>
-          </button>
+            {isRtl ? 'التحقق من القسائم الرقمية' : 'Scan Voucher'}
+          </EnterpriseButton>
 
-          <button
+          <EnterpriseButton
+            variant="primary"
+            size="sm"
+            icon={<Plus className="w-4 h-4" />}
             onClick={() => setIsNewClaimOpen(true)}
-            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-all shadow cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>{isRtl ? 'رفع مطالبة تاجر/شريك جديد' : 'New Merchant Claim'}</span>
-          </button>
+            {isRtl ? 'رفع مطالبة تاجر/شريك جديد' : 'New Merchant Claim'}
+          </EnterpriseButton>
         </div>
       </div>
 
@@ -470,12 +474,13 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
                       <td className="p-3">
                         <div className="flex items-center justify-center gap-2">
                           {claim.status !== 'PAID' && (
-                            <button
+                            <EnterpriseButton
+                              variant="primary"
+                              size="xs"
                               onClick={() => handleSettleClaim(claim)}
-                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded shadow transition-all cursor-pointer"
                             >
                               صرف التسوية
-                            </button>
+                            </EnterpriseButton>
                           )}
                           <button
                             onClick={() => handlePrintSettlementManifest(claim)}
@@ -642,19 +647,21 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
               </div>
 
               <div className="flex justify-end gap-2 border-t border-slate-800 pt-4">
-                <button
+                <EnterpriseButton
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setIsNewClaimOpen(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-700"
                 >
                   إلغاء
-                </button>
-                <button
+                </EnterpriseButton>
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
                   type="submit"
-                  className="px-5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 shadow"
                 >
                   تسجيل المطالبة والمطابقة
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
           </div>
@@ -688,12 +695,14 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
                 />
               </div>
 
-              <button
+              <EnterpriseButton
+                variant="accent"
+                size="sm"
                 type="submit"
-                className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-all shadow"
+                block
               >
                 التحقق والمسح الفوري
-              </button>
+              </EnterpriseButton>
             </form>
 
             {scannedResult && (

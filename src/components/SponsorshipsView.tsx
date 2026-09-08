@@ -26,6 +26,10 @@ import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { generateNumericCode } from '../lib/idGenerator';
 import { UniversalObjectPageModal } from './common/UniversalObjectPageModal';
+import { cn } from '../design-system/utils/cn';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { EnterpriseButton } from './common/EnterpriseButton';
+import { Spinner } from '../design-system/components/Spinner';
 
 
 interface SponsorshipsViewProps {
@@ -62,6 +66,8 @@ export default function SponsorshipsView({
   const [selectedSponsorship, setSelectedSponsorship] = useState<any | null>(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // Form Fields
   const [sponsorName, setSponsorName] = useState('');
@@ -533,14 +539,14 @@ export default function SponsorshipsView({
   };
 
   const handleDelete = async (id: string) => {
-    const confirmation = lang === 'ar'
-      ? 'هل أنت متأكد من حذف هذه الكفالة؟'
-      : 'Are you sure you want to delete this sponsorship card?';
+    setDeleteTargetId(id);
+    setConfirmDelete(true);
+  };
 
-    if (!window.confirm(confirmation)) return;
-
+  const confirmDeleteAction = async () => {
+    if (!deleteTargetId) return;
     try {
-      const response = await fetch(`/api/tables/sponsorships/${id}`, {
+      const response = await fetch(`/api/tables/sponsorships/${deleteTargetId}`, {
         method: 'DELETE'
       });
       if (!response.ok) throw new Error('Failed to delete.');
@@ -548,6 +554,8 @@ export default function SponsorshipsView({
     } catch (err: any) {
       showToast({ type: 'error', title: lang === 'ar' ? 'خطأ في العملية' : 'Operation Error', message: err.message });
     }
+    setConfirmDelete(false);
+    setDeleteTargetId(null);
   };
 
   // Financial summary numbers (Calculated dynamically)
@@ -605,21 +613,23 @@ export default function SponsorshipsView({
         </div>
         
         <div className="flex items-center gap-2 flex-wrap">
-          <button
+          <EnterpriseButton
+            variant="primary"
+            size="sm"
+            icon={<Printer className="w-4 h-4" />}
             onClick={() => setIsPDFModalOpen(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
             title={lang === 'ar' ? 'طباعة كشف كفالات الأيتام المعتمد (A4 PDF)' : 'Print Certified Sponsorships Registry'}
           >
-            <Printer className="w-4 h-4" />
-            <span>{lang === 'ar' ? 'طباعة كشف الكفالات' : 'Print Registry'}</span>
-          </button>
-          <button
+            {lang === 'ar' ? 'طباعة كشف الكفالات' : 'Print Registry'}
+          </EnterpriseButton>
+          <EnterpriseButton
+            variant="accent"
+            size="sm"
+            icon={<Plus className="w-4 h-4" />}
             onClick={() => openFormModal(null)}
-            className="bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md hover:shadow-amber-600/10 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>{lang === 'ar' ? 'إضافة كفالة جديدة' : 'Add New Pledge'}</span>
-          </button>
+            {lang === 'ar' ? 'إضافة كفالة جديدة' : 'Add New Pledge'}
+          </EnterpriseButton>
         </div>
       </div>
 
@@ -772,7 +782,7 @@ export default function SponsorshipsView({
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-zinc-400 font-bold text-xs space-y-3">
-            <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <Spinner size="md" variant="accent" />
             <p>{lang === 'ar' ? 'جاري جلب سجلات الكفالة ومطابقتها سحابياً...' : 'Connecting to remote Neon ledger...'}</p>
           </div>
         ) : filteredList.length === 0 ? (
@@ -1241,25 +1251,23 @@ export default function SponsorshipsView({
               </div>
 
               <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-                <button
+                <EnterpriseButton
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-all cursor-pointer"
                 >
                   {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-                </button>
-                <button
+                </EnterpriseButton>
+                <EnterpriseButton
+                  variant="accent"
+                  size="sm"
                   type="submit"
-                  disabled={formSubmitting}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1 transition-all cursor-pointer"
+                  loading={formSubmitting}
+                  icon={!formSubmitting ? <Check className="w-3.5 h-3.5" /> : undefined}
                 >
-                  {formSubmitting ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Check className="w-3.5 h-3.5" />
-                  )}
                   <span>{lang === 'ar' ? 'حفظ بطاقة الكفالة' : 'Establish Pledge'}</span>
-                </button>
+                </EnterpriseButton>
               </div>
             </form>
 
@@ -1268,6 +1276,20 @@ export default function SponsorshipsView({
       )}
 
     </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        variant="destructive"
+        title="Confirm Delete"
+        titleAr="تأكيد الحذف"
+        description="This action cannot be undone."
+        descriptionAr="لا يمكن التراجع عن هذا الإجراء."
+        confirmLabelAr="حذف"
+        cancelLabelAr="إلغاء"
+        onConfirm={confirmDeleteAction}
+        lang={lang}
+      />
     </ModuleShell>
   );
 }

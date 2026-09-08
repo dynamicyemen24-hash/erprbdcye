@@ -22,6 +22,7 @@ import {
   ChevronLeft, Sparkles, Bell, Tag, Building, Clock,
   FileSpreadsheet, FileCheck, ClipboardCheck, Package, Banknote
 } from 'lucide-react';
+import { Spinner } from '../../design-system/components/Spinner';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -126,7 +127,7 @@ const API_BASE = '/api/v2/expense';
 const STATUS_CONFIG: Record<ExpenseStatus, { 
   labelAr: string; labelEn: string; color: string; bg: string; icon: any;
 }> = {
-  DRAFT: { labelAr: 'مسودة', labelEn: 'Draft', color: 'text-slate-700', bg: 'bg-slate-100 dark:bg-slate-800', icon: FileText },
+  DRAFT: { labelAr: 'مسودة', labelEn: 'Draft', color: 'text-slate-700', bg: 'bg-slate-100 dark:bg-zinc-800', icon: FileText },
   PENDING_APPROVAL: { labelAr: 'بانتظار الموافقة', labelEn: 'Pending', color: 'text-amber-700', bg: 'bg-amber-100 dark:bg-amber-900/40', icon: Clock },
   APPROVED: { labelAr: 'معتمد', labelEn: 'Approved', color: 'text-blue-700', bg: 'bg-blue-100 dark:bg-blue-900/40', icon: CheckCircle },
   REJECTED: { labelAr: 'مرفوض', labelEn: 'Rejected', color: 'text-rose-700', bg: 'bg-rose-100 dark:bg-rose-900/40', icon: XCircle },
@@ -812,7 +813,7 @@ function RecordsView({
           disabled={loading}
           className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <Spinner size="sm" />
         </button>
 
         <button
@@ -1238,7 +1239,7 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             disabled={submitting}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-semibold shadow-md shadow-emerald-500/20 disabled:opacity-50"
           >
-            {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+            {submitting ? <Spinner size="sm" /> : <CheckCircle className="w-4 h-4" />}
             {t('إنشاء', 'Create')}
           </button>
         </div>
