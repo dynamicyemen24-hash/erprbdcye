@@ -6,6 +6,7 @@
 import { Router, Response } from 'express';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { successResponse, errorResponse, extractTenantId } from '../../core/helpers';
+import { enforceOwnership } from '../../tenantSecurity';
 
 // Import all engines
 import { PortfolioEngine, ProgramEngine } from '../../engines/portfolio.engine';
@@ -25,6 +26,18 @@ const auth = (req: AuthenticatedRequest) => ({
   userId: req.user!.id, email: req.user!.email, role: req.user!.role,
   orgId: extractTenantId(req), securityLevel: req.user!.security_level || 5,
 });
+
+// IDOR defense-in-depth: every /:id route below is gated on record-level
+// tenant ownership BEFORE reaching engines (most engine getById/update/
+// delete methods filter by id only). Tables without organization_id
+// (or missing tables) pass through inside enforceOwnership.
+router.use('/programs/:id', enforceOwnership('programs'));
+router.use('/activities/:id', enforceOwnership('activities'));
+router.use('/volunteers/:id', enforceOwnership('volunteers'));
+router.use('/donors/:id', enforceOwnership('donors'));
+router.use('/grants/:id', enforceOwnership('grants'));
+router.use('/assets/:id', enforceOwnership('fixed_assets'));
+router.use('/membership/:id', enforceOwnership('memberships'));
 
 // ═══════════════════════════════════════════════════════════
 // NEB-02: Portfolio Management

@@ -163,26 +163,35 @@ router.post('/trigger', authenticateToken, async (req: any, res) => {
       tables: {}
     };
 
-    // Query and export whitelisted tables — TENANT ISOLATED
+    // Query and export whitelisted tables — TENANT ISOLATED.
+    // Row-capped per table: an unbounded SELECT * + JSON.stringify can OOM
+    // the process on large tenants. Truncation is recorded in the manifest;
+    // full-fidelity dumps go through pg_dump (BackupService), not this route.
+    const BACKUP_ROW_LIMIT = parseInt(process.env.BACKUP_JSON_ROW_LIMIT || '50000', 10);
     const tenantId = req.user?.org_id;
     if (!tenantId) return res.status(401).json({ error: 'Organization ID required' });
+    backupData.truncatedTables = [] as string[];
     await Promise.all(TABLE_WHITELIST.map(async (table) => {
       try {
         // Check if table has organization_id column for tenant isolation
         const colCheck = await dbPool.query(`
           SELECT EXISTS (
-            SELECT 1 FROM information_schema.columns 
+            SELECT 1 FROM information_schema.columns
             WHERE table_schema='public' AND table_name=$1 AND column_name='organization_id'
           )
         `, [table]);
         const hasOrgCol = colCheck.rows[0]?.exists;
-        
+
         const result = hasOrgCol
-          ? await dbPool.query(`SELECT * FROM "${table}" WHERE "organization_id" = $1`, [tenantId])
-          : await dbPool.query(`SELECT * FROM "${table}"`);
-        
+          ? await dbPool.query(`SELECT * FROM "${table}" WHERE "organization_id" = $1 LIMIT $${2}`, [tenantId, BACKUP_ROW_LIMIT + 1])
+          : await dbPool.query(`SELECT * FROM "${table}" LIMIT $1`, [BACKUP_ROW_LIMIT + 1]);
+
+        if (result.rows.length > BACKUP_ROW_LIMIT) {
+          backupData.truncatedTables.push(table);
+        }
+
         // SECURITY: Strip password_hash from backup exports
-        backupData.tables[table] = result.rows.map((row: any) => {
+        backupData.tables[table] = result.rows.slice(0, BACKUP_ROW_LIMIT).map((row: any) => {
           const clean = { ...row };
           delete clean.password_hash;
           delete clean.totp_secret;

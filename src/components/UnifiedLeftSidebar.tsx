@@ -355,89 +355,33 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
         ))}
       </div>
 
-      {/* FOOTER UTILITIES SECTION */}
-      <div className="p-2 border-t border-slate-100 dark:border-zinc-900 space-y-1 bg-slate-50/50 dark:bg-zinc-900/40 shrink-0">
-{onOpenCopilot && (
-          <button
-            onClick={() => {
-              triggerHaptic('medium');
-              onOpenCopilot();
-            }}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm hover:brightness-110 transition-all cursor-pointer"
-            title={isCollapsed ? (isRtl ? 'المساعد الذكي Gemini AI' : 'Gemini AI Copilot') : undefined}
-          >
-            <Brain className="w-4 h-4 shrink-0 animate-pulse text-amber-300" />
-            {!isCollapsed && (
-              <span className="truncate flex-1 text-right rtl:text-right">
-                {isRtl ? 'المساعد الذكي Gemini' : 'Gemini AI Copilot'}
-              </span>
-            )}
-          </button>
-        )}
-
-        {/* REPORT PRINT BUTTON - NEW */}
-        <button
-          onClick={() => {
-            triggerHaptic('light');
-            onPrintReport?.('programs');
-          }}
-          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-sm hover:brightness-110 transition-all cursor-pointer"
-          title={isCollapsed ? (isRtl ? 'طباعة تقرير البرامج' : 'Print Programs Report') : undefined}
-        >
-          <Printer className="w-4 h-4 shrink-0 animate-pulse text-emerald-300" />
-          {!isCollapsed && (
-            <span className="truncate flex-1 text-right rtl:text-right">
-              {isRtl ? 'طباعة تقرير البرامج' : 'Programs Report'}
-            </span>
-          )}
-        </button>
-
-        {/* HELPER TOOLS BUTTON - CENTRALIZED */}
+      {/* FOOTER — Compact & Calm (single calm entry, no competing gradients) */}
+      <div className="p-2 border-t border-slate-100 dark:border-zinc-900 bg-slate-50/80 dark:bg-zinc-900/40 shrink-0 space-y-1.5">
         {onOpenHelpers && (
           <button
-            onClick={() => {
-              triggerHaptic('light');
-              onOpenHelpers();
-            }}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-sm hover:brightness-110 transition-all cursor-pointer"
-            title={isCollapsed ? (isRtl ? 'أدوات المساعدة' : 'Helper Tools') : undefined}
+            onClick={() => { triggerHaptic('light'); onOpenHelpers(); }}
+            className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+              isCollapsed ? 'justify-center bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400' : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-emerald-500/30 hover:text-emerald-700 dark:hover:text-emerald-300'
+            }`}
+            title={isRtl ? 'أدوات المساعدة (12 أداة)' : 'Helper Tools (12)'}
           >
-            <Calculator className="w-4 h-4 shrink-0 animate-pulse text-emerald-300" />
-            {!isCollapsed && (
-              <span className="truncate flex-1 text-right rtl:text-right">
-                {isRtl ? 'أدوات المساعدة' : 'Helper Tools'}
-              </span>
-            )}
+            <Calculator className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            {!isCollapsed && <span className="flex-1 text-right rtl:text-right truncate">{isRtl ? 'أدوات المساعدة' : 'Helper Tools'}</span>}
           </button>
         )}
-
-        <div className="grid grid-cols-2 gap-1">
+        <div className={`flex items-center gap-1 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           {onOpenDocs && (
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                onOpenDocs();
-              }}
-              className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/80 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 text-[10px] font-bold transition-colors cursor-pointer"
-              title={isRtl ? 'الدليل والوثائق' : 'Docs'}
-            >
-              <BookOpen className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              {!isCollapsed && <span>{isRtl ? 'الوثائق' : 'Docs'}</span>}
+            <button onClick={() => { triggerHaptic('light'); onOpenDocs(); }} className="p-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors cursor-pointer" title={isRtl ? 'الدليل والوثائق' : 'Docs'}>
+              <BookOpen className="w-3.5 h-3.5" />
             </button>
           )}
-
           {onOpenScenarios && (
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                onOpenScenarios();
-              }}
-              className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/80 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 text-[10px] font-bold transition-colors cursor-pointer"
-              title={isRtl ? 'السيناريوهات SOP' : 'SOPs'}
-            >
-              <PlayCircle className="w-3.5 h-3.5 text-amber-500" />
-              {!isCollapsed && <span>{isRtl ? 'SOP' : 'SOPs'}</span>}
+            <button onClick={() => { triggerHaptic('light'); onOpenScenarios(); }} className="p-2 rounded-lg text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors cursor-pointer" title={isRtl ? 'السيناريوهات SOP' : 'SOPs'}>
+              <PlayCircle className="w-3.5 h-3.5" />
             </button>
+          )}
+          {!isCollapsed && (
+            <span className="text-[9px] font-mono text-slate-400 dark:text-zinc-500 px-1.5">UAMEX</span>
           )}
         </div>
       </div>

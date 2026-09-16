@@ -153,7 +153,7 @@ Select.displayName = 'Select';
 
 // ─── Searchable Select (Internal) ─────────────────────────────
 
-interface SearchableSelectProps extends Omit<SelectProps, 'searchable'> {}
+type SearchableSelectProps = Omit<SelectProps, 'searchable'>;
 
 function SearchableSelect({ id, size, error, helperText, label, required, options, placeholder, lang, disabled, value, onChange, className }: SearchableSelectProps) {
     const [open, setOpen] = useState(false);

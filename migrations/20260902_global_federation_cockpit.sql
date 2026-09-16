@@ -53,13 +53,13 @@ CREATE TABLE IF NOT EXISTS federation_tenants (
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_federation_tenants_status ON federation_tenants(status)
+CREATE INDEX IF NOT EXISTS idx_federation_tenants_status ON federation_tenants(status)
 WHERE status = 'active';
-CREATE INDEX idx_federation_tenants_tier ON federation_tenants(tier);
-CREATE INDEX idx_federation_tenants_region ON federation_tenants(region);
-CREATE INDEX idx_federation_tenants_parent ON federation_tenants(parent_tenant_id)
+CREATE INDEX IF NOT EXISTS idx_federation_tenants_tier ON federation_tenants(tier);
+CREATE INDEX IF NOT EXISTS idx_federation_tenants_region ON federation_tenants(region);
+CREATE INDEX IF NOT EXISTS idx_federation_tenants_parent ON federation_tenants(parent_tenant_id)
 WHERE parent_tenant_id IS NOT NULL;
-CREATE INDEX idx_federation_tenants_country ON federation_tenants(country_code);
+CREATE INDEX IF NOT EXISTS idx_federation_tenants_country ON federation_tenants(country_code);
 CREATE INDEX idx_federation_tenants_features ON federation_tenants USING GIN (feature_flags);
 CREATE INDEX idx_federation_tenants_search ON federation_tenants USING GIN (
     display_name gin_trgm_ops,
@@ -278,8 +278,9 @@ CREATE TABLE IF NOT EXISTS zero_trust_sessions (
 );
 CREATE INDEX idx_zts_user ON zero_trust_sessions(user_id, expires_at);
 CREATE INDEX idx_zts_tenant ON zero_trust_sessions(tenant_id, last_activity_at DESC);
-CREATE INDEX idx_zts_active ON zero_trust_sessions(expires_at)
-WHERE expires_at > NOW();
+-- NOTE: predicate WHERE expires_at > NOW() removed — NOW() is STABLE, not
+-- IMMUTABLE, and Postgres rejects non-immutable functions in index predicates.
+CREATE INDEX idx_zts_active ON zero_trust_sessions(expires_at);
 CREATE TABLE IF NOT EXISTS security_events (
     event_id VARCHAR(80) PRIMARY KEY,
     tenant_id VARCHAR(64) NOT NULL,
@@ -294,10 +295,47 @@ CREATE TABLE IF NOT EXISTS security_events (
     mitigated BOOLEAN NOT NULL DEFAULT false,
     detected_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_sec_events_tenant ON security_events(tenant_id, detected_at DESC);
-CREATE INDEX idx_sec_events_type ON security_events(event_type, detected_at DESC);
-CREATE INDEX idx_sec_events_severity ON security_events(severity)
-WHERE severity IN ('high', 'critical');
+-- Drift-tolerant reconciliation (older environments carry a narrower table).
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='event_id') THEN
+    ALTER TABLE security_events ADD COLUMN event_id VARCHAR(80);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='tenant_id') THEN
+    ALTER TABLE security_events ADD COLUMN tenant_id VARCHAR(64);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='risk_score') THEN
+    ALTER TABLE security_events ADD COLUMN risk_score INTEGER DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='geo_location') THEN
+    ALTER TABLE security_events ADD COLUMN geo_location JSONB;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='mitigated') THEN
+    ALTER TABLE security_events ADD COLUMN mitigated BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='detected_at') THEN
+    ALTER TABLE security_events ADD COLUMN detected_at TIMESTAMPTZ DEFAULT NOW();
+  END IF;
+END
+$$;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='tenant_id')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='detected_at')
+     AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname='idx_sec_events_tenant') THEN
+    CREATE INDEX idx_sec_events_tenant ON security_events(tenant_id, detected_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='event_type')
+     AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='detected_at')
+     AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname='idx_sec_events_type') THEN
+    CREATE INDEX idx_sec_events_type ON security_events(event_type, detected_at DESC);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='security_events' AND column_name='severity')
+     AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname='idx_sec_events_severity') THEN
+    CREATE INDEX idx_sec_events_severity ON security_events(severity) WHERE severity IN ('high', 'critical');
+  END IF;
+END
+$$;
 -- ═══════════════════════════════════════════════════════════════════
 -- 4. OBSERVABILITY TABLES
 -- ═══════════════════════════════════════════════════════════════════
@@ -366,7 +404,7 @@ CREATE TABLE IF NOT EXISTS slo_definitions (
     sli_numerator_query TEXT NOT NULL,
     sli_denominator_query TEXT NOT NULL,
     target DECIMAL(5, 4) NOT NULL,
-    window VARCHAR(5) NOT NULL,
+    window_size VARCHAR(5) NOT NULL,
     burn_rate_threshold DECIMAL(8, 4) NOT NULL,
     alert_channel VARCHAR(200),
     tenant_id VARCHAR(64) NOT NULL,
@@ -644,13 +682,20 @@ COMMENT ON TABLE anomaly_detections IS 'AI-detected metric anomalies with possib
 -- ═══════════════════════════════════════════════════════════════════
 -- 9. GRANTS
 -- ═══════════════════════════════════════════════════════════════════
-GRANT SELECT,
-    INSERT,
-    UPDATE,
-    DELETE ON ALL TABLES IN SCHEMA public TO nexora_app;
-GRANT USAGE,
-    SELECT ON ALL SEQUENCES IN SCHEMA public TO nexora_app;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO nexora_app;
+-- Least-privilege app role grants — applied ONLY when the nexora_app role
+-- exists (dedicated-role deployments). Single-role hosts (e.g. Neon owner)
+-- skip silently instead of aborting the migration.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'nexora_app') THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO nexora_app';
+    EXECUTE 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO nexora_app';
+    EXECUTE 'GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO nexora_app';
+  ELSE
+    RAISE NOTICE 'federation: nexora_app role absent — skipping GRANTs';
+  END IF;
+END
+$$;
 -- ═══════════════════════════════════════════════════════════════════
 -- MIGRATION COMPLETE
 -- ═══════════════════════════════════════════════════════════════════

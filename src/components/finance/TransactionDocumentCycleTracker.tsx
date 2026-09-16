@@ -10,6 +10,7 @@ import {
 import { printHTML } from '../../lib/printUtils';
 import { generateShortId, generateNumericCode } from '../../lib/idGenerator';
 import { EnterpriseButton } from '../common/EnterpriseButton';
+import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
 
 interface Account {
   id: string;
@@ -695,6 +696,9 @@ export default function TransactionDocumentCycleTracker({
     showFeedback(isRtl ? 'تم رفع وأرشفة المرفق الداعم بنجاح' : 'Supporting document uploaded & filed successfully', 'success');
   };
 
+  const [confirmDeleteAttachment, setConfirmDeleteAttachment] = useState(false);
+  const [pendingAttachmentId, setPendingAttachmentId] = useState<string | null>(null);
+
   const handleDeleteAttachment = (attId: string) => {
     if (!selectedTxId || !txMeta) return;
     
@@ -715,6 +719,7 @@ export default function TransactionDocumentCycleTracker({
       ]
     };
     saveTxMeta(selectedTxId, updated);
+    setPendingAttachmentId(null);
     showFeedback(isRtl ? 'صف محو الأمية وتعليم الكبار' : 'Attachment deleted successfully', 'success');
   };
 
@@ -1671,7 +1676,8 @@ export default function TransactionDocumentCycleTracker({
                           </div>
                           <button
                             type="button"
-                            onClick={() => handleDeleteAttachment(att.id)}
+                            onClick={() => { setPendingAttachmentId(att.id); setConfirmDeleteAttachment(true); }}
+                            aria-label={isRtl ? 'حذف المرفق' : 'Delete attachment'}
                             className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 border border-slate-200 hover:border-rose-100 transition-all cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1878,6 +1884,19 @@ export default function TransactionDocumentCycleTracker({
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmDeleteAttachment}
+        onOpenChange={setConfirmDeleteAttachment}
+        variant="destructive"
+        title="Delete attachment"
+        titleAr="تأكيد حذف المرفق"
+        description="Are you sure you want to permanently delete this supporting document? The audit trail entry is kept."
+        descriptionAr="هل أنت متأكد من حذف هذا المستند الداعم نهائياً؟ سيبقى قيد سجل التدقيق."
+        confirmLabel="Delete"
+        confirmLabelAr="حذف المرفق"
+        onConfirm={() => { if (pendingAttachmentId) handleDeleteAttachment(pendingAttachmentId); }}
+        lang={lang}
+      />
     </div>
   );
 }

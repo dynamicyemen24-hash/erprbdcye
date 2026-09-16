@@ -163,10 +163,69 @@ CREATE TABLE IF NOT EXISTS ai_insights (
     acknowledged_by UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+-- Drift-tolerant reconciliation for pre-existing ai_insights tables.
+-- Older environments carry a narrower prototype shape; add every canonical
+-- column this release needs (nullable + defaults — never destructive).
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='domain') THEN
+    ALTER TABLE ai_insights ADD COLUMN domain VARCHAR(20);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='title') THEN
+    ALTER TABLE ai_insights ADD COLUMN title VARCHAR(500);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='title_ar') THEN
+    ALTER TABLE ai_insights ADD COLUMN title_ar VARCHAR(500);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='description') THEN
+    ALTER TABLE ai_insights ADD COLUMN description TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='description_ar') THEN
+    ALTER TABLE ai_insights ADD COLUMN description_ar TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='severity') THEN
+    ALTER TABLE ai_insights ADD COLUMN severity VARCHAR(20) DEFAULT 'info';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='confidence') THEN
+    ALTER TABLE ai_insights ADD COLUMN confidence DECIMAL(5, 2) DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='action_items') THEN
+    ALTER TABLE ai_insights ADD COLUMN action_items JSONB DEFAULT '[]';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='evidence') THEN
+    ALTER TABLE ai_insights ADD COLUMN evidence JSONB DEFAULT '{}';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='related_entities') THEN
+    ALTER TABLE ai_insights ADD COLUMN related_entities JSONB DEFAULT '{}';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='tenant_id') THEN
+    ALTER TABLE ai_insights ADD COLUMN tenant_id UUID;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='acknowledged_at') THEN
+    ALTER TABLE ai_insights ADD COLUMN acknowledged_at TIMESTAMPTZ;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='acknowledged_by') THEN
+    ALTER TABLE ai_insights ADD COLUMN acknowledged_by UUID;
+  END IF;
+END
+$$;
 -- Index for active insights
-CREATE INDEX IF NOT EXISTS idx_insights_active ON ai_insights (organization_id, severity, created_at DESC)
-WHERE acknowledged_at IS NULL;
-CREATE INDEX IF NOT EXISTS idx_insights_domain ON ai_insights (domain, organization_id, created_at DESC);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='acknowledged_at')
+     AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname='idx_insights_active') THEN
+    CREATE INDEX idx_insights_active ON ai_insights (organization_id, severity, created_at DESC) WHERE acknowledged_at IS NULL;
+  END IF;
+END
+$$;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_insights' AND column_name='domain')
+     AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname='idx_insights_domain') THEN
+    CREATE INDEX idx_insights_domain ON ai_insights (domain, organization_id, created_at DESC);
+  END IF;
+END
+$$;
 -- 6. AI Conversation History (for AI Copilot)
 CREATE TABLE IF NOT EXISTS ai_conversations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

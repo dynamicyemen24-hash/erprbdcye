@@ -5,10 +5,21 @@ import { requireFinancePolicy } from '../middleware/policy.middleware';
 
 export const financeRouter = express.Router();
 
+// Tenant claim is mandatory — no default-org fallback (prevents cross-tenant leakage).
+function requireOrgId(req: any, res: any): string | null {
+  const orgId = req.user?.org_id || req.user?.orgId;
+  if (!orgId) {
+    res.status(401).json({ error: 'Missing organization claim' });
+    return null;
+  }
+  return orgId;
+}
+
 // GET /api/finance/trial-balance
 financeRouter.get('/trial-balance', async (req: any, res) => {
   try {
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrgId(req, res);
+    if (!orgId) return;
     const report = await IPSASFinanceService.getTrialBalance(orgId);
     res.json(report);
   } catch (err: any) {
@@ -20,7 +31,8 @@ financeRouter.get('/trial-balance', async (req: any, res) => {
 // GET /api/finance/balance-sheet
 financeRouter.get('/balance-sheet', async (req: any, res) => {
   try {
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrgId(req, res);
+    if (!orgId) return;
     const report = await IPSASFinanceService.getBalanceSheet(orgId);
     res.json(report);
   } catch (err: any) {
@@ -32,7 +44,8 @@ financeRouter.get('/balance-sheet', async (req: any, res) => {
 // GET /api/finance/income-statement
 financeRouter.get('/income-statement', async (req: any, res) => {
   try {
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrgId(req, res);
+    if (!orgId) return;
     const report = await IPSASFinanceService.getIncomeStatement(orgId);
     res.json(report);
   } catch (err: any) {
@@ -65,7 +78,8 @@ financeRouter.post('/vouchers', requireFinancePolicy('CREATE'), async (req: any,
       }
     }
 
-    const orgId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const orgId = requireOrgId(req, res);
+    if (!orgId) return;
     const payload = {
       ...req.body,
       organizationId: orgId

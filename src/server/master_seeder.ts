@@ -234,33 +234,44 @@ export async function runMasterEnterpriseSeeder(poolInstance: pg.Pool) {
           }
         ];
 
-        for (const v of sampleVouchers) {
-          const txRes = await client.query(`
-            INSERT INTO transactions (
-              organization_id, transaction_number, transaction_date, posting_date,
-              transaction_type, description, reference_no, total_debit, total_credit, status
-            ) VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $7, 'POSTED')
-            RETURNING id
-          `, [orgId, v.num, v.date, v.type, v.desc, v.ref, v.amount]);
+        // Batch insert transactions + lines in a single transaction
+        const txValues = sampleVouchers.map((v, i) =>
+          `(${i + 1}, $${i * 7 + 1}, $${i * 7 + 2}, $${i * 7 + 3}, $${i * 7 + 4}, $${i * 7 + 5}, $${i * 7 + 6}, $${i * 7 + 7}, $${i * 7 + 7}, 'POSTED')`
+        ).join(', ');
+        const txParams = sampleVouchers.flatMap(v => [orgId, v.num, v.date, v.type, v.desc, v.ref, v.amount]);
 
-          const txId = txRes.rows[0].id;
+        const txRes = await client.query(`
+          INSERT INTO transactions (
+            organization_id, transaction_number, transaction_date, posting_date,
+            transaction_type, description, reference_no, total_debit, total_credit, status
+          ) VALUES ${txValues}
+          RETURNING id, transaction_number
+        `, txParams);
+
+        const txRows = txRes.rows;
+        const lineValues = [];
+        const lineParams = [];
+        let paramIdx = 1;
+
+        for (let i = 0; i < sampleVouchers.length; i++) {
+          const v = sampleVouchers[i];
+          const txId = txRows[i].id;
 
           // Debit Line
-          await client.query(`
-            INSERT INTO transaction_lines (
-              transaction_id, organization_id, line_number, account_id,
-              debit, credit, currency_code, exchange_rate, description, project_id
-            ) VALUES ($1, $2, 1, $3, $4, 0, 'YER', 1, $5, $6)
-          `, [txId, orgId, v.debitAcc, v.amount, `${v.desc} - طرف مدين`, v.prjId]);
+          lineValues.push(`($${paramIdx++}, $${paramIdx++}, 1, $${paramIdx++}, $${paramIdx++}, 0, 'YER', 1, $${paramIdx++}, $${paramIdx++})`);
+          lineParams.push(txId, orgId, v.debitAcc, v.amount, `${v.desc} - طرف مدين`, v.prjId);
 
           // Credit Line
-          await client.query(`
-            INSERT INTO transaction_lines (
-              transaction_id, organization_id, line_number, account_id,
-              debit, credit, currency_code, exchange_rate, description, project_id
-            ) VALUES ($1, $2, 2, $3, 0, $4, 'YER', 1, $5, $6)
-          `, [txId, orgId, v.creditAcc, v.amount, `${v.desc} - طرف دائن`, v.prjId]);
+          lineValues.push(`($${paramIdx++}, $${paramIdx++}, 2, $${paramIdx++}, 0, $${paramIdx++}, 'YER', 1, $${paramIdx++}, $${paramIdx++})`);
+          lineParams.push(txId, orgId, v.creditAcc, v.amount, `${v.desc} - طرف دائن`, v.prjId);
         }
+
+        await client.query(`
+          INSERT INTO transaction_lines (
+            transaction_id, organization_id, line_number, account_id,
+            debit, credit, currency_code, exchange_rate, description, project_id
+          ) VALUES ${lineValues.join(', ')}
+        `, lineParams);
         console.log(`Successfully seeded ${sampleVouchers.length} double-entry IPSAS transactions!`);
       }
     }
@@ -270,18 +281,19 @@ export async function runMasterEnterpriseSeeder(poolInstance: pg.Pool) {
     if (parseInt(spCheck.rows[0].count) === 0) {
       console.log('Seeding sponsorship_payments for active orphan sponsorships...');
       const sponsRes = await client.query('SELECT id, beneficiary_id, monthly_amount FROM sponsorships LIMIT 50');
-      for (const sp of sponsRes.rows) {
-        const amount = Number(sp.monthly_amount) || 50000;
+      if (sponsRes.rows.length > 0) {
+        const spValues = sponsRes.rows.map((sp, i) =>
+          `($${i * 5 + 1}, $${i * 5 + 2}, NOW() - INTERVAL '15 days', $${i * 5 + 3}, 'YER', 'VOUCH-ORPH-2026', 'المشرف الميداني المعتمد', 'COMPLETED')`
+        ).join(', ');
+        const spParams = sponsRes.rows.flatMap(sp => [orgId, sp.id, Number(sp.monthly_amount) || 50000]);
         await client.query(`
           INSERT INTO sponsorship_payments (
             organization_id, sponsorship_id, payment_date, payment_amount,
             currency_code, disbursement_voucher_no, receipt_confirmed_by, status
-          ) VALUES (
-            $1, $2, NOW() - INTERVAL '15 days', $3, 'YER', 'VOUCH-ORPH-2026', 'المشرف الميداني المعتمد', 'COMPLETED'
-          )
-        `, [orgId, sp.id, amount]);
+          ) VALUES ${spValues}
+        `, spParams);
+        console.log(`Seeded ${sponsRes.rows.length} sponsorship payment records (batch).`);
       }
-      console.log(`Seeded ${sponsRes.rows.length} sponsorship payment records.`);
     }
 
     // 4. Seed Donors & Grants if empty

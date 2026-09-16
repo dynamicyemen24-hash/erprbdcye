@@ -622,15 +622,26 @@ SELECT
     COUNT(DISTINCT pp.project_id) AS project_count,
     COUNT(DISTINCT prog.id) AS program_count,
     ROUND((pf.total_spent / NULLIF(pf.total_budget, 0) * 100)::numeric, 2) AS budget_utilization_pct,
-    COALESCE(SUM(ev.scheduled_hours), 0) AS total_scheduled_hours,
-    COALESCE(SUM(ev.actual_hours), 0) AS total_actual_hours,
+    -- Hours live on pmo_schedule_activities (not on EVM snapshots): aggregate
+    -- via correlated subqueries to avoid join fan-out distortion.
+    COALESCE((
+      SELECT SUM(sa.scheduled_hours)
+      FROM pmo_schedule_activities sa
+      JOIN pmo_portfolio_projects ppp ON ppp.project_id = sa.project_id
+      WHERE ppp.portfolio_id = pf.id
+    ), 0) AS total_scheduled_hours,
+    COALESCE((
+      SELECT SUM(sa.actual_hours)
+      FROM pmo_schedule_activities sa
+      JOIN pmo_portfolio_projects ppp ON ppp.project_id = sa.project_id
+      WHERE ppp.portfolio_id = pf.id
+    ), 0) AS total_actual_hours,
     pf.tenant_id
 FROM pmo_portfolios pf
 LEFT JOIN pmo_portfolio_projects pp ON pp.portfolio_id = pf.id
 LEFT JOIN pmo_programs prog ON prog.portfolio_id = pf.id
 LEFT JOIN pmo_projects prj ON prj.id = pp.project_id
-LEFT JOIN pmo_evm_snapshots ev ON ev.project_id = prj.id
-GROUP BY pf.id, pf.portfolio_code, pf.name, pf.total_budget, pf.total_spent, 
+GROUP BY pf.id, pf.portfolio_code, pf.name, pf.total_budget, pf.total_spent,
          pf.overall_progress, pf.health_score, pf.status, pf.tenant_id;
 
 -- Risk Register Summary View

@@ -1,3 +1,13 @@
+// BigInt serialization for JSON responses (Express/res.json uses JSON.stringify)
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
+
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -8,7 +18,6 @@ import dotenv from 'dotenv';
 import pg from 'pg';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import rateLimit from 'express-rate-limit';
 import { createServer as createViteServer } from 'vite';
 import geminiRouter from './src/server/routes/v2/gemini.routes';
 import { financeRouter } from './src/server/routes/finance.routes';
@@ -44,21 +53,20 @@ import { tokenRevocationMiddleware, loadBlacklistFromDb } from './src/server/cor
 import { sessionManagementMiddleware } from './src/server/core/sessionManagement';
 import { outputSecurityMiddleware } from './src/server/middleware/outputEncoding';
 import logoutRouter from './src/server/routes/v2/logout.routes';
-import {
-  runEnterpriseSchemaCompletion,
-  applyEnterpriseIndexes,
-  applyEnterpriseViews,
-  seedEnterpriseUsersAndOrg
-} from './src/server/database/enterprise_schema_completion';
 import { bootstrapDatabase } from './src/server/bootstrap';
 import { enforceAllPolicies, type PolicyContext, type PolicyViolation } from './src/server/services/policyEngine';
 import logger from './src/server/core/logger';
 import { swaggerRouter } from './src/server/docs';
+import { initSentry, captureError } from './src/server/observability/sentry';
 import { registerInternalHandlers } from './src/server/services/webhooks';
-import { connectRedis } from './src/server/redis';
+import { connectRedis, createDistributedRateLimiter } from './src/server/redis';
+import { isBootstrapped, getBootstrapErrors } from './src/server/bootstrap/state';
 import { smartCompression } from './src/server/middleware/compression';
 import { worldClassSecurityHeaders } from './src/server/middleware/security-headers';
 import { etagMiddleware, rateLimitHeaders } from './src/server/middleware/etag';
+import { idempotencyMiddleware } from './src/server/middleware/idempotency';
+import { apiCache } from './src/server/core/cache';
+import { getRequestToken } from './src/server/core/cookies';
 
 dotenv.config();
 
@@ -198,7 +206,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-API-Version'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-API-Version', 'X-Organization-Id', 'X-Environment-Mode', 'X-Idempotency-Key', 'X-Session-Id'],
   maxAge: 86400, // Cache preflight for 24 hours
 }));
 app.use(morgan('[:date[iso]] :method :url :status :response-time ms - :res[content-length]'));
@@ -276,37 +284,37 @@ app.use(sessionManagementMiddleware());
 // 10. Output Encoding — Security headers + response sanitization
 app.use(outputSecurityMiddleware());
 
-// Rate Limiting
-const apiLimiter = rateLimit({
+// Distributed Rate Limiting (Redis sliding-window, in-memory fallback).
+// Survives restarts and works across replicas — unlike the previous
+// per-process express-rate-limit tiers.
+const apiLimiter = createDistributedRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300, // Limit each IP to 300 requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+  maxRequests: 300, // Limit each IP to 300 requests per windowMs
+  keyPrefix: 'rl:api',
+  message: { ar: 'طلبات كثيرة جداً. يرجى المحاولة لاحقاً.', en: 'Too many requests from this IP, please try again after 15 minutes' },
 });
 
-const authLimiter = rateLimit({
+const authLimiter = createDistributedRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Limit each IP to 20 login/auth requests per window
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many authentication attempts, please try again later' }
+  maxRequests: 20, // Limit each IP to 20 login/auth requests per window
+  keyPrefix: 'rl:auth',
+  blockDuration: 15 * 60 * 1000,
+  message: { ar: 'محاولات مصادقة كثيرة. يرجى الانتظار.', en: 'Too many authentication attempts, please try again later' },
 });
 
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/auth')) {
+  if (req.path.startsWith('/api/auth') || req.path.startsWith('/api/v2/auth')) {
     return authLimiter(req, res, next);
   }
   next();
 });
 
 // AI API Rate Limiter — prevents unbounded AI cost exposure
-const aiLimiter = rateLimit({
+const aiLimiter = createDistributedRateLimiter({
   windowMs: 60 * 1000, // 1 minute
-  max: 30, // 30 AI requests per minute
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'AI request rate limit exceeded. Max 30 per minute.' }
+  maxRequests: 30, // 30 AI requests per minute
+  keyPrefix: 'rl:ai',
+  message: { ar: 'تم تجاوز حد طلبات الذكاء الاصطناعي.', en: 'AI request rate limit exceeded. Max 30 per minute.' },
 });
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/gemini') || req.path.startsWith('/api/v2/domains/ai')) {
@@ -323,18 +331,23 @@ app.use((req, res, next) => {
 });
 
 // Process Level Safety Guards
+// Unhandled rejections (e.g. transient Neon connection drops from an
+// unawaited query) must NEVER kill the process: the failing request already
+// received its error, and the server stays up to serve the next one.
+// Exit-on-rejection previously crashed production after 10 transient faults.
 let unhandledRejectionCount = 0;
 process.on('unhandledRejection', (reason, promise) => {
   unhandledRejectionCount++;
   logger.error(`Unhandled Rejection #${unhandledRejectionCount} at: ${promise}, reason: ${reason}`, { context: 'process' });
-  if (unhandledRejectionCount >= 10) {
-    logger.error('[FATAL] Too many unhandled rejections — triggering shutdown', { context: 'process' });
-    process.exit(1);
-  }
+  captureError(reason instanceof Error ? reason : new Error(String(reason)), {
+    kind: 'unhandledRejection',
+    count: unhandledRejectionCount,
+  });
 });
 process.on('uncaughtException', (err) => {
   logger.error(`Uncaught Exception: ${err.message}`, { context: 'process' });
   logger.error('[FATAL] Uncaught exception — triggering graceful shutdown', { context: 'process' });
+  captureError(err, { kind: 'uncaughtException' });
   process.exit(1);
 });
 
@@ -968,26 +981,11 @@ async function ensureAdvancedDatabaseViewsAndProcedures(poolInstance: pg.Pool) {
   }
 }
 
-let _serverPoolInitialized = false;
-
+// Pure singleton passthrough — no side effects. Database bootstrap
+// (schema + migrations + seeds) runs AWAITED in startServer() before listen,
+// and readiness probes stay 503 until it completes (see bootstrap/state).
 function getPool(): pg.Pool {
-   const pool = coreGetPool();
-
-   if (!_serverPoolInitialized) {
-     _serverPoolInitialized = true;
-
-     if (process.env.NODE_ENV !== 'production') {
-        logger.info("PostgreSQL connection pool initialized via core/database singleton.", { context: 'database' });
-     }
-
-     // Enterprise bootstrap: schema completion, seed data, views, procedures, indexes
-     // Fire-and-forget to avoid blocking startup.
-     bootstrapDatabase(pool).catch(err => {
-       logger.warn(`[DB INIT] Some initialization tasks failed: ${err.message}`, { context: 'database' });
-     });
-   }
-
-   return pool;
+   return coreGetPool();
  }
 
 // Whitelisted tables that are safe to expose and manage
@@ -1003,8 +1001,19 @@ async function enforceTablePolicy(
   const domain = TABLE_POLICY_DOMAIN[table];
   if (!domain) return { allowed: true, violations: [] };
 
+  const organizationId = req.user?.org_id || req.user?.orgId;
+  if (!organizationId) {
+    const violation: PolicyViolation = {
+      code: 'TENANT_REQUIRED',
+      severity: 'BLOCK',
+      messageAr: 'المطالبة التنظيمية مفقودة — تم رفض الطلب',
+      messageEn: 'Missing organization claim — request denied',
+      policyKey: 'tenant-required',
+    };
+    return { allowed: false, violations: [violation] };
+  }
   const ctx: PolicyContext = {
-    organizationId: req.user?.org_id || '00000000-0000-0000-0000-000000000001',
+    organizationId,
     userId: req.user?.id || '',
     securityLevel: req.user?.security_level ?? 0,
     role: req.user?.role ?? '',
@@ -1090,14 +1099,13 @@ const authenticateToken = (req: any, res: any, next: any) => {
     return next();
   }
 
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token: string | null = getRequestToken(req);
 
   if (!token) {
     return res.status(401).json({ error: 'Access Denied: Missing Authentication Token' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+  jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }, (err: any, user: any) => {
     if (err) {
       if (process.env.NODE_ENV !== 'production') {
         logger.error(`JWT Verify Error: ${err.message}`, { context: 'auth' });
@@ -1112,26 +1120,35 @@ const authenticateToken = (req: any, res: any, next: any) => {
 // Apply globally to the express app before routes
 app.use(authenticateToken);
 
-// Rate Limiters for write operations and sensitive endpoints
-const apiWriteRateLimiter = rateLimit({
+// Propagate the verified JWT org claim through AsyncLocalStorage so the
+// database layer can scope FORCE RLS policies per request.
+import { tenantContextMiddleware } from './src/server/tenantContext';
+app.use('/api', tenantContextMiddleware);
+
+// Rate Limiters for write operations and sensitive endpoints (distributed)
+const apiWriteRateLimiter = createDistributedRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Write rate limit exceeded. Max 50 writes per 15 minutes.' },
-  skip: (req: any) => req.path.startsWith('/api/health') || req.path.startsWith('/api/auth'),
+  maxRequests: 50,
+  keyPrefix: 'rl:write',
+  message: { ar: 'تم تجاوز حد عمليات الكتابة.', en: 'Write rate limit exceeded. Max 50 writes per 15 minutes.' },
 });
 
-const sensitiveOpsRateLimiter = rateLimit({
+const sensitiveOpsRateLimiter = createDistributedRateLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Sensitive operation rate limit exceeded. Max 5 per 15 minutes.' },
+  maxRequests: 5,
+  keyPrefix: 'rl:sensitive',
+  blockDuration: 15 * 60 * 1000,
+  message: { ar: 'تم تجاوز حد العمليات الحساسة.', en: 'Sensitive operation rate limit exceeded. Max 5 per 15 minutes.' },
 });
+
+const skipHealthAuth = (req: any) =>
+  req.path.startsWith('/api/health') || req.path.startsWith('/api/auth') ||
+  req.path.startsWith('/api/v2/health') || req.path.startsWith('/api/v2/auth') ||
+  req.path.startsWith('/health');
 
 // Apply write rate limiter to all write operations on dynamic tables
-app.use('/api/tables', (req, res, next) => {
+app.use('/api/tables', (req: any, res: any, next: any) => {
+  if (skipHealthAuth(req)) return next();
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
     return apiWriteRateLimiter(req, res, next);
   }
@@ -1202,6 +1219,23 @@ const auditLogMiddleware = (req: any, res: any, next: any) => {
 };
 app.use(auditLogMiddleware);
 
+// Server-side idempotency for retried mutations (Redis-backed, memory fallback).
+// Only active when the client sends X-Idempotency-Key — zero behavior change otherwise.
+app.use('/api', idempotencyMiddleware);
+
+// Tenant-scoped GET-cache invalidation on mutations — keeps the V2 response
+// cache coherent without nuking other tenants' entries.
+app.use('/api', (req: any, res: any, next: any) => {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+  const tenant = req.user?.org_id || req.user?.orgId || req.userContext?.organizationId || 'global';
+  try {
+    for (const k of apiCache.keys()) {
+      if (typeof k === 'string' && k.startsWith(`${tenant}:`)) apiCache.delete(k);
+    }
+  } catch { /* best-effort invalidation */ }
+  next();
+});
+
 // Modular Routes — single registration, no duplicates
 app.use('/api/finance', financeRouter);
 app.use('/api/health', healthRouter);
@@ -1261,7 +1295,17 @@ app.get('/api/health/liveness', (req, res) => {
 });
 
 // Kubernetes Readiness Probe (Is the DB connected and cache ready?)
+// Returns 503 until the awaited startup bootstrap has completed.
 app.get('/api/health/readiness', async (req, res) => {
+  if (!isBootstrapped()) {
+    const fatal = getBootstrapErrors();
+    return res.status(503).json({
+      status: 'BOOTSTRAPPING',
+      ready: false,
+      timestamp: new Date().toISOString(),
+      errors: fatal,
+    });
+  }
   try {
     const dbPool = getPool();
     const startTime = Date.now();
@@ -1381,11 +1425,18 @@ async function startServer() {
   // REDIS CONNECTION — Enable distributed cache & rate limiting
   // ─────────────────────────────────────────────────────────────────────
   try {
-    await connectRedis();
-    logger.info('[STARTUP] Redis connected — distributed cache & rate limiting active', { context: 'startup' });
+    const redisOk = await connectRedis();
+    if (redisOk) {
+      logger.info('[STARTUP] Redis connected — distributed cache & rate limiting active', { context: 'startup' });
+    } else {
+      logger.warn('[STARTUP] Redis unavailable — in-memory fallbacks active (single-instance mode)', { context: 'startup' });
+    }
   } catch (redisErr: any) {
     logger.warn(`[STARTUP] Redis unavailable (falling back to in-memory): ${redisErr.message}`, { context: 'startup' });
   }
+
+  // Error reporting (no-op unless SENTRY_DSN + @sentry/node are present)
+  void initSentry();
 
   // ─────────────────────────────────────────────────────────────────────
   // SECURITY INITIALIZATION — RASP, debugger detection, integrity checks
@@ -1402,16 +1453,53 @@ async function startServer() {
   logger.info('[STARTUP] Webhook event system initialized', { context: 'startup' });
 
   // ─────────────────────────────────────────────────────────────────────
-  // ENTERPRISE SCHEMA COMPLETION: Run on every startup (CREATE IF NOT EXISTS)
+  // DURABLE QUEUE WORKERS — embedded consumer for the Postgres job queue.
+  // WORKER_ENABLED=false disables it; WORKER_ONLY=true runs a dedicated
+  // worker container without the HTTP server (see docker-compose.yml).
+  // ─────────────────────────────────────────────────────────────────────
+  if (process.env.WORKER_ENABLED !== 'false') {
+    try {
+      const { registerWorkers } = await import('./src/server/queue/workers');
+      const { durableQueue } = await import('./src/server/queue/pgQueue');
+      registerWorkers(durableQueue);
+      durableQueue.start();
+      logger.info('[STARTUP] Durable queue workers started (Postgres SKIP LOCKED)', { context: 'startup' });
+    } catch (workerErr: any) {
+      logger.warn(`[STARTUP] Worker startup warning (non-fatal): ${workerErr.message}`, { context: 'startup' });
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // AWAITED ENTERPRISE BOOTSTRAP: schema completion + SQL migrations + seeds.
+  // The process does NOT serve traffic until this completes: readiness probes
+  // return 503 while bootstrap is pending, and a failed schema/migration is
+  // FATAL in production (half-migrated schema must never serve traffic).
   // ─────────────────────────────────────────────────────────────────────
   try {
     const dbPool = getPool();
-    await runEnterpriseSchemaCompletion(dbPool);
-    await applyEnterpriseIndexes(dbPool);
-    await applyEnterpriseViews(dbPool);
-    await seedEnterpriseUsersAndOrg(dbPool);
-  } catch (schemaErr: any) {
-    logger.error(`[STARTUP] Schema completion warning (non-fatal): ${schemaErr.message}`, { context: 'startup' });
+    await dbPool.query('SELECT 1 as ping');
+    logger.info('[STARTUP] Database connectivity verified', { context: 'startup' });
+    const boot = await bootstrapDatabase(dbPool);
+    const { markBootstrapped } = await import('./src/server/bootstrap/state');
+    markBootstrapped(boot.errors, boot.fatal);
+    if (boot.fatal) {
+      logger.error(`[STARTUP] Bootstrap FAILED: ${boot.fatal}`, { context: 'startup' });
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('[STARTUP] FATAL: refusing to serve traffic on a failed bootstrap. Fix the error and restart.', { context: 'startup' });
+        process.exit(1);
+      }
+    } else if (boot.errors.length > 0) {
+      logger.warn(`[STARTUP] Bootstrap completed with ${boot.errors.length} non-fatal warning(s)`, { context: 'startup' });
+    } else {
+      logger.info('[STARTUP] Database bootstrap completed cleanly', { context: 'startup' });
+    }
+  } catch (startupErr: any) {
+    logger.error(`[STARTUP] Database bootstrap crashed: ${startupErr.message}`, { context: 'startup' });
+    const { markBootstrapped } = await import('./src/server/bootstrap/state');
+    markBootstrapped([startupErr.message], startupErr.message);
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
 
   // Enterprise Global Error Handler (Prevents server crash on unhandled route errors)
@@ -1419,12 +1507,18 @@ async function startServer() {
     const errorId = crypto.randomBytes(4).toString('hex');
     logger.error(`[CRITICAL ERROR - ID: ${errorId}] ${new Date().toISOString()} - ${req.method} ${req.url}`, { context: 'error-handler' });
     logger.error(err.stack, { context: 'error-handler' });
+    captureError(err, { errorId, method: req.method, url: req.url });
     res.status(500).json({
       error: "Internal Server Error",
       message: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected enterprise error occurred.',
       referenceId: errorId
     });
   });
+
+  // Observability FIRST — health checks and Prometheus metrics (no auth required).
+  // Registered before static/SPA fallbacks so /health* and /metrics are never
+  // shadowed by index.html (previously unreachable in production builds).
+  healthRoutes(app);
 
   if (process.env.NODE_ENV !== "production") {
     // Development mode: Integrate Vite into Express middleware
@@ -1464,8 +1558,29 @@ async function startServer() {
     logger.info("Serving static files from dist/ in production.", { context: 'server' });
   }
 
-  // Observability — health checks and Prometheus metrics (no auth required)
-  healthRoutes(app);
+  // Dedicated worker mode — consume the durable queue without serving HTTP.
+  if (process.env.WORKER_ONLY === 'true') {
+    logger.info('[STARTUP] WORKER_ONLY mode — HTTP server disabled, running queue consumer', { context: 'startup' });
+    const shutdownWorker = async (signal: string) => {
+      logger.info(`[${signal}] Worker shutting down...`, { context: 'shutdown' });
+      try {
+        const { durableQueue } = await import('./src/server/queue/pgQueue');
+        await durableQueue.stop();
+      } catch { /* ignore */ }
+      try {
+        const { disconnectRedis } = await import('./src/server/redis');
+        await disconnectRedis();
+      } catch { /* ignore */ }
+      try {
+        const dbPool = getPool();
+        await dbPool.end();
+      } catch { /* ignore */ }
+      process.exit(0);
+    };
+    process.on('SIGTERM', () => shutdownWorker('SIGTERM'));
+    process.on('SIGINT', () => shutdownWorker('SIGINT'));
+    return;
+  }
 
   const server = app.listen(PORT, "0.0.0.0", () => {
     logger.info(`NexoraOS™ Intelligent Enterprise Operating System server listening on http://localhost:${PORT}`, { context: 'server' });
@@ -1478,6 +1593,15 @@ async function startServer() {
     // Phase 1: Stop accepting new connections (load balancer should already be draining)
     server.close(async () => {
       logger.info('HTTP Server closed. No longer accepting new connections.', { context: 'shutdown' });
+
+      // Phase 1.5: Stop durable queue worker
+      try {
+        const { durableQueue } = await import('./src/server/queue/pgQueue');
+        await durableQueue.stop();
+        logger.info('Durable queue worker stopped.', { context: 'shutdown' });
+      } catch {
+        // Worker may not have been initialized
+      }
 
       // Phase 2: Close Redis connection
       try {

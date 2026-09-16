@@ -59,6 +59,12 @@ export interface EnvironmentConfig {
   };
   ai: {
     geminiApiKey: string;
+    apiKey: string;
+    selectedModel: string;
+    modelProvider: string;
+    fallbackModel: string;
+    fallbackProvider: string;
+    modelTier: string;
     enabled: boolean;
   };
   backup: {
@@ -232,8 +238,27 @@ export function loadConfig(): EnvironmentConfig {
       maxFiles: envInt('LOG_MAX_FILES', 30),
     },
     ai: {
-      geminiApiKey: env('GEMINI_API_KEY', ''),
+      // Resolve one key from either var and mirror it so direct
+      // process.env.GEMINI_API_KEY / AI_API_KEY readers keep working.
+      geminiApiKey: (() => {
+        const key = process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '';
+        if (key) {
+          if (!process.env.GEMINI_API_KEY) process.env.GEMINI_API_KEY = key;
+          if (!process.env.AI_API_KEY) process.env.AI_API_KEY = key;
+        }
+        return key;
+      })(),
+      // Model selection - allows switching between supported providers
+      selectedModel: env('AI_MODEL', 'gemini-2.5-flash'),
+      apiKey: process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '', // Generic API key (Gemini, Anthropic, or OpenAI-compatible)
+      // Provider: auto-detected from key prefix, or explicitly set
+      modelProvider: env('AI_PROVIDER', 'google'), // google | anthropic | openai | local
+      // Fallback configuration
+      fallbackModel: env('AI_FALLBACK_MODEL', 'gemini-2.5-flash'),
+      fallbackProvider: env('AI_FALLBACK_PROVIDER', 'google'),
       enabled: envBool('AI_ENABLED', false),
+      // Model tier overrides (for compatibility with existing tier system)
+      modelTier: env('AI_MODEL_TIER', ''), // uamex-fast | uamex-deep | uamex-audit (empty = use selectedModel)
     },
     backup: {
       enabled: envBool('BACKUP_ENABLED', nodeEnv === 'production'),

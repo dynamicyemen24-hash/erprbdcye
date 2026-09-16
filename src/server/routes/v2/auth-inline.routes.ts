@@ -9,6 +9,8 @@ import logger from '../../core/logger';
 import { validateBody } from '../../middleware/validation.middleware';
 import { loginSchema, registerSchema } from '../../validators/schemas';
 import { checkPasswordStrength } from '../../core/security';
+import { setAuthCookies, getRefreshToken, getRequestToken } from '../../core/cookies';
+import { generateTotpSecret, verifyTotp, otpauthUrl } from '../../core/totp';
 
 const router = Router();
 
@@ -131,17 +133,18 @@ router.post('/login', loginRateLimiter, validateBody(loginSchema), async (req, r
       };
       const jti = crypto.randomUUID();
       const token = jwt.sign(
-        { id: localUser.id, email: localEmail, role: 'Administrator', org_id: localUser.organization_id, security_level: 5, jti, iss: 'nexoraos', aud: 'nexoraos-api' },
+        { id: localUser.id, email: localEmail, role: 'Administrator', org_id: localUser.organization_id, security_level: 5, mfa: true, jti, iss: 'nexoraos', aud: 'nexoraos-api' },
         JWT_SECRET,
         { expiresIn: ACCESS_TOKEN_EXPIRY }
       );
       const refreshToken = jwt.sign(
-        { id: localUser.id, email: localEmail, role: 'Administrator', org_id: localUser.organization_id, security_level: 5, type: 'refresh', jti: crypto.randomUUID(), iss: 'nexoraos', aud: 'nexoraos-api' },
+        { id: localUser.id, email: localEmail, role: 'Administrator', org_id: localUser.organization_id, security_level: 5, mfa: true, type: 'refresh', jti: crypto.randomUUID(), iss: 'nexoraos', aud: 'nexoraos-api' },
         JWT_REFRESH_SECRET,
         { expiresIn: REFRESH_TOKEN_EXPIRY }
       );
       clearAttempts(clientIp, localEmail);
       await logAuthEvent('LOGIN_SUCCESS', { userId: localUser.id, email: localEmail, ip: clientIp, userAgent, devMode: true });
+      setAuthCookies(res, token, refreshToken, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY);
       return res.json({
         status: 'success',
         token,
@@ -220,6 +223,8 @@ router.post('/login', loginRateLimiter, validateBody(loginSchema), async (req, r
     };
 
     const jti = crypto.randomUUID();
+    // mfa:true = step-up satisfied (this path is only reached when the
+    // account has no TOTP enrolled or the /mfa/verify step completed).
     const token = jwt.sign(
       {
         id: userSession.id,
@@ -227,6 +232,7 @@ router.post('/login', loginRateLimiter, validateBody(loginSchema), async (req, r
         role: userSession.role,
         org_id: userSession.organization_id,
         security_level: userSession.security_level,
+        mfa: true,
         jti,
         iss: 'nexoraos',
         aud: 'nexoraos-api',
@@ -242,6 +248,7 @@ router.post('/login', loginRateLimiter, validateBody(loginSchema), async (req, r
         role: userSession.role,
         org_id: userSession.organization_id,
         security_level: userSession.security_level,
+        mfa: true,
         type: 'refresh',
         jti: crypto.randomUUID(),
         iss: 'nexoraos',
@@ -259,9 +266,32 @@ router.post('/login', loginRateLimiter, validateBody(loginSchema), async (req, r
       // Non-critical — don't fail login
     }
 
+    // Server-enforced MFA: accounts with TOTP enabled must complete step-up.
+    // The totp columns are read in a guarded query so logins keep working
+    // even if the foundation migration has not been applied yet.
+    try {
+      const mfaRes = await queryWithRetry(`SELECT totp_enabled FROM users WHERE id = $1`, [user.id], 1);
+      if (mfaRes.rows[0]?.totp_enabled) {
+        const mfaToken = jwt.sign(
+          { id: user.id, type: 'mfa', jti: crypto.randomUUID(), iss: 'nexoraos', aud: 'nexoraos-api' },
+          JWT_SECRET,
+          { expiresIn: '5m' }
+        );
+        await logAuthEvent('LOGIN_MFA_REQUIRED', { userId: user.id, email: localEmail, ip: clientIp, userAgent });
+        return res.json({
+          status: 'mfa_required',
+          mfaToken,
+          message: 'رمز التحقق بخطوتين مطلوب — أدخل رمز تطبيق المصادقة',
+        });
+      }
+    } catch {
+      // MFA check is best-effort; a missing column must not block login
+    }
+
     clearAttempts(clientIp, localEmail);
     await logAuthEvent('LOGIN_SUCCESS', { userId: userSession.id, email: userSession.email, ip: clientIp, userAgent });
 
+    setAuthCookies(res, token, refreshToken, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY);
     res.json({
       status: 'success',
       token,
@@ -275,8 +305,9 @@ router.post('/login', loginRateLimiter, validateBody(loginSchema), async (req, r
 });
 
 // POST /api/auth/refresh — Exchange refresh token for new access token (with rotation)
+// Accepts the refresh token from JSON body (legacy) or the nx_rt HttpOnly cookie.
 router.post('/refresh', (req, res) => {
-  const { refreshToken } = req.body;
+  const refreshToken = getRefreshToken(req);
   if (!refreshToken) {
     return res.status(400).json({ error: 'Refresh token is required' });
   }
@@ -304,6 +335,22 @@ router.post('/refresh', (req, res) => {
         return res.status(403).json({ error: 'Account is no longer active' });
       }
 
+      // Step-up enforcement: a refresh token minted before MFA enrollment
+      // cannot be used to bypass it.
+      const mfaSatisfied = decoded.mfa === true;
+      try {
+        const mfaRes = await dbPool.query('SELECT totp_enabled FROM users WHERE id = $1', [u.id]);
+        if (mfaRes.rows[0]?.totp_enabled && !mfaSatisfied) {
+          return res.status(403).json({
+            error: 'MFA verification required',
+            code: 'MFA_REQUIRED',
+            message: 'رمز التحقق بخطوتين مطلوب',
+          });
+        }
+      } catch {
+        // Missing totp columns (pre-migration DB) — proceed without step-up
+      }
+
       // Rotate: issue new access + refresh token pair; old refresh token is effectively replaced
       const newToken = jwt.sign(
         {
@@ -311,7 +358,8 @@ router.post('/refresh', (req, res) => {
           email: u.email,
           role: u.department_code || 'Administrator',
           org_id: u.organization_id || decoded.org_id,
-          security_level: u.security_level || decoded.security_level
+          security_level: u.security_level || decoded.security_level,
+          mfa: mfaSatisfied,
         },
         JWT_SECRET,
         { expiresIn: ACCESS_TOKEN_EXPIRY }
@@ -324,12 +372,14 @@ router.post('/refresh', (req, res) => {
           role: u.department_code || 'Administrator',
           org_id: u.organization_id || decoded.org_id,
           security_level: u.security_level || decoded.security_level,
+          mfa: mfaSatisfied,
           type: 'refresh'
         },
         JWT_REFRESH_SECRET,
         { expiresIn: REFRESH_TOKEN_EXPIRY }
       );
 
+      setAuthCookies(res, newToken, newRefreshToken, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY);
       res.json({ status: 'success', token: newToken, refreshToken: newRefreshToken });
     } catch (dbErr: any) {
       logger.error('[REFRESH] DB lookup failed', { context: 'auth', error: dbErr });
@@ -403,11 +453,12 @@ router.post('/register', authRateLimiter, validateBody(registerSchema), async (r
     `, [userId, admin_email, hashedPassword, admin_name || org_name_ar, admin_name || org_name_ar, phone]);
 
     const token = jwt.sign(
-      { id: userId, email: admin_email, role: 'Administrator', org_id: orgId, jti: crypto.randomUUID(), iss: 'nexoraos', aud: 'nexoraos-api' },
+      { id: userId, email: admin_email, role: 'Administrator', org_id: orgId, mfa: true, jti: crypto.randomUUID(), iss: 'nexoraos', aud: 'nexoraos-api' },
       JWT_SECRET,
       { expiresIn: ACCESS_TOKEN_EXPIRY }
     );
 
+    setAuthCookies(res, token, undefined, ACCESS_TOKEN_EXPIRY);
     res.json({
       status: 'success',
       message: 'تم تسجيل المشترك وتأسيس المنظمة بنجاح',
@@ -510,6 +561,203 @@ router.post('/change-password', async (req: any, res) => {
   } catch (err: any) {
     logger.error('[CHANGE-PASSWORD] Error', { context: 'auth', error: err });
     res.status(500).json({ error: 'Failed to change password' });
+  }
+});
+
+// ─── Server-Enforced MFA / TOTP ───────────────────────────────
+// Secrets live in users.totp_secret (DB), never in localStorage.
+// Flow: setup → enable (proves possession) → login returns mfa_required → verify.
+
+function requireAuthUser(req: any, res: any): any | null {
+  const token = getRequestToken(req);
+  if (!token) {
+    res.status(401).json({ error: 'Authentication required' });
+    return null;
+  }
+  try {
+    return jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as any;
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+    return null;
+  }
+}
+
+// GET /api/auth/mfa/status — whether the authenticated user enforces TOTP
+router.get('/mfa/status', async (req: any, res) => {
+  const decoded = requireAuthUser(req, res);
+  if (!decoded) return;
+  try {
+    const dbPool = getPool();
+    const userRes = await dbPool.query(
+      'SELECT totp_enabled, totp_verified_at FROM users WHERE id = $1',
+      [decoded.id]
+    );
+    const row = userRes.rows[0];
+    res.json({
+      status: 'success',
+      enabled: !!row?.totp_enabled,
+      verifiedAt: row?.totp_verified_at || null,
+    });
+  } catch (err: any) {
+    logger.error('[MFA STATUS] Error', { context: 'auth', error: err });
+    res.status(500).json({ error: 'Failed to read MFA status' });
+  }
+});
+
+// POST /api/auth/mfa/setup — generate a TOTP secret for the authenticated user
+router.post('/mfa/setup', async (req: any, res) => {
+  const decoded = requireAuthUser(req, res);
+  if (!decoded) return;
+  try {
+    const secret = generateTotpSecret();
+    const dbPool = getPool();
+    await dbPool.query(
+      'UPDATE users SET totp_secret = $1, totp_enabled = FALSE, updated_at = NOW() WHERE id = $2',
+      [secret, decoded.id]
+    );
+    const userRes = await dbPool.query('SELECT email FROM users WHERE id = $1', [decoded.id]);
+    const label = userRes.rows[0]?.email || decoded.email || decoded.id;
+    res.json({ status: 'success', secret, otpauth_url: otpauthUrl(secret, label) });
+  } catch (err: any) {
+    logger.error('[MFA SETUP] Error', { context: 'auth', error: err });
+    res.status(500).json({ error: 'Failed to initialize MFA' });
+  }
+});
+
+// POST /api/auth/mfa/enable — prove possession of the code, then enforce MFA
+router.post('/mfa/enable', async (req: any, res) => {
+  const decoded = requireAuthUser(req, res);
+  if (!decoded) return;
+  const { code } = req.body || {};
+  if (!code) return res.status(400).json({ error: 'TOTP code is required' });
+  try {
+    const dbPool = getPool();
+    const userRes = await dbPool.query('SELECT totp_secret FROM users WHERE id = $1', [decoded.id]);
+    const secret = userRes.rows[0]?.totp_secret;
+    if (!secret) return res.status(400).json({ error: 'Run /mfa/setup first' });
+    if (!verifyTotp(secret, String(code))) {
+      await logAuthEvent('MFA_ENABLE_FAILED', { userId: decoded.id, ip: req.ip });
+      return res.status(401).json({ error: 'Invalid authenticator code' });
+    }
+    await dbPool.query(
+      'UPDATE users SET totp_enabled = TRUE, totp_verified_at = NOW(), updated_at = NOW() WHERE id = $1',
+      [decoded.id]
+    );
+    await logAuthEvent('MFA_ENABLED', { userId: decoded.id, ip: req.ip });
+    res.json({ status: 'success', message: 'تم تفعيل التحقق بخطوتين بنجاح' });
+  } catch (err: any) {
+    logger.error('[MFA ENABLE] Error', { context: 'auth', error: err });
+    res.status(500).json({ error: 'Failed to enable MFA' });
+  }
+});
+
+// POST /api/auth/mfa/disable — password-confirmed removal
+router.post('/mfa/disable', async (req: any, res) => {
+  const decoded = requireAuthUser(req, res);
+  if (!decoded) return;
+  const { password } = req.body || {};
+  if (!password) return res.status(400).json({ error: 'Password confirmation is required' });
+  try {
+    const dbPool = getPool();
+    const userRes = await dbPool.query('SELECT password_hash FROM users WHERE id = $1', [decoded.id]);
+    const user = userRes.rows[0];
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      return res.status(401).json({ error: 'Password is incorrect' });
+    }
+    await dbPool.query(
+      'UPDATE users SET totp_secret = NULL, totp_enabled = FALSE, updated_at = NOW() WHERE id = $1',
+      [decoded.id]
+    );
+    try {
+      const { revokeAllUserTokens } = await import('../../core/tokenRevocation');
+      revokeAllUserTokens(decoded.id, 'mfa_disabled');
+    } catch { /* non-critical */ }
+    await logAuthEvent('MFA_DISABLED', { userId: decoded.id, ip: req.ip });
+    res.json({ status: 'success', message: 'تم تعطيل التحقق بخطوتين — يرجى إعادة تسجيل الدخول' });
+  } catch (err: any) {
+    logger.error('[MFA DISABLE] Error', { context: 'auth', error: err });
+    res.status(500).json({ error: 'Failed to disable MFA' });
+  }
+});
+
+// POST /api/auth/mfa/verify — complete step-up with the short-lived mfaToken
+router.post('/mfa/verify', async (req, res) => {
+  const { mfaToken, code } = req.body || {};
+  if (!mfaToken || !code) {
+    return res.status(400).json({ error: 'mfaToken and code are required' });
+  }
+  let pending: any;
+  try {
+    pending = jwt.verify(mfaToken, JWT_SECRET, { algorithms: ['HS256'] }) as any;
+    if (pending.type !== 'mfa') throw new Error('not an mfa token');
+  } catch {
+    return res.status(403).json({ error: 'Invalid or expired MFA session. Please sign in again.' });
+  }
+  try {
+    const dbPool = getPool();
+    const userRes = await dbPool.query(
+      `SELECT u.id, u.email, u.name_ar, u.name, u.department_code, u.position_code, u.security_level,
+              u.can_approve, u.max_approval_amount, u.branch_code, u.organization_id, u.status,
+              u.totp_secret, u.totp_enabled
+       FROM users u WHERE u.id = $1 AND u.deleted_at IS NULL`,
+      [pending.id]
+    );
+    const user = userRes.rows[0];
+    if (!user || user.status !== 'active' || !user.totp_enabled || !user.totp_secret) {
+      return res.status(403).json({ error: 'MFA is not active for this account' });
+    }
+    if (!verifyTotp(user.totp_secret, String(code))) {
+      await logAuthEvent('MFA_VERIFY_FAILED', { userId: user.id, ip: req.ip });
+      return res.status(401).json({ error: 'Invalid authenticator code' });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id, email: user.email,
+        role: user.department_code || 'Administrator',
+        org_id: user.organization_id,
+        security_level: user.security_level || 3,
+        mfa: true,
+        jti: crypto.randomUUID(), iss: 'nexoraos', aud: 'nexoraos-api',
+      },
+      JWT_SECRET,
+      { expiresIn: ACCESS_TOKEN_EXPIRY }
+    );
+    const refreshToken = jwt.sign(
+      {
+        id: user.id, email: user.email,
+        role: user.department_code || 'Administrator',
+        org_id: user.organization_id,
+        security_level: user.security_level || 3,
+        mfa: true,
+        type: 'refresh',
+        jti: crypto.randomUUID(), iss: 'nexoraos', aud: 'nexoraos-api',
+      },
+      JWT_REFRESH_SECRET,
+      { expiresIn: REFRESH_TOKEN_EXPIRY }
+    );
+
+    try {
+      await dbPool.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
+    } catch { /* non-critical */ }
+    await logAuthEvent('LOGIN_SUCCESS', { userId: user.id, email: user.email, ip: req.ip, mfa: true });
+
+    setAuthCookies(res, token, refreshToken, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY);
+    res.json({
+      status: 'success',
+      token,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name_ar || user.name || user.email,
+        role: user.department_code || 'Administrator',
+        organization_id: user.organization_id,
+      },
+    });
+  } catch (err: any) {
+    logger.error('[MFA VERIFY] Error', { context: 'auth', error: err });
+    res.status(500).json({ error: 'MFA verification failed' });
   }
 });
 

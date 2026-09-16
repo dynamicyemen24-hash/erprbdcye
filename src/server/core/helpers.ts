@@ -10,6 +10,17 @@ import { PaginationParams, PaginatedResult, ApiResponse, AuthContext, AuditLogEn
 import logger from './logger';
 export type { AuthContext } from './types';
 
+// ─── Safe JSON Parse ──────────────────────────────────────
+/** Safely parses a JSON string; returns fallback on any error. */
+export function safeParseJSON<T>(value: unknown, fallback: T): T {
+  if (typeof value !== 'string') return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 // ─── Pagination Builder ────────────────────────────────
 
 export function parsePagination(params: PaginationParams): { offset: number; limit: number; page: number } {
@@ -170,11 +181,22 @@ export function generateTxNumber(type: string): string {
 }
 
 // ─── Tenant ID Extractor ───────────────────────────────
-
+// SECURITY: the verified JWT claim ALWAYS wins. Previously the
+// x-organization-id header took precedence, letting any valid JWT for Org-A
+// read/write Org-B by spoofing the header. A conflicting header now throws.
 export function extractTenantId(req: any): string {
-  const orgId = req.headers['x-organization-id'] || req.user?.org_id || req.user?.organization_id;
-  if (!orgId) {
+  const claim =
+    req.user?.org_id || req.user?.orgId || req.user?.organizationId ||
+    req.userContext?.organizationId;
+  const header = req.headers['x-organization-id'];
+  if (claim) {
+    if (header && header !== claim) {
+      throw new Error('Tenant mismatch: x-organization-id header conflicts with the authenticated organization.');
+    }
+    return claim;
+  }
+  if (!header) {
     throw new Error('Tenant ID (organization ID) is required. Provide it via x-organization-id header or authenticate with a valid JWT.');
   }
-  return orgId;
+  return header;
 }

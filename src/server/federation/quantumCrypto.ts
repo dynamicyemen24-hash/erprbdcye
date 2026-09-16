@@ -6,6 +6,7 @@
 import { createHash, randomBytes, createHmac, createCipheriv, createDecipheriv, randomUUID } from 'crypto';
 import { query, transaction } from '../core/database.js';
 import { logger } from '../core/logger.js';
+import { safeParseJSON } from '../core/helpers.js';
 import {
   PQCAlgorithm, PQCKeyPair, QuantumSafeEnvelope, ZeroTrustSession,
   SecurityEvent, ZeroTrustPolicy, PQCAlgorithm as PQCT
@@ -542,10 +543,10 @@ export class QuantumCryptoEngine {
         tenantId: session.tenant_id,
         deviceFingerprint: session.device_fingerprint,
         ipAddress: session.ip_address,
-        geoLocation: typeof session.geo_location === 'string' ? JSON.parse(session.geo_location) : session.geo_location,
+        geoLocation: safeParseJSON(session.geo_location, session.geo_location),
         riskScore,
         trustLevel,
-        policiesApplied: typeof session.policies_applied === 'string' ? JSON.parse(session.policies_applied) : session.policies_applied,
+        policiesApplied: safeParseJSON(session.policies_applied, session.policies_applied),
         mfaVerified,
         deviceCompliant,
         networkCompliant,
@@ -656,12 +657,10 @@ export class QuantumCryptoEngine {
       eventType: row.event_type,
       severity: row.severity,
       riskScore: row.risk_score,
-      details: typeof row.details === 'string' ? JSON.parse(row.details) : row.details,
+      details: safeParseJSON(row.details, row.details),
       ipAddress: row.ip_address,
       userAgent: row.user_agent,
-      geoLocation: row.geo_location ? (
-        typeof row.geo_location === 'string' ? JSON.parse(row.geo_location) : row.geo_location
-      ) : undefined,
+      geoLocation: safeParseJSON(row.geo_location, row.geo_location),
       mitigated: row.mitigated,
       detectedAt: row.detected_at
     }));

@@ -5,6 +5,8 @@ import { EmptyState } from '../../design-system/components/EmptyState';
 import { ErrorState } from '../../design-system/components/ErrorState';
 import { Spinner } from '../../design-system/components/Spinner';
 import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
+import { Pagination } from '../../design-system/components/Pagination';
+import { useDebouncedValue } from '../../design-system/hooks/useDebouncedValue';
 import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import { 
   Users, 
@@ -67,16 +69,25 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
   // Master HR Data State
   const [staffList, setStaffList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  // Debounced roster search — table re-filters 300ms after typing stops
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
+  // Roster pagination (10 rows/page)
+  const [staffPage, setStaffPage] = useState(1);
+  const STAFF_PAGE_SIZE = 10;
 
   // Fetch HR Master Data from Neon PostgreSQL API
   const fetchHRData = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const staffRes = await fetch('/api/tables/hr_staff');
-      const staffData = staffRes.ok ? await staffRes.json() : [];
-      setStaffList(staffData);
-    } catch (e) {
-      console.error('Failed to fetch HR master data:', e);
+      if (!staffRes.ok) throw new Error(isRtl ? 'تعذر تحميل بيانات الكادر' : 'Failed to load workforce data');
+      const staffData = await staffRes.json();
+      setStaffList(Array.isArray(staffData) ? staffData : []);
+      setStaffPage(1);
+    } catch (e: any) {
+      setFetchError(e?.message || (isRtl ? 'فشل تحميل بيانات الموارد البشرية' : 'Failed to fetch HR master data'));
     } finally {
       setLoading(false);
     }
@@ -84,15 +95,24 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
 
   useEffect(() => {
     fetchHRData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Filtered staff list with workforce category filter
   const filteredStaff = staffList.filter(staff => {
-    const nameMatch = (staff.full_name_ar || staff.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const nameMatch = (staff.full_name_ar || staff.name || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase());
     const deptMatch = departmentFilter === 'all' || staff.department_code === departmentFilter;
     const catMatch = workforceCategory === 'all' || staff.employment_type === workforceCategory;
     return nameMatch && deptMatch && catMatch;
   });
+
+  // Paged slice (clamps when filters shrink the list)
+  const staffTotalPages = Math.max(1, Math.ceil(filteredStaff.length / STAFF_PAGE_SIZE));
+  const safeStaffPage = Math.min(staffPage, staffTotalPages);
+  const pagedStaff = filteredStaff.slice(
+    (safeStaffPage - 1) * STAFF_PAGE_SIZE,
+    safeStaffPage * STAFF_PAGE_SIZE
+  );
 
   return (
     <ModuleShell
@@ -246,6 +266,19 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
         })}
       </div>
 
+      {fetchError && (
+        <div className="bg-white dark:bg-zinc-900 border border-rose-200 dark:border-rose-900/50 rounded-2xl overflow-hidden">
+          <ErrorState
+            titleAr="تعذر تحميل بيانات الموارد البشرية"
+            title="Failed to load HR data"
+            messageAr={fetchError}
+            message={fetchError}
+            onRetry={fetchHRData}
+            lang={lang}
+          />
+        </div>
+      )}
+
       {/* TAB CONTENTS (MODULARIZED REFACTORED WORKSPACE) */}
       <div className="space-y-6">
 
@@ -340,16 +373,32 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
 
         {/* TAB 3: EMPLOYEE 360 MASTER RECORD */}
         {activeTab === 'employee_360' && (
-          <HREmployee360View
-            lang={lang}
-            filteredStaff={filteredStaff}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            onOpenDocModal={(staff) => {
-              setSelectedStaffForDoc(staff);
-              setShowDocModal(true);
-            }}
-          />
+          <>
+            <HREmployee360View
+              lang={lang}
+              filteredStaff={pagedStaff}
+              searchTerm={searchTerm}
+              setSearchTerm={(term) => { setSearchTerm(term); setStaffPage(1); }}
+              loading={loading}
+              onClearSearch={() => { setSearchTerm(''); setDepartmentFilter('all'); setWorkforceCategory('all'); }}
+              onOpenDocModal={(staff) => {
+                setSelectedStaffForDoc(staff);
+                setShowDocModal(true);
+              }}
+            />
+            {staffTotalPages > 1 && (
+              <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl px-4 py-3">
+                <Pagination
+                  currentPage={safeStaffPage}
+                  totalPages={staffTotalPages}
+                  totalItems={filteredStaff.length}
+                  pageSize={STAFF_PAGE_SIZE}
+                  onPageChange={setStaffPage}
+                  lang={lang}
+                />
+              </div>
+            )}
+          </>
         )}
 
         {/* TAB 4: ATTENDANCE, SHIFTS & LEAVE MANAGEMENT */}

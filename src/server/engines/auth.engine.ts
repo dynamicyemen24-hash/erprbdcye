@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken';
 import { serverConfig } from '../config/index';
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { AuthContext, ApiResponse } from '../core/types';
+import { hasPermission, Permission } from '../core/authorization.core';
 import logger from '../core/logger';
 
 // ─── Types ─────────────────────────────────────────────
@@ -249,7 +250,7 @@ export class AuthEngine {
    */
   static async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string; expiresIn: string }> {
     try {
-      const decoded = jwt.verify(refreshToken, serverConfig.jwtRefreshSecret) as { id: string };
+      const decoded = jwt.verify(refreshToken, serverConfig.jwtRefreshSecret, { algorithms: ['HS256'] }) as { id: string };
 
       // Verify user still exists and is active
       const user = await queryOne<{ id: string; status: string; email: string }>(
@@ -321,7 +322,7 @@ export class AuthEngine {
    * Verify and decode token
    */
   static verifyToken(token: string): TokenPayload {
-    return jwt.verify(token, serverConfig.jwtSecret) as TokenPayload;
+    return jwt.verify(token, serverConfig.jwtSecret, { algorithms: ['HS256'] }) as TokenPayload;
   }
 
   /**
@@ -350,11 +351,292 @@ export class AuthEngine {
       throw new Error('New password must be at least 8 characters');
     }
 
+    // Password policy: must contain upper, lower, number, special char
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      throw new Error('Password must contain uppercase, lowercase, number, and special character (!@#$%^&*)');
+    }
+
     const hash = await bcrypt.hash(newPassword, serverConfig.bcryptRounds);
     await query(
       'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
       [hash, userId]
     );
+  }
+
+  /**
+   * Get complete user profile with organization membership
+   */
+  static async getUserProfile(userId: string): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    nameAr: string;
+    email_verified: boolean;
+    security_level: number;
+    role: string;
+    org_id: string;
+    department_code: string | null;
+    position_code: string | null;
+    can_approve: boolean | null;
+    max_approval_amount: string | null;
+    last_login: string | null;
+    login_failures: number;
+    account_status: string;
+    membership: {
+      organization_id: string;
+      role_code: string;
+      is_default: boolean;
+    } | null;
+    permissions: Permission[];
+  }> {
+    // Get basic user data
+    const user = await queryOne<{
+      id: string; email: string; name: string; name_ar: string;
+      security_level: number; default_language: string; status: string;
+      department_code: string | null; position_code: string | null;
+      can_approve: boolean | null; max_approval_amount: string | null;
+      last_login: string | null; login_failures: number;
+    }>(
+      `SELECT id, email, name, name_ar, security_level, default_language, status,
+          department_code, position_code, can_approve, max_approval_amount,
+          last_login, login_failures
+       FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      [userId]
+    );
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Get organization membership
+    const membership = await queryOne<{ organization_id: string; role_code: string; is_default: boolean }>(
+      `SELECT organization_id, role_code, is_default FROM user_org_memberships WHERE user_id = $1 AND status = 'active' ORDER BY is_default DESC LIMIT 1`,
+      [userId]
+    );
+
+    // Get effective permissions for this user's role
+    // (role is carried in department_code, matching the JWT role claim)
+    const permissions: Permission[] = [];
+    const role = user.department_code || 'READONLY';
+    Object.values(Permission).forEach(p => {
+      if (hasPermission(role, p)) {
+        permissions.push(p);
+      }
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name || '',
+      nameAr: user.name_ar || '',
+      email_verified: user.default_language !== null, // simplified verification
+      security_level: user.security_level || 1,
+      role,
+      org_id: membership?.organization_id || '',
+      department_code: user.department_code,
+      position_code: user.position_code,
+      can_approve: user.can_approve,
+      max_approval_amount: user.max_approval_amount,
+      last_login: user.last_login,
+      login_failures: user.login_failures || 0,
+      account_status: user.status || 'active',
+      membership: membership || null,
+      permissions,
+    };
+  }
+
+  /**
+   * Update user profile fields
+   */
+  static async updateProfile(
+    userId: string,
+    data: {
+      name?: string;
+      nameAr?: string;
+      department_code?: string;
+      position_code?: string;
+      can_approve?: boolean;
+      max_approval_amount?: string;
+    }
+  ): Promise<{ success: boolean; message: string }> {
+    // Build dynamic update query
+    const updates: string[] = [];
+    const values: any[] = [userId];
+    let paramCount = 1;
+
+    if (data.name !== undefined) {
+      updates.push(`name = $${++paramCount}`);
+      values.push(data.name);
+    }
+    if (data.nameAr !== undefined) {
+      updates.push(`name_ar = $${++paramCount}`);
+      values.push(data.nameAr);
+    }
+    if (data.department_code !== undefined) {
+      updates.push(`department_code = $${++paramCount}`);
+      values.push(data.department_code);
+    }
+    if (data.position_code !== undefined) {
+      updates.push(`position_code = $${++paramCount}`);
+      values.push(data.position_code);
+    }
+    if (data.can_approve !== undefined) {
+      updates.push(`can_approve = $${++paramCount}`);
+      values.push(data.can_approve);
+    }
+    if (data.max_approval_amount !== undefined) {
+      updates.push(`max_approval_amount = $${++paramCount}`);
+      values.push(data.max_approval_amount);
+    }
+
+    if (updates.length === 0) {
+      return { success: false, message: 'No fields to update' };
+    }
+
+    updates.push(`updated_at = NOW()`);
+    const queryStr = `
+      UPDATE users 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount + 1}
+      RETURNING id, email, name, name_ar, security_level, status
+    `;
+
+    const result = await query(queryStr, values);
+    return {
+      success: result.rows.length > 0,
+      message: result.rows.length > 0 ? 'Profile updated successfully' : 'User not found'
+    };
+  }
+
+  /**
+   * Update user security level and role
+   * Only SUPER_ADMIN (level 5) or ORG_ADMIN (level 4) can change security levels
+   */
+  static async updateSecurityLevel(
+    targetUserId: string,
+    newSecurityLevel: number,
+    performingUserId: string
+  ): Promise<{ success: boolean; message: string; userSecurityLevel: number }> {
+    // Check performing user has permission
+    const performingUser = await queryOne<{ security_level: number }>(
+      'SELECT security_level FROM users WHERE id = $1 AND deleted_at IS NULL',
+      [performingUserId]
+    );
+
+    if (!performingUser) {
+      return { success: false, message: 'Performing user not found', userSecurityLevel: 0 };
+    }
+
+    const performingLevel = performingUser.security_level;
+
+    // Only SUPER_ADMIN (5) can change any level, ORG_ADMIN (4) can downgrade but not upgrade beyond their level
+    let canModify = false;
+    if (performingLevel === 5) {
+      canModify = true;
+    } else if (performingLevel === 4 && newSecurityLevel <= 4) {
+      canModify = true;
+    }
+
+    if (!canModify) {
+      return {
+        success: false,
+        message: `Insufficient permissions. Performing user level: ${performingLevel}, target level: ${newSecurityLevel}`,
+        userSecurityLevel: performingLevel
+      };
+    }
+
+    // Validate security level
+    if (newSecurityLevel < 1 || newSecurityLevel > 5) {
+      return { success: false, message: 'Security level must be between 1 and 5', userSecurityLevel: performingLevel };
+    }
+
+    await query(
+      'UPDATE users SET security_level = $1, updated_at = NOW() WHERE id = $2',
+      [newSecurityLevel, targetUserId]
+    );
+
+    return {
+      success: true,
+      message: 'Security level updated successfully',
+      userSecurityLevel: newSecurityLevel
+    };
+  }
+
+  /**
+   * Record login attempt (success or failure) for anomaly detection.
+   * Public: called by auth routes for login/logout/password-change auditing.
+   */
+  static async recordLoginAttempt(
+    userId: string,
+    success: boolean,
+    ip?: string,
+    userAgent?: string
+  ): Promise<void> {
+    const now = new Date().toISOString();
+
+    if (success) {
+      // Update last_login on success
+      await query(
+        'UPDATE users SET last_login = $1, login_failures = 0 WHERE id = $2',
+        [now, userId]
+      ).catch(() => {/* ignore - last_login is optional */ });
+      // Log successful login to audit
+      await query(
+        `INSERT INTO audit_logs (user_id, action, table_name, details)
+         VALUES ($1, 'LOGIN_SUCCESS', 'users', $2)`,
+        [userId, JSON.stringify({ ip, timestamp: now, userAgent })]
+      ).catch(() => {/* ignore audit logging failures */ });
+      return;
+    }
+
+    // Login failure - increment failure counter
+    await query(
+      `UPDATE users SET login_failures = login_failures + 1, last_login = NULL WHERE id = $1`,
+      [userId]
+    ).catch(() => {/* ignore */ });
+
+    // Log failed login to audit
+    await query(
+      `INSERT INTO audit_logs (user_id, action, table_name, details)
+       VALUES ($1, 'LOGIN_FAILED', 'users', $2)`,
+      [userId, JSON.stringify({ ip, timestamp: now, userAgent, failure_count: 1 })]
+    ).catch(() => {/* ignore audit logging failures */ });
+
+    // Anomaly detection: more than 3 failures in 1 hour
+    const failures = await queryOne<{ failure_count: number }>(
+      `SELECT login_failures FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      [userId]
+    );
+
+    if (failures && failures.failure_count && failures.failure_count >= 3) {
+      // Log security anomaly
+      await query(
+        `INSERT INTO audit_logs (user_id, action, table_name, details, severity)
+         VALUES ($1, 'SECURITY_ANOMALY', 'users', $2, 'warning')`,
+        [userId, JSON.stringify({ type: 'multiple_login_failures', failure_count: failures.failure_count, threshold: 3 })]
+      ).catch(() => {/* ignore */ });
+    }
+  }
+
+  /**
+   * Reset user password by admin (for locked accounts)
+   */
+  static async adminResetPassword(userId: string, newPassword: string, performedBy?: string): Promise<{ success: boolean; message: string }> {
+    const passwordHash = await bcrypt.hash(newPassword, serverConfig.bcryptRounds);
+    await query(
+      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+      [passwordHash, userId]
+    );
+
+    // Log the admin password reset
+    await query(
+      `INSERT INTO audit_logs (user_id, action, table_name, details, performed_by)
+       VALUES ($1, 'ADMIN_PASSWORD_RESET', 'users', '{}', $2)`,
+      [userId, performedBy || userId]
+    ).catch(() => {/* ignore */ });
+
+    return { success: true, message: 'Password reset successfully by administrator' };
   }
 
   /**

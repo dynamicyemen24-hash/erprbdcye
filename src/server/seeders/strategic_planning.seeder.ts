@@ -103,7 +103,10 @@ export async function ensureStrategicPlanningSchema(pool: pg.Pool): Promise<void
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );
 
-    DO $$
+    -- NOTE: outer block uses $outer$ tags because the inner function body
+    -- needs its own $$ quoting; identical $$ tags would terminate the outer
+    -- string early (this previously failed with a syntax error at DECLARE).
+    DO $outer$
     BEGIN
       IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_strategic_goals_progress_update') THEN
         CREATE OR REPLACE FUNCTION fn_recalculate_strategic_plan_progress()
@@ -136,7 +139,7 @@ export async function ensureStrategicPlanningSchema(pool: pg.Pool): Promise<void
         AFTER INSERT OR UPDATE OR DELETE ON strategic_goals
         FOR EACH ROW EXECUTE FUNCTION fn_recalculate_strategic_plan_progress();
       END IF;
-    END $$;
+    END $outer$;
   `);
 }
 

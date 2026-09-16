@@ -20,11 +20,31 @@ interface RedisClientConfig {
   lazyConnect: boolean;
 }
 
+function parseRedisUrl(url: string): { host: string; port: number; password?: string; db: number; tls: boolean } | null {
+  try {
+    const parsed = new URL(url);
+    if (!['redis:', 'rediss:'].includes(parsed.protocol)) return null;
+    const dbFromPath = parsed.pathname.replace('/', '');
+    return {
+      host: parsed.hostname || 'localhost',
+      port: parseInt(parsed.port || '6379', 10),
+      password: parsed.password ? decodeURIComponent(parsed.password) : undefined,
+      db: dbFromPath ? parseInt(dbFromPath, 10) || 0 : 0,
+      tls: parsed.protocol === 'rediss:',
+    };
+  } catch {
+    return null;
+  }
+}
+
 function buildConfig(): RedisClientConfig {
-  const host = process.env.REDIS_HOST || 'localhost';
-  const port = parseInt(process.env.REDIS_PORT || '6379', 10);
-  const password = process.env.REDIS_PASSWORD || undefined;
-  const db = parseInt(process.env.REDIS_DB || '0', 10);
+  // REDIS_URL takes precedence (docker-compose / Render / Upstash format).
+  // Falls back to split REDIS_HOST / REDIS_PORT / REDIS_PASSWORD / REDIS_DB vars.
+  const fromUrl = process.env.REDIS_URL ? parseRedisUrl(process.env.REDIS_URL) : null;
+  const host = fromUrl?.host || process.env.REDIS_HOST || 'localhost';
+  const port = fromUrl?.port || parseInt(process.env.REDIS_PORT || '6379', 10);
+  const password = fromUrl?.password || process.env.REDIS_PASSWORD || undefined;
+  const db = fromUrl?.db ?? parseInt(process.env.REDIS_DB || '0', 10);
 
   return {
     host,
@@ -53,6 +73,7 @@ let connecting = false;
 
 function createRedisInstance(config?: Partial<RedisClientConfig>): Redis {
   const fullConfig = { ...buildConfig(), ...config };
+  const useTls = !!process.env.REDIS_URL && process.env.REDIS_URL.startsWith('rediss://');
   const opts: any = {
     host: fullConfig.host,
     port: fullConfig.port,
@@ -64,6 +85,7 @@ function createRedisInstance(config?: Partial<RedisClientConfig>): Redis {
     lazyConnect: fullConfig.lazyConnect,
   };
   if (fullConfig.password) opts.password = fullConfig.password;
+  if (useTls) opts.tls = {};
   return new Redis(opts);
 }
 

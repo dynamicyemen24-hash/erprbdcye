@@ -17,10 +17,14 @@ interface BackupConfig {
   retentionDays: number;
   compressionEnabled: boolean;
   pgDumpPath: string;
+  connectionString?: string;
   dbHost: string;
   dbPort: number;
   dbName: string;
   dbUser: string;
+  dbPassword: string;
+  s3Bucket?: string;
+  s3Prefix: string;
 }
 
 interface BackupManifest {
@@ -39,17 +43,49 @@ class BackupService {
   private manifests: BackupManifest[] = [];
 
   constructor() {
+    // Prefer DATABASE_URL (Neon / Render) over split DB_* vars. pg_dump/psql
+    // both accept a connection string via --dbname, so pooled URLs work.
+    const url = process.env.DATABASE_URL || '';
+    let fromUrl = { host: '', port: 0, name: '', user: '', password: '' };
+    if (url) {
+      try {
+        const parsed = new URL(url);
+        fromUrl = {
+          host: parsed.hostname,
+          port: parseInt(parsed.port || '5432', 10),
+          name: decodeURIComponent(parsed.pathname.replace('/', '')),
+          user: decodeURIComponent(parsed.username),
+          password: decodeURIComponent(parsed.password),
+        };
+      } catch { /* fall back to split vars */ }
+    }
     this.config = {
       backupDir: process.env.BACKUP_DIR || path.join(process.cwd(), 'backups'),
       retentionDays: parseInt(process.env.BACKUP_RETENTION_DAYS || '30'),
       compressionEnabled: process.env.BACKUP_COMPRESSION !== 'false',
       pgDumpPath: process.env.PG_DUMP_PATH || 'pg_dump',
-      dbHost: process.env.DB_HOST || 'localhost',
-      dbPort: parseInt(process.env.DB_PORT || '5432'),
-      dbName: process.env.DB_NAME || 'nexora',
-      dbUser: process.env.DB_USER || 'nexora',
+      connectionString: url || undefined,
+      dbHost: fromUrl.host || process.env.DB_HOST || 'localhost',
+      dbPort: fromUrl.port || parseInt(process.env.DB_PORT || '5432'),
+      dbName: fromUrl.name || process.env.DB_NAME || 'nexora',
+      dbUser: fromUrl.user || process.env.DB_USER || 'nexora',
+      dbPassword: fromUrl.password || process.env.DB_PASSWORD || process.env.PGPASSWORD || '',
+      s3Bucket: process.env.BACKUP_S3_BUCKET || undefined,
+      s3Prefix: process.env.BACKUP_S3_PREFIX || 'nexoraos/',
     };
     this.ensureBackupDir();
+  }
+
+  private connArgs(): string {
+    if (this.config.connectionString) {
+      // Single-quoted inside double quotes is unsafe; pass via env-safe quoting.
+      return `--dbname="${this.config.connectionString.replace(/"/g, '\\"')}"`;
+    }
+    return `-h ${this.config.dbHost} -p ${this.config.dbPort} -U ${this.config.dbUser} -d ${this.config.dbName}`;
+  }
+
+  private psqlEnv(): NodeJS.ProcessEnv {
+    return { ...process.env, PGPASSWORD: this.config.dbPassword || '' };
   }
 
   private ensureBackupDir(): void {
@@ -70,15 +106,11 @@ class BackupService {
 
     try {
       const args = [
-        `-h ${this.config.dbHost}`,
-        `-p ${this.config.dbPort}`,
-        `-U ${this.config.dbUser}`,
-        `-d ${this.config.dbName}`,
+        this.connArgs(),
         `--format=plain`,
         type === 'schema' ? '--schema-only' : type === 'data' ? '--data-only' : '',
         `--no-owner`,
         `--no-privileges`,
-        `--verbose`,
       ].filter(Boolean).join(' ');
 
       let cmd: string;
@@ -88,7 +120,7 @@ class BackupService {
         cmd = `${this.config.pgDumpPath} ${args} > "${filepath}"`;
       }
 
-      const { stderr } = await execAsync(cmd, { env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD || '' } });
+      const { stderr } = await execAsync(cmd, { env: this.psqlEnv() });
       if (stderr) logger.debug(`pg_dump stderr: ${stderr}`, { context: 'backup' });
 
       const stats = fs.statSync(filepath);
@@ -103,6 +135,17 @@ class BackupService {
 
       this.manifests.push(manifest);
       logger.info(`Backup completed: ${filename} (${(stats.size / 1024 / 1024).toFixed(2)}MB, ${duration}ms)`, { context: 'backup' });
+
+      // Off-box copy: local disk is ephemeral on Render/Docker. Best-effort
+      // upload to S3 when BACKUP_S3_BUCKET is set (requires `aws` CLI).
+      if (this.config.s3Bucket) {
+        const dest = `s3://${this.config.s3Bucket}/${this.config.s3Prefix}${filename}`;
+        execAsync(`aws s3 cp "${filepath}" "${dest}"`).then(
+          () => logger.info(`Backup uploaded to ${dest}`, { context: 'backup' }),
+          (s3Err: any) => logger.warn(`S3 backup upload failed (local copy retained): ${s3Err.message}`, { context: 'backup' })
+        );
+      }
+
       return manifest;
     } catch (error: any) {
       logger.error(`Backup failed: ${error.message}`, { context: 'backup' });
@@ -118,11 +161,12 @@ class BackupService {
     const start = Date.now();
 
     try {
+      const conn = this.connArgs();
       const cmd = this.config.compressionEnabled && filename.endsWith('.gz')
-        ? `gunzip -c "${filepath}" | psql -h ${this.config.dbHost} -p ${this.config.dbPort} -U ${this.config.dbUser} -d ${this.config.dbName}`
-        : `psql -h ${this.config.dbHost} -p ${this.config.dbPort} -U ${this.config.dbUser} -d ${this.config.dbName} -f "${filepath}"`;
+        ? `gunzip -c "${filepath}" | psql ${conn}`
+        : `psql ${conn} -f "${filepath}"`;
 
-      const { stderr } = await execAsync(cmd, { env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD || '' } });
+      const { stderr } = await execAsync(cmd, { env: this.psqlEnv() });
       if (stderr) logger.debug(`Restore stderr: ${stderr}`, { context: 'backup' });
 
       logger.info(`Backup restored in ${Date.now() - start}ms`, { context: 'backup' });

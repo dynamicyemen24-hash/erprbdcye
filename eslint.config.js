@@ -39,6 +39,14 @@ export default tseslint.config(
       // `declare global { namespace Express { ... } }` is the canonical
       // Express request-augmentation pattern (requestId, user, etc.).
       '@typescript-eslint/no-namespace': ['error', { allowDeclarations: true }],
+      // Prevent unsafe JSON.parse without try/catch or safeParseJSON (warn for now)
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: 'CallExpression[callee.object.name="JSON"][callee.property.name="parse"]',
+          message: 'Use safeParseJSON from @/server/core/helpers instead of raw JSON.parse to avoid crashes on malformed input.',
+        },
+      ],
     },
   },
   {

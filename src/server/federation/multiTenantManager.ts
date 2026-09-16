@@ -7,6 +7,7 @@ import { createHash, randomBytes } from 'crypto';
 import pg from 'pg';
 import { query, transaction, getPool } from '../core/database.js';
 import { logger } from '../core/logger.js';
+import { safeParseJSON } from '../core/helpers.js';
 import { TenantFederationConfig, TenantUsageMetrics, TenantTier, TenantIsolationLevel, TenantStatus } from './types.js';
 
 interface TenantConnection {
@@ -754,22 +755,12 @@ export class MultiTenantManager {
       region: row.region,
       databaseUrl: row.database_url,
       schemaName: row.schema_name,
-      featureFlags: typeof row.feature_flags === 'string' 
-        ? JSON.parse(row.feature_flags) 
-        : row.feature_flags || {},
-      quotas: typeof row.quotas === 'string' 
-        ? JSON.parse(row.quotas) 
-        : row.quotas,
-      branding: typeof row.branding === 'string' 
-        ? JSON.parse(row.branding) 
-        : row.branding,
-      complianceFrameworks: typeof row.compliance_frameworks === 'string'
-        ? JSON.parse(row.compliance_frameworks)
-        : row.compliance_frameworks || [],
+      featureFlags: safeParseJSON(row.feature_flags, {}),
+      quotas: safeParseJSON(row.quotas, null),
+      branding: safeParseJSON(row.branding, null),
+      complianceFrameworks: safeParseJSON(row.compliance_frameworks, []),
       parentTenantId: row.parent_tenant_id,
-      childTenantIds: typeof row.child_tenant_ids === 'string'
-        ? JSON.parse(row.child_tenant_ids)
-        : row.child_tenant_ids || [],
+      childTenantIds: safeParseJSON(row.child_tenant_ids, []),
       status: row.status,
       createdAt: row.created_at,
       contractExpiresAt: row.contract_expires_at

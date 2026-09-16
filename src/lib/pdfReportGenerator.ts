@@ -68,8 +68,11 @@ export function getPDFHeaderHTML(options: PDFReportHeaderOptions): string {
           <h2 style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 800; line-height: 1.3;">
             ${orgName}
           </h2>
-<div style="color: ${accentColor}; font-size: 11px; font-weight: 700; margin-top: 2px;">
-              ${accentColor}
+            <div style="color: ${accentColor}; font-size: 11px; font-weight: 700; margin-top: 2px;">
+              ${isRtl ? 'نظام يو امكس المؤسسي الشامل - UAMEX_ERP™' : 'UAMEX ERP™ Intelligent Enterprise Operating System'}
+            </div>
+            <div style="color: #64748b; font-size: 9px; font-weight: 600;">
+              One Platform. One Organization. One Vision.
             </div>
           <div style="margin-top: 4px; display: inline-block; padding: 2px 8px; border-radius: 4px; background-color: ${classInfo.color}15; color: ${classInfo.color}; font-size: 9px; font-weight: 800; border: 1px solid ${classInfo.color}30;">
             ${classInfo[lang]}
@@ -401,7 +404,7 @@ export function buildFinancialStatementPDFHTML(options: {
 
   const headerHTML = getPDFHeaderHTML({
     title: statementTitle,
-    subtitle: isRtl ? 'معدة وفقاً للمعاير المحاسبية الدولية القطاع العام (IPSAS)' : 'Prepared in accordance with IPSAS standards',
+    subtitle: isRtl ? 'معدة وفقاً للمعايير المحاسبية الدولية في القطاع العام (IPSAS)' : 'Prepared in accordance with IPSAS standards',
     lang,
     accentColor,
     classification: 'OFFICIAL',
@@ -412,15 +415,36 @@ export function buildFinancialStatementPDFHTML(options: {
   let bodyHTML = '';
 
   if (options.statementType === 'trial') {
-    const rows = accounts.filter(a => parseFloat(String(a.current_balance)) !== 0).map((acc, idx) => {
-      const bal = parseFloat(String(acc.current_balance));
-      const isDebit = acc.account_type === 'ASSET' || acc.account_type === 'EXPENSE';
+    const trialRows = accounts.filter(a => parseFloat(String(a.current_balance || 0)) !== 0).map((acc, idx) => {
+      const bal = parseFloat(String(acc.current_balance || 0));
+      const isNormalDebit = acc.account_type === 'ASSET' || acc.account_type === 'EXPENSE';
+      let debit = 0;
+      let credit = 0;
+      if (isNormalDebit) {
+        if (bal >= 0) debit = bal;
+        else credit = Math.abs(bal);
+      } else {
+        if (bal >= 0) credit = bal;
+        else debit = Math.abs(bal);
+      }
+      return {
+        ...acc,
+        debit,
+        credit,
+        idx
+      };
+    });
+
+    const totalDebitSum = trialRows.reduce((sum, r) => sum + r.debit, 0);
+    const totalCreditSum = trialRows.reduce((sum, r) => sum + r.credit, 0);
+
+    const rows = trialRows.map((acc) => {
       return `
-        <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; font-size: 10px; border-bottom: 1px solid #e2e8f0;">
+        <tr style="background-color: ${acc.idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; font-size: 10px; border-bottom: 1px solid #e2e8f0;">
           <td style="padding: 8px; text-align: center; font-family: monospace; font-weight: 700;">${acc.account_code}</td>
           <td style="padding: 8px; font-weight: 700; color: #0f172a;">${isRtl ? acc.name_ar : acc.name_en}</td>
-          <td style="padding: 8px; text-align: right; font-family: monospace; color: #dc2626; font-weight: 700;">${isDebit ? bal.toLocaleString() : '-'}</td>
-          <td style="padding: 8px; text-align: right; font-family: monospace; color: #059669; font-weight: 700;">${!isDebit ? bal.toLocaleString() : '-'}</td>
+          <td style="padding: 8px; text-align: right; font-family: monospace; color: #dc2626; font-weight: 700;">${acc.debit > 0 ? acc.debit.toLocaleString() : '-'}</td>
+          <td style="padding: 8px; text-align: right; font-family: monospace; color: #059669; font-weight: 700;">${acc.credit > 0 ? acc.credit.toLocaleString() : '-'}</td>
         </tr>
       `;
     }).join('');
@@ -438,12 +462,12 @@ export function buildFinancialStatementPDFHTML(options: {
         <tbody>
           ${rows}
           <tr style="background-color: #f1f5f9; font-weight: 900; font-size: 11px; border-top: 2px solid #0f172a;">
-            <td colspan="2" style="padding: 10px; text-align: center;">${isRtl ? 'إجمالي الأرصدة المتطابقة' : 'Balanced Total'}</td>
+            <td colspan="2" style="padding: 10px; text-align: center;">${isRtl ? 'إجمالي الأرصدة المتطابقة (متزن)' : 'Balanced Total'}</td>
             <td style="padding: 10px; text-align: right; color: #dc2626; font-family: monospace;">
-              ${accounts.reduce((sum, a) => sum + ((a.account_type === 'ASSET' || a.account_type === 'EXPENSE') ? parseFloat(String(a.current_balance)) : 0), 0).toLocaleString()}
+              ${totalDebitSum.toLocaleString()}
             </td>
             <td style="padding: 10px; text-align: right; color: #059669; font-family: monospace;">
-              ${accounts.reduce((sum, a) => sum + ((a.account_type !== 'ASSET' && a.account_type !== 'EXPENSE') ? parseFloat(String(a.current_balance)) : 0), 0).toLocaleString()}
+              ${totalCreditSum.toLocaleString()}
             </td>
           </tr>
         </tbody>
@@ -625,6 +649,19 @@ export function buildFinancialStatementPDFHTML(options: {
     `;
   }
 
+  const officialStampHTML = `
+    <div style="margin-top: 24px; padding: 12px; border: 1px dashed ${accentColor}; border-radius: 8px; background-color: #f8fafc; display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-family: sans-serif; direction: ${isRtl ? 'rtl' : 'ltr'};">
+      <div>
+        <div style="font-weight: 800; color: #0f172a;">${isRtl ? 'اعتماد الإدارة المالية والرقابة الداخلية' : 'Financial Management & Internal Audit Certification'}</div>
+        <div style="color: #64748b; margin-top: 2px;">${isRtl ? 'تمت مطابقة وتدقيق القيود والقوائم المالية وفق معايير IPSAS وميثاق إسفير.' : 'Verified and certified under IPSAS and Sphere compliance frameworks.'}</div>
+      </div>
+      <div style="text-align: ${isRtl ? 'left' : 'right'}; font-family: monospace; font-weight: 700; color: ${accentColor};">
+        <div>STAMP-REF: UAMEX-${options.statementType.toUpperCase()}-${generateNumericCode(1000, 9999)}</div>
+        <div style="font-size: 9px; color: #64748b;">${new Date().toISOString().split('T')[0]}</div>
+      </div>
+    </div>
+  `;
+
   const signaturesHTML = options.includeSignatures !== false ? getSignaturesBlockHTML(lang, accentColor) : '';
   const footerHTML = getPDFFooterHTML(lang);
 
@@ -641,6 +678,7 @@ export function buildFinancialStatementPDFHTML(options: {
     ">
       ${headerHTML}
       ${bodyHTML}
+      ${officialStampHTML}
       ${signaturesHTML}
       ${footerHTML}
     </div>

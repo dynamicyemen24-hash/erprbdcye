@@ -219,12 +219,15 @@ CREATE TABLE IF NOT EXISTS beneficiary_pseudonyms (
 );
 CREATE INDEX IF NOT EXISTS idx_pseudonyms ON beneficiary_pseudonyms (pseudonym_hash, purpose);
 -- 11. Insert issuer configuration
+-- NOTE (release-hardening): public_key_jwk is NULLABLE by design. The issuer
+-- signing key is provisioned at deploy time by the operator — migrations must
+-- never fabricate cryptographic material to satisfy a NOT NULL constraint.
 CREATE TABLE IF NOT EXISTS identity_issuer_config (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     issuer_did VARCHAR(255) UNIQUE NOT NULL,
     issuer_name VARCHAR(255) NOT NULL,
     issuer_name_ar VARCHAR(255),
-    public_key_jwk JSONB NOT NULL,
+    public_key_jwk JSONB,
     vc_service_url VARCHAR(500),
     messaging_url VARCHAR(500),
     trust_registry_url VARCHAR(500),

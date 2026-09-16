@@ -10,7 +10,8 @@ export { UAMEXWorkspaceShell, type WorkspaceColumn, type WorkspaceAction } from 
 export { UAMEXOperationalUnit, type OperationalUnitConfig, type OperationalDomain } from './UAMEXOperationalUnit';
 
 // ── Productivity & Navigation ──
-export { ExecutiveCommandBar, type CommandItem } from './ExecutiveCommandBar';
+// NOTE: command palette lives in UniversalCommandCenter (mounted in App).
+// The legacy ExecutiveCommandBar was removed (dead code).
 export { SmartFilter, type FilterField, type ActiveFilter, type SavedFilter, type SmartFilterProps } from './SmartFilter';
 
 // ── AI & Insights ──
@@ -32,14 +33,14 @@ export { PremiumEmptyState, PremiumErrorBoundary, PremiumLoadingState, type Empt
 // 2.  UAMEXDashboardExperience — Executive quantum cockpit dashboard
 // 3.  UAMEXWorkspaceShell      — Unified data workspace for 15 NEB domains
 // 4.  UAMEXOperationalUnit     — Container for NEB-01 through NEB-15
-// 5.  ExecutiveCommandBar      — Cmd+K command palette + AI mode + voice
-// 6.  AIInsightsPanel          — NEB-13 AI Intelligence w/ Gemini/Sphere/CHS
-// 7.  SmartFilter              — AI-powered natural language filter system
-// 8.  PremiumDataGrid          — Advanced data grid (sort/filter/export/edit)
-// 9.  PremiumMetricCard        — Deep analytics KPI tile with drill-down
-// 10. PremiumTimelineView      — Gantt-style timeline w/ swimlanes
-// 11. PremiumChart             — Line/Bar/Area/Donut/Radar charts
-// 12. PremiumEmptyState        — 9 elegant empty state variants
-// 13. PremiumErrorBoundary     — Resilient error boundary w/ recovery
-// 14. PremiumLoadingState      — Premium loading state with animation
+// 5.  AIInsightsPanel          — NEB-13 AI Intelligence w/ Gemini/Sphere/CHS
+// 6.  SmartFilter              — AI-powered natural language filter system
+// 7.  PremiumDataGrid          — Advanced data grid (sort/filter/export/edit)
+// 8.  PremiumMetricCard        — Deep analytics KPI tile with drill-down
+// 9.  PremiumTimelineView      — Gantt-style timeline w/ swimlanes
+// 10. PremiumChart             — Line/Bar/Area/Donut/Radar charts
+// 11. PremiumEmptyState        — 9 elegant empty state variants
+// 12. PremiumErrorBoundary     — Resilient error boundary w/ recovery
+// 13. PremiumLoadingState      — Premium loading state with animation
+// (Removed: ExecutiveCommandBar + DS CommandPalette — superseded by UniversalCommandCenter)
 // ═══════════════════════════════════════════════════════════════════════════════

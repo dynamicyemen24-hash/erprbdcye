@@ -24,6 +24,23 @@ services:
         value: https://erprbdcye.org,https://www.erprbdcye.org
       - key: CORS_ORIGINS
         value: https://erprbdcye.org,https://www.erprbdcye.org
+      - key: DB_POOL_MAX
+        value: 10
+      - key: DB_SSL_STRICT
+        value: true
+      - key: REDIS_URL
+        sync: false
+      - key: REDIS_ENABLED
+        value: true
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: SENTRY_DSN
+        sync: false
+      - key: LOG_DRAIN_URL
+        sync: false
+      - key: WORKER_ENABLED
+        value: true
+      - key: BACKUP_S3_BUCKET
+        sync: false
     autoDeploy: true
     branch: main
-    cron: "0 2 * * *"

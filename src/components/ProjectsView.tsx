@@ -43,6 +43,7 @@ import { UniversalObjectPageModal } from './common/UniversalObjectPageModal';
 import GlobalAddressCascadePicker from './common/GlobalAddressCascadePicker';
 import GlobalAddressManagerView from '../features/organization/GlobalAddressManagerView';
 import { cn } from '../design-system/utils/cn';
+import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 import { EmptyState } from '../design-system/components/EmptyState';
 import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
@@ -60,6 +61,8 @@ interface ProjectsViewProps {
 
 export default function ProjectsView({ projects, programs, loading, onRefresh, lang, initialStatusFilter }: ProjectsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  // Debounced search — filters re-run 300ms after typing stops (no per-keystroke rescan)
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
   const [programFilter, setProgramFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter || 'all');
 
@@ -280,6 +283,13 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
 
       onRefresh();
       setIsModalOpen(false);
+      showToast({
+        type: 'success',
+        title: lang === 'ar' ? 'المشاريع' : 'Projects',
+        message: selectedProject
+          ? (lang === 'ar' ? 'تم تحديث المشروع بنجاح' : 'Project updated successfully')
+          : (lang === 'ar' ? 'تم إنشاء المشروع بنجاح' : 'Project created successfully'),
+      });
     } catch (err: any) {
       if (err instanceof PolicyViolationError) {
         setPolicyViolations(err.violations);
@@ -301,6 +311,12 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
         throw new Error('Failed to delete project.');
       }
       onRefresh();
+      setPendingDeleteId(null);
+      showToast({
+        type: 'success',
+        title: lang === 'ar' ? 'المشاريع' : 'Projects',
+        message: lang === 'ar' ? 'تم حذف المشروع بنجاح' : 'Project deleted successfully',
+      });
     } catch (err: any) {
       showToast({ type: 'error', title: lang === 'ar' ? 'خطأ في العملية' : 'Operation Error', message: err.message });
     }
@@ -364,11 +380,12 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
   };
 
   const filtered = projects.filter(proj => {
-    const matchesSearch = 
-      (proj.name_ar && proj.name_ar.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (proj.name_en && proj.name_en.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (proj.code && proj.code.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (proj.location_name && proj.location_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const q = debouncedSearchTerm.toLowerCase();
+    const matchesSearch =
+      (proj.name_ar && proj.name_ar.toLowerCase().includes(q)) ||
+      (proj.name_en && proj.name_en.toLowerCase().includes(q)) ||
+      (proj.code && proj.code.toLowerCase().includes(q)) ||
+      (proj.location_name && proj.location_name.toLowerCase().includes(q));
     
     const matchesProgram = programFilter === 'all' || proj.program_id === programFilter;
     const matchesStatus = statusFilter === 'all' || proj.status_code === statusFilter;
@@ -1570,7 +1587,9 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
           }}
           onDelete={() => {
             if (inspectingProject) {
-              handleDelete(inspectingProject.id);
+              // Route through the shared confirm dialog — never delete unbounced
+              setPendingDeleteId(inspectingProject.id);
+              setConfirmDelete(true);
               setInspectingProject(null);
             }
           }}

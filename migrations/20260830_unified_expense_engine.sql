@@ -200,9 +200,9 @@ CREATE TABLE IF NOT EXISTS expense_approval_history (
 CREATE INDEX IF NOT EXISTS idx_expense_approval_history_record ON expense_approval_history(expense_record_id);
 CREATE INDEX IF NOT EXISTS idx_expense_approval_history_approver ON expense_approval_history(approver_user_id);
 
--- ═══════════════════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════
 -- NEB-10: APPROVAL DELEGATIONS
--- ═══════════════════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS approval_delegations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   delegator_user_id UUID NOT NULL REFERENCES users(id),
@@ -214,7 +214,45 @@ CREATE TABLE IF NOT EXISTS approval_delegations (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_approval_delegations_active ON approval_delegations(delegator_user_id, is_active) WHERE is_active = TRUE;
+-- Drift-tolerant reconciliation: older environments may already carry an
+-- approval_delegations table with a different column set (e.g.
+-- delegator_id/delegate_id). CREATE TABLE IF NOT EXISTS is a no-op there,
+-- so add the columns this release needs (nullable + best-effort backfill).
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='approval_delegations' AND column_name='delegator_user_id') THEN
+    ALTER TABLE approval_delegations ADD COLUMN delegator_user_id UUID REFERENCES users(id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='approval_delegations' AND column_name='delegate_user_id') THEN
+    ALTER TABLE approval_delegations ADD COLUMN delegate_user_id UUID REFERENCES users(id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='approval_delegations' AND column_name='valid_from') THEN
+    ALTER TABLE approval_delegations ADD COLUMN valid_from TIMESTAMPTZ;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='approval_delegations' AND column_name='valid_until') THEN
+    ALTER TABLE approval_delegations ADD COLUMN valid_until TIMESTAMPTZ;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='approval_delegations' AND column_name='categories') THEN
+    ALTER TABLE approval_delegations ADD COLUMN categories JSONB;
+  END IF;
+  -- Best-effort backfill from legacy column names when present
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='approval_delegations' AND column_name='delegator_id') THEN
+    UPDATE approval_delegations SET delegator_user_id = delegator_id::uuid WHERE delegator_user_id IS NULL AND delegator_id IS NOT NULL;
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='approval_delegations' AND column_name='delegate_id') THEN
+    UPDATE approval_delegations SET delegate_user_id = delegate_id::uuid WHERE delegate_user_id IS NULL AND delegate_id IS NOT NULL;
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='approval_delegations' AND column_name='delegator_user_id')
+     AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname='idx_approval_delegations_active') THEN
+    CREATE INDEX idx_approval_delegations_active ON approval_delegations(delegator_user_id, is_active) WHERE is_active = TRUE;
+  END IF;
+END
+$$;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- NEB-10: PAYMENT SCHEDULES
@@ -257,8 +295,48 @@ CREATE TABLE IF NOT EXISTS budget_commitments (
   release_reason TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_budget_commitments_budget_line ON budget_commitments(budget_line_id);
-CREATE INDEX IF NOT EXISTS idx_budget_commitments_expense ON budget_commitments(expense_record_id) WHERE expense_record_id IS NOT NULL;
+-- Drift-tolerant reconciliation (see approval_delegations note above).
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='budget_line_id') THEN
+    ALTER TABLE budget_commitments ADD COLUMN budget_line_id UUID;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='expense_record_id') THEN
+    ALTER TABLE budget_commitments ADD COLUMN expense_record_id UUID REFERENCES expense_records(id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='commitment_type') THEN
+    ALTER TABLE budget_commitments ADD COLUMN commitment_type VARCHAR(20);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='amount') THEN
+    ALTER TABLE budget_commitments ADD COLUMN amount NUMERIC(18,2);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='committed_by') THEN
+    ALTER TABLE budget_commitments ADD COLUMN committed_by UUID REFERENCES users(id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='committed_at') THEN
+    ALTER TABLE budget_commitments ADD COLUMN committed_at TIMESTAMPTZ DEFAULT NOW();
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='released_at') THEN
+    ALTER TABLE budget_commitments ADD COLUMN released_at TIMESTAMPTZ;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='release_reason') THEN
+    ALTER TABLE budget_commitments ADD COLUMN release_reason TEXT;
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='budget_line_id')
+     AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname='idx_budget_commitments_budget_line') THEN
+    CREATE INDEX idx_budget_commitments_budget_line ON budget_commitments(budget_line_id);
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='budget_commitments' AND column_name='expense_record_id')
+     AND NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='public' AND indexname='idx_budget_commitments_expense') THEN
+    CREATE INDEX idx_budget_commitments_expense ON budget_commitments(expense_record_id) WHERE expense_record_id IS NOT NULL;
+  END IF;
+END
+$$;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- NEB-10: PETTY CASH MANAGEMENT
@@ -385,8 +463,9 @@ CREATE SEQUENCE IF NOT EXISTS petty_cash_request_seq START 1;
 -- ═══════════════════════════════════════════════════════════════════════════════
 INSERT INTO expense_categories (organization_id, category_code, name_ar, name_en, description,
   category_type, recognition_method, is_budgeted, requires_receipt, requires_approval, default_vat_rate, sort_order)
-SELECT 
-  org.id, cat.*
+SELECT
+  org.id, cat.category_code, cat.name_ar, cat.name_en, cat.description,
+  cat.category_type, cat.recognition_method, cat.is_budgeted, cat.requires_receipt, cat.requires_approval, cat.default_vat_rate, cat.sort_order
 FROM organizations org
 CROSS JOIN (
   VALUES
@@ -407,7 +486,7 @@ CROSS JOIN (
     ('UTILITIES',      'UTILITIES',      'مصروفات مرافق',              'Utilities Expenses',              'الكهرباء والماء والاتصالات', 'UTILITIES',     'ACCRUAL_BASIS',  FALSE, FALSE, TRUE,  0,  15),
     ('RENT',           'RENT',           'مصروفات إيجارات',            'Rent Expenses',                   'الإيجارات', 'RENT',             'ACCRUAL_BASIS',  FALSE, TRUE,  TRUE,  0,  16),
     ('OTHER',          'OTHER',          'مصروفات أخرى',               'Other Expenses',                  'مصروفات متنوعة', 'OTHER',            'ACCRUAL_BASIS',  TRUE,  TRUE,  TRUE,  0,  99)
-) AS cat(category_type, category_code, name_ar, name_en, description, 
+) AS cat(category_group, category_code, name_ar, name_en, description,
          category_type, recognition_method, is_budgeted, requires_receipt, requires_approval, default_vat_rate, sort_order)
 ON CONFLICT (organization_id, category_code) DO NOTHING;
 

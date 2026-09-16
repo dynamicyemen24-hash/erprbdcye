@@ -62,7 +62,20 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   });
 
-  const [organizationId, setOrganizationId] = useState<string>('00000000-0000-0000-0000-000000000001');
+  // Resolved from the signed-in user — never a hardcoded org. The server
+  // authorizes exclusively from the JWT claim; this is a UI hint only.
+  const [organizationId, setOrganizationId] = useState<string>(() => {
+    try {
+      const active = localStorage.getItem('nexora_active_org');
+      if (active) return active;
+      const savedUser = localStorage.getItem('rbd_user') || localStorage.getItem('roh_user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed.organization_id) return parsed.organization_id;
+      }
+    } catch { /* ignore */ }
+    return '';
+  });
   const [selectedBranchCode, setSelectedBranchCode] = useState<string>('HQ');
   const [fiscalYear, setFiscalYear] = useState<string>('FY2026');
   const [activeRolePerspective, setActiveRolePerspective] = useState<'executive' | 'manager' | 'field'>('executive');

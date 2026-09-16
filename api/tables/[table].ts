@@ -41,17 +41,6 @@ const jwtSecret: string = (() => {
   return s;
 })();
 
-// ─── CORS origin allowlist (serverless-safe) ────────────────────────
-function resolveCorsOrigin(reqOrigin: string | undefined): string | null {
-  const raw = process.env.CORS_ORIGINS || process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '';
-  const allowlist = raw.split(',').map(o => o.trim()).filter(Boolean);
-  if (allowlist.length === 0) {
-    return process.env.NODE_ENV === 'production' ? null : '*';
-  }
-  if (!reqOrigin) return allowlist[0];
-  return allowlist.includes(reqOrigin) ? reqOrigin : null;
-}
-
 /**
  * Allowed schemas: every core UAMEX ERP™ table.
  * Any value not in this allowlist is rejected outright.
@@ -94,7 +83,7 @@ function verifyToken(authHeader: string | undefined): { ok: boolean; payload?: a
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
   if (!token) return { ok: false };
   try {
-    const decoded: any = jwt.verify(token, jwtSecret);
+    const decoded: any = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
     if (!decoded || typeof decoded !== 'object') return { ok: false };
     return { ok: true, payload: decoded };
   } catch {
@@ -177,18 +166,31 @@ export default async function handler(req: any, res: any) {
     }
 
     const colList = safeColumns.map((c) => `"${c.replace(/[^a-zA-Z0-9_]/g, '')}"`).join(',');
+    const lower = new Set(safeColumns.map((c) => c.toLowerCase()));
+    const hasOrg = lower.has('organization_id');
+    const hasDeleted = lower.has('deleted_at');
+    const hasCreated = lower.has('created_at');
 
     let dbRes;
     if (isTenantTable) {
+      // A tenant table without organization_id cannot be scoped — fail closed.
+      if (!hasOrg) {
+        return res.status(403).json({ error: 'Table is not tenant-isolated' });
+      }
+      const where = hasDeleted
+        ? 'WHERE organization_id = $1 AND deleted_at IS NULL'
+        : 'WHERE organization_id = $1';
+      const order = hasCreated ? 'ORDER BY created_at DESC NULLS LAST' : '';
       dbRes = await pool.query(
-        `SELECT ${colList} FROM "${name}"
-          WHERE organization_id = $1 AND deleted_at IS NULL
-          ORDER BY created_at DESC NULLS LAST
-          LIMIT $2`,
+        `SELECT ${colList} FROM "${name}" ${where} ${order} LIMIT $2`,
         [tenantId, maxRows]
       );
+    } else if (name === 'organizations' && tenantId) {
+      // Global reference table, but an org's own row only — never the directory.
+      dbRes = await pool.query(`SELECT ${colList} FROM "organizations" WHERE id = $1 LIMIT 1`, [tenantId]);
     } else {
-      dbRes = await pool.query(`SELECT ${colList} FROM "${name}" ORDER BY created_at DESC NULLS LAST LIMIT $1`, [maxRows]);
+      const order = hasCreated ? 'ORDER BY created_at DESC NULLS LAST' : '';
+      dbRes = await pool.query(`SELECT ${colList} FROM "${name}" ${order} LIMIT $1`, [maxRows]);
     }
     return res.status(200).json(dbRes.rows);
   } catch (err: any) {

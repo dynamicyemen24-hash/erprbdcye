@@ -10,6 +10,7 @@ import rateLimit from 'express-rate-limit';
 import { serverConfig } from '../config';
 import logger from '../core/logger';
 import { queryOne } from '../core/database';
+import { getRequestToken } from '../core/cookies';
 
 // ─────────────────────────────────────────────
 // 1. JWT Authentication Middleware
@@ -52,15 +53,14 @@ export const authenticateToken = (
     return next();
   }
 
-  const authHeader = req.headers['authorization'];
-  const token = authHeader?.split(' ')[1];
+  const token = getRequestToken(req);
 
   if (!token) {
     res.status(401).json({ error: 'Access Denied: Missing Authentication Token' });
     return;
   }
 
-  jwt.verify(token, serverConfig.jwtSecret, (err: any, decoded: any) => {
+  jwt.verify(token, serverConfig.jwtSecret, { algorithms: ['HS256'] }, (err: any, decoded: any) => {
     if (err) {
       if (err.name === 'TokenExpiredError') {
         res.status(401).json({ error: 'Access Denied: Token Expired. Please login again.' });

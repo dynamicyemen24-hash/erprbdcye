@@ -79,6 +79,8 @@ import { EmptyState } from '../design-system/components/EmptyState';
 import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { Pagination } from '../design-system/components/Pagination';
+import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface FinanceViewProps {
@@ -106,7 +108,12 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
   const [userRole] = useState('admin');
 
   const [coaSearch, setCoaSearch] = useState('');
+  // Debounced COA search — tree re-filters 250ms after typing stops
+  const debouncedCoaSearch = useDebouncedValue(coaSearch, 250);
   const [selectedType, setSelectedType] = useState('all');
+  // Ledger pagination (15 rows/page keeps the DOM light on large ledgers)
+  const [ledgerPage, setLedgerPage] = useState(1);
+  const LEDGER_PAGE_SIZE = 15;
   const [statementAccountId, setStatementAccountId] = useState<string>('');
 
   // Operational Control Bar State & Reverse Entry Modal
@@ -418,13 +425,48 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
   };
 
   const filteredAccounts = useMemo(() => accounts.filter((acc) => {
-    const term = coaSearch.toLowerCase();
+    const term = debouncedCoaSearch.toLowerCase();
     const codeMatch = acc.account_code.includes(term);
-    const nameMatch = (acc.name_ar && acc.name_ar.includes(term)) || 
+    const nameMatch = (acc.name_ar && acc.name_ar.includes(term)) ||
                       (acc.name_en && acc.name_en.toLowerCase().includes(term));
     const typeMatch = selectedType === 'all' || acc.account_type === selectedType;
     return (codeMatch || nameMatch) && typeMatch;
-  }), [accounts, coaSearch, selectedType]);
+  }), [accounts, debouncedCoaSearch, selectedType]);
+
+  // Ledger paging helpers — page resets whenever the dataset changes
+  useEffect(() => { setLedgerPage(1); }, [transactions.length]);
+  const ledgerTotalPages = Math.max(1, Math.ceil(transactions.length / LEDGER_PAGE_SIZE));
+  const safeLedgerPage = Math.min(ledgerPage, ledgerTotalPages);
+  const pagedTransactions = transactions.slice(
+    (safeLedgerPage - 1) * LEDGER_PAGE_SIZE,
+    safeLedgerPage * LEDGER_PAGE_SIZE
+  );
+
+  // Retry the last AI parse without forcing the user to re-upload the image
+  const retryAiParse = async () => {
+    if (!aiImagePreview || parsingAi) return;
+    setAiError('');
+    setParsedData(null);
+    setParsingAi(true);
+    try {
+      const response = await fetch('/api/gemini/parse-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: aiImagePreview, mimeType: 'image/png' })
+      });
+      if (!response.ok) throw new Error('Server returned an error');
+      const resData = await response.json();
+      if (resData.status === 'ok') {
+        setParsedData(resData.data);
+      } else {
+        throw new Error(resData.message || 'Error parsing document');
+      }
+    } catch (err: any) {
+      setAiError(err.message || 'An error occurred during AI analysis');
+    } finally {
+      setParsingAi(false);
+    }
+  };
 
   return (
     <ModuleShell
@@ -742,6 +784,14 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       {/* SUBTAB 4: VOUCHER LISTING */}
       {activeSubTab === 'ledger' && (
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
+          {fetchError && transactions.length === 0 && (
+            <ErrorState
+              titleAr="تعذر تحميل القيود المحاسبية"
+              title="Failed to load journal entries"
+              onRetry={fetchFinanceData}
+              lang={lang}
+            />
+          )}
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
               <thead>
@@ -765,9 +815,9 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                     </td>
                   </tr>
                 ) : (
-                  transactions.map((tx, idx) => (
+                  pagedTransactions.map((tx, idx) => (
                     <tr key={tx.id} className="hover:bg-slate-50/50 transition-all font-semibold">
-                      <td className="p-3 font-mono text-[10px] text-zinc-400">{idx + 1}</td>
+                      <td className="p-3 font-mono text-[10px] text-zinc-400">{(safeLedgerPage - 1) * LEDGER_PAGE_SIZE + idx + 1}</td>
                       <td className="p-3 font-mono text-slate-900 font-black tracking-wide text-[11px]">{tx.transaction_number}</td>
                       <td className="p-3 font-mono text-slate-600">{new Date(tx.transaction_date).toLocaleDateString()}</td>
                       <td className="p-3">
@@ -814,6 +864,18 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
               </tbody>
             </table>
           </div>
+          {ledgerTotalPages > 1 && (
+            <div className="px-4 py-3 border-t border-slate-200 dark:border-zinc-800">
+              <Pagination
+                currentPage={safeLedgerPage}
+                totalPages={ledgerTotalPages}
+                totalItems={transactions.length}
+                pageSize={LEDGER_PAGE_SIZE}
+                onPageChange={setLedgerPage}
+                lang={lang}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -890,6 +952,13 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
                 <div className="text-center text-rose-600 py-6">
                   <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-50" />
                   <p className="text-xs font-bold">{aiError}</p>
+                  <button
+                    type="button"
+                    onClick={retryAiParse}
+                    className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-colors cursor-pointer"
+                  >
+                    {lang === 'ar' ? 'إعادة المحاولة' : 'Try again'}
+                  </button>
                 </div>
               ) : parsedData ? (
                 <div className="space-y-4 animate-fade-in">

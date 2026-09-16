@@ -5,6 +5,7 @@ import { handleApiResponse, PolicyViolationError, type PolicyViolation } from '.
 import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
 import { STANDARD_COST_CENTERS } from '../../core/data/costCentersData';
 import { EnterpriseButton } from '../common/EnterpriseButton';
+import { showToast } from '../enterprise/EnterpriseToastContainer';
 
 interface AccountSearchSelectProps {
   accounts: Account[];
@@ -884,6 +885,13 @@ export default function VoucherEntryTab({
         text: lang === 'ar' ? 'تم ترحيل وحفظ السند والقيد المحاسبي بنجاح وتحديث أرصدة الحسابات.' : 'Successfully posted transaction and updated chart account balances.',
         hash: txHash
       });
+      showToast({
+        type: 'success',
+        title: lang === 'ar' ? 'ترحيل القيد' : 'Voucher posted',
+        message: lang === 'ar'
+          ? `تم ترحيل القيد ${txResult.transaction_number || ''} وتحديث الأرصدة بنجاح`
+          : `Voucher ${txResult.transaction_number || ''} posted and balances updated`,
+      });
 
       // Clear form
       setEntryForm(prev => ({
@@ -903,6 +911,11 @@ export default function VoucherEntryTab({
       } else {
         setEntryMessage({ type: 'error', text: err.message || 'Error posting entry' });
       }
+      showToast({
+        type: 'error',
+        title: lang === 'ar' ? 'ترحيل القيد' : 'Voucher posting',
+        message: err.message || (lang === 'ar' ? 'فشل ترحيل القيد' : 'Error posting entry'),
+      });
     } finally {
       setIsSubmitting(false);
     }

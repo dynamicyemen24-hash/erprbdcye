@@ -16,6 +16,8 @@
  */
 
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import logger from './logger';
 
 // ─── Debug Detection ────────────────────────────────────────────────────────
@@ -83,9 +85,6 @@ export function computeHash(data: string): string {
  */
 export function initializeIntegrityChecks(): void {
   try {
-    const fs = require('fs') as typeof import('fs');
-    const path = require('path') as typeof import('path');
-
     const criticalFiles = [
       'dist/server.cjs',
       'src/server/core/security.ts',
@@ -226,6 +225,7 @@ function detectModuleHooking(): void {
 
   for (const modName of criticalModules) {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- dynamic module name, cannot be a static import
       const mod = require(modName);
       const proto = mod.prototype || mod;
 

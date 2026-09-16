@@ -24,10 +24,13 @@ import { ensurePpmCompatibilityColumns } from './compatibility';
 export interface BootstrapResult {
   success: boolean;
   errors: string[];
+  /** Set when schema completion or SQL migrations failed — fatal in production. */
+  fatal: string | null;
 }
 
 export async function bootstrapDatabase(pool: pg.Pool): Promise<BootstrapResult> {
   const errors: string[] = [];
+  let fatal: string | null = null;
   const startTime = Date.now();
 
   logger.info('[BOOTSTRAP] Starting NexoraOS™ database bootstrap...', { context: 'bootstrap' });
@@ -43,25 +46,31 @@ export async function bootstrapDatabase(pool: pg.Pool): Promise<BootstrapResult>
   } catch (err: any) {
     const msg = `Phase 1 (schema completion): ${err.message}`;
     errors.push(msg);
-    logger.warn(`[BOOTSTRAP] ${msg}`, { context: 'bootstrap' });
+    fatal = msg;
+    logger.error(`[BOOTSTRAP] FATAL ${msg}`, { context: 'bootstrap' });
   }
 
   // Phase 1.5: Apply pending SQL migrations (/migrations/*.sql)
   // — the migration runner tracks applied files in `_migrations` and every
   //    migration file is written idempotently (IF NOT EXISTS / ON CONFLICT).
+  // NOTE: a failed migration stops the runner at that file and is FATAL —
+  // serving traffic on a half-migrated schema is worse than not serving.
   try {
     const migrator = new Migrator(join(process.cwd(), 'migrations'));
     const result = await migrator.migrate();
     if (result.errors.length > 0) {
-      logger.warn(`[BOOTSTRAP] Migration errors: ${result.errors.join('; ')}`, { context: 'bootstrap' });
+      const msg = `Phase 1.5 (SQL migrations): ${result.errors.join('; ')}`;
+      logger.error(`[BOOTSTRAP] FATAL ${msg}`, { context: 'bootstrap' });
       errors.push(...result.errors);
+      fatal = fatal || msg;
     } else if (result.applied.length > 0) {
       logger.info(`[BOOTSTRAP] Applied ${result.applied.length} pending migration(s): ${result.applied.join(', ')}`, { context: 'bootstrap' });
     }
   } catch (err: any) {
     const msg = `Phase 1.5 (SQL migrations): ${err.message}`;
     errors.push(msg);
-    logger.warn(`[BOOTSTRAP] ${msg}`, { context: 'bootstrap' });
+    fatal = fatal || msg;
+    logger.error(`[BOOTSTRAP] FATAL ${msg}`, { context: 'bootstrap' });
   }
 
   // Phase 2: Seed data (fire-and-forget, non-blocking)
@@ -104,5 +113,5 @@ export async function bootstrapDatabase(pool: pg.Pool): Promise<BootstrapResult>
   const duration = Date.now() - startTime;
   logger.info(`[BOOTSTRAP] Database bootstrap completed in ${duration}ms (${errors.length} warnings)`, { context: 'bootstrap' });
 
-  return { success: errors.length === 0, errors };
+  return { success: fatal === null, errors, fatal };
 }

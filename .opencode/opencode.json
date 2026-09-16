@@ -1,0 +1,59 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "username": "uamex-erp",
+  "default_agent": "general",
+  "model": "anthropic/claude-sonnet-4-6",
+  "agent": {
+    "legal-accountant-coa": {
+      "description": "محاسب قانوني متخصص في نظام الحسابات والشجرة المالية متعددة الأبعاد - سد فجوات دليل الحسابات واختبار المدخلات الأساسية وفق IPSAS وIFRS",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6",
+      "permission": {
+        "edit": "ask",
+        "bash": "ask",
+        "read": "allow"
+      }
+    },
+    "budget-commitment-accountant": {
+      "description": "محاسب الالتزامات والموازنات الخبير - محرك الرقابة متعدد المراحل واختبار سياسات الالتزامات والتحكم في الصرف وفق IPSAS",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6",
+      "permission": {
+        "edit": "ask",
+        "bash": "ask",
+        "read": "allow"
+      }
+    },
+    "assets-depreciation-accountant": {
+      "description": "محاسب الأصول الثابتة والإهلاك الخبير - تطبيق معيار IPSAS 17 وسجل الأصول المدمج والاختبار التلقائي للإهلاك",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6",
+      "permission": {
+        "edit": "ask",
+        "bash": "ask",
+        "read": "allow"
+      }
+    },
+    "grants-fund-accountant": {
+      "description": "محاسب المنح والصناديق المقيدة الخبير - تطبيق معيار IPSAS 23 وفصل الموارد المقيدة واختبار إدخال المانحين والمنح",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6",
+      "permission": {
+        "edit": "ask",
+        "bash": "ask",
+        "read": "allow"
+      }
+    },
+    "internal-auditor-closing": {
+      "description": "مدقق داخلي ومحاسب الإقفال الخبير - قفل الفترات المالية وفصل الواجبات وسجل التدقيق غير القابل للتعديل وAML/CFT",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6",
+      "permission": {
+        "edit": "ask",
+        "bash": "ask",
+        "read": "allow"
+      }
+    }
+  },
+  "instructions": ["AGENTS.md", "docs/DEVELOPMENT_CONSTITUTION.md"]
+}

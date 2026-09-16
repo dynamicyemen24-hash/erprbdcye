@@ -21,7 +21,7 @@ function verifyToken(authHeader: string | undefined): { ok: boolean; payload?: a
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
   if (!token) return { ok: false };
   try {
-    const decoded: any = jwt.verify(token, jwtSecret);
+    const decoded: any = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
     if (!decoded || typeof decoded !== 'object') return { ok: false };
     return { ok: true, payload: decoded };
   } catch {
@@ -34,17 +34,6 @@ function resolveTenantId(payload: any): string | null {
   if (!payload || typeof payload !== 'object') return null;
   const org = payload.organization_id || payload.org_id || payload.org;
   return org ? String(org) : null;
-}
-
-// ─── CORS origin allowlist (serverless-safe, self-contained) ───────
-function resolveCorsOrigin(reqOrigin: string | undefined): string | null {
-  const raw = process.env.CORS_ORIGINS || process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '';
-  const allowlist = raw.split(',').map(o => o.trim()).filter(Boolean);
-  if (allowlist.length === 0) {
-    return process.env.NODE_ENV === 'production' ? null : '*';
-  }
-  if (!reqOrigin) return allowlist[0];
-  return allowlist.includes(reqOrigin) ? reqOrigin : null;
 }
 
 let pool: any = null;
@@ -116,12 +105,14 @@ export default async function handler(req: any, res: any) {
         countFor('activities'),
       ]);
 
-      // Global tables (organizations, users) are counted without org filter but
-      // never expose row details — only integer aggregates.
-      const o = await dbPool.query('SELECT count(*) FROM organizations');
+      // Tenant-scoped only: global counts would leak other tenants' size.
+      // organizations = caller's own org (0/1); users/budget = 0 without a claim.
+      const o = tenantId
+        ? await dbPool.query('SELECT count(*) FROM organizations WHERE id = $1', [tenantId])
+        : { rows: [{ count: '0' }] };
       const u = tenantId
         ? await dbPool.query('SELECT count(*) FROM users WHERE organization_id = $1 AND deleted_at IS NULL', [tenantId])
-        : await dbPool.query('SELECT count(*) FROM users WHERE deleted_at IS NULL');
+        : { rows: [{ count: '0' }] };
 
       // Currency count and program budget come from live data, not constants.
       const curr = await dbPool.query(
@@ -133,7 +124,7 @@ export default async function handler(req: any, res: any) {
             `SELECT COALESCE(SUM(planned_budget), 0)::float AS total FROM projects WHERE organization_id = $1 AND deleted_at IS NULL`,
             [tenantId]
           )
-        : await dbPool.query(`SELECT COALESCE(SUM(planned_budget), 0)::float AS total FROM projects WHERE deleted_at IS NULL`);
+        : { rows: [{ total: 0 }] };
 
       return res.status(200).json({
         counts: {

@@ -44,17 +44,6 @@ const jwtSecret: string = (() => {
   return s;
 })();
 
-// ─── CORS origin allowlist (serverless-safe) ───────────────────────
-function resolveCorsOrigin(reqOrigin: string | undefined): string | null {
-  const raw = process.env.CORS_ORIGINS || process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '';
-  const allowlist = raw.split(',').map(o => o.trim()).filter(Boolean);
-  if (allowlist.length === 0) {
-    return process.env.NODE_ENV === 'production' ? null : '*';
-  }
-  if (!reqOrigin) return allowlist[0];
-  return allowlist.includes(reqOrigin) ? reqOrigin : null;
-}
-
 const ALLOWED_DOC_TYPES = new Set(['MEMO', 'CIRCULAR', 'DIRECTIVE', 'ANNOUNCEMENT', 'REPLY']);
 const ALLOWED_STATUSES = new Set([
   'DRAFT', 'SUBMITTED', 'APPROVED', 'ISSUED', 'DISTRIBUTED', 'CLOSED', 'REJECTED', 'VOIDED',
@@ -78,7 +67,7 @@ function verifyToken(authHeader: string | undefined): { ok: boolean; payload?: a
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
   if (!token) return { ok: false };
   try {
-    const decoded: any = jwt.verify(token, jwtSecret);
+    const decoded: any = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
     if (!decoded || typeof decoded !== 'object') return { ok: false };
     return { ok: true, payload: decoded };
   } catch {

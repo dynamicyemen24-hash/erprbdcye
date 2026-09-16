@@ -49,28 +49,36 @@ export type TransactionStatus = 'DRAFT' | 'POSTED' | 'REVERSED' | 'VOIDED';
 export type FiscalYearStatus = 'OPEN' | 'CLOSING' | 'CLOSED';
 
 export interface LedgerLine {
-  accountId: string;
-  accountCode?: string;
-  debit: number;
-  credit: number;
-  description?: string;
-  projectId?: string;
-  activityId?: string;
-  partyId?: string;
-  currencyCode?: string;
-  exchangeRate?: number;
-}
+   accountId: string;
+   accountCode?: string;
+   debit: number;
+   credit: number;
+   description?: string;
+   projectId?: string;
+   activityId?: string;
+   fundId?: string;
+   donorId?: string;
+   costCenterId?: string;
+   intercompanyId?: string;
+   secondaryDimensionId?: string;
+   partyId?: string;
+   currencyCode?: string;
+   exchangeRate?: number;
+ }
 
-export interface VoucherEntry {
-  organizationId: string;
-  transactionNumber: string;
-  transactionType: TransactionType;
-  description: string;
-  referenceNumber?: string;
-  projectId?: string;
-  fiscalYearId?: string;
-  lines: LedgerLine[];
-}
+ export interface VoucherEntry {
+   organizationId: string;
+   transactionNumber: string;
+   transactionType: TransactionType;
+   description: string;
+   referenceNumber?: string;
+   projectId?: string;
+   fiscalYearId?: string;
+   fiscalPeriodId?: string;
+   fundId?: string;
+   donorId?: string;
+   lines: LedgerLine[];
+ }
 
 export interface TrialBalanceEntry {
   accountId: string;

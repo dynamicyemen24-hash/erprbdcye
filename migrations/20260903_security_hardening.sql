@@ -26,9 +26,11 @@ BEGIN
     'revenue_records', 'revenue_streams', 'expense_records',
     'journal_entries', 'journal_items', 'vouchers', 'invoices', 'approvals'
   ] LOOP
+    -- Guard by COLUMN, not just table: legacy tables (e.g. volunteers) may
+    -- exist without organization_id; indexing a missing column aborts boot.
     IF EXISTS (
-      SELECT 1 FROM information_schema.tables
-      WHERE table_schema = 'public' AND table_name = t
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = t AND column_name = 'organization_id'
     ) THEN
       EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_org ON %I (organization_id)', t, t);
     END IF;

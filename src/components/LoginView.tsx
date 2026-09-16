@@ -327,7 +327,13 @@ export default function LoginView({
 
   // Navigation & Authentication View States
   // 'directory' = Select Desk; 'authenticate' = Enter Password for Selected Desk; 'direct' = Manual Email & Password
-  const [viewStep, setViewStep] = useState<'directory' | 'authenticate' | 'direct'>('directory');
+  const [viewStep, setViewStep] = useState<'directory' | 'authenticate' | 'direct' | 'mfa'>('directory');
+  // Step-up MFA state — populated only from a server mfa_required challenge
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [mfaError, setMfaError] = useState<string | null>(null);
+  const [mfaSecondsLeft, setMfaSecondsLeft] = useState(30);
   const [selectedDesk, setSelectedDesk] = useState<InstitutionalDesk | null>(institutionalDesks[0]);
   
   // Form Inputs
@@ -462,6 +468,17 @@ export default function LoginView({
 
         if (response.ok) {
           const data = await response.json();
+          // Step-up challenge — the account enforces TOTP. Local fallback is
+          // FORBIDDEN from here: skipping the code would defeat MFA entirely.
+          if (data && data.status === 'mfa_required' && data.mfaToken) {
+            setMfaToken(data.mfaToken);
+            setMfaCode('');
+            setMfaError(null);
+            setMfaSecondsLeft(30 - (Math.floor(Date.now() / 1000) % 30));
+            setViewStep('mfa');
+            triggerHaptic('light');
+            return;
+          }
           if (data && data.token) {
             localStorage.setItem('rbd_token', data.token);
             if (data.refreshToken) localStorage.setItem('rbd_refresh_token', data.refreshToken);
@@ -527,6 +544,73 @@ export default function LoginView({
     } finally {
       setLoading(false);
     }
+  };
+
+  // TOTP countdown — codes rotate every 30s (RFC 6238)
+  useEffect(() => {
+    if (viewStep !== 'mfa') return;
+    const timer = setInterval(() => {
+      setMfaSecondsLeft(30 - (Math.floor(Date.now() / 1000) % 30));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [viewStep]);
+
+  // Step-up verification: exchange the short-lived mfaToken + 6-digit code
+  // for a full session. No local fallback exists on this path by design.
+  // NOTE: the code is passed explicitly (not read from state) because the
+  // auto-submit timer fires from a stale render closure.
+  const verifyMfaCode = async (code: string) => {
+    const digits = code.trim();
+    if (!mfaToken || digits.length !== 6 || mfaLoading) return;
+    setMfaLoading(true);
+    setMfaError(null);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const response = await fetch('/api/auth/mfa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mfaToken, code: digits }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.token) {
+        throw new Error(
+          data.error || (isRtl ? 'رمز التحقق غير صحيح — حاول مجدداً' : 'Invalid code — try again')
+        );
+      }
+      localStorage.setItem('rbd_token', data.token);
+      if (data.refreshToken) localStorage.setItem('rbd_refresh_token', data.refreshToken);
+      const verifiedSession = {
+        id: data.user?.id || 'usr-master',
+        email: data.user?.email || '',
+        name: data.user?.name || data.user?.email || '',
+        role: data.user?.role || 'Institutional Lead',
+      };
+      localStorage.setItem('rbd_user', JSON.stringify(verifiedSession));
+      sessionStorage.setItem('rbd_user', JSON.stringify(verifiedSession));
+      localStorage.setItem('roh_user', JSON.stringify(verifiedSession));
+      setMfaToken(null);
+      setMfaCode('');
+      triggerHaptic('success');
+      onLoginSuccess(verifiedSession);
+    } catch (err: any) {
+      triggerHaptic('warning');
+      setMfaError(
+        err.name === 'AbortError'
+          ? (isRtl ? 'انتهت مهلة التحقق — أعد المحاولة' : 'Verification timed out — retry')
+          : (err.message || (isRtl ? 'فشل التحقق بخطوتين' : 'Two-step verification failed'))
+      );
+      setMfaCode('');
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const handleMfaVerify = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    void verifyMfaCode(mfaCode);
   };
 
   // Biometric / Device Sensor Sign-in Handler
@@ -1121,6 +1205,90 @@ export default function LoginView({
                       <span>{isRtl ? 'المصادقة ببصمة الإصبع أو الوجه للجهاز' : 'Sign in with Device Biometrics'}</span>
                     </button>
                   </div>
+                </form>
+              )}
+
+              {/* ────────────────────────────────────────────────────────── */}
+              {/* STEP 2FA: TOTP STEP-UP (server challenge only — no fallback) */}
+              {/* ────────────────────────────────────────────────────────── */}
+              {viewStep === 'mfa' && (
+                <form onSubmit={handleMfaVerify} className="space-y-4 animate-in fade-in duration-200" noValidate>
+                  <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50 rounded-2xl flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">
+                        {isRtl ? 'التحقق بخطوتين مطلوب' : 'Two-step verification required'}
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
+                        {isRtl ? 'أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة' : 'Enter the 6-digit code from your authenticator app'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-extrabold text-slate-700 dark:text-zinc-300 block">
+                        {isRtl ? 'رمز المصادقة' : 'Authenticator code'}
+                      </label>
+                      <span className={`text-[11px] font-mono font-bold ${mfaSecondsLeft <= 5 ? 'text-rose-600' : 'text-slate-400'}`} aria-live="polite">
+                        0:{String(mfaSecondsLeft).padStart(2, '0')}
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      dir="ltr"
+                      autoFocus
+                      value={mfaCode}
+                      onChange={e => {
+                        const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setMfaCode(digits);
+                        if (digits.length === 6) {
+                          // Pass the value explicitly — the timer closure would
+                          // otherwise capture the pre-update state
+                          setTimeout(() => { void verifyMfaCode(digits); }, 0);
+                        }
+                      }}
+                      placeholder="——————"
+                      aria-label={isRtl ? 'رمز التحقق المكون من 6 أرقام' : '6-digit verification code'}
+                      className="w-full py-3.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl text-center text-2xl font-black tracking-[0.5em] text-slate-900 dark:text-white placeholder-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all font-mono"
+                    />
+                    {mfaError && (
+                      <p role="alert" className="text-[11px] font-bold text-rose-600 dark:text-rose-400 pt-1">
+                        {mfaError}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={mfaLoading || mfaCode.length !== 6}
+                    className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 active:scale-[0.99] text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {mfaLoading ? (
+                      <Spinner size="md" variant="white" />
+                    ) : (
+                      <span>{isRtl ? 'تحقق وتسجيل الدخول' : 'Verify & sign in'}</span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMfaToken(null);
+                      setMfaCode('');
+                      setMfaError(null);
+                      setPassword('');
+                      setViewStep(selectedDesk ? 'authenticate' : 'direct');
+                    }}
+                    className="w-full py-2 text-[11px] font-bold text-slate-500 hover:text-slate-700 dark:hover:text-zinc-300 transition-colors cursor-pointer"
+                  >
+                    {isRtl ? 'رجوع إلى كلمة المرور' : 'Back to password'}
+                  </button>
                 </form>
               )}
 

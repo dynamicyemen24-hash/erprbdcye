@@ -21,6 +21,12 @@ import {
 import { TenderStatus, TenderType, TenderProcessType, AuctionType, AuctionStatus, BidStatus, EvaluationCriterionType } from '../features/procurement/tenderTypes';
 import { EnterpriseButton } from './common/EnterpriseButton';
 import { Spinner } from '../design-system/components/Spinner';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { Pagination } from '../design-system/components/Pagination';
+import { showToast } from './enterprise/EnterpriseToastContainer';
+import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 
 // ─── Type Definitions ────────────────────────────────────────────────────────
 
@@ -655,6 +661,11 @@ function TenderDetailDrawer({ open, onClose, tender: initialTender, bids: initia
   const [evaluatingBid, setEvaluatingBid] = useState<VendorBid | null>(null);
   const [auctionModalOpen, setAuctionModalOpen] = useState(false);
   const [auction, setAuction] = useState<Auction | null>(null);
+  // Destructive workflow steps are gated behind explicit confirms
+  const [confirmTransition, setConfirmTransition] = useState(false);
+  const [pendingTransition, setPendingTransition] = useState<string | null>(null);
+  const [confirmAward, setConfirmAward] = useState(false);
+  const [pendingAwardBidId, setPendingAwardBidId] = useState<string | null>(null);
   const t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
   useEffect(() => { setTender(initialTender); setBids(initialBids); }, [initialTender, initialBids]);
@@ -684,7 +695,19 @@ function TenderDetailDrawer({ open, onClose, tender: initialTender, bids: initia
     try {
       await apiTransitionTender(tender.id, toStatus);
       await refetch();
-    } catch (e: any) { setActionError(e.message); } finally { setLoading(false); }
+      setPendingTransition(null);
+      showToast({
+        type: 'success',
+        title: t('المناقصات', 'Tenders'),
+        message: t(
+          `تم نقل المناقصة ${tender.tender_number} إلى مرحلة «${transitionLabels[toStatus]?.ar || toStatus}»`,
+          `Tender ${tender.tender_number} moved to ${transitionLabels[toStatus]?.en || toStatus}`
+        ),
+      });
+    } catch (e: any) {
+      setActionError(e.message);
+      showToast({ type: 'error', title: t('المناقصات', 'Tenders'), message: e.message });
+    } finally { setLoading(false); }
   };
 
   const handleAward = async (winningBidId: string) => {
@@ -692,7 +715,19 @@ function TenderDetailDrawer({ open, onClose, tender: initialTender, bids: initia
     try {
       await apiAwardTender(tender.id, winningBidId);
       await refetch();
-    } catch (e: any) { setActionError(e.message); } finally { setLoading(false); }
+      setPendingAwardBidId(null);
+      showToast({
+        type: 'success',
+        title: t('المناقصات', 'Tenders'),
+        message: t(
+          `تمت ترسية المناقصة ${tender.tender_number} بنجاح — جارٍ إصدار أمر الشراء`,
+          `Tender ${tender.tender_number} awarded successfully — purchase order follows`
+        ),
+      });
+    } catch (e: any) {
+      setActionError(e.message);
+      showToast({ type: 'error', title: t('المناقصات', 'Tenders'), message: e.message });
+    } finally { setLoading(false); }
   };
 
   const sortedBids = useMemo(() => {
@@ -742,7 +777,7 @@ function TenderDetailDrawer({ open, onClose, tender: initialTender, bids: initia
         {availableTransitions.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {availableTransitions.map(ts => (
-              <EnterpriseButton key={ts} variant="primary" size="sm" onClick={() => handleTransition(ts)} disabled={loading}>
+              <EnterpriseButton key={ts} variant="primary" size="sm" onClick={() => { setPendingTransition(ts); setConfirmTransition(true); }} disabled={loading}>
                 {loading ? <Spinner size="xs" /> : <Zap className="w-3 h-3" />}
                 {t(transitionLabels[ts].ar, transitionLabels[ts].en)}
               </EnterpriseButton>
@@ -832,7 +867,7 @@ function TenderDetailDrawer({ open, onClose, tender: initialTender, bids: initia
                       <td className="py-2 font-mono text-end">{bid.computed_score?.toFixed(1) || '—'}</td>
                       <td className="py-2 text-center">
                         {tender.status === 'AWARD_PENDING' && (
-                          <EnterpriseButton variant="primary" size="xs" onClick={() => handleAward(bid.id)}>
+                          <EnterpriseButton variant="primary" size="xs" onClick={() => { setPendingAwardBidId(bid.id); setConfirmAward(true); }}>
                             <Award className="w-3 h-3" />
                           </EnterpriseButton>
                         )}
@@ -883,6 +918,33 @@ function TenderDetailDrawer({ open, onClose, tender: initialTender, bids: initia
           onRefresh={refetch}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmTransition}
+        onOpenChange={setConfirmTransition}
+        variant="warning"
+        title={t('تأكيد نقل المرحلة', 'Confirm stage transition')}
+        description={pendingTransition ? t(
+          `سيتم نقل المناقصة ${tender.tender_number} إلى مرحلة «${transitionLabels[pendingTransition]?.ar || pendingTransition}».`,
+          `Move tender ${tender.tender_number} to "${transitionLabels[pendingTransition]?.en || pendingTransition}"?`
+        ) : ''}
+        confirmLabel={t('نقل المرحلة', 'Transition')}
+        onConfirm={() => { if (pendingTransition) handleTransition(pendingTransition); }}
+        lang={lang}
+      />
+      <ConfirmDialog
+        open={confirmAward}
+        onOpenChange={setConfirmAward}
+        variant="destructive"
+        title={t('تأكيد الترسية النهائية', 'Confirm final award')}
+        description={t(
+          `ترسية المناقصة ${tender.tender_number} على هذا العرض نهائية وتطلق إصدار أمر الشراء.`,
+          `Awarding tender ${tender.tender_number} to this bid is final and triggers the purchase order.`
+        )}
+        confirmLabel={t('ترسية نهائية', 'Award now')}
+        onConfirm={() => { if (pendingAwardBidId) handleAward(pendingAwardBidId); }}
+        lang={lang}
+      />
     </Modal>
   );
 }
@@ -904,6 +966,11 @@ export default function TenderWorkspaceView({
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [statusFilter, setStatusFilter] = useState<TenderStatus | ''>('');
   const [searchQuery, setSearchQuery] = useState('');
+  // Debounced tender search — board re-filters 300ms after typing stops
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+  // Registry table pagination (10 rows/page)
+  const [tendersPage, setTendersPage] = useState(1);
+  const TENDERS_PAGE_SIZE = 10;
 
   const kanbanLanes: { id: TenderStatus; title: { ar: string; en: string }; icon: React.ElementType }[] = [
     { id: 'DRAFT', title: { ar: 'المسودات', en: 'Drafts' }, icon: FileText },
@@ -920,12 +987,20 @@ export default function TenderWorkspaceView({
   const filteredTenders = useMemo(() => {
     return tenders.filter(tender => {
       const matchesStatus = !statusFilter || tender.status === statusFilter;
-      const q = searchQuery.toLowerCase();
+      const q = debouncedSearchQuery.toLowerCase();
       const matchesSearch = !q || (tender.tender_number || '').toLowerCase().includes(q)
         || (tender.title_ar || '').toLowerCase().includes(q) || (tender.title_en || '').toLowerCase().includes(q);
       return matchesStatus && matchesSearch;
     });
-  }, [tenders, statusFilter, searchQuery]);
+  }, [tenders, statusFilter, debouncedSearchQuery]);
+
+  // Paged slice for the registry table (kanban lanes always show full counts)
+  const tendersTotalPages = Math.max(1, Math.ceil(filteredTenders.length / TENDERS_PAGE_SIZE));
+  const safeTendersPage = Math.min(tendersPage, tendersTotalPages);
+  const pagedTenders = filteredTenders.slice(
+    (safeTendersPage - 1) * TENDERS_PAGE_SIZE,
+    safeTendersPage * TENDERS_PAGE_SIZE
+  );
 
   const openTenderDetail = useCallback((tender: Tender) => {
     setDetailTender(tender);
@@ -936,7 +1011,15 @@ export default function TenderWorkspaceView({
     });
   }, []);
 
-  const handleCreateSuccess = () => { refetchTenders(); onRefresh?.(); };
+  const handleCreateSuccess = () => {
+    refetchTenders();
+    onRefresh?.();
+    showToast({
+      type: 'success',
+      title: t('المناقصات', 'Tenders'),
+      message: t('تم إنشاء المناقصة وإضافتها إلى اللوحة بنجاح', 'Tender created and added to the board'),
+    });
+  };
   const handleCloseDetail = () => { setDetailTender(null); setDetailBids([]); };
   const handleDetailRefresh = () => {
     if (detailTender?.id) {
@@ -997,9 +1080,10 @@ export default function TenderWorkspaceView({
           <div className="relative flex-1">
             <input type="text"
               placeholder={t('بحث برقم المناقصة أو العنوان...', 'Search by tender number or title...')}
-              value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 pr-10 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 text-sm font-semibold" />
-            <Search className={`w-4 h-4 text-slate-400 absolute ${isRtl ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2`} />
+              aria-label={t('بحث المناقصات', 'Search tenders')}
+              value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setTendersPage(1); }}
+              className={`w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 text-sm font-semibold ${isRtl ? 'pr-10' : 'pl-10'}`} />
+            <Search className={`w-4 h-4 text-slate-400 absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2`} aria-hidden="true" />
           </div>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as TenderStatus | '')}
             className="px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 text-xs font-black cursor-pointer">
@@ -1021,8 +1105,13 @@ export default function TenderWorkspaceView({
 
       {/* Error State */}
       {tendersError && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
-          <p className="text-xs font-black text-rose-700 flex items-center gap-2"><AlertCircle className="w-4 h-4" />{tendersError}</p>
+        <div className="bg-white dark:bg-zinc-900 border border-rose-200 dark:border-rose-900/50 rounded-2xl overflow-hidden">
+          <ErrorState
+            title={t('تعذر تحميل المناقصات', 'Failed to load tenders')}
+            message={typeof tendersError === 'string' ? tendersError : (tendersError as any)?.message}
+            onRetry={refetchTenders}
+            lang={lang}
+          />
         </div>
       )}
 {/* Kanban Board */}
@@ -1049,7 +1138,23 @@ export default function TenderWorkspaceView({
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-xs overflow-x-auto">
           <h3 className="text-xs font-black text-slate-800 dark:text-white mb-3">{t('جدول المناقصات', 'Tenders Registry')}</h3>
           {filteredTenders.length === 0 ? (
-            <p className="text-[11px] text-slate-400 font-bold text-center py-6">{t('لا توجد مناقصات مطابقة لمعايير البحث.', 'No tenders match your search.')}</p>
+            <EmptyState
+              variant={searchQuery || statusFilter ? 'search' : 'empty'}
+              title={t('لا توجد مناقصات مطابقة', 'No matching tenders')}
+              description={t('جرب كلمات مختلفة أو أزل الفلاتر — أو أنشئ مناقصة جديدة', 'Try different keywords or clear filters — or create a new tender')}
+              actions={[
+                {
+                  label: t('مسح الفلاتر', 'Clear filters'),
+                  variant: 'secondary',
+                  onClick: () => { setSearchQuery(''); setStatusFilter(''); },
+                },
+                {
+                  label: t('مناقصة جديدة', 'New tender'),
+                  onClick: () => setCreateModalOpen(true),
+                },
+              ]}
+              lang={lang}
+            />
           ) : (
             <table className="w-full text-[10px] font-bold">
               <thead>
@@ -1065,7 +1170,7 @@ export default function TenderWorkspaceView({
                 </tr>
               </thead>
               <tbody>
-                {filteredTenders.map(tnd => (
+                {pagedTenders.map(tnd => (
                   <tr key={tnd.id} className="border-b border-slate-100 hover:bg-slate-50 dark:hover:bg-zinc-800/50">
                     <td className="py-2 px-2 font-mono text-slate-600">{tnd.tender_number}</td>
                     <td className="py-2 px-2 text-slate-800 dark:text-white max-w-[200px] truncate">{lang === 'ar' ? tnd.title_ar : (tnd.title_en || tnd.title_ar)}</td>
@@ -1084,6 +1189,18 @@ export default function TenderWorkspaceView({
                 ))}
               </tbody>
             </table>
+          )}
+          {tendersTotalPages > 1 && (
+            <div className="pt-3">
+              <Pagination
+                currentPage={safeTendersPage}
+                totalPages={tendersTotalPages}
+                totalItems={filteredTenders.length}
+                pageSize={TENDERS_PAGE_SIZE}
+                onPageChange={setTendersPage}
+                lang={lang}
+              />
+            </div>
           )}
         </div>
       )}

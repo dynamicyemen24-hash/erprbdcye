@@ -4,7 +4,7 @@
  * on large datasets. Supports forward/backward pagination.
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
 interface PaginationParams {
   /** Maximum items per page (default: 25, max: 100) */
@@ -166,7 +166,7 @@ export function formatPaginatedResponse<T extends Record<string, any>>(
 /**
  * Express middleware that adds pagination helpers to response.
  */
-export function paginationMiddleware(req: Request, res: Response, next: Function): void {
+export function paginationMiddleware(req: Request, res: Response, next: NextFunction): void {
   const params = parsePaginationParams(req);
 
   // Attach pagination params to request

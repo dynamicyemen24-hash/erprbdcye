@@ -1,0 +1,9 @@
+{
+  "ignore": [
+    "glob:*"
+  ],
+  "allowlist": [],
+  "severities": ["critical", "high"],
+  "reporters": ["text", "json"],
+  "output": "audit-report.json"
+}

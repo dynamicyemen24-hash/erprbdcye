@@ -8,7 +8,9 @@ export class EnterpriseApiService {
   private static baseUrl = '/api';
 
   private static getHeaders(customHeaders?: HeadersInit): HeadersInit {
-    let orgId = '00000000-0000-0000-0000-000000000001';
+    // No hardcoded default org: the server scopes data from the JWT claim.
+    // The header is a routing hint only and is omitted when unknown.
+    let orgId = '';
     let token = '';
     try {
       const savedOrg = localStorage.getItem('nexora_active_org');
@@ -32,9 +34,12 @@ export class EnterpriseApiService {
     const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'x-organization-id': orgId,
       'x-environment-mode': envMode,
     };
+
+    if (orgId) {
+      defaultHeaders['x-organization-id'] = orgId;
+    }
 
     if (token) {
       defaultHeaders['Authorization'] = `Bearer ${token}`;

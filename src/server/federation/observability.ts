@@ -189,7 +189,7 @@ export class ObservabilityEngine {
       await query(`
         INSERT INTO slo_definitions (
           slo_id, service_name, slo_name, description, sli_numerator_query,
-          sli_denominator_query, target, window, burn_rate_threshold,
+          sli_denominator_query, target, window_size, burn_rate_threshold,
           alert_channel, tenant_id, active
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       `, [

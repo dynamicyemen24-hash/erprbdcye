@@ -14,6 +14,8 @@ import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
+import { showToast } from './enterprise/EnterpriseToastContainer';
+import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 import ProcurementTab from './finance/ProcurementTab';
 import VendorRecommendationEngineView from '../features/procurement/VendorRecommendationEngineView';
 import VendorPerformanceAnalyticsView from '../features/procurement/VendorPerformanceAnalyticsView';
@@ -62,6 +64,8 @@ export default function ProcurementWorkspaceView({
   const isRtl = lang === 'ar';
   const [activeSubTab, setActiveSubTab] = useState<'core_p2p' | 'vendors' | 'forecasting' | 'ai_recommendation' | 'analytics' | 'forms'>('core_p2p');
   const [searchVendorQuery, setSearchVendorQuery] = useState('');
+  // Debounced vendor search — grid re-filters 300ms after typing stops
+  const debouncedVendorQuery = useDebouncedValue(searchVendorQuery, 300);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [isRegisterVendorModalOpen, setIsRegisterVendorModalOpen] = useState(false);
 
@@ -169,7 +173,14 @@ export default function ProcurementWorkspaceView({
 
   const handleCreateVendor = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newVendorForm.name_ar) return;
+    if (!newVendorForm.name_ar) {
+      showToast({
+        type: 'error',
+        title: isRtl ? 'تسجيل الموردين' : 'Vendor registry',
+        message: isRtl ? 'يرجى إدخال اسم المورد بالعربية' : 'Vendor Arabic name is required',
+      });
+      return;
+    }
 
     const newVnd: VendorProfile = {
       id: `vnd-${Date.now()}`,
@@ -191,6 +202,13 @@ export default function ProcurementWorkspaceView({
 
     setVendors(prev => [newVnd, ...prev]);
     setIsRegisterVendorModalOpen(false);
+    showToast({
+      type: 'success',
+      title: isRtl ? 'تسجيل الموردين' : 'Vendor registry',
+      message: isRtl
+        ? `تم اعتماد المورد «${newVnd.name_ar}» برمز ${newVnd.code}`
+        : `Vendor "${newVnd.name_en}" qualified as ${newVnd.code}`,
+    });
     setNewVendorForm({
       name_ar: '',
       name_en: '',
@@ -206,17 +224,18 @@ export default function ProcurementWorkspaceView({
 
   // Filtered vendors
   const filteredVendors = useMemo(() => {
+    const q = debouncedVendorQuery.toLowerCase();
     return vendors.filter(v => {
-      const matchesQuery = 
-        v.name_ar.toLowerCase().includes(searchVendorQuery.toLowerCase()) ||
-        v.name_en.toLowerCase().includes(searchVendorQuery.toLowerCase()) ||
-        v.code.toLowerCase().includes(searchVendorQuery.toLowerCase()) ||
-        v.contact_person.toLowerCase().includes(searchVendorQuery.toLowerCase());
-      
+      const matchesQuery =
+        v.name_ar.toLowerCase().includes(q) ||
+        v.name_en.toLowerCase().includes(q) ||
+        v.code.toLowerCase().includes(q) ||
+        v.contact_person.toLowerCase().includes(q);
+
       const matchesCategory = selectedCategory === 'ALL' || v.category === selectedCategory;
       return matchesQuery && matchesCategory;
     });
-  }, [vendors, searchVendorQuery, selectedCategory]);
+  }, [vendors, debouncedVendorQuery, selectedCategory]);
 
   // Aggregate Metrics
   const totalVendors = vendors.length;
@@ -562,15 +581,15 @@ export default function ProcurementWorkspaceView({
           {/* Controls Bar */}
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
             <div className="relative w-full sm:w-96">
-              <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" 
-                      style={!isRtl ? { right: 'auto', left: '12px' } : {}} />
+              <Search className={`w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3' : 'left-3'}`}
+                      aria-hidden="true" />
               <input
                 type="text"
                 value={searchVendorQuery}
                 onChange={(e) => setSearchVendorQuery(e.target.value)}
                 placeholder={isRtl ? 'ابحث باسم المورد، الرمز، أو مسؤول الاتصال...' : 'Search vendor name, code, contact...'}
-                className="w-full pl-3 pr-9 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500"
-                style={!isRtl ? { paddingRight: '12px', paddingLeft: '36px' } : {}}
+                aria-label={isRtl ? 'بحث الموردين' : 'Search vendors'}
+                className={`w-full py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500 ${isRtl ? 'pl-3 pr-9' : 'pr-3 pl-9'}`}
               />
             </div>
 
@@ -603,11 +622,24 @@ export default function ProcurementWorkspaceView({
           {/* Vendors Grid */}
           {filteredVendors.length === 0 ? (
             <EmptyState
-              variant="empty"
+              variant={searchVendorQuery || selectedCategory !== 'ALL' ? 'search' : 'empty'}
               title="No vendors found"
               titleAr="لا توجد نتائج مطابقة"
-              description="Try adjusting your search or category filter."
-              descriptionAr="حاول تعديل البحث أو فئة التصفية."
+              description="Try adjusting your search or category filter — or register a new vendor."
+              descriptionAr="حاول تعديل البحث أو فئة التصفية — أو سجّل مورداً جديداً."
+              actions={[
+                {
+                  label: 'Clear filters',
+                  labelAr: 'مسح الفلاتر',
+                  variant: 'secondary',
+                  onClick: () => { setSearchVendorQuery(''); setSelectedCategory('ALL'); },
+                },
+                {
+                  label: 'Add vendor',
+                  labelAr: 'إضافة مورد',
+                  onClick: () => setIsRegisterVendorModalOpen(true),
+                },
+              ]}
               lang={lang}
             />
           ) : (

@@ -14,7 +14,15 @@ export function cacheMiddleware(options: CacheOptions = {}) {
     if (req.method !== 'GET') return next();
     if (conditions && !conditions(req, res)) return next();
 
-    const key = keyGenerator ? keyGenerator(req) : `${(req as any).user?.orgId || 'global'}:${req.originalUrl}`;
+    // Tenant-scoped cache key. The canonical JWT claim is `org_id`
+    // (auth.middleware / server.ts authenticateToken); `orgId` / `organizationId`
+    // are accepted as legacy aliases. Never cache across tenants.
+    const tenant = (req as any).user?.org_id
+      || (req as any).user?.orgId
+      || (req as any).user?.organizationId
+      || (req as any).userContext?.organizationId
+      || 'global';
+    const key = keyGenerator ? keyGenerator(req) : `${tenant}:${req.originalUrl}`;
     const cached = apiCache.get(key);
 
     if (cached) {

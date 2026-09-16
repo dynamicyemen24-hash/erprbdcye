@@ -104,10 +104,11 @@ export async function seedGlobalReferenceData(pool: pg.Pool): Promise<void> {
     `);
 
     // ── Currencies (global ISO 4217, org-nullable = shared catalog) ──
+    // NOTE: matches the real currencies schema (is_base, no exchange_rate).
     for (const [code, ar, en, symbol, isBase] of CURRENCIES) {
       await client.query(
-        `INSERT INTO currencies (code, name_ar, name_en, symbol, exchange_rate, is_base_currency, is_active)
-         VALUES ($1, $2, $3, $4, 1, $5, true)
+        `INSERT INTO currencies (code, name_ar, name_en, symbol, is_base, is_active)
+         VALUES ($1, $2, $3, $4, $5, true)
          ON CONFLICT (code) DO NOTHING`,
         [code, ar, en, symbol, isBase]
       );

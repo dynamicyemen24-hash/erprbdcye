@@ -21,11 +21,17 @@ services:
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET must be set}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - CORS_ORIGINS=${CORS_ORIGINS:-https://erprbdcye.org}
-      - REDIS_ENABLED=${REDIS_ENABLED:-false}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - REDIS_ENABLED=${REDIS_ENABLED:-true}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - LOG_DRAIN_URL=${LOG_DRAIN_URL:-}
+      - WORKER_ENABLED=${WORKER_ENABLED:-true}
+      - DB_POOL_MAX=${DB_POOL_MAX:-10}
+      - DB_SSL_STRICT=${DB_SSL_STRICT:-false}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health/liveness"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v2/health/liveness"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -96,6 +102,34 @@ services:
       - nexora-network
     profiles:
       - with-redis
+
+  # ─── Background Worker (durable PG queue consumer) ─────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: nexoraos-worker
+    restart: unless-stopped
+    command: ["node", "dist/server.cjs"]
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - WORKER_ONLY=true
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL must be set}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET must be set}
+      - REDIS_ENABLED=${REDIS_ENABLED:-true}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - nexora-network
+    stop_grace_period: 30s
+    profiles:
+      - with-worker
 
 volumes:
   pgdata:

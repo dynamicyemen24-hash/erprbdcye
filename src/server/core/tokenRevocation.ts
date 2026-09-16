@@ -14,6 +14,7 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import logger from './logger';
+import { getRequestToken } from './cookies';
 
 // ─── In-Memory Blacklist (fast path) ────────────────────────────────────────
 
@@ -100,13 +101,17 @@ export function revokeToken(token: string, reason: string = 'logout'): void {
 
 /**
  * Revoke all tokens for a specific user.
+ * User-wide entries are namespaced `all:<reason>` so isTokenRevoked can
+ * match them deterministically (previously only reasons containing the
+ * substring 'all' matched, silently sparing password_change/mfa_disabled).
  */
 export function revokeAllUserTokens(userId: string, reason: string = 'security'): void {
+  const namespacedReason = reason === 'all' || reason.startsWith('all:') ? reason : `all:${reason}`;
   const revokeEntry: BlacklistEntry = {
     tokenFingerprint: `user:${userId}:${Date.now()}`,
     userId,
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-    reason,
+    reason: namespacedReason,
     revokedAt: new Date(),
   };
 
@@ -135,11 +140,11 @@ export function isTokenRevoked(token: string): boolean {
       return true;
     }
 
-    // 2. Check user-wide revocation
+    // 2. Check user-wide revocation (namespaced `all[:reason]`)
     const userId = decoded.id || decoded.sub;
     if (userId) {
       for (const [, entry] of memoryBlacklist) {
-        if (entry.userId === userId && entry.reason.includes('all')) {
+        if (entry.userId === userId && (entry.reason === 'all' || entry.reason.startsWith('all:'))) {
           return true;
         }
       }
@@ -208,15 +213,12 @@ export async function loadBlacklistFromDb(): Promise<void> {
 
 /**
  * Middleware to check if the current token has been revoked.
+ * Inspects BOTH transports (Bearer header and nx_at HttpOnly cookie) —
+ * checking only Bearer let revoked sessions pass via cookie auth.
  */
 export function tokenRevocationMiddleware() {
   return (req: any, res: any, next: any) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next();
-    }
-
-    const token = authHeader.split(' ')[1];
+    const token: string | null = getRequestToken(req);
     if (!token) return next();
 
     if (isTokenRevoked(token)) {

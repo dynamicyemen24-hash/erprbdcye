@@ -38,6 +38,8 @@ export interface DataTableColumn<T = any> {
   header: string;
   headerAr?: string;
   accessor: (row: T, index: number) => React.ReactNode;
+  /** Plain-text extractor for CSV export (defaults to primitive unwrapping) */
+  exportValue?: (row: T, index: number) => string | number | boolean | null | undefined;
   sortable?: boolean;
   align?: ColumnAlign;
   width?: string | number;
@@ -88,6 +90,10 @@ export interface DataTableProps<T = any> {
   lang?: 'ar' | 'en';
   /** Table className */
   className?: string;
+  /** Show CSV export toolbar (exports current sort; selected rows when any) */
+  exportable?: boolean;
+  /** Export filename without extension */
+  exportFilename?: string;
 }
 
 // ─── Context ──────────────────────────────────────────────────
@@ -206,6 +212,8 @@ export function DataTable<T = any>({
   emptyIcon,
   lang = 'ar',
   className,
+  exportable = false,
+  exportFilename = 'export',
 }: DataTableProps<T>) {
   const { direction } = useDirection();
   const isRtl = direction === 'rtl';
@@ -284,6 +292,52 @@ export function DataTable<T = any>({
   const cellClass = DENSITY_CLASSES[density].cell;
   const headerClass = DENSITY_CLASSES[density].header;
 
+  // CSV export — honors current sort; exports the selection when any rows
+  // are checked, otherwise the full sorted view. A BOM prefix keeps Arabic
+  // intact when the file is opened in Excel.
+  const BOM = '﻿';
+  const handleExportCsv = useCallback(() => {
+    const rows =
+      selectionMode === 'multi' && selectedKeys.size > 0
+        ? sortedData.filter((row, i) => selectedKeys.has(keyExtractor(row, i)))
+        : sortedData;
+    const escapeCell = (value: unknown): string => {
+      if (value === null || value === undefined) return '';
+      const text = String(value).replace(/\r?\n/g, ' ');
+      return /[",;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const cellText = (col: DataTableColumn<T>, row: T, idx: number): string => {
+      try {
+        if (col.exportValue) {
+          const v = col.exportValue(row, idx);
+          return v === null || v === undefined ? '' : String(v);
+        }
+        const v = col.accessor(row, idx) as unknown;
+        if (v === null || v === undefined) return '';
+        if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+        return '';
+      } catch {
+        return '';
+      }
+    };
+    const headerLine = columns
+      .map((col) => escapeCell(lang === 'ar' ? col.headerAr || col.header : col.header))
+      .join(',');
+    const bodyLines = rows.map((row, i) =>
+      columns.map((col) => escapeCell(cellText(col, row, i))).join(',')
+    );
+    const csv = BOM + [headerLine, ...bodyLines].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${exportFilename}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [sortedData, selectedKeys, selectionMode, columns, keyExtractor, lang, exportFilename]);
+
   return (
     <TableContext.Provider value={{ density, lang, isRtl }}>
       <div
@@ -293,6 +347,35 @@ export function DataTable<T = any>({
           className
         )}
       >
+        {exportable && (
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50/60 dark:bg-zinc-800/30">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+              {selectionMode === 'multi' && selectedKeys.size > 0
+                ? isRtl
+                  ? `سيتم تصدير ${selectedKeys.size} صفوف محددة`
+                  : `Will export ${selectedKeys.size} selected rows`
+                : isRtl
+                  ? `${sortedData.length} صفوف — مرتبة حسب العرض الحالي`
+                  : `${sortedData.length} rows — current sort order`}
+            </p>
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              disabled={sortedData.length === 0}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors',
+                'border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300',
+                'hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+              )}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              {isRtl ? 'تصدير CSV' : 'Export CSV'}
+            </button>
+          </div>
+        )}
         <div
           className="overflow-auto"
           style={{ maxHeight: maxHeight || undefined }}

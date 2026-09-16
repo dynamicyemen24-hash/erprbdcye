@@ -31,6 +31,7 @@ WORKDIR /app
 COPY --from=deps-prod /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/package.json ./
+COPY --from=build /app/migrations ./migrations
 COPY public ./public
 
 ENV NODE_ENV=production
@@ -40,8 +41,9 @@ USER nexora
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=15s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health/liveness || exit 1
+# Canonical health endpoint — must match render.yaml healthCheckPath
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=30s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/v2/health/liveness || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/server/index.js"]
+CMD ["node", "dist/server.cjs"]

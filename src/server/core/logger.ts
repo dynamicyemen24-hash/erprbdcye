@@ -80,6 +80,12 @@ class Logger {
   private config: LoggerConfig;
   private stream: fs.WriteStream | null = null;
   private currentDate: string = '';
+  // Optional HTTP log drain (Better Stack / Loki / Datadog): warn+ JSON lines,
+  // batched every 5s. Local files remain the primary sink; the drain is additive.
+  private drainUrl: string = process.env.LOG_DRAIN_URL || '';
+  private drainQueue: string[] = [];
+  private drainTimer: NodeJS.Timeout | null = null;
+  private drainInFlight = false;
 
   constructor(config?: Partial<LoggerConfig>) {
     this.config = {
@@ -152,6 +158,51 @@ class Logger {
     if (entry.meta) entry.meta = maskSensitiveData(entry.meta) as Record<string, any>;
     if (this.config.console) console.log(this.formatEntry(entry));
     if (this.stream) this.stream.write(this.formatEntry(entry) + '\n');
+    if (this.drainUrl && LEVEL_PRIORITY[level] >= LEVEL_PRIORITY.warn) {
+      this.enqueueDrain(JSON.stringify(entry));
+    }
+  }
+
+  private enqueueDrain(line: string): void {
+    // Bound memory: drop oldest when the drain is backed up.
+    if (this.drainQueue.length >= 1000) this.drainQueue.splice(0, 500);
+    this.drainQueue.push(line);
+    if (this.drainQueue.length >= 50) {
+      void this.flushDrain();
+      return;
+    }
+    if (!this.drainTimer) {
+      this.drainTimer = setTimeout(() => void this.flushDrain(), 5000);
+      if (typeof this.drainTimer.unref === 'function') this.drainTimer.unref();
+    }
+  }
+
+  private async flushDrain(): Promise<void> {
+    if (this.drainTimer) {
+      clearTimeout(this.drainTimer);
+      this.drainTimer = null;
+    }
+    if (!this.drainUrl || this.drainInFlight || this.drainQueue.length === 0) return;
+    this.drainInFlight = true;
+    const batch = this.drainQueue.splice(0, 200);
+    try {
+      const doFetch = (globalThis as any).fetch;
+      if (typeof doFetch === 'function') {
+        await doFetch(this.drainUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: batch.join('\n'),
+        });
+      }
+    } catch {
+      // Dropped batch — local files remain the source of truth
+    } finally {
+      this.drainInFlight = false;
+      if (this.drainQueue.length > 0) {
+        this.drainTimer = setTimeout(() => void this.flushDrain(), 5000);
+        if (typeof this.drainTimer.unref === 'function') this.drainTimer.unref();
+      }
+    }
   }
 
   debug(message: string, extra?: Partial<LogEntry>): void { this.write('debug', message, extra); }

@@ -1173,9 +1173,9 @@ export async function runEnterpriseSchemaCompletion(poolInstance: pg.Pool): Prom
 
       CREATE SEQUENCE IF NOT EXISTS revenue_batch_seq START 1;
 
-      // ═══════════════════════════════════════════════════════════════════════
-      // NEB-15 Revenue Schedules — Future-Dated & Recurring Revenue
-      // ═══════════════════════════════════════════════════════════════════════
+      -- ═══════════════════════════════════════════════════════════════════════
+      -- NEB-15 Revenue Schedules — Future-Dated & Recurring Revenue
+      -- ═══════════════════════════════════════════════════════════════════════
       CREATE TABLE IF NOT EXISTS revenue_schedules (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
         organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
@@ -1228,9 +1228,9 @@ export async function runEnterpriseSchemaCompletion(poolInstance: pg.Pool): Prom
 
       CREATE SEQUENCE IF NOT EXISTS revenue_schedule_seq START 1;
 
-      // ═══════════════════════════════════════════════════════════════════════
-      // NEB-15 Funding Caps — Ceiling Enforcement & Monitoring
-      // ═══════════════════════════════════════════════════════════════════════
+      -- ═══════════════════════════════════════════════════════════════════════
+      -- NEB-15 Funding Caps — Ceiling Enforcement & Monitoring
+      -- ═══════════════════════════════════════════════════════════════════════
       CREATE TABLE IF NOT EXISTS funding_caps (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
         organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,

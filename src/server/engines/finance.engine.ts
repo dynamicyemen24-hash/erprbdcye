@@ -14,6 +14,7 @@ import {
   generateTxNumber, auditLog, AuthContext
 } from '../core/helpers';
 import logger from '../core/logger';
+import crypto from 'crypto';
 
 // ─── Chart of Accounts ─────────────────────────────────
 
@@ -82,7 +83,7 @@ export class ChartOfAccountsService {
     });
   }
 
-  static async update(id: string, data: {
+  static async update(orgId: string, id: string, data: {
     nameAr?: string;
     nameEn?: string;
     isActive?: boolean;
@@ -96,17 +97,18 @@ export class ChartOfAccountsService {
     if (data.isActive !== undefined) { sets.push(`is_active = $${idx++}`); values.push(data.isActive); }
 
     if (sets.length === 0) return null;
-    values.push(id);
+    values.push(id, orgId);
 
+    // Tenant-scoped: a caller can only mutate accounts of its own organization.
     const result = await queryOne(
-      `UPDATE chart_of_accounts SET ${sets.join(', ')} WHERE id = $${idx} RETURNING *`,
+      `UPDATE chart_of_accounts SET ${sets.join(', ')} WHERE id = $${idx++} AND organization_id = $${idx} RETURNING *`,
       values
     );
     return result;
   }
 
-  static async delete(id: string) {
-    // Soft delete - check for transactions first
+  static async delete(orgId: string, id: string) {
+    // Tenant-scoped soft delete - check for transactions first
     const txCount = await queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM transaction_lines WHERE account_id = $1`,
       [id]
@@ -114,7 +116,7 @@ export class ChartOfAccountsService {
     if (parseInt(txCount?.count || '0') > 0) {
       throw new Error('Cannot delete account with existing transactions. Deactivate instead.');
     }
-    await query('UPDATE chart_of_accounts SET deleted_at = NOW() WHERE id = $1', [id]);
+    await query('UPDATE chart_of_accounts SET deleted_at = NOW() WHERE id = $1 AND organization_id = $2', [id, orgId]);
   }
 
   static async getTree(orgId: string) {
@@ -152,43 +154,68 @@ export class LedgerEngine {
   /**
    * Post a double-entry voucher (IPSAS compliant)
    */
-  static async postVoucher(entry: VoucherEntry, auth: AuthContext) {
-    if (!entry.organizationId || entry.organizationId !== auth.orgId) {
-      throw new Error('لا يمكن ترحيل قيد خارج نطاق المنظمة الحالية');
-    }
-    if (!entry.description?.trim()) {
-      throw new Error('وصف القيد إلزامي لأغراض التدقيق والتتبع');
-    }
-    // Validate balance
-    const totalDebit = entry.lines.reduce((s, l) => s + Number(l.debit), 0);
-    const totalCredit = entry.lines.reduce((s, l) => s + Number(l.credit), 0);
+static async postVoucher(entry: VoucherEntry, auth: AuthContext) {
+     if (!entry.organizationId || entry.organizationId !== auth.orgId) {
+       throw new Error('لا يمكن ترحيل قيد خارج نطاق المنظمة الحالية');
+     }
+     if (!entry.description?.trim()) {
+       throw new Error('وصف القيد إلزامي لأغراض التدقيق والتتبع');
+     }
+     // Validate balance
+     const totalDebit = entry.lines.reduce((s, l) => s + Number(l.debit), 0);
+     const totalCredit = entry.lines.reduce((s, l) => s + Number(l.credit), 0);
 
-    if (Math.abs(totalDebit - totalCredit) > 0.01) {
-      throw new Error(`IPSAS Validation: Debit (${totalDebit}) ≠ Credit (${totalCredit})`);
-    }
+     if (Math.abs(totalDebit - totalCredit) > 0.01) {
+       throw new Error(`IPSAS Validation: Debit (${totalDebit}) ≠ Credit (${totalCredit})`);
+     }
 
-    if (totalDebit === 0) {
-      throw new Error('Transaction amount cannot be zero');
-    }
+     if (totalDebit === 0) {
+       throw new Error('Transaction amount cannot be zero');
+     }
 
-    if (entry.lines.length < 2) {
-      throw new Error('Double-entry requires at least 2 lines');
-    }
-    const invalidLine = entry.lines.find(line => {
-      const debit = Number(line.debit);
-      const credit = Number(line.credit);
-      return !Number.isFinite(debit) || !Number.isFinite(credit) || debit < 0 || credit < 0 || (debit > 0 && credit > 0) || (debit === 0 && credit === 0);
-    });
-    if (invalidLine) {
-      throw new Error('كل سطر محاسبي يجب أن يحتوي على مدين أو دائن موجب واحد فقط');
-    }
+     if (entry.lines.length < 2) {
+       throw new Error('Double-entry requires at least 2 lines');
+     }
+     const invalidLine = entry.lines.find(line => {
+       const debit = Number(line.debit);
+       const credit = Number(line.credit);
+       return !Number.isFinite(debit) || !Number.isFinite(credit) || debit < 0 || credit < 0 || (debit > 0 && credit > 0) || (debit === 0 && credit === 0);
+     });
+     if (invalidLine) {
+       throw new Error('كل سطر محاسبي يجب أن يحتوي على مدين أو دائن موجب واحد فقط');
+     }
 
-    return await transaction(async (client) => {
-      // Mandatory Budget Availability Check (NEB-10 / NEB-14 Compliance)
+     // IPSAS 23: Enforce Fund/Donor dimension as mandatory
+     const lineWithMissingFund = entry.lines.find(l => !l.fundId);
+     if (lineWithMissingFund) {
+       throw new Error('Fund/Donor segment (بُعد المانح والمنحة) is mandatory for all journal entries per IPSAS 23');
+     }
+
+     // Check period lock status
+     const fiscalPeriodId = entry.fiscalPeriodId;
+     if (fiscalPeriodId) {
+       const periodLocked = await PeriodLockService.isPeriodLocked(entry.organizationId, fiscalPeriodId);
+       if (periodLocked) {
+         const periodInfo = await queryOne(
+           `SELECT is_hard_closed FROM fiscal_periods WHERE id = $1 AND organization_id = $2`,
+           [fiscalPeriodId, entry.organizationId]
+         );
+         if (periodInfo?.is_hard_closed) {
+           throw new Error('Period is permanently closed (Hard Lock). No modifications allowed.');
+         }
+         throw new Error('Period is soft-locked. CFO approval required for posting.');
+       }
+     }
+
+     return await transaction(async (client) => {
+      // Mandatory Budget Availability Check (NEB-10 / NEB-14 Compliance).
+      // FOR UPDATE locks the project row for the duration of this transaction:
+      // without it, two concurrent postings can both pass the check and jointly
+      // overspend the budget (TOCTOU). The lock serializes competing postings.
       const targetProjectId = entry.lines.find(l => l.projectId)?.projectId;
       if (targetProjectId) {
         const projRes = await client.query(
-          'SELECT budget, COALESCE(spent_amount, 0) as spent, name_ar FROM projects WHERE id = $1 AND (organization_id = $2 OR organization_id IS NULL)',
+          'SELECT budget, COALESCE(spent_amount, 0) as spent, name_ar FROM projects WHERE id = $1 AND (organization_id = $2 OR organization_id IS NULL) FOR UPDATE',
           [targetProjectId, entry.organizationId]
         );
         if (projRes.rows && projRes.rows.length > 0) {
@@ -231,12 +258,13 @@ export class LedgerEngine {
         throw new Error('يوجد حساب غير نشط أو غير تابع للمنظمة الحالية');
       }
 
-      // 1. Insert transaction header
+      // 1. Insert transaction header (column names match the real schema:
+      // reference_number / created_by — NOT reference_no / created_by_id)
       const txResult = await client.query(
         `INSERT INTO transactions
          (organization_id, transaction_number, transaction_date, posting_date,
-          transaction_type, description, reference_no, fiscal_year_id,
-          total_debit, total_credit, status, created_by_id)
+          transaction_type, description, reference_number, fiscal_year_id,
+          total_debit, total_credit, status, created_by)
          VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE, $3, $4, $5, $6, $7, $8, 'POSTED', $9)
          RETURNING id, transaction_number`,
         [
@@ -255,15 +283,16 @@ export class LedgerEngine {
       const txId = txResult.rows[0].id;
       const txNumber = txResult.rows[0].transaction_number;
 
-      // 2. Insert transaction lines
+// 2. Insert transaction lines with full 7-dimensional support
       for (let i = 0; i < entry.lines.length; i++) {
         const line = entry.lines[i];
         await client.query(
           `INSERT INTO transaction_lines
            (transaction_id, organization_id, line_number, account_id,
-            debit, credit, currency_code, exchange_rate, description,
-            project_id, activity_id, party_id)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+            debit_amount, credit_amount, currency_code, description,
+            project_id, activity_id, fund_id, donor_id, cost_center_id,
+            intercompany_id, secondary_dimension_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
           [
             txId,
             entry.organizationId,
@@ -272,11 +301,14 @@ export class LedgerEngine {
             line.debit || 0,
             line.credit || 0,
             line.currencyCode || 'YER',
-            line.exchangeRate || 1,
             line.description || entry.description,
             line.projectId || null,
             line.activityId || null,
-            line.partyId || null,
+            line.fundId || null,
+            line.donorId || null,
+            line.costCenterId || null,
+            line.intercompanyId || null,
+            line.secondaryDimensionId || null,
           ]
         );
 
@@ -294,25 +326,32 @@ export class LedgerEngine {
         );
       }
 
-      // 4. Audit log
-      await client.query(
-        `INSERT INTO audit_logs (organization_id, user_id, action, table_name, record_id, details)
-         VALUES ($1, $2, 'CREATE', 'transactions', $3, $4)`,
-        [
-          entry.organizationId,
-          auth.userId,
-          txId,
-          JSON.stringify({
-            transactionNumber: txNumber,
-            type: entry.transactionType,
-            totalDebit,
-            totalCredit,
-            linesCount: entry.lines.length,
-          }),
-        ]
-      ).catch((err) => { logger.warn(`[Finance] Failed to log voucher audit: ${err.message}`, { context: 'finance' }); });
+// 4. Audit log
+       await client.query(
+         `INSERT INTO audit_logs (organization_id, user_id, action, table_name, record_id, details)
+          VALUES ($1, $2, 'CREATE', 'transactions', $3, $4)`,
+         [
+           entry.organizationId,
+           auth.userId,
+           txId,
+           JSON.stringify({
+             transactionNumber: txNumber,
+             type: entry.transactionType,
+             totalDebit,
+             totalCredit,
+             linesCount: entry.lines.length,
+           }),
+         ]
+       ).catch((err) => { logger.warn(`[Finance] Failed to log voucher audit: ${err.message}`, { context: 'finance' }); });
 
-      return {
+       // 5. Immutable Audit Ledger Entry (SHA-256 Chain)
+       const ledgerCount = await queryOne<{ count: string }>(
+        `SELECT COUNT(*) as count FROM immutable_audit_ledger WHERE organization_id = $1`,
+        [entry.organizationId]
+      );
+      const ledgerNumber = parseInt(ledgerCount?.count || '0') + 1;
+
+       return {
         transactionId: txId,
         transactionNumber: txNumber,
         totalAmount: totalDebit,
@@ -350,8 +389,8 @@ export class LedgerEngine {
       const revResult = await client.query(
         `INSERT INTO transactions
          (organization_id, transaction_number, transaction_date, posting_date,
-          transaction_type, description, reference_no, total_debit, total_credit,
-          status, created_by_id)
+          transaction_type, description, reference_number, total_debit, total_credit,
+          status, created_by)
          VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE, 'ADJUSTMENT', $3, $4, $5, $6, 'POSTED', $7)
          RETURNING id`,
         [
@@ -372,15 +411,15 @@ export class LedgerEngine {
         await client.query(
           `INSERT INTO transaction_lines
            (transaction_id, organization_id, line_number, account_id,
-            debit, credit, currency_code, description)
+            debit_amount, credit_amount, currency_code, description)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
           [
             revId,
             original.organization_id,
             line.line_number,
             line.account_id,
-            line.credit,  // swapped
-            line.debit,   // swapped
+            line.credit_amount,  // swapped
+            line.debit_amount,   // swapped
             line.currency_code,
             `Reversal: ${line.description || ''}`,
           ]
@@ -390,13 +429,13 @@ export class LedgerEngine {
         await client.query(
           `UPDATE chart_of_accounts
            SET current_balance = current_balance + (
-             CASE 
+             CASE
                WHEN UPPER(account_type) IN ('ASSET', 'EXPENSE') THEN ($1 - $2)
                ELSE ($2 - $1)
              END
            )
            WHERE id = $3`,
-          [line.credit || 0, line.debit || 0, line.account_id]
+          [line.credit_amount || 0, line.debit_amount || 0, line.account_id]
         );
       }
 
@@ -850,5 +889,272 @@ export class CurrencyService {
       targetCurrency: toCurrency,
       rate: rateData.rate,
     };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Immutable Audit Ledger Service (SHA-256 Chain)
+// ═══════════════════════════════════════════════════════════════
+
+export class ImmutableLedgerService {
+  private static readonly GENESIS_HASH = '0'.repeat(64);
+
+  static async createLedgerEntry(orgId: string, journalHeaderId: string, ledgerNumber: number) {
+    return await transaction(async (client) => {
+      const previousHash = await queryOne<{ ledger_hash?: string }>(
+        `SELECT ledger_hash FROM immutable_audit_ledger
+         WHERE organization_id = $1 ORDER BY ledger_number DESC LIMIT 1`,
+        [orgId]
+      );
+
+      const prevHash = previousHash?.ledger_hash || this.GENESIS_HASH;
+      const ledgerHash = this.generateHash(orgId, journalHeaderId, prevHash, ledgerNumber);
+
+      await client.query(
+        `INSERT INTO immutable_audit_ledger
+         (organization_id, journal_header_id, ledger_hash, previous_ledger_hash, ledger_number, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [orgId, journalHeaderId, ledgerHash, prevHash, ledgerNumber, 'system']
+      );
+
+      return { ledgerHash, previousHash: prevHash, ledgerNumber };
+    });
+  }
+
+  static async verifyChain(orgId: string): Promise<boolean> {
+    const result = await queryMany(
+      `SELECT ledger_hash, previous_ledger_hash, ledger_number
+       FROM immutable_audit_ledger WHERE organization_id = $1 ORDER BY ledger_number ASC`,
+      [orgId]
+    );
+
+    let prevHash = this.GENESIS_HASH;
+    for (const row of result) {
+      const expected = this.generateHash(orgId, row.ledger_hash, prevHash, row.ledger_number);
+      if (row.ledger_hash !== expected || row.previous_ledger_hash !== prevHash) {
+        return false;
+      }
+      prevHash = row.ledger_hash;
+    }
+    return true;
+  }
+
+  private static generateHash(orgId: string, journalHeaderId: string, previousHash: string, ledgerNumber: number): string {
+    const data = `${orgId}:${journalHeaderId}:${previousHash}:${ledgerNumber}:${Date.now()}`;
+    return crypto.createHash('sha256').update(data).digest('hex');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Period Lock Service (Soft/Hard Lock)
+// ═══════════════════════════════════════════════════════════════
+
+export class PeriodLockService {
+  static async softLockPeriod(orgId: string, fiscalPeriodId: string, lockedBy: string) {
+    return await transaction(async (client) => {
+      await client.query(
+        `UPDATE fiscal_periods SET is_soft_locked = TRUE, soft_locked_at = NOW(), locked_by = $1
+         WHERE id = $2 AND organization_id = $3`,
+        [lockedBy, fiscalPeriodId, orgId]
+      );
+      await client.query(
+        `INSERT INTO period_lock_log (organization_id, fiscal_period_id, lock_type, action, performed_by, performed_by_role)
+         VALUES ($1, $2, 'SOFT', 'LOCK', $3, 'FINANCIAL_MANAGER')`,
+        [orgId, fiscalPeriodId, lockedBy]
+      );
+    });
+  }
+
+  static async hardLockPeriod(orgId: string, fiscalPeriodId: string, lockedBy: string) {
+    return await transaction(async (client) => {
+      await client.query(
+        `UPDATE fiscal_periods SET is_soft_locked = TRUE, is_hard_closed = TRUE, soft_locked_at = NOW(), locked_by = $1
+         WHERE id = $2 AND organization_id = $3`,
+        [lockedBy, fiscalPeriodId, orgId]
+      );
+      await client.query(
+        `INSERT INTO period_lock_log (organization_id, fiscal_period_id, lock_type, action, performed_by, performed_by_role)
+         VALUES ($1, $2, 'HARD', 'LOCK', $3, 'CFO')`,
+        [orgId, fiscalPeriodId, lockedBy]
+      );
+    });
+  }
+
+  static async isPeriodLocked(orgId: string, fiscalPeriodId: string): Promise<boolean> {
+    const result = await queryOne<{ is_soft_locked: boolean; is_hard_closed: boolean }>(
+      `SELECT is_soft_locked, is_hard_closed FROM fiscal_periods WHERE id = $1 AND organization_id = $2`,
+      [fiscalPeriodId, orgId]
+    );
+    return !!(result && (result.is_soft_locked || result.is_hard_closed));
+  }
+
+  static async validatePeriodForPosting(orgId: string, fiscalPeriodId: string) {
+    const locked = await this.isPeriodLocked(orgId, fiscalPeriodId);
+    if (locked) {
+      const result = await queryOne<{ is_hard_closed: boolean }>(
+        `SELECT is_hard_closed FROM fiscal_periods WHERE id = $1 AND organization_id = $2`,
+        [fiscalPeriodId, orgId]
+      );
+      if (result?.is_hard_closed) {
+        throw new Error('Period is permanently closed (Hard Lock). No modifications allowed.');
+      }
+      throw new Error('Period is soft-locked. CFO approval required for posting.');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Fund Accounting Service (IPSAS 23)
+// ═══════════════════════════════════════════════════════════════
+
+export class FundAccountingService {
+  static async getFundBalance(orgId: string, fundId: string, donorId?: string): Promise<any> {
+    return queryOne(
+      `SELECT * FROM fund_balances WHERE organization_id = $1 AND fund_id = $2 AND donor_id = $3`,
+      [orgId, fundId, donorId || null]
+    );
+  }
+
+  static async updateFundBalance(orgId: string, fundId: string, amount: number, type: 'DEBIT' | 'CREDIT') {
+    return await transaction(async (client) => {
+      const balance = await client.query(
+        `SELECT * FROM fund_balances WHERE organization_id = $1 AND fund_id = $2`,
+        [orgId, fundId]
+      );
+      if (balance.rows.length === 0) {
+        throw new Error(`Fund balance not found for fund ${fundId}`);
+      }
+      const current = Number(balance.rows[0].current_balance);
+      const newBalance = type === 'DEBIT' ? current + amount : current - amount;
+      await client.query(
+        `UPDATE fund_balances SET current_balance = $1, total_disbursements = total_disbursements + $2 WHERE organization_id = $3 AND fund_id = $4`,
+        [newBalance, amount, orgId, fundId]
+      );
+    });
+  }
+
+  static async validateRestrictedFund(fundType: string, purpose: string): Promise<void> {
+    if (fundType === 'PERMANENTLY_RESTRICTED' && purpose !== 'INVESTMENT_INCOME') {
+      throw new Error('Permanently restricted funds cannot be used for this purpose (IPSAS 23)');
+    }
+    if (fundType === 'TEMPORARILY_RESTRICTED' && purpose !== 'RESTRICTED_PURPOSE') {
+      throw new Error('Temporarily restricted funds can only be used for their designated purpose');
+    }
+  }
+
+  static async enforceFundDimension(fundId: string | null): Promise<void> {
+    if (!fundId) {
+      throw new Error('Fund/Donor segment is mandatory for all journal entries (IPSAS 23 Compliance)');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Document Splitting Engine
+// ═══════════════════════════════════════════════════════════════
+
+export class DocumentSplittingEngine {
+  static splitVoucher(entry: VoucherEntry): VoucherEntry[] {
+    const grouped = new Map<string, VoucherEntry>();
+    for (const line of entry.lines) {
+      const key = `${line.projectId || 'DEFAULT'}-${line.donorId || 'GENERAL'}-${line.costCenterId || 'MAIN'}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, { ...entry, lines: [] });
+      }
+      const group = grouped.get(key)!;
+      group.lines.push(line);
+    }
+    const result: VoucherEntry[] = [];
+    grouped.forEach((voucher) => {
+      const totalDebit = voucher.lines.reduce((s, l) => s + Number(l.debit), 0);
+      const totalCredit = voucher.lines.reduce((s, l) => s + Number(l.credit), 0);
+      if (Math.abs(totalDebit - totalCredit) > 0.01) {
+        throw new Error('Split voucher is not balanced');
+      }
+      result.push(voucher);
+    });
+    return result;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Fixed Asset Service (IPSAS 17)
+// ═══════════════════════════════════════════════════════════════
+
+export class FixedAssetService {
+  static async createAsset(orgId: string, data: any) {
+    return await transaction(async (client) => {
+      const result = await client.query(
+        `INSERT INTO fixed_assets
+         (organization_id, asset_code, name_ar, name_en, asset_group, acquisition_date, acquisition_cost,
+          useful_life_months, depreciation_method, salvage_value, location, serial_number, fund_id, donor_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+         RETURNING *`,
+        [
+          orgId, data.assetCode, data.nameAr, data.nameEn, data.assetGroup,
+          data.acquisitionDate, data.acquisitionCost, data.usefulLifeMonths,
+          data.depreciationMethod, data.salvageValue, data.location, data.serialNumber,
+          data.fundId, data.donorId
+        ]
+      );
+      const asset = result.rows[0];
+      await client.query(
+        `INSERT INTO journal_headers (organization_id, voucher_number, transaction_date, fiscal_period_id,
+         currency_code, total_debit, total_credit, status, voucher_type, description, created_by)
+         VALUES ($1, $2, CURRENT_DATE, $3, $4, $5, $5, 'POSTED', 'ASSET_ACQUISITION', $6, $7)`,
+        [orgId, `AST-${asset.id}`, data.fiscalPeriodId, 'USD', data.acquisitionCost, data.acquisitionCost, 'Asset Acquisition Entry']
+      );
+      return asset;
+    });
+  }
+
+  static async runDepreciation(orgId: string, fiscalPeriodId: string) {
+    return await transaction(async (client) => {
+      const assets = await client.query(
+        `SELECT * FROM fixed_assets WHERE organization_id = $1 AND asset_status = 'IN_USE' AND is_active = TRUE`,
+        [orgId]
+      );
+      for (const asset of assets.rows) {
+        const monthlyDepreciation = this.calculateDepreciation(asset);
+        await client.query(
+          `INSERT INTO depreciation_schedule
+           (organization_id, asset_id, fiscal_period_id, period_number, depreciation_amount,
+            accumulated_to_date, remaining_depreciable, depreciation_method, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'POSTED')`,
+          [orgId, asset.id, fiscalPeriodId, new Date().getMonth() + 1, monthlyDepreciation,
+           asset.accumulated_depreciation + monthlyDepreciation,
+           asset.acquisition_cost - asset.accumulated_depreciation - monthlyDepreciation,
+           asset.depreciation_method]
+        );
+        await client.query(
+          `UPDATE fixed_assets SET accumulated_depreciation = accumulated_depreciation + $1 WHERE id = $2`,
+          [monthlyDepreciation, asset.id]
+        );
+        await client.query(
+          `INSERT INTO journal_headers (organization_id, voucher_number, transaction_date, fiscal_period_id,
+           currency_code, total_debit, total_credit, status, voucher_type, description, created_by)
+           VALUES ($1, $2, CURRENT_DATE, $3, 'USD', $4, $4, 'POSTED', 'DEPRECIATION', $5, 'system')`,
+          [orgId, `DEP-${asset.id}-${fiscalPeriodId}`, fiscalPeriodId, monthlyDepreciation, `Depreciation for ${asset.asset_code}`]
+        );
+      }
+    });
+  }
+
+  private static calculateDepreciation(asset: any): number {
+    const depreciableBase = asset.acquisition_cost - asset.salvage_value;
+    switch (asset.depreciation_method) {
+      case 'STRAIGHT_LINE':
+        return Math.round((depreciableBase / asset.useful_life_months) * 100) / 100;
+      case 'SUM_OF_YEARS': {
+        const totalMonths = asset.useful_life_months;
+        const remainingMonths = totalMonths - (Math.floor(asset.accumulated_depreciation / (depreciableBase / totalMonths)) * 12);
+        const sumOfYears = (totalMonths * (totalMonths + 1)) / 2;
+        return Math.round((depreciableBase * remainingMonths / sumOfYears / 12) * 100) / 100;
+      }
+      case 'UNITS_OF_PRODUCTION':
+        return Math.round((depreciableBase * 0.01) * 100) / 100;
+      default:
+        return Math.round((depreciableBase / asset.useful_life_months) * 100) / 100;
+    }
   }
 }

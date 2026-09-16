@@ -17,12 +17,14 @@ import {
   Plus, FileText, CheckCircle, XCircle, DollarSign, Calendar,
   Search, Filter, Download, Upload, Send, CreditCard,
   AlertTriangle, TrendingUp, TrendingDown, PieChart, BarChart3,
-  Eye, Edit, Trash2, RefreshCw, Lock, Unlock, Repeat,
+  Eye, Edit, Trash2, Printer, RefreshCw, Lock, Unlock, Repeat,
   Wallet, Receipt, Briefcase, Activity, ChevronRight,
   ChevronLeft, Sparkles, Bell, Tag, Building, Clock,
   FileSpreadsheet, FileCheck, ClipboardCheck, Package, Banknote
 } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
+import { createPrintDocument } from '../../lib/printUtils';
+import { tafqeetArabicRials } from '../../core/security/financialSafetyGuardian';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -348,6 +350,240 @@ export default function UnifiedExpenseEngineTab({ lang = 'ar' }: UnifiedExpenseE
   // RENDER
   // ═══════════════════════════════════════════════════════════════════════════
 
+  
+  const handlePrintExpenseVoucher = useCallback((expense: ExpenseRecord) => {
+    const printDoc = createPrintDocument();
+    const dir = isRtl ? 'rtl' : 'ltr';
+    const amountVal = expense.amount_base || expense.net_amount || expense.amount || 0;
+    const amountWords = tafqeetArabicRials(amountVal);
+
+    printDoc.write(`
+      <!DOCTYPE html>
+      <html lang="${lang}" dir="${dir}">
+      <head>
+        <meta charset="UTF-8">
+        <title>سند صرف مالي معتمد - ${expense.expense_number}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+          body { font-family: 'Tajawal', sans-serif; }
+          @media print {
+            .no-print { display: none !important; }
+            body { background-color: white !important; }
+            @page { size: A4 portrait; margin: 12mm; }
+          }
+        </style>
+      </head>
+      <body class="bg-slate-100 p-6 text-slate-900">
+        <div class="max-w-4xl mx-auto mb-4 flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm no-print">
+          <span class="text-xs font-bold text-slate-600">سند صرف مالي معتمد للنظام المالي الموحد - جاهز للطباعة والتوثيق المالي.</span>
+          <button onclick="window.print()" class="px-5 py-2.5 bg-emerald-600 text-white font-extrabold text-xs rounded-xl shadow cursor-pointer hover:bg-emerald-700">
+            🖨️ طباعة سند الصرف الرسمي
+          </button>
+        </div>
+
+        <div class="max-w-4xl mx-auto bg-white border-2 border-slate-300 rounded-2xl p-8 shadow-xl relative min-h-[260mm]">
+          <!-- Watermark Background -->
+          <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
+            <img src="/LogoRohamaab.png" class="w-96 h-96 object-contain" />
+          </div>
+
+          <!-- Official Header Letterhead -->
+          <div class="flex justify-between items-center pb-4 border-b-2 border-emerald-700 mb-6">
+            <div class="flex items-center gap-4">
+              <img src="/LogoRohamaab.png" alt="Rohamaa Logo" class="h-16 w-auto object-contain" />
+              <div>
+                <h1 class="text-base font-black text-emerald-900">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
+                <p class="text-xs text-slate-600 font-bold">نظام يو امكس المؤسسي الشامل - UAMEX_ERP™</p>
+                <p class="text-[10px] text-amber-600 font-bold">One Platform. One Organization. One Vision.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-left border-l-2 border-slate-200 pl-4">
+                <div class="bg-emerald-50 border border-emerald-300 px-3 py-1.5 rounded-lg text-center mb-1">
+                  <span class="text-[10px] text-emerald-800 block font-bold">رقم سند الصرف</span>
+                  <span class="font-mono text-sm font-black text-emerald-950">${expense.expense_number}</span>
+                </div>
+                <p class="text-[10px] text-slate-500 font-mono text-center">التاريخ: ${new Date().toISOString().split('T')[0]}</p>
+              </div>
+              <img src="/UAMEX_ERPLOGO.png" alt="UAMEX Logo" class="h-14 w-auto object-contain" onerror="this.src='/LogoRohamaab.png'" />
+            </div>
+          </div>
+
+          <!-- Title Ribbon -->
+          <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-3.5 rounded-xl mb-6 flex justify-between items-center shadow-sm">
+            <div>
+              <h2 class="font-black text-lg">سند صرف مالي ومصروفات عامة (Payment Voucher)</h2>
+              <p class="text-xs text-emerald-200 font-medium">الوحدة المالية والمحاسبية | المعيار المحاسبي الدولي IPSAS</p>
+            </div>
+            <span class="bg-emerald-500/30 border border-emerald-300/40 text-emerald-100 text-xs px-3 py-1 rounded-full font-mono font-black">
+              ${expense.status}
+            </span>
+          </div>
+
+          <!-- Voucher Key Data Table -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span class="text-slate-500 block text-[11px] mb-0.5">يُصرف إلى المكرم / الجهة المستفيدة:</span>
+                <span class="font-black text-slate-900 text-sm">${expense.counterparty_name}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[11px] mb-0.5">فئة وبند المصروف المعتمد:</span>
+                <span class="font-bold text-slate-800">${expense.category_name_ar} (${expense.category_code})</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 text-xs pt-3 border-t border-slate-200">
+              <div>
+                <span class="text-slate-500 block text-[11px] mb-0.5">طريقة الدفع والصرف:</span>
+                <span class="font-bold text-slate-800">${expense.payment_method || 'نقداً من الصندوق'}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[11px] mb-0.5">المشروع المرتبط:</span>
+                <span class="font-bold text-slate-800">${expense.project_name_ar || 'المصروفات التشغيلية العامة'}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[11px] mb-0.5">مركز التكلفة:</span>
+                <span class="font-bold text-slate-800">${expense.cost_center_name_ar || 'الإدارة العامة'}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Breakdown Block -->
+          <div class="border border-slate-300 rounded-xl overflow-hidden mb-6">
+            <table class="w-full text-xs text-right border-collapse">
+              <thead class="bg-slate-800 text-white">
+                <tr>
+                  <th class="p-3">البيان والتفاصيل المحاسبية</th>
+                  <th class="p-3 text-center">المبلغ الأساسي</th>
+                  <th class="p-3 text-center">الضريبة المضافة</th>
+                  <th class="p-3 text-center">صافي المبلغ المستحق</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 bg-white">
+                <tr>
+                  <td class="p-3 font-semibold text-slate-800">
+                    ${expense.description || 'مصروف معتمد ومطابق للائحة المالية ولوائح المشتريات والمصروفات'}
+                  </td>
+                  <td class="p-3 text-center font-mono font-bold text-slate-700">
+                    ${(expense.amount_base || expense.amount).toLocaleString()} ${expense.currency_code}
+                  </td>
+                  <td class="p-3 text-center font-mono text-slate-500">
+                    ${expense.vat_amount > 0 ? `${expense.vat_amount.toLocaleString()} (${expense.vat_rate}%)` : '0.00'}
+                  </td>
+                  <td class="p-3 text-center font-mono font-black text-emerald-800 text-sm bg-emerald-50/50">
+                    ${(expense.net_amount || expense.amount_base || expense.amount).toLocaleString()} ${expense.currency_code}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Tafqeet Amount Box -->
+          <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mb-8 flex items-center justify-between">
+            <div>
+              <span class="text-[11px] font-bold text-amber-800 block">المبلغ المرقوم بالكلمات (Tafqeet):</span>
+              <p class="font-black text-amber-950 text-sm mt-0.5">فقط ${amountWords} لا غير.</p>
+            </div>
+            <div class="text-left font-mono font-black text-lg text-amber-900 border-r-2 border-amber-300 pr-4">
+              ${(expense.net_amount || expense.amount_base || expense.amount).toLocaleString()} ${expense.currency_code}
+            </div>
+          </div>
+
+          <!-- Signatures Matrix -->
+          <div class="grid grid-cols-4 gap-4 text-center text-xs font-bold text-slate-700 pt-6 border-t-2 border-slate-300">
+            <div>
+              <p class="mb-10 text-slate-600">إعداد المحاسب المالي:</p>
+              <p class="font-extrabold text-slate-900">..............................</p>
+              <p class="text-[10px] text-slate-400 mt-1">التوقيع والتاريخ</p>
+            </div>
+            <div>
+              <p class="mb-10 text-slate-600">المراجعة والتدقيق المالي:</p>
+              <p class="font-extrabold text-slate-900">..............................</p>
+              <p class="text-[10px] text-slate-400 mt-1">المطابقة والامتثال</p>
+            </div>
+            <div>
+              <p class="mb-10 text-slate-600">اعتماد المدير المالي:</p>
+              <p class="font-extrabold text-slate-900">..............................</p>
+              <p class="text-[10px] text-slate-400 mt-1">الموافقة المالية</p>
+            </div>
+            <div>
+              <p class="mb-10 text-slate-600">اعتماد المدير التنفيذي:</p>
+              <p class="font-extrabold text-slate-900">..............................</p>
+              <p class="text-[10px] text-slate-400 mt-1">الختم المؤسسي الرسمي</p>
+            </div>
+          </div>
+
+          <!-- Deterministic Verification Seal -->
+          <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-[10px] text-slate-400">
+            <div class="flex items-center gap-2">
+              <span class="font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-300 font-bold">
+                UAMEX-VERIFIED-SEAL:EXP-${expense.expense_number}
+              </span>
+              <span>نظام يو امكس المؤسسي الشامل - قطاع المالية والرقابة</span>
+            </div>
+            <div class="font-mono">
+              ${new Date().toISOString()} • SHA256-${expense.id.slice(0, 12)}
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    printDoc.close();
+  }, [isRtl, lang]);
+
+  const handleExportExpensesCSV = useCallback(() => {
+    const headers = [
+      'رقم السند',
+      'تاريخ الاستحقاق',
+      'فئة المصروف',
+      'الجهة المستفيدة',
+      'المبلغ الأساسي',
+      'العملة',
+      'مبلغ الضريبة',
+      'الصافي',
+      'طريقة الدفع',
+      'المشروع',
+      'مركز التكلفة',
+      'الحالة',
+      'البيان'
+    ];
+
+    const rows = records.map((r: ExpenseRecord) => [
+      r.expense_number || '',
+      r.payment_due_date || '',
+      r.category_name_ar || '',
+      r.counterparty_name || '',
+      r.amount_base || r.amount || 0,
+      r.currency_code || 'YER',
+      r.vat_amount || 0,
+      r.net_amount || r.amount_base || 0,
+      r.payment_method || '',
+      r.project_name_ar || '',
+      r.cost_center_name_ar || '',
+      r.status || '',
+      r.description || ''
+    ]);
+
+    const csvContent = '\uFEFF' + [
+      headers.map(h => `"${h.replace(/"/g, '""')}"`).join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `UAMEX_Expenses_Ledger_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [records]);
+
+
   return (
     <div dir={isRtl ? 'rtl' : 'ltr'} className="w-full min-h-screen bg-gradient-to-br from-zinc-50 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/20 p-4 sm:p-6">
       {/* ═══ HEADER ═══ */}
@@ -419,6 +655,8 @@ export default function UnifiedExpenseEngineTab({ lang = 'ar' }: UnifiedExpenseE
           setFilters={setFilters}
           onCreate={() => setShowCreateModal(true)}
           onView={(r) => setShowDetailModal(r)}
+          onPrintVoucher={handlePrintExpenseVoucher}
+          onExportCSV={handleExportExpensesCSV}
           onSubmit={handleSubmit}
           onApprove={handleApprove}
           onPost={handlePost}
@@ -495,6 +733,7 @@ export default function UnifiedExpenseEngineTab({ lang = 'ar' }: UnifiedExpenseE
         <ExpenseDetailModal
           expense={showDetailModal}
           onClose={() => setShowDetailModal(null)}
+          onPrintVoucher={handlePrintExpenseVoucher}
           onAction={(action) => {
             setShowDetailModal(null);
             if (action === 'submit') handleSubmit(showDetailModal.id);
@@ -756,7 +995,8 @@ function DashboardView({ stats, intelligence, t, isRtl }: any) {
 
 function RecordsView({ 
   records, categories, loading, error, pagination, setPagination, 
-  filters, setFilters, onCreate, onView, onSubmit, onApprove, onPost, onPay, onRefresh, t, isRtl 
+  filters, setFilters, onCreate, onView, onSubmit, onApprove, onPost, onPay, onRefresh, t, isRtl,
+  onPrintVoucher, onExportCSV
 }: any) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -814,6 +1054,16 @@ function RecordsView({
           className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
         >
           <Spinner size="sm" />
+        </button>
+
+        
+        <button
+          onClick={onExportCSV}
+          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-slate-700 transition-colors cursor-pointer"
+          title={t('تصدير كشف المصروفات CSV', 'Export Expenses CSV')}
+        >
+          <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+          <span>{t('تصدير CSV', 'Export CSV')}</span>
         </button>
 
         <button
@@ -887,6 +1137,15 @@ function RecordsView({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
+                        
+                        <button
+                          onClick={() => onPrintVoucher(record)}
+                          className="p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400"
+                          title={t('طباعة سند الصرف', 'Print Voucher')}
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+
                         <button
                           onClick={() => onView(record)}
                           className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 text-blue-600 dark:text-blue-400"
@@ -1252,7 +1511,7 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
 // DETAIL MODAL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function ExpenseDetailModal({ expense, onClose, onAction, t, isRtl }: any) {
+function ExpenseDetailModal({ expense, onClose, onAction, t, isRtl, onPrintVoucher }: any) {
   const StatusIcon = STATUS_CONFIG[expense.status].icon;
 
   return (
@@ -1303,6 +1562,15 @@ function ExpenseDetailModal({ expense, onClose, onAction, t, isRtl }: any) {
         </div>
 
         <div className="flex items-center justify-end gap-2 p-5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+          
+          <button 
+            onClick={() => onPrintVoucher(expense)} 
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-sm font-semibold border border-slate-700 transition cursor-pointer"
+          >
+            <Printer className="w-4 h-4 text-emerald-400" />
+            {t('طباعة سند الصرف', 'Print Voucher')}
+          </button>
+
           <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800">
             {t('إغلاق', 'Close')}
           </button>

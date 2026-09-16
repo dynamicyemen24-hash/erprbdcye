@@ -8,8 +8,30 @@ const METHODS_REQUIRING_CSRF = ['POST', 'PUT', 'DELETE', 'PATCH'];
  * Validates Origin/Referer headers on state-changing requests.
  * Requests missing BOTH Origin and Referer are rejected (potential CSRF or API attack).
  */
+const CSRF_EXEMPT_PREFIXES = [
+  '/api/health',
+  '/api/v2/health',
+  '/health',
+  '/metrics',
+  '/api/security/csp-report',
+  '/api/security/hsts-report',
+];
+
 export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
   if (!METHODS_REQUIRING_CSRF.includes(req.method)) {
+    return next();
+  }
+
+  // Bearer-token API clients (mobile/CLI/server-to-server) are not vulnerable
+  // to CSRF — the attacker cannot set an Authorization header cross-origin.
+  // Cookie-authenticated browser flows (no Bearer, nx_at cookie set) DO get checked.
+  const authHeader = req.headers.authorization as string | undefined;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  // Health probes, metrics, and HMAC-signed webhooks carry no browser session.
+  if (CSRF_EXEMPT_PREFIXES.some(p => req.path.startsWith(p)) || req.path.includes('/webhooks')) {
     return next();
   }
 

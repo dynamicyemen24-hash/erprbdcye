@@ -14,10 +14,12 @@ if (typeof performance !== 'undefined' && performance.mark) {
 
 if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
   window.addEventListener('load', () => {
+    // Single canonical service worker — /sw.js is the only registration
+    // (public/service-worker.js was removed to avoid dual-SW cache conflicts).
     navigator.serviceWorker.register('/sw.js').then((registration) => {
       console.log('[UAMEX ServiceWorker] Registered successfully with scope:', registration.scope);
-    }).catch(() => {
-      navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    }).catch((err) => {
+      console.warn('[UAMEX ServiceWorker] Registration failed:', err);
     });
   });
 }

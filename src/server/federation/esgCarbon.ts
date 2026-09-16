@@ -6,6 +6,7 @@
 import { createHash, randomBytes } from 'crypto';
 import { query, transaction } from '../core/database.js';
 import { logger } from '../core/logger.js';
+import { safeParseJSON } from '../core/helpers.js';
 import {
   CarbonFootprint, CarbonOffsetProject, CarbonCreditTransaction, ESGMetric,
   SDGImpactReport, CarbonStandard, ESGFramework, SDGGoal
@@ -452,8 +453,7 @@ export class ESGCarbonEngine {
       
       for (let goal = 1; goal <= 17; goal++) {
         const goalMetrics = metrics.rows.filter(m => {
-          const sdgs: number[] = typeof m.sdg_goals === 'string' 
-            ? JSON.parse(m.sdg_goals) : m.sdg_goals || [];
+          const sdgs: number[] = safeParseJSON(m.sdg_goals, []);
           return sdgs.includes(goal);
         });
 
@@ -551,12 +551,12 @@ export class ESGCarbonEngine {
       registry: row.registry,
       registryProjectId: row.registry_project_id,
       countryCode: row.country_code,
-      coordinates: row.coordinates ? JSON.parse(row.coordinates) : undefined,
+      coordinates: safeParseJSON(row.coordinates, undefined),
       totalCreditsIssued: parseFloat(row.total_credits_issued),
       creditsRetired: parseFloat(row.credits_retired),
       creditsAvailable: parseFloat(row.credits_available),
       pricePerTonneUSD: parseFloat(row.price_per_tonne_usd),
-      sdgGoals: typeof row.sdg_goals === 'string' ? JSON.parse(row.sdg_goals) : row.sdg_goals,
+      sdgGoals: safeParseJSON(row.sdg_goals, row.sdg_goals || []),
       verificationBody: row.verification_body,
       vintage: row.vintage,
       startDate: row.start_date,
@@ -604,8 +604,7 @@ export class ESGCarbonEngine {
       beneficiaryDescription: row.beneficiary_description,
       transactionDate: row.transaction_date,
       retirementDate: row.retirement_date,
-      serialNumbers: typeof row.serial_numbers === 'string' 
-        ? JSON.parse(row.serial_numbers) : row.serial_numbers,
+      serialNumbers: safeParseJSON(row.serial_numbers, row.serial_numbers || []),
       status: row.status,
       blockchainTxHash: row.blockchain_tx_hash
     }));

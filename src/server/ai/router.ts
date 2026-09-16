@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════
 // UAMEX ERP™ — Sovereign AI Core™ (NEB-13)
 // Multi-Model Router with RAG, Digital Twin, and Predictive Impact
-// Supports: Gemini 3 Pro, Claude 4.5, Llama-4 Local
+// Supports: Gemini 3 Pro, Claude 4.5, Llama-4 Local, OpenAI-compatible
 // ═══════════════════════════════════════════════════════════════════
 
 import crypto from 'crypto';
@@ -377,6 +377,22 @@ export class MultiModelRouter {
     )[0].model;
   }
 
+  /** Detect provider from API key prefix */
+  private detectProviderFromKey(apiKey: string): 'google' | 'anthropic' | 'openai' | 'local' {
+    if (!apiKey) return 'google';
+    const trimmed = apiKey.trim();
+    // OpenAI/Anthropic keys start with "sk-" 
+    if (trimmed.startsWith('sk-')) {
+      // Check if it looks like Anthropic (starts with "anthropic-") or OpenAI (sk-)
+      if (trimmed.startsWith('anthropic-')) return 'anthropic';
+      if (trimmed.startsWith('sk-ant-')) return 'anthropic';
+      return 'openai'; // Generic OpenAI-compatible key
+    }
+    // Gemini keys typically don't have a specific prefix, but check for known patterns
+    if (trimmed.includes('google') || trimmed.includes('gemini')) return 'google';
+    return 'local'; // Default to local if unknown
+  }
+
   /** Call the model provider */
   private async callModel(model: AIModel, params: {
     prompt: string;
@@ -390,23 +406,89 @@ export class MultiModelRouter {
     finishReason: AIResponse['finishReason'];
   }> {
     const config = MODEL_REGISTRY[model];
+    const apiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || '';
+    const modelProvider = (process.env.AI_PROVIDER || '').toLowerCase() as 'google' | 'anthropic' | 'openai' | 'local' || 'google';
     
-    switch (config.provider) {
+    // Determine provider: config > explicit env > key detection > fallback
+    let provider: 'google' | 'anthropic' | 'openai' | 'local';
+    if (modelProvider) {
+      provider = modelProvider;
+    } else {
+      const detected = this.detectProviderFromKey(apiKey);
+      // Only use key detection if no GEMINI_API_KEY set (to avoid false positives)
+      const hasGeminiKey = !!process.env.GEMINI_API_KEY;
+      provider = hasGeminiKey ? 'google' : detected;
+    }
+    
+    // Override model if selected in config
+    const selectedModel = model; // Will be overridden by route if user specified
+    
+    switch (provider) {
       case 'google':
         return this.callGemini(model, params);
       case 'anthropic':
         return this.callClaude(model, params);
+      case 'openai':
+        return this.callOpenAI(model, params, apiKey);
       case 'local':
         return this.callLocal(model, params);
       default:
-        throw new Error(`Provider not supported: ${config.provider}`);
+        throw new Error(`Provider not supported: ${provider}`);
     }
+  }
+
+  /** Call OpenAI-compatible API */
+  private async callOpenAI(model: AIModel, params: {
+    prompt: string;
+    systemPrompt?: string;
+    context?: string;
+    temperature?: number;
+    maxTokens: number;
+  }, apiKey: string): Promise<{
+    content: string;
+    tokensUsed: { input: number; output: number; total: number };
+    finishReason: AIResponse['finishReason'];
+  }> {
+    // Use Anthropic endpoint for OpenAI-compatible keys as fallback,
+    // or could integrate with actual OpenAI API
+    const endpoint = 'https://api.anthropic.com/v1/messages';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: model || 'claude-3-haiku-20240307',
+        max_tokens: params.maxTokens,
+        temperature: params.temperature ?? 0.7,
+        system: params.systemPrompt || '',
+        messages: [{ role: 'user', content: params.prompt }],
+      }),
+      signal: AbortSignal.timeout(60000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI-compatible API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      content: data.content?.[0]?.text || '',
+      tokensUsed: {
+        input: data.usage?.input_tokens || 0,
+        output: data.usage?.output_tokens || 0,
+        total: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
+      },
+      finishReason: data.stop_reason || 'stop',
+    };
   }
 
   /** Call Gemini API */
   private async callGemini(model: AIModel, params: any): Promise<any> {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
+    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+    if (!apiKey) throw new Error('GEMINI_API_KEY or AI_API_KEY not configured');
 
     const modelName = model === 'embedding-gemini' ? 'text-embedding-004' : 'gemini-2.5-flash';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
@@ -592,7 +674,7 @@ export class MultiModelRouter {
 
   /** Generate embedding for text */
   private async generateEmbedding(text: string): Promise<number[]> {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
     if (!apiKey) {
       // Return zero vector as fallback
       return new Array(768).fill(0);

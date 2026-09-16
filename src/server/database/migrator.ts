@@ -15,10 +15,24 @@ interface Migration {
   down: string;
 }
 
+/**
+ * Pure file filter (unit-testable without a database): forward migrations
+ * only. Detached `*.down.sql` rollback scripts are NEVER forward migrations —
+ * a previous runner version applied them and even executed a DROP TABLE.
+ */
+export function listForwardMigrationFiles(migrationsPath: string): string[] {
+  return readdirSync(migrationsPath)
+    .filter((f) => f.endsWith('.sql') && !f.endsWith('.down.sql'))
+    .sort();
+}
+
 export class Migrator {
   private migrationsPath: string;
 
-  constructor(migrationsPath: string = join(__dirname, 'migrations')) {
+  // NOTE: default is process.cwd()-based (not __dirname) so this module also
+  // loads under pure ESM (tsx / node --experimental-strip-types), where
+  // __dirname is undefined and the old default threw at import time.
+  constructor(migrationsPath: string = join(process.cwd(), 'migrations')) {
     this.migrationsPath = migrationsPath;
   }
 
@@ -39,9 +53,7 @@ export class Migrator {
 
   async getPendingMigrations(): Promise<Migration[]> {
     const applied = await this.getAppliedMigrations();
-    const files = readdirSync(this.migrationsPath)
-      .filter(f => f.endsWith('.sql'))
-      .sort();
+    const files = listForwardMigrationFiles(this.migrationsPath);
 
     const migrations: Migration[] = [];
     for (const file of files) {
@@ -98,7 +110,9 @@ export class Migrator {
 
     for (const name of toRollback) {
       try {
-        const files = readdirSync(this.migrationsPath).filter(f => f.startsWith(name));
+        const files = readdirSync(this.migrationsPath).filter(
+          f => f === `${name}.sql` || (f.startsWith(name) && !f.endsWith('.down.sql'))
+        );
         if (files.length === 0) continue;
 
         const content = readFileSync(join(this.migrationsPath, files[0]), 'utf-8');

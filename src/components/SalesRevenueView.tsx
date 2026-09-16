@@ -30,6 +30,10 @@ import { EmptyState } from '../design-system/components/EmptyState';
 import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { Pagination } from '../design-system/components/Pagination';
+import { EnterpriseSkeletonTable } from './common/EnterpriseSkeletonTable';
+import { showToast } from './enterprise/EnterpriseToastContainer';
+import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 import { EnterpriseButton } from './common/EnterpriseButton';
 
 interface SalesRevenueViewProps {
@@ -128,8 +132,14 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
   const [summary, setSummary] = useState<any>(null);
   const [servicePoints, setServicePoints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Debounced invoice search — table re-filters 300ms after typing stops
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  // Invoices pagination (10 rows/page)
+  const [invoicesPage, setInvoicesPage] = useState(1);
+  const INVOICES_PAGE_SIZE = 10;
 
   // Modal State for Invoice Details & Print
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
@@ -149,6 +159,7 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
 
   const fetchSalesData = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const token = localStorage.getItem('token');
       const headers = {
@@ -162,11 +173,12 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
         fetch('/api/sales/service-points', { headers }).then(r => r.ok ? r.json() : [])
       ]);
 
-      setInvoices(invRes);
+      setInvoices(Array.isArray(invRes) ? invRes : []);
       setSummary(sumRes);
-      setServicePoints(spRes);
-    } catch (err) {
-      console.error('Error fetching sales data:', err);
+      setServicePoints(Array.isArray(spRes) ? spRes : []);
+      setInvoicesPage(1);
+    } catch (err: any) {
+      setFetchError(err?.message || (isRtl ? 'فشل تحميل بيانات المبيعات' : 'Failed to load sales data'));
     } finally {
       setLoading(false);
     }
@@ -192,11 +204,25 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
 
       if (res.ok) {
         setIsPayModalOpen(false);
+        showToast({
+          type: 'success',
+          title: isRtl ? 'تحصيل الفواتير' : 'Invoice collection',
+          message: isRtl
+            ? `تم تحصيل الفاتورة ${invoiceToPay.invoice_number} وترحيل القيد المحاسبي`
+            : `Invoice ${invoiceToPay.invoice_number} collected and posted`,
+        });
         setInvoiceToPay(null);
         await fetchSalesData();
+      } else {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || (isRtl ? 'فشل تحصيل الفاتورة' : 'Failed to collect invoice'));
       }
-    } catch (err) {
-      console.error('Error settling invoice:', err);
+    } catch (err: any) {
+      showToast({
+        type: 'error',
+        title: isRtl ? 'تحصيل الفواتير' : 'Invoice collection',
+        message: err.message,
+      });
     } finally {
       setIsSubmittingPay(false);
     }
@@ -224,7 +250,15 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
       });
 
       if (res.ok) {
+        const created = await res.json().catch(() => ({}));
         setFormSuccess(isRtl ? 'تم إصدار الفاتورة وتوليد رمز التحقق الرقمي بنجاح!' : 'Invoice issued and QR verified successfully!');
+        showToast({
+          type: 'success',
+          title: isRtl ? 'إصدار الفواتير' : 'Invoice issued',
+          message: isRtl
+            ? `تم إصدار فاتورة ${created.invoice_number || ''} بنجاح`
+            : `Invoice ${created.invoice_number || ''} issued successfully`,
+        });
         setNewClient('');
         setNewAmount('');
         await fetchSalesData();
@@ -232,23 +266,39 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
           setFormSuccess(null);
           setActiveSubTab('invoices');
         }, 1500);
+      } else {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || (isRtl ? 'فشل إصدار الفاتورة' : 'Failed to issue invoice'));
       }
-    } catch (err) {
-      console.error('Error creating invoice:', err);
+    } catch (err: any) {
+      showToast({
+        type: 'error',
+        title: isRtl ? 'إصدار الفواتير' : 'Issue invoice',
+        message: err.message,
+      });
     } finally {
       setIsSubmittingNew(false);
     }
   };
 
   const filteredInvoices = invoices.filter(inv => {
-    const matchesSearch = 
-      (inv.invoice_number?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-      (inv.donor_or_client_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-      (inv.revenue_type?.toLowerCase() || '').includes(searchQuery.toLowerCase());
-    
+    const q = debouncedSearchQuery.toLowerCase();
+    const matchesSearch =
+      (inv.invoice_number?.toLowerCase() || '').includes(q) ||
+      (inv.donor_or_client_name?.toLowerCase() || '').includes(q) ||
+      (inv.revenue_type?.toLowerCase() || '').includes(q);
+
     const matchesStatus = statusFilter === 'ALL' || inv.payment_status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Paged slice (clamps when filters shrink the list)
+  const invoicesTotalPages = Math.max(1, Math.ceil(filteredInvoices.length / INVOICES_PAGE_SIZE));
+  const safeInvoicesPage = Math.min(invoicesPage, invoicesTotalPages);
+  const pagedInvoices = filteredInvoices.slice(
+    (safeInvoicesPage - 1) * INVOICES_PAGE_SIZE,
+    safeInvoicesPage * INVOICES_PAGE_SIZE
+  );
 
   const formatCurrency = (val: number, cur: string = 'YER') => {
     return `${Number(val || 0).toLocaleString()} ${cur}`;
@@ -303,6 +353,19 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
         </div>
       </div>
 
+      {fetchError && invoices.length === 0 && (
+        <div className="bg-white dark:bg-zinc-900 border border-rose-200 dark:border-rose-900/50 rounded-2xl overflow-hidden">
+          <ErrorState
+            titleAr="تعذر تحميل بيانات المبيعات"
+            title="Failed to load sales data"
+            messageAr={fetchError}
+            message={fetchError}
+            onRetry={fetchSalesData}
+            lang={lang}
+          />
+        </div>
+      )}
+
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Invoiced */}
@@ -312,11 +375,15 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
             <Wallet className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-lg font-black text-slate-900 dark:text-white">
-            {formatCurrency(summary?.kpis?.totalInvoicedYer || 74650000)}
+            {loading ? (
+              <span className="inline-block h-6 w-28 animate-pulse bg-slate-200 dark:bg-zinc-700 rounded" />
+            ) : (
+              formatCurrency(summary?.kpis?.totalInvoicedYer || 0)
+            )}
           </div>
           <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
             <span>{isRtl ? 'عدد الفواتير الصادرة:' : 'Total Invoices:'}</span>
-            <span className="font-bold text-slate-700 dark:text-zinc-300">{summary?.kpis?.totalInvoicesCount || 8}</span>
+            <span className="font-bold text-slate-700 dark:text-zinc-300">{summary?.kpis?.totalInvoicesCount ?? '—'}</span>
           </div>
         </div>
 
@@ -327,11 +394,15 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-lg font-black text-emerald-600 dark:text-emerald-400">
-            {formatCurrency(summary?.kpis?.totalCollectedYer || 40750000)}
+            {loading ? (
+              <span className="inline-block h-6 w-28 animate-pulse bg-slate-200 dark:bg-zinc-700 rounded" />
+            ) : (
+              formatCurrency(summary?.kpis?.totalCollectedYer || 0)
+            )}
           </div>
           <div className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-bold">
             <ArrowUpRight className="w-3 h-3" />
-            <span>{isRtl ? `نسبة التحصيل: ${summary?.kpis?.collectionRatePct || 55}%` : `Collection Rate: ${summary?.kpis?.collectionRatePct || 55}%`}</span>
+            <span>{isRtl ? `نسبة التحصيل: ${summary?.kpis?.collectionRatePct ?? '—'}%` : `Collection Rate: ${summary?.kpis?.collectionRatePct ?? '—'}%`}</span>
           </div>
         </div>
 
@@ -342,11 +413,15 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-lg font-black text-amber-600 dark:text-amber-400">
-            {formatCurrency(summary?.kpis?.totalPendingYer || 33900000)}
+            {loading ? (
+              <span className="inline-block h-6 w-28 animate-pulse bg-slate-200 dark:bg-zinc-700 rounded" />
+            ) : (
+              formatCurrency(summary?.kpis?.totalPendingYer || 0)
+            )}
           </div>
           <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
             <span>{isRtl ? 'فواتير غير مسددة:' : 'Pending Invoices:'}</span>
-            <span className="font-bold text-amber-600">{summary?.kpis?.pendingInvoicesCount || 3}</span>
+            <span className="font-bold text-amber-600">{summary?.kpis?.pendingInvoicesCount ?? '—'}</span>
           </div>
         </div>
 
@@ -357,7 +432,11 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
             <Building2 className="w-4 h-4 text-blue-500" />
           </div>
           <div className="text-lg font-black text-slate-900 dark:text-white">
-            {summary?.kpis?.activeServicePointsCount || 4} {isRtl ? 'مراكز نشطة' : 'Hubs'}
+            {loading ? (
+              <span className="inline-block h-6 w-20 animate-pulse bg-slate-200 dark:bg-zinc-700 rounded" />
+            ) : (
+              <>{summary?.kpis?.activeServicePointsCount ?? servicePoints.length ?? 0} {isRtl ? 'مراكز نشطة' : 'Hubs'}</>
+            )}
           </div>
           <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
             <ShieldCheck className="w-3 h-3 text-emerald-600" />
@@ -419,13 +498,14 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
           {/* Filter Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
             <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className={`w-4 h-4 absolute top-1/2 -translate-y-1/2 text-slate-400 ${isRtl ? 'right-3' : 'left-3'}`} aria-hidden="true" />
               <input
                 type="text"
                 placeholder={isRtl ? 'البحث برقم الفاتورة، العميل، أو النوع...' : 'Search by invoice #, client, type...'}
+                aria-label={isRtl ? 'بحث الفواتير' : 'Search invoices'}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg pr-9 pl-3 text-xs text-slate-900 dark:text-white focus:outline-emerald-600"
+                onChange={(e) => { setSearchQuery(e.target.value); setInvoicesPage(1); }}
+                className={`w-full h-9 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-emerald-600 ${isRtl ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
               />
             </div>
 
@@ -460,7 +540,40 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                  {filteredInvoices.map((inv) => (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} className="p-0">
+                        <EnterpriseSkeletonTable rows={6} columns={8} colWidths={['w-24', 'w-32', 'w-24', 'w-24', 'w-20', 'w-20', 'w-20', 'w-24']} />
+                      </td>
+                    </tr>
+                  ) : filteredInvoices.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="p-0">
+                        <EmptyState
+                          variant={searchQuery || statusFilter !== 'ALL' ? 'search' : 'empty'}
+                          titleAr="لا توجد فواتير مطابقة"
+                          title="No matching invoices"
+                          descriptionAr="جرب كلمات مختلفة أو أزل الفلاتر — أو أصدر فاتورة جديدة"
+                          description="Try different keywords or clear filters — or issue a new invoice"
+                          actions={[
+                            {
+                              label: 'Clear filters',
+                              labelAr: 'مسح الفلاتر',
+                              variant: 'secondary',
+                              onClick: () => { setSearchQuery(''); setStatusFilter('ALL'); },
+                            },
+                            {
+                              label: 'Issue invoice',
+                              labelAr: 'إصدار فاتورة',
+                              onClick: () => setActiveSubTab('new_invoice'),
+                            },
+                          ]}
+                          lang={lang}
+                        />
+                      </td>
+                    </tr>
+                  ) : (
+                  pagedInvoices.map((inv) => (
                     <tr key={inv.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40 transition-colors">
                       <td className="py-3 px-4 font-mono font-black text-slate-900 dark:text-white">
                         <div className="flex items-center gap-1.5">
@@ -524,10 +637,22 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )))}
                 </tbody>
               </table>
             </div>
+            {invoicesTotalPages > 1 && (
+              <div className="px-4 py-3 border-t border-slate-200 dark:border-zinc-800">
+                <Pagination
+                  currentPage={safeInvoicesPage}
+                  totalPages={invoicesTotalPages}
+                  totalItems={filteredInvoices.length}
+                  pageSize={INVOICES_PAGE_SIZE}
+                  onPageChange={setInvoicesPage}
+                  lang={lang}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -10,6 +10,52 @@ const router = Router();
 // NexoraOS™ Gemini AI Routes — Extracted from server.ts
 // ═══════════════════════════════════════════════════════════════════
 
+/**
+ * Model output carries a machine-readable gateway code so operators can
+ * distinguish "the model returned garbage" (502, retryable) from genuine
+ * server failures (500) in metrics and alerts.
+ */
+export class ModelOutputError extends Error {
+  statusCode = 502;
+  code = 'MODEL_OUTPUT_INVALID';
+  constructor(message: string) {
+    super(message);
+    this.name = 'ModelOutputError';
+  }
+}
+
+/**
+ * Parse LLM output defensively: strips code fences, then tries the full
+ * text plus the first [...] / {...} payloads. Throws ModelOutputError when
+ * nothing parses (single choke point for all model JSON parsing).
+ */
+export function parseModelJson<T = any>(text: string, context: string): T {
+  const cleaned = (text || '').replace(/```json/gi, '').replace(/```/g, '').trim();
+  const candidates: string[] = [cleaned];
+  const arr = cleaned.match(/\[[\s\S]*\]/);
+  const obj = cleaned.match(/\{[\s\S]*\}/);
+  if (arr && arr[0] !== cleaned) candidates.push(arr[0]);
+  if (obj && obj[0] !== cleaned) candidates.push(obj[0]);
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate) as T;
+    } catch {
+      // try next candidate
+    }
+  }
+  logger.warn(`[Gemini] Non-JSON model output (${context}): ${cleaned.slice(0, 200)}`, { context: 'gemini' });
+  throw new ModelOutputError(`Model returned non-JSON output (${context})`);
+}
+
+/** Map route errors: model failures → 502, everything else → 500. */
+export function modelErrorResponse(res: Response, err: any, fallbackMessage: string): void {
+  if (err instanceof ModelOutputError) {
+    res.status(502).json({ status: 'error', code: err.code, message: err.message });
+    return;
+  }
+  res.status(500).json({ status: 'error', message: fallbackMessage });
+}
+
 router.post('/parse-receipt', async (req: Request, res: Response) => {
   try {
     const { imageBase64, mimeType } = req.body;
@@ -79,10 +125,11 @@ router.post('/parse-receipt', async (req: Request, res: Response) => {
     });
 
     const parsedText = response.text || "{}";
-    res.json({ status: 'ok', data: JSON.parse(parsedText) });
+    res.json({ status: 'ok', data: parseModelJson(parsedText, 'parse-receipt') });
 
   } catch (err: any) {
     logger.error('Error parsing receipt', { context: 'parse-receipt', error: { name: err.name, message: err.message, stack: err.stack } });
+    if (err instanceof ModelOutputError) return modelErrorResponse(res, err, 'Internal Server Error');
     res.status(500).json({ status: 'error', message: "Internal Server Error" });
   }
 });
@@ -241,10 +288,11 @@ Respond in ${language === 'en' ? 'English' : 'Arabic'}. Keep it concise, executi
     });
 
     const responseText = response.text || "{}";
-    res.json({ status: 'ok', modelUsed: targetModel, data: JSON.parse(responseText) });
+    res.json({ status: 'ok', modelUsed: targetModel, data: parseModelJson(responseText, 'copilot') });
 
   } catch (err: any) {
     logger.error('Nexora Copilot API error', { context: 'copilot', error: { name: err.name, message: err.message } });
+    if (err instanceof ModelOutputError) return modelErrorResponse(res, err, 'Internal Server Error');
     res.status(500).json({ status: 'error', message: "Internal Server Error" });
   }
 });
@@ -281,6 +329,7 @@ router.post('/strategic-anomaly-monitor', async (req: Request, res: Response) =>
     res.json({ anomalies });
   } catch (error) {
     logger.error('Anomaly monitor failed', { context: 'strategic-anomaly-monitor', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to monitor anomalies');
     res.status(500).json({ error: 'Failed to monitor anomalies' });
   }
 });
@@ -301,10 +350,11 @@ router.post('/predictive-budgeting', async (req: Request, res: Response) => {
     const result = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     const text = result.text || '';
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const forecast = JSON.parse(cleanText);
+    const forecast = parseModelJson(cleanText, 'predictive-budgeting');
     res.json({ forecast });
   } catch (error) {
     logger.error('Budget forecast failed', { context: 'predictive-budgeting', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to forecast budget');
     res.status(500).json({ error: 'Failed to forecast budget' });
   }
 });
@@ -342,11 +392,12 @@ router.post('/forensic-audit', async (req: Request, res: Response) => {
     const result = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     const text = result.text || '';
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const findings = JSON.parse(cleanText);
+    const findings = parseModelJson(cleanText, 'forensic-audit');
     
     res.json(findings);
   } catch (error) {
     logger.error('Forensic audit failed', { context: 'forensic-audit', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to run audit');
     res.status(500).json({ error: 'Failed to run audit' });
   }
 });
@@ -364,11 +415,12 @@ router.post('/strategic-risk-simulator', async (req: Request, res: Response) => 
     const result = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     const text = result.text || '';
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const data = JSON.parse(cleanText);
+    const data = parseModelJson(cleanText, 'strategic-risk-simulator');
     
     res.json(data);
   } catch (error) {
     logger.error('Risk simulation failed', { context: 'strategic-risk-simulator', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to run simulation');
     res.status(500).json({ error: 'Failed to run simulation' });
   }
 });
@@ -386,11 +438,12 @@ router.post('/resource-optimizer', async (req: Request, res: Response) => {
     const result = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     const text = result.text || '';
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const data = JSON.parse(cleanText);
+    const data = parseModelJson(cleanText, 'resource-optimizer');
     
     res.json(data);
   } catch (error) {
     logger.error('Resource optimization failed', { context: 'resource-optimizer', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to optimize resources');
     res.status(500).json({ error: 'Failed to optimize resources' });
   }
 });
@@ -408,11 +461,12 @@ router.post('/vendor-recommendation', async (req: Request, res: Response) => {
     const result = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     const text = result.text || '';
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const data = JSON.parse(cleanText);
+    const data = parseModelJson(cleanText, 'vendor-recommendation');
     
     res.json(data);
   } catch (error) {
     logger.error('Vendor recommendation failed', { context: 'vendor-recommendation', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to recommend vendors');
     res.status(500).json({ error: 'Failed to recommend vendors' });
   }
 });
@@ -430,11 +484,12 @@ router.post('/hr-performance-matrix', async (req: Request, res: Response) => {
     const result = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     const text = result.text || '';
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const data = JSON.parse(cleanText);
+    const data = parseModelJson(cleanText, 'hr-performance-matrix');
     
     res.json(data);
   } catch (error) {
     logger.error('HR matrix failed', { context: 'hr-performance-matrix', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to generate matrix');
     res.status(500).json({ error: 'Failed to generate matrix' });
   }
 });
@@ -580,7 +635,7 @@ router.post('/anomaly-detection', async (req: Request, res: Response) => {
       }
     });
 
-    const data = JSON.parse(response.text || '{"anomalies":[]}');
+    const data = parseModelJson(response.text || '{"anomalies":[]}', 'anomaly-detection');
     res.json(data);
   } catch (error) {
     logger.warn('Anomaly detection fallback engaged', { context: 'anomaly-detection' });
@@ -682,7 +737,7 @@ router.post('/financial-audit', async (req: Request, res: Response) => {
       }
     });
 
-    const data = JSON.parse(response.text || '{"audits":[]}');
+    const data = parseModelJson(response.text || '{"audits":[]}', 'financial-audit');
     res.json(data);
   } catch (error) {
     logger.warn('Financial audit fallback engaged', { context: 'financial-audit' });
@@ -781,7 +836,7 @@ router.post('/predictive-impact', async (req: Request, res: Response) => {
       }
     });
 
-    const data = JSON.parse(response.text || '{}');
+    const data = parseModelJson(response.text || '{}', 'predictive-impact');
     res.json(data);
   } catch (error) {
     logger.warn('Predictive impact fallback engaged', { context: 'predictive-impact' });
@@ -881,10 +936,11 @@ router.post('/smart-rebalance', async (req: Request, res: Response) => {
       }
     });
 
-    const data = JSON.parse(response.text || '{}');
+    const data = parseModelJson(response.text || '{}', 'smart-rebalance');
     res.json(data);
   } catch (error) {
     logger.error('AI Smart Rebalance API failed', { context: 'smart-rebalance', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to perform Smart Rebalance suggestion analysis');
     res.status(500).json({ error: 'Failed to perform Smart Rebalance suggestion analysis' });
   }
 });
@@ -958,10 +1014,11 @@ router.post('/stakeholder-pulse', async (req: Request, res: Response) => {
       }
     });
 
-    const data = JSON.parse(response.text || '{}');
+    const data = parseModelJson(response.text || '{}', 'stakeholder-pulse');
     res.json(data);
   } catch (error: any) {
     logger.error('AI Stakeholder Pulse API failed', { context: 'stakeholder-pulse', error: { name: (error as Error).name, message: (error as Error).message } });
+    if (error instanceof ModelOutputError) return modelErrorResponse(res, error, 'Failed to perform Stakeholder Pulse NLP analysis');
     res.status(500).json({ error: 'Failed to perform Stakeholder Pulse NLP analysis' });
   }
 });

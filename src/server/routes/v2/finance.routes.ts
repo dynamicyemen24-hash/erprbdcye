@@ -10,6 +10,7 @@ import {
 } from '../../engines/finance.engine';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { successResponse, errorResponse, extractTenantId } from '../../core/helpers';
+import { enforceOwnership } from '../../tenantSecurity';
 
 const router = Router();
 
@@ -61,7 +62,7 @@ router.post('/chart-of-accounts', async (req: AuthenticatedRequest, res: Respons
 
 router.put('/chart-of-accounts/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const account = await ChartOfAccountsService.update(req.params.id, req.body);
+    const account = await ChartOfAccountsService.update(extractTenantId(req), req.params.id, req.body);
     if (!account) return errorResponse(res, 'Account not found', 404);
     successResponse(res, account);
   } catch (err: any) {
@@ -71,7 +72,7 @@ router.put('/chart-of-accounts/:id', async (req: AuthenticatedRequest, res: Resp
 
 router.delete('/chart-of-accounts/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    await ChartOfAccountsService.delete(req.params.id);
+    await ChartOfAccountsService.delete(extractTenantId(req), req.params.id);
     successResponse(res, { message: 'Account deleted' });
   } catch (err: any) {
     errorResponse(res, err.message);
@@ -127,7 +128,7 @@ router.get('/transactions', async (req: AuthenticatedRequest, res: Response) => 
   }
 });
 
-router.get('/transactions/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/transactions/:id', enforceOwnership('transactions'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const tx = await LedgerEngine.getTransactionDetail(req.params.id);
     if (!tx) return errorResponse(res, 'Transaction not found', 404);
@@ -137,7 +138,7 @@ router.get('/transactions/:id', async (req: AuthenticatedRequest, res: Response)
   }
 });
 
-router.post('/transactions/:id/reverse', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/transactions/:id/reverse', enforceOwnership('transactions'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const orgId = extractTenantId(req);
     const auth = {

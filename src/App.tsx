@@ -58,8 +58,8 @@ import { Spinner } from './design-system/components/Spinner';
 
 // Enterprise Domain Features & Shared Component Imports
 import LoginView from './components/LoginView';
+import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import NexoraTopProgressBar from './components/NexoraTopProgressBar';
-import NexoraMicroProgress from './components/NexoraMicroProgress';
 import { lazyWithRetry } from './lib/lazyWithRetry';
 const DocumentationView = lazyWithRetry(() => import('./components/DocumentationView'), 'DocumentationView');
 const OperationalScenariosView = lazyWithRetry(() => import('./components/OperationalScenariosView'), 'OperationalScenariosView');
@@ -506,6 +506,28 @@ export default function App() {
                 sessionStorage.setItem('rbd_token', data.token);
                 scheduleRefresh();
               }
+            } else if (res.status === 403) {
+              // Step-up enforcement: a pre-MFA session cannot survive MFA enrollment.
+              const body = await res.json().catch(() => ({}));
+              if (body?.code === 'MFA_REQUIRED') {
+                setCurrentUser(null);
+                setAuthenticatedModules([]);
+                localStorage.removeItem('rbd_user');
+                sessionStorage.removeItem('rbd_user');
+                localStorage.removeItem('roh_user');
+                localStorage.removeItem('rbd_token');
+                sessionStorage.removeItem('rbd_token');
+                localStorage.removeItem('rbd_refresh_token');
+                sessionStorage.removeItem('rbd_refresh_token');
+                showToast({
+                  type: 'warning',
+                  title: lang === 'ar' ? 'التحقق بخطوتين' : 'Two-step verification',
+                  message: lang === 'ar'
+                    ? 'تم تفعيل التحقق بخطوتين — يرجى تسجيل الدخول مجدداً وإدخال الرمز'
+                    : 'Two-step verification was enabled — please sign in again with your code',
+                });
+                return; // do not reschedule on a revoked session
+              }
             }
           } catch {
             // Network offline / silent catch — do NOT kick out the active user!
@@ -712,9 +734,6 @@ export default function App() {
         lang={lang}
         activeTabLabel={TAB_CONFIG[activeTab]?.[lang === 'ar' ? 'title_ar' : 'title_en']}
       />
-
-      {/* MICRO E2E FETCH PROGRESS — precise real-network 2px indicator */}
-      <NexoraMicroProgress />
 
       {/* LAYER 1: GLOBAL ENTERPRISE HEADER */}
       <GlobalEnterpriseHeader
@@ -1321,6 +1340,7 @@ export default function App() {
           ))}
         </AnimatePresence>
       </div>
+      <PWAUpdatePrompt lang={lang} />
     </div>
       </LocalizationProvider>
     </ThemeProvider>

@@ -108,37 +108,58 @@ export class IPSASFinanceService {
   /**
    * Atomic creation of double-entry voucher with balanced lines
    */
-  static async postDoubleEntryVoucher(voucher: {
-    organizationId: string;
-    transactionNumber: string;
-    transactionType: string;
-    description: string;
-    referenceNumber?: string;
-    projectId?: string;
-    lines: Array<{
-      accountId: string;
-      accountCode?: string;
-      debit: number;
-      credit: number;
-      description?: string;
-      projectId?: string;
-    }>;
-  }) {
-    // Validate balance
-    const totalDebit = voucher.lines.reduce((s, l) => s + (Number(l.debit) || 0), 0);
-    const totalCredit = voucher.lines.reduce((s, l) => s + (Number(l.credit) || 0), 0);
+static async postDoubleEntryVoucher(voucher: {
+     organizationId: string;
+     transactionNumber: string;
+     transactionType: string;
+     description: string;
+     referenceNumber?: string;
+     projectId?: string;
+     fundId?: string;
+     donorId?: string;
+     lines: Array<{
+       accountId: string;
+       accountCode?: string;
+       debit: number;
+       credit: number;
+       description?: string;
+       projectId?: string;
+       fundId?: string;
+       donorId?: string;
+       costCenterId?: string;
+     }>;
+   }) {
+     // Validate balance
+     const totalDebit = voucher.lines.reduce((s, l) => s + (Number(l.debit) || 0), 0);
+     const totalCredit = voucher.lines.reduce((s, l) => s + (Number(l.credit) || 0), 0);
 
-    if (Math.abs(totalDebit - totalCredit) > 0.001) {
-      throw new Error(`IPSAS Ledger Validation Failed: Total Debit (${totalDebit}) does not equal Total Credit (${totalCredit})`);
-    }
+     if (Math.abs(totalDebit - totalCredit) > 0.001) {
+       throw new Error(`IPSAS Ledger Validation Failed: Total Debit (${totalDebit}) does not equal Total Credit (${totalCredit})`);
+     }
 
-    // Mandatory Budget Availability Check (NEB-10 / NEB-14 Compliance)
-    const targetProjectId = voucher.projectId || voucher.lines.find(l => l.projectId)?.projectId;
-    if (targetProjectId) {
-      await IPSASFinanceService.checkBudgetAvailability(voucher.organizationId, targetProjectId, totalDebit);
-    }
+     // IPSAS 23: Enforce Fund/Donor dimension
+     const lineWithMissingFund = voucher.lines.find(l => !l.fundId);
+     if (lineWithMissingFund) {
+       throw new Error('Fund/Donor segment is mandatory for all journal entries (IPSAS 23 Compliance)');
+     }
 
-    return await withTransaction(async (client) => {
+     // Check fund balance for restricted funds
+     if (voucher.fundId) {
+       await this.checkFundBalance(voucher.organizationId, voucher.fundId, totalDebit);
+     }
+
+     return await withTransaction(async (client) => {
+      // Mandatory Budget Availability Check (NEB-10 / NEB-14 Compliance),
+      // executed INSIDE the posting transaction with a row lock (FOR UPDATE).
+      // A pre-transaction check alone is a TOCTOU hole: concurrent postings
+      // could all pass and jointly overspend the budget.
+      const targetProjectId = voucher.projectId || voucher.lines.find(l => l.projectId)?.projectId;
+      if (targetProjectId) {
+        await IPSASFinanceService.checkBudgetAvailabilityLocked(
+          client, voucher.organizationId, targetProjectId, totalDebit
+        );
+      }
+
       const txRes = await client.query(`
         INSERT INTO transactions (
           organization_id, transaction_number, transaction_date, posting_date,
@@ -284,5 +305,60 @@ export class IPSASFinanceService {
    */
   static async assertBudgetNotExceeded(orgId: string, projectId: string, requestedAmount: number) {
     return this.checkBudgetAvailability(orgId, projectId, requestedAmount);
+  }
+
+/**
+    * Transaction-scoped budget check with row-level lock. MUST be used for
+    * postings (call inside withTransaction); the pool-level
+    * checkBudgetAvailability is advisory-only for UI pre-validation.
+    */
+  static async checkBudgetAvailabilityLocked(
+    client: { query: (text: string, params?: any[]) => Promise<{ rows: any[] }> },
+    orgId: string,
+    projectId: string,
+    requestedAmount: number
+  ) {
+    if (!projectId) return;
+
+    const res = await client.query(
+      `SELECT budget, COALESCE(spent_amount, 0) as spent, name_ar FROM projects WHERE id = $1 AND (organization_id = $2 OR organization_id IS NULL) FOR UPDATE`,
+      [projectId, orgId]
+    );
+
+    if (res.rows.length > 0) {
+      const proj = res.rows[0];
+      const budget = Number(proj.budget || 0);
+      const spent = Number(proj.spent || 0);
+      if (budget > 0) {
+        const available = budget - spent;
+        if (requestedAmount > available) {
+          throw new Error(
+            `IPSAS Budget Hard-Lock Violation: Requested amount (${requestedAmount}) exceeds available project budget (${available}) for '${proj.name_ar || projectId}'`
+          );
+        }
+      }
+    }
+  }
+
+  /**
+   * Check fund balance for restricted funds (IPSAS 23)
+   */
+  static async checkFundBalance(orgId: string, fundId: string, requestedAmount: number) {
+    const pool = getDatabasePool();
+    const res = await pool.query(
+      `SELECT current_balance, fund_type FROM fund_balances
+       WHERE organization_id = $1 AND fund_id = $2`,
+      [orgId, fundId]
+    );
+    if (res.rows.length > 0) {
+      const fund = res.rows[0];
+      const balance = Number(fund.current_balance || 0);
+      const available = balance;
+      if (requestedAmount > available) {
+        throw new Error(
+          `Fund Balance Violation: Requested amount (${requestedAmount}) exceeds fund balance (${available}). Fund type: ${fund.fund_type}`
+        );
+      }
+    }
   }
 }

@@ -372,41 +372,24 @@ const UnifiedContextRibbonInner: React.FC<UnifiedContextRibbonProps> = ({
         </div>
         )}
 
-        {/* Right Side: Context Shortcuts & AI Tools */}
-        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar max-w-full">
-          
-          {/* Contextual Jump Links */}
-          {contextualLinks.map((link, idx) => {
+        {/* Right Side: Context Shortcuts (max 2, rest via overflow) */}
+        <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
+          {contextualLinks.slice(0, 2).map((link, idx) => {
             const LinkIcon = link.icon;
             return (
               <button
                 key={idx}
                 onClick={() => onSelectTab(link.tab)}
-                className="px-2.5 py-1 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-lg text-[11px] font-bold text-slate-700 dark:text-zinc-300 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="px-2.5 py-1 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-lg text-[11px] font-bold text-slate-700 dark:text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
                 <LinkIcon className="w-3 h-3 text-amber-500" />
                 <span>{isRtl ? link.labelAr : link.labelEn}</span>
               </button>
             );
           })}
-
-          {/* Export Data Button */}
-          <button
-            onClick={onOpenExportModal}
-            className="p-1.5 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-lg text-slate-600 dark:text-zinc-300 transition-colors cursor-pointer"
-            title={isRtl ? 'تصدير بيانات الوحدة' : 'Export Module Data'}
-          >
-            <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          </button>
-
-          {/* Nexora AI Copilot Trigger */}
-          <button
-            onClick={onOpenCopilot}
-            className="px-2.5 py-1 bg-emerald-950 hover:bg-emerald-900 border border-emerald-800 text-amber-400 rounded-lg text-xs font-black shadow-xs transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-            title={isRtl ? 'مساعد الذكاء الاصطناعي التشغيلي' : 'Nexora AI Copilot'}
-          >
-            <Brain className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-          </button>
+          {contextualLinks.length > 2 && (
+            <span className="text-[10px] text-slate-400 dark:text-zinc-500 px-1">+{contextualLinks.length - 2}</span>
+          )}
         </div>
       </div>
     </div>

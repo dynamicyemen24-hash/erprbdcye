@@ -3,13 +3,15 @@ import {
   ShoppingCart, Plus, Search, Trash2, Eye, Printer, Building, Layers, 
   Activity, CheckCircle2, XCircle, Clock, ArrowRight, CheckCircle, 
   AlertCircle, FileText, FileSpreadsheet, UserCheck, Workflow, 
-  ChevronRight, BadgePercent, TrendingUp, DollarSign, RefreshCw, Warehouse
+  ChevronRight, BadgePercent, TrendingUp, DollarSign, RefreshCw, Warehouse,
+  Download, ShieldCheck
 } from 'lucide-react';
 import { Account, Project } from './FinanceTypes';
 import { printHTML, createPrintDocument } from '../../lib/printUtils';
 import { generateShortId, generateNumericCode } from '../../lib/idGenerator';
 import { Spinner } from '../../design-system/components/Spinner';
 import { EnterpriseButton } from '../common/EnterpriseButton';
+import { tafqeetArabicRials } from '../../core/security/financialSafetyGuardian';
 
 interface ProcurementTabProps {
   accounts: Account[];
@@ -599,6 +601,187 @@ export default function ProcurementTab({
     }
   };
 
+  
+  const handleExportPOCSV = () => {
+    if (purchaseOrders.length === 0) return;
+    const headers = [
+      '#',
+      isRtl ? 'رقم أمر الشراء' : 'PO Number',
+      isRtl ? 'المورد المعتمد' : 'Vendor',
+      isRtl ? 'بيان الطلب' : 'Title',
+      isRtl ? 'إجمالي المبلغ (ر.ي)' : 'Total Amount (YER)',
+      isRtl ? 'تاريخ التوريد الأقصى' : 'Delivery Target',
+      isRtl ? 'الحالة' : 'Status'
+    ];
+
+    const rows = purchaseOrders.map((po, idx) => {
+      const matchedPr = requisitions.find(pr => pr.id === po.pr_id);
+      return [
+        String(idx + 1),
+        po.po_number,
+        `"${(po.supplier_name || '').replace(/"/g, '""')}"`,
+        `"${(matchedPr?.title || '').replace(/"/g, '""')}"`,
+        String(po.total_amount),
+        po.delivery_date,
+        po.status
+      ];
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Purchase_Orders_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrintGRN = (grn: GoodsReceipt) => {
+    const po = purchaseOrders.find(p => p.id === grn.po_id);
+    const pr = po ? requisitions.find(p => p.id === po.pr_id) : null;
+    const printDoc = createPrintDocument();
+    const dir = isRtl ? 'rtl' : 'ltr';
+    const verificationRef = `ROHAMAA-GRN-${grn.grn_number}-${generateNumericCode(100000, 999999)}`;
+
+    const itemsList = pr ? pr.items : [];
+    const itemsHTML = itemsList.map((item, idx) => {
+      const st = grn.items_status[idx] || { ordered: item.qty, received: item.qty, accepted: item.qty, rejected: 0 };
+      return `
+        <tr class="border-b border-slate-200">
+          <td class="p-2.5 text-center font-mono font-bold">${idx + 1}</td>
+          <td class="p-2.5 font-bold text-slate-900">${item.name}</td>
+          <td class="p-2.5 text-center font-mono">${item.qty}</td>
+          <td class="p-2.5 text-center font-mono font-bold text-emerald-700">${st.received ?? item.qty}</td>
+          <td class="p-2.5 text-center font-mono font-black text-emerald-800 bg-emerald-50/50">${st.accepted ?? item.qty}</td>
+          <td class="p-2.5 text-center font-mono font-bold text-rose-600">${st.rejected ?? 0}</td>
+        </tr>
+      `;
+    }).join('');
+
+    printDoc.write(`
+      <!DOCTYPE html>
+      <html lang="${lang}" dir="${dir}">
+      <head>
+        <meta charset="UTF-8">
+        <title>سند استلام وفحص مخزني - ${grn.grn_number}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+          body { font-family: 'Tajawal', sans-serif; }
+          @media print { .no-print { display: none !important; } }
+        </style>
+      </head>
+      <body class="bg-slate-50 text-slate-900 p-8">
+        <div class="max-w-4xl mx-auto mb-6 flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm no-print">
+          <span class="text-xs font-bold text-slate-500">${isRtl ? 'سند استلام وفحص مخزني معتمد للطباعة والتوقيع' : 'Official Goods Receipt Note ready for printing'}</span>
+          <button onclick="window.print()" class="px-5 py-2.5 bg-emerald-600 text-white font-extrabold text-xs rounded-xl cursor-pointer">
+            ${isRtl ? 'طباعة سند الاستلام 🖨️' : 'Print GRN 🖨️'}
+          </button>
+        </div>
+
+        <div class="max-w-4xl mx-auto bg-white border border-slate-300 rounded-xl p-10 shadow-lg min-h-[297mm] flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center pb-6 border-b-2 border-emerald-600">
+              <div class="flex items-center gap-3">
+                <img src="/UAMEX_ERPLOGO.png" style="height: 55px; max-width: 75px; object-fit: contain;" alt="UAMEX ERP" />
+                <img src="/LogoRohamaab.png" style="height: 55px; max-width: 75px; object-fit: contain;" alt="Logo Rohamaab" />
+                <div>
+                  <h1 class="font-black text-sm text-slate-900 leading-tight">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
+                  <p class="text-[11px] font-bold text-emerald-700">نظام يو امكس المؤسسي الشامل - UAMEX_ERP™</p>
+                  <p class="text-[9px] text-slate-500 font-mono">One Platform. One Organization. One Vision.</p>
+                </div>
+              </div>
+              <div class="text-left text-[11px] text-slate-600 font-mono space-y-0.5">
+                <div><strong>GRN No:</strong> ${grn.grn_number}</div>
+                <div><strong>PO Ref:</strong> ${po?.po_number || '-'}</div>
+                <div><strong>Date:</strong> ${grn.received_date}</div>
+              </div>
+            </div>
+
+            <div class="my-6 text-center">
+              <h2 class="text-lg font-black text-slate-900 border border-slate-900 px-6 py-1.5 rounded-lg inline-block">
+                محضر استلام وفحص مخزني رسمي (GRN)
+              </h2>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-b border-slate-200 text-xs mb-6 bg-slate-50 p-4 rounded-xl">
+              <div>
+                <p class="text-slate-400 font-bold">المستودع المستلم</p>
+                <p class="font-black text-slate-900 mt-1">${grn.warehouse_name}</p>
+              </div>
+              <div>
+                <p class="text-slate-400 font-bold">مسؤول الاستلام</p>
+                <p class="font-bold text-slate-800 mt-1">${grn.received_by}</p>
+              </div>
+              <div>
+                <p class="text-slate-400 font-bold">المورد المعتمد</p>
+                <p class="font-bold text-slate-800 mt-1">${po?.supplier_name || '-'}</p>
+              </div>
+              <div>
+                <p class="text-slate-400 font-bold">حالة الفحص</p>
+                <p class="font-bold text-emerald-700 mt-1">✓ مطابق للمواصفات القياسية</p>
+              </div>
+            </div>
+
+            <table class="w-full text-xs text-right border-collapse border border-slate-200 mb-6">
+              <thead>
+                <tr class="bg-slate-900 text-white font-extrabold uppercase">
+                  <th class="p-3 border border-slate-200 text-center w-12">#</th>
+                  <th class="p-3 border border-slate-200">المواد والأصناف المستلمة</th>
+                  <th class="p-3 border border-slate-200 text-center w-24">المطلوب (PO)</th>
+                  <th class="p-3 border border-slate-200 text-center w-24">المستلم فعلاً</th>
+                  <th class="p-3 border border-slate-200 text-center w-24 bg-emerald-950 text-emerald-300">المقبول مخزنياً</th>
+                  <th class="p-3 border border-slate-200 text-center w-24 text-rose-300">المرفوض/التالف</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHTML}
+              </tbody>
+            </table>
+
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+              <p class="font-black text-slate-900">ملاحظات وتقرير لجنة الفحص والمطابقة النوعية:</p>
+              <p class="text-slate-600">${grn.notes || 'تم فحص البنود ومطابقة الأعداد والمواصفات وفق محضر الشراء، ولا توجد أية ملاحظات تعيق الصرف أو الإدخال المخزني.'}</p>
+            </div>
+          </div>
+
+          <!-- Signatures & Verification Seal -->
+          <div>
+            <div class="grid grid-cols-4 gap-4 text-center text-[10px] font-black text-slate-600 border-t border-slate-200 pt-6 mb-6">
+              <div>
+                <p class="border-b border-slate-400 pb-1 mb-6">أمين المستودع</p>
+                <span class="text-slate-400 font-mono">التوقيع: ____________</span>
+              </div>
+              <div>
+                <p class="border-b border-slate-400 pb-1 mb-6">رئيس لجنة الفحص</p>
+                <span class="text-slate-400 font-mono">التوقيع: ____________</span>
+              </div>
+              <div>
+                <p class="border-b border-slate-400 pb-1 mb-6">مندوب المورد / الناقل</p>
+                <span class="text-slate-400 font-mono">التوقيع: ____________</span>
+              </div>
+              <div>
+                <p class="border-b border-slate-400 pb-1 mb-6">المدير المالي والختم</p>
+                <span class="text-slate-400 font-mono">التوقيع: ____________</span>
+              </div>
+            </div>
+
+            <div class="p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center justify-between text-[9px] font-mono text-emerald-900">
+              <div class="flex items-center gap-2">
+                <span class="font-black text-xs">UAMEX-VERIFIED-SEAL</span>
+                <span>REF: ${verificationRef}</span>
+              </div>
+              <span>معتمد وصادر رقمياً وفق معايير الحوكمة وسلاسل الإمداد المؤسسية</span>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    printDoc.close();
+  };
+
   const handlePrintPO = (po: PurchaseOrder) => {
     const pr = requisitions.find(p => p.id === po.pr_id);
     if (!pr) return;
@@ -644,9 +827,14 @@ export default function ProcurementTab({
         <div class="max-w-4xl mx-auto bg-white border border-slate-300 rounded-xl p-10 shadow-lg min-h-[297mm] flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-center pb-6 border-b-2 border-slate-900">
-              <div class="text-right">
-                <h1 class="font-black text-sm text-slate-900">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
-                <p class="text-[10px] font-bold text-slate-500">نظام NexoraOS™ المؤسسي</p>
+              <div class="flex items-center gap-3">
+                <img src="/UAMEX_ERPLOGO.png" style="height: 55px; max-width: 75px; object-fit: contain;" alt="UAMEX ERP" />
+                <img src="/LogoRohamaab.png" style="height: 55px; max-width: 75px; object-fit: contain;" alt="Logo Rohamaab" />
+                <div>
+                  <h1 class="font-black text-sm text-slate-900 leading-tight">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h1>
+                  <p class="text-[11px] font-bold text-emerald-700">نظام يو امكس المؤسسي الشامل - UAMEX_ERP™</p>
+                  <p class="text-[9px] text-slate-500 font-mono">One Platform. One Organization. One Vision.</p>
+                </div>
               </div>
               <span class="text-xs font-black border-2 border-slate-900 px-4 py-1.5 bg-slate-50 rounded">
                 أمر شراء رسمي (Purchase Order)
@@ -706,15 +894,33 @@ export default function ProcurementTab({
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-6 text-center text-[10px] font-black text-slate-600 border-t border-slate-200 pt-6">
-            <div>
-              <p class="border-b border-slate-400 pb-1">توقيع منسق المشتريات والخدمات</p>
+          <div>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl mb-4 text-xs">
+              <span class="text-slate-500 font-bold">المبلغ بالحروف: </span>
+              <span class="font-bold text-emerald-800">${tafqeetArabicRials(po.total_amount)}</span>
             </div>
-            <div>
-              <p class="border-b border-slate-400 pb-1">توقيع واعتماد المدير المالي</p>
+
+            <div class="grid grid-cols-3 gap-6 text-center text-[10px] font-black text-slate-600 border-t border-slate-200 pt-6 mb-6">
+              <div>
+                <p class="border-b border-slate-400 pb-1 mb-6">توقيع منسق المشتريات والخدمات</p>
+                <span class="text-slate-400 font-mono">التوقيع: ____________</span>
+              </div>
+              <div>
+                <p class="border-b border-slate-400 pb-1 mb-6">توقيع واعتماد المدير المالي</p>
+                <span class="text-slate-400 font-mono">التوقيع: ____________</span>
+              </div>
+              <div>
+                <p class="border-b border-slate-400 pb-1 mb-6">اعتماد رئيس مجلس الإدارة والختم</p>
+                <span class="text-slate-400 font-mono">التوقيع: ____________</span>
+              </div>
             </div>
-            <div>
-              <p class="border-b border-slate-400 pb-1">اعتماد رئيس مجلس الإدارة والختم</p>
+
+            <div class="p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center justify-between text-[9px] font-mono text-emerald-900">
+              <div class="flex items-center gap-2">
+                <span class="font-black text-xs">UAMEX-VERIFIED-SEAL</span>
+                <span>REF: ROHAMAA-PO-${po.po_number}-${generateNumericCode(100000, 999999)}</span>
+              </div>
+              <span>معتمد وصادر رقمياً وفق معايير الشفافية والمشتريات المؤسسية</span>
             </div>
           </div>
         </div>
@@ -1704,6 +1910,7 @@ export default function ProcurementTab({
                     <th className="p-3 w-36 text-center">{isRtl ? 'تاريخ الفحص' : 'Date'}</th>
                     <th className="p-3 w-32 text-center">{isRtl ? 'المطابقة النوعية' : 'Quality'}</th>
                     <th className="p-3 w-28 text-center">{isRtl ? 'الحالة' : 'Status'}</th>
+                    <th className="p-3 w-20 text-center">{isRtl ? 'الطباعة' : 'Print'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-slate-700 font-semibold">

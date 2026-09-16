@@ -6,6 +6,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { getClient, isRedisReady } from './client';
 import logger from '../core/logger';
+import type { AuthContext } from '../core/types';
 
 // ─── Configuration ──────────────────────────────────────
 
@@ -278,6 +279,193 @@ export const exportLimiter = createDistributedRateLimiter({
   message: {
     ar: 'تم تجاوز حد تصدير البيانات.',
     en: 'Data export rate limit exceeded.',
+  },
+});
+
+// ─── Adaptive Tenant-Aware Rate Limiter (Token Bucket) ────
+/**
+ * Creates a tenant-aware rate limiter with adaptive limits based on tenant tier.
+ * Uses token bucket algorithm for smooth rate limiting with burst allowance.
+ */
+export interface TenantRateLimitConfig {
+  windowMs: number;
+  baseMaxRequests: number;
+  burstMultiplier?: number; // Allow bursts up to baseMaxRequests * burstMultiplier
+  keyPrefix?: string;
+  message?: { ar: string; en: string };
+}
+
+interface TokenBucketEntry {
+  tokens: number;
+  lastRefill: number;
+}
+
+const tenantMemoryStore = new Map<string, TokenBucketEntry>();
+const tenantRedisPrefix = 'tb:tenant:';
+
+export function createTenantRateLimiter(config: TenantRateLimitConfig) {
+  const {
+    windowMs,
+    baseMaxRequests,
+    burstMultiplier = 2,
+    keyPrefix = 'rl:tenant',
+    message = {
+      ar: 'تم تجاوز حد الطلبات للمؤسسة. يرجى المحاولة لاحقاً.',
+      en: 'Tenant rate limit exceeded. Please try again later.',
+    },
+  } = config;
+
+  const maxTokens = baseMaxRequests * burstMultiplier;
+  const refillRate = baseMaxRequests / (windowMs / 1000); // tokens per second
+
+  async function checkTenantLimit(
+    tenantId: string,
+    req: Request & { user?: AuthContext }
+  ): Promise<{ allowed: boolean; remaining: number; resetAt: number; total: number; retryAfter?: number }> {
+    const now = Date.now();
+    const redisKey = `${tenantRedisPrefix}${tenantId}`;
+    const maxAllowed = maxTokens;
+
+    // Try Redis first
+    const client = getClient();
+    if (client && client.status === 'ready') {
+      try {
+        const luaScript = `
+          local key = KEYS[1]
+          local now = tonumber(ARGV[1])
+          local window = tonumber(ARGV[2])
+          local max_tokens = tonumber(ARGV[3])
+          local refill_rate = tonumber(ARGV[4])
+          local requested = tonumber(ARGV[5])
+
+          local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
+          local tokens = tonumber(bucket[1])
+          local last_refill = tonumber(bucket[2])
+
+          if tokens == nil then
+            tokens = max_tokens
+            last_refill = now
+          else
+            local elapsed = (now - last_refill) / 1000
+            local refill = elapsed * refill_rate
+            tokens = math.min(max_tokens, tokens + refill)
+            last_refill = now
+          end
+
+          local allowed = false
+          local remaining = 0
+          if tokens >= requested then
+            tokens = tokens - requested
+            allowed = true
+            remaining = math.floor(tokens)
+          else
+            remaining = math.floor(tokens)
+          end
+
+          redis.call('HMSET', key, 'tokens', tokens, 'last_refill', last_refill)
+          redis.call('PEXPIRE', key, window)
+
+          return {allowed and 1 or 0, remaining, max_tokens}
+        `;
+
+        const result = await client.eval(luaScript, 1, redisKey, now.toString(), windowMs.toString(), maxAllowed.toString(), refillRate.toString(), '1');
+
+        const allowed = result[0] === 1;
+        const remaining = result[1];
+        const resetAt = now + windowMs;
+
+        return {
+          allowed,
+          remaining,
+          resetAt,
+          total: maxAllowed,
+          retryAfter: allowed ? undefined : Math.ceil((1 - result[2]) / refillRate * 1000),
+        };
+      } catch (err: any) {
+        logger.warn(`[Tenant RateLimit] Redis error: ${err.message}, falling back to memory`);
+      }
+    }
+
+    // In-memory fallback
+    let entry = tenantMemoryStore.get(tenantId);
+    if (!entry) {
+      entry = { tokens: maxTokens, lastRefill: now };
+      tenantMemoryStore.set(tenantId, entry);
+    }
+
+    const elapsed = (now - entry.lastRefill) / 1000;
+    const refill = elapsed * refillRate;
+    entry.tokens = Math.min(maxTokens, entry.tokens + refill);
+    entry.lastRefill = now;
+
+    if (entry.tokens >= 1) {
+      entry.tokens -= 1;
+      return {
+        allowed: true,
+        remaining: Math.floor(entry.tokens),
+        resetAt: now + windowMs,
+        total: maxAllowed,
+      };
+    } else {
+      const retryAfter = Math.ceil((1 - entry.tokens) / refillRate * 1000);
+      return {
+        allowed: false,
+        remaining: 0,
+        resetAt: now + windowMs,
+        total: maxAllowed,
+        retryAfter,
+      };
+    }
+}
+
+return async (req: Request & { user?: AuthContext }, res: Response, next: NextFunction) => {
+  const tenantId = req.user?.orgId || req.headers['x-organization-id'];
+  if (!tenantId) {
+    // No tenant context — apply global fallback
+    return next();
+  }
+
+  const result = await checkTenantLimit(String(tenantId), req);
+
+    res.setHeader('X-RateLimit-Limit', result.total);
+    res.setHeader('X-RateLimit-Remaining', result.remaining);
+    res.setHeader('X-RateLimit-Reset', Math.ceil(result.resetAt / 1000));
+
+    if (!result.allowed) {
+      if (result.retryAfter) {
+        res.setHeader('Retry-After', Math.ceil(result.retryAfter / 1000));
+      }
+      return res.status(429).json({
+        success: false,
+        error: message,
+        retryAfter: result.retryAfter ? Math.ceil(result.retryAfter / 1000) : undefined,
+      });
+    }
+
+    next();
+  };
+}
+
+// Export pre-configured tenant limiters
+export const tenantApiLimiter = createTenantRateLimiter({
+  windowMs: 60 * 1000,
+  baseMaxRequests: 300, // 300 req/min base, burst to 600
+  burstMultiplier: 2,
+  keyPrefix: 'rl:tenant:api',
+  message: {
+    ar: 'تم تجاوز حد طلبات المؤسسة. يرجى المحاولة لاحقاً.',
+    en: 'Tenant API rate limit exceeded. Please try again later.',
+  },
+});
+
+export const tenantStrictLimiter = createTenantRateLimiter({
+  windowMs: 60 * 1000,
+  baseMaxRequests: 30,
+  burstMultiplier: 1.5,
+  keyPrefix: 'rl:tenant:strict',
+  message: {
+    ar: 'تم تجاوز حد العمليات الحساسة للمؤسسة.',
+    en: 'Tenant sensitive operation rate limit exceeded.',
   },
 });
 

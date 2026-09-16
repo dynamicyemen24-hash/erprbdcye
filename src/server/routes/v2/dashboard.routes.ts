@@ -9,16 +9,19 @@ const router = Router();
 
 // GET /api/dashboard-stats — High-level dashboard stats
 router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => {
-  res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=45');
-  const cachedData = apiCache.get('dashboard-stats');
+  res.setHeader('Cache-Control', 'private, max-age=15, stale-while-revalidate=45');
+  const dbPool = getPool();
+  const tenantId = req.user?.org_id;
+  if (!tenantId) return res.status(401).json({ error: 'Organization ID required' });
+  // Tenant-scoped cache key: a GLOBAL key here served Org-A's aggregates to
+  // Org-B (cross-tenant leak). Never cache tenant payloads under static keys.
+  const cacheKey = `dashboard-stats:${tenantId}`;
+  const cachedData = apiCache.get(cacheKey);
   if (cachedData) {
     return res.json(cachedData);
   }
 
   try {
-    const dbPool = getPool();
-    const tenantId = req.user?.org_id;
-    if (!tenantId) return res.status(401).json({ error: 'Organization ID required' });
 
     const safeQueryView = async (queryText: string, params?: any[]) => {
       try {
@@ -111,7 +114,7 @@ router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => 
       recentProjects
     };
 
-    apiCache.set('dashboard-stats', responsePayload);
+    apiCache.set(cacheKey, responsePayload);
     res.json(responsePayload);
   } catch (err: any) {
     logger.warn(`Error fetching dashboard stats: ${err.message}`, { context: 'dashboard' });
@@ -132,46 +135,52 @@ router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => 
 });
 
 // GET /api/nexora-consolidated-kpis — Consolidated KPIs from stored procedure
-router.get('/nexora-consolidated-kpis', authenticateToken, async (req, res) => {
-  res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=45');
-  const cachedData = apiCache.get('consolidated-kpis');
+router.get('/nexora-consolidated-kpis', authenticateToken, async (req: any, res: any) => {
+  res.setHeader('Cache-Control', 'private, max-age=15, stale-while-revalidate=45');
+  const tenantId = req.user?.org_id;
+  if (!tenantId) return res.status(401).json({ error: 'Organization ID required' });
+  // Tenant-scoped key: the payload is per-organization since the procedure
+  // takes p_org_id. A global key would leak one tenant's KPIs to another.
+  const cacheKey = `consolidated-kpis:${tenantId}`;
+  const cachedData = apiCache.get(cacheKey);
   if (cachedData) {
     return res.json(cachedData);
   }
   try {
     const dbPool = getPool();
-    const result = await dbPool.query("SELECT * FROM fn_nexora_get_consolidated_kpis()");
+    const result = await dbPool.query("SELECT * FROM fn_nexora_get_consolidated_kpis($1)", [tenantId]);
     if (result.rows.length > 0) {
       const responsePayload = {
         status: 'ok',
         kpis: result.rows[0],
         source: 'Neon PostgreSQL Stored Procedure (fn_nexora_get_consolidated_kpis)'
       };
-      apiCache.set('consolidated-kpis', responsePayload);
+      apiCache.set(cacheKey, responsePayload);
       res.json(responsePayload);
     } else {
       throw new Error("No data returned from stored procedure fn_nexora_get_consolidated_kpis");
     }
   } catch (err: any) {
-    logger.warn(`Stored procedure query warning, returning real-time cached dynamic fallbacks: ${err.message}`, { context: 'dashboard' });
+    logger.warn(`Stored procedure query warning: ${err.message}`, { context: 'dashboard' });
+    // Fail-closed: never fabricate KPI numbers. An empty-but-truthful payload
+    // lets the UI render zero-states instead of fictional metrics.
     const fallbackPayload = {
-      status: 'fallback',
+      status: 'unavailable',
       kpis: {
-        total_programs: 8,
-        programs_budget: 450000000,
-        total_projects: 16,
-        projects_budget: 380000000,
-        utilization_ratio: 84.44,
-        beneficiaries_count: 418,
-        sponsorships_count: 595,
-        personnel_count: 8,
-        assets_count: 4,
-        assets_valuation: 221500000,
-        liquidity_factor: 1.45
+        total_programs: 0,
+        programs_budget: 0,
+        total_projects: 0,
+        projects_budget: 0,
+        utilization_ratio: 0,
+        beneficiaries_count: 0,
+        sponsorships_count: 0,
+        personnel_count: 0,
+        assets_count: 0,
+        assets_valuation: 0,
+        liquidity_factor: 0
       },
-      source: 'Local Cache Fallback Engine'
+      source: 'Unavailable — live KPIs could not be computed'
     };
-    apiCache.set('consolidated-kpis', fallbackPayload);
     res.json(fallbackPayload);
   }
 });

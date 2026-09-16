@@ -2,24 +2,14 @@ import React, { useState } from 'react';
 import { 
   Menu, 
   Grid, 
-  Minus, 
-  Square, 
-  X, 
-  Building2, 
-  Calendar, 
   Search, 
-  MoreHorizontal, 
   Brain, 
-  RefreshCw, 
-  ShieldCheck,
-  CheckCircle2,
-  Globe,
-  Calculator,
   Zap,
-  BookOpen,
-  PlayCircle,
   ChevronDown,
-  Compass
+  Compass,
+  Calculator,
+  BookOpen,
+  PlayCircle
 } from "lucide-react";
 import { EnterpriseLogo } from './EnterpriseLogo';
 import NexoraOSLogo from './NexoraOSLogo';
@@ -148,26 +138,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
             </div>
           </div>
 
-          {/* Branch & Fiscal Year (Desktop) */}
-          <div className="hidden xl:flex items-center gap-1.5">
-            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-lg text-[10px]">
-              <Building2 className="w-3 h-3 text-amber-400 shrink-0" />
-              <select
-                value={selectedBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-                className="bg-transparent text-zinc-300 font-bold outline-none cursor-pointer border-none"
-              >
-                <option value="HQ_SANAA" className="bg-zinc-900 text-white">{isRtl ? 'المركز الرئيسي - صنعاء' : 'Main HQ - Sanaa'}</option>
-                <option value="BR_ADEN" className="bg-zinc-900 text-white">{isRtl ? 'فرع عدن' : 'Aden Branch'}</option>
-                <option value="BR_TAIZ" className="bg-zinc-900 text-white">{isRtl ? 'فرع تعز والميدان' : 'Taiz Branch'}</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-lg text-[10px]">
-              <Calendar className="w-3 h-3 text-emerald-400 shrink-0" />
-              <span className="text-emerald-400 font-mono font-bold">2026</span>
-            </div>
-          </div>
+          {/* Branch & fiscal year moved to Organization Settings for focus */}
         </div>
 
         {/* CENTER: QUICK ACCESS SEARCH & SHORTCUT */}
@@ -204,16 +175,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
             <span className="hidden lg:inline">{isRtl ? currentConfig.labelAr : currentConfig.labelEn}</span>
           </button>
 
-          {/* Institutional Cloud Status Indicator */}
-          <div 
-            className="hidden 2xl:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900/90 border border-zinc-800 text-[11px] text-zinc-300 select-none font-bold"
-            title={isRtl ? 'اتصال سحابي آمن ومحدث' : 'Secure Cloud Connection'}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>{isRtl ? 'سحابي متصل' : 'Cloud Connected'}</span>
-          </div>
-
-          {/* Offline Sync Status */}
+          {/* Offline indicator only when needed */}
           <OfflineSyncStatusWidget lang={lang} />
 
           {/* Consolidated Helper Tools Suite Menu */}
@@ -349,9 +311,6 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
               </>
             )}
           </div>
-
-          {/* Environment Mode Indicator & Switcher */}
-          <EnvironmentModeHeaderButton lang={lang} />
 
           {/* Notification Center */}
           <NotificationCenter 

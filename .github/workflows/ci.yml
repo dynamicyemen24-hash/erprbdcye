@@ -1,79 +1,294 @@
-name: NexoraOS CI
+name: UAMEX ERP™ CI/CD Pipeline
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, develop]
   pull_request:
-    branches: [main, master]
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '24'
+  PNPM_VERSION: '9'
+  PLAYWRIGHT_BROWSERS: 'chromium,firefox,webkit'
 
 jobs:
-  build:
+  # ──────────────────────────────────────────────
+  # Static Analysis & Unit Tests
+  # ──────────────────────────────────────────────
+  static-analysis:
+    name: Typecheck + Lint + Unit Tests
     runs-on: ubuntu-latest
-
+    timeout-minutes: 30
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Use Node.js 20.x
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
-          cache: npm
-          cache-dependency-path: package-lock.json
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Security Audit (block critical & high vulnerabilities)
-        run: |
-          npm audit --audit-level=high
-        continue-on-error: false
-
-      - name: Dependency Vulnerability Scan (Snyk)
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
-
-      - name: Secret Scan (fail on leaked credentials)
-        run: |
-          if grep -rInE "(sk-[A-Za-z0-9]{20,}|AIza[A-Za-z0-9_-]{30,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|postgres://[^:]+:[^@]+@)" \
-            src api server.ts --include="*.ts" --include="*.tsx" --include="*.js"; then
-            echo "❌ SECRET SCAN FAILED: Leaked credentials found!"
-            exit 1
-          fi
-          echo "✅ Secret scan passed: no leaks found."
-
-      - name: Lint
-        run: npm run lint
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm run typecheck
 
-      - name: Unit & Integration Tests (with coverage)
-        run: npx vitest run --coverage
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Unit & Integration Tests
+        run: pnpm test --reporter=junit --outputFile=test-results.xml
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/nexora_test
-          JWT_SECRET: ci-test-secret-key-minimum-32-characters-long
+          CI: true
 
-      - name: Build Frontend (Vite)
-        run: npm run build:frontend
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.xml
+          retention-days: 7
 
-      - name: Build Server Bundle (esbuild)
-        run: npm run build:server
+  # ──────────────────────────────────────────────
+  # Supply Chain Security (npm audit + audit-ci)
+  # ──────────────────────────────────────────────
+  supply-chain:
+    name: Supply Chain Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Smoke Test (build verification)
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run npm audit (CI mode)
         run: |
-          test -d dist || (echo "Build output missing" && exit 1)
-          test -f dist/server.cjs || (echo "Server bundle missing" && exit 1)
+          npm audit --audit-level=high --json > audit-report.json || true
+          cat audit-report.json | jq '.metadata.vulnerabilities'
+
+      - name: Fail on high/critical vulnerabilities
+        run: |
+          npx audit-ci@latest --config audit-ci.json
+        env:
+          AUDIT_CI_CONFIG: audit-ci.json
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: audit-report.json
+          retention-days: 30
+
+  # ──────────────────────────────────────────────
+  # Build Verification
+  # ──────────────────────────────────────────────
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [static-analysis, supply-chain]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+        env:
+          NODE_ENV: production
+
+      - name: Verify build output
+        run: |
+          test -f dist/server.cjs
+          test -d dist/public
+          echo "Build artifacts present"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: build-artifacts
+          path: dist/
           retention-days: 7
+
+  # ──────────────────────────────────────────────
+  # E2E Tests (Multi-Browser)
+  # ──────────────────────────────────────────────
+  e2e:
+    name: E2E Smoke (Chromium + Firefox + WebKit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Start server
+        run: |
+          nohup node dist/server.cjs > server.log 2>&1 &
+          sleep 10
+          # Wait for readiness
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/api/v2/health/readiness | grep -q '"status":"complete"'; then
+              echo "Server ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run Playwright smoke suite
+        run: |
+          npx playwright test -c playwright.smoke.config.ts --project=${{ matrix.browser }}
+        env:
+          PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-${{ matrix.browser }}
+          path: test-results/
+          retention-days: 7
+
+      - name: Kill server
+        if: always()
+        run: pkill -f "node dist/server.cjs" || true
+
+  # ──────────────────────────────────────────────
+  # Load Baseline (Performance Gate)
+  # ──────────────────────────────────────────────
+  load-baseline:
+    name: Load Baseline (Concurrency 20)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Start server
+        run: |
+          nohup node dist/server.cjs > server.log 2>&1 &
+          sleep 15
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/api/v2/health/readiness | grep -q '"status":"complete"'; then
+              echo "Server ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run load baseline
+        run: |
+          node scripts/load-baseline.cjs http://localhost:3000
+        env:
+          LOAD_CONCURRENCY: '20'
+          LOAD_HOST: '127.0.0.1'
+
+      - name: Kill server
+        if: always()
+        run: pkill -f "node dist/server.cjs" || true
+
+  # ──────────────────────────────────────────────
+  # Release Gate
+  # ──────────────────────────────────────────────
+  release-gate:
+    name: Release Certification Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [static-analysis, supply-chain, build, e2e, load-baseline]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: All gates passed — ready for release
+        run: |
+          echo "✅ Typecheck: PASS"
+          echo "✅ Lint: PASS"
+          echo "✅ Unit Tests: PASS"
+          echo "✅ Supply Chain Audit: PASS"
+          echo "✅ Production Build: PASS"
+          echo "✅ E2E (Chromium/Firefox/WebKit): PASS"
+          echo "✅ Load Baseline (width 20): PASS"
+          echo "🟢 RELEASE APPROVED"

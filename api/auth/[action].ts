@@ -18,19 +18,6 @@ if (!jwtSecret) {
   throw new Error('[AUTH] JWT_SECRET is required — refusing to start with an insecure fallback');
 }
 
-// ─── CORS origin allowlist (serverless-safe, self-contained) ───────
-function resolveCorsOrigin(reqOrigin: string | undefined): string | null {
-  const raw = process.env.CORS_ORIGINS || process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '';
-  const allowlist = raw.split(',').map(o => o.trim()).filter(Boolean);
-  if (allowlist.length === 0) {
-    // No allowlist configured: only safe for uncredentialed same-origin calls.
-    // Allow '*' only in non-production, otherwise deny cross-origin entirely.
-    return process.env.NODE_ENV === 'production' ? null : '*';
-  }
-  if (!reqOrigin) return allowlist[0]; // non-browser client (curl, mobile) — default origin
-  return allowlist.includes(reqOrigin) ? reqOrigin : null;
-}
-
 // ─── Hardened Neon pool (same contract as the rest of /api) ────────
 let pool: any = null;
 const globalAny = global as any;
@@ -118,7 +105,7 @@ export default async function handler(req: any, res: any) {
     return res.status(503).json({ error: 'Authentication service not configured' });
   }
 
-  return jwt.verify(refreshToken, jwtRefreshSecret, async (err: any, decoded: any) => {
+  return jwt.verify(refreshToken, jwtRefreshSecret, { algorithms: ['HS256'] }, async (err: any, decoded: any) => {
     if (err || !decoded || typeof decoded !== 'object' || decoded.type !== 'refresh') {
       return res.status(403).json({ error: 'Invalid or expired refresh token' });
     }
@@ -155,7 +142,7 @@ export default async function handler(req: any, res: any) {
             security_level: decoded.security_level,
           };
 
-      const accessExpiry = process.env.JWT_ACCESS_EXPIRES || '1h';
+      const accessExpiry = (process.env.JWT_ACCESS_EXPIRES || '1h') as any;
       const newToken = jwt.sign(claims, jwtSecret as string, { expiresIn: accessExpiry });
       return res.status(200).json({ status: 'success', token: newToken, refreshToken: undefined });
     } catch (e: any) {

@@ -87,6 +87,13 @@ import { ModuleShell } from './enterprise/ModuleShell';
 import { generateId, generateShortId, generateRefCode, generateNumericCode } from '../lib/idGenerator';
 import { EnterpriseButton } from './common/EnterpriseButton';
 import { Spinner } from '../design-system/components/Spinner';
+import { EmptyState } from '../design-system/components/EmptyState';
+import { ErrorState } from '../design-system/components/ErrorState';
+import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
+import { Pagination } from '../design-system/components/Pagination';
+import { EnterpriseSkeletonTable } from './common/EnterpriseSkeletonTable';
+import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
+import CSVImportWizard, { type ImportResult } from './common/CSVImportWizard';
 
 // Helper: Calculate Straight-Line Depreciation per IPSAS-17
 export function calculateDepreciation(
@@ -373,6 +380,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
   // Loading state for API fetch
   const [loadingData, setLoadingData] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Data states — initialized empty, populated from Neon PostgreSQL API
   const [branches, setBranches] = useState<BranchData[]>([]);
@@ -380,45 +388,71 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   const [items, setItems] = useState<ReliefInventoryItem[]>([]);
   const [movements, setMovements] = useState<StockMovementRecord[]>([]);
 
+  // Fetch branches, warehouses, inventory items, and movements from the API.
+  // Extracted to component scope so the error banner can retry it.
+  const fetchInventoryData = async () => {
+    setLoadingData(true);
+    setFetchError(null);
+    let failed = 0;
+    try {
+      const [branchesRes, warehousesRes, itemsRes, movementsRes] = await Promise.allSettled([
+        fetch('/api/tables/branches'),
+        fetch('/api/tables/warehouses'),
+        fetch('/api/tables/inventory_items'),
+        fetch('/api/tables/movements')
+      ]);
+
+      if (branchesRes.status === 'fulfilled' && branchesRes.value.ok) {
+        const data = await branchesRes.value.json();
+        if (Array.isArray(data) && data.length > 0) setBranches(data);
+      } else {
+        failed++;
+      }
+
+      if (warehousesRes.status === 'fulfilled' && warehousesRes.value.ok) {
+        const data = await warehousesRes.value.json();
+        if (Array.isArray(data) && data.length > 0) setWarehouses(data);
+      } else {
+        failed++;
+      }
+
+      if (itemsRes.status === 'fulfilled' && itemsRes.value.ok) {
+        const data = await itemsRes.value.json();
+        if (Array.isArray(data) && data.length > 0) setItems(data);
+      } else {
+        failed++;
+      }
+
+      if (movementsRes.status === 'fulfilled' && movementsRes.value.ok) {
+        const data = await movementsRes.value.json();
+        if (Array.isArray(data) && data.length > 0) setMovements(data);
+      } else {
+        failed++;
+      }
+
+      if (failed === 4) {
+        throw new Error(isRtl ? 'تعذر الاتصال بقاعدة البيانات' : 'Could not reach the database');
+      }
+      if (failed > 0) {
+        showToast({
+          type: 'warning',
+          title: isRtl ? 'المخزون' : 'Inventory',
+          message: isRtl
+            ? `تم تحميل البيانات جزئياً (${failed} من 4 مصادر تعذر جلبها)`
+            : `Partial load: ${failed} of 4 sources unavailable`,
+        });
+      }
+    } catch (err: any) {
+      setFetchError(err?.message || (isRtl ? 'فشل تحميل بيانات المخزون' : 'Failed to load inventory data'));
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
   // Fetch branches, warehouses, inventory items, and movements from the API on mount
   useEffect(() => {
-    const fetchInventoryData = async () => {
-      setLoadingData(true);
-      try {
-        const [branchesRes, warehousesRes, itemsRes, movementsRes] = await Promise.allSettled([
-          fetch('/api/tables/branches'),
-          fetch('/api/tables/warehouses'),
-          fetch('/api/tables/inventory_items'),
-          fetch('/api/tables/movements')
-        ]);
-
-        if (branchesRes.status === 'fulfilled' && branchesRes.value.ok) {
-          const data = await branchesRes.value.json();
-          if (Array.isArray(data) && data.length > 0) setBranches(data);
-        }
-
-        if (warehousesRes.status === 'fulfilled' && warehousesRes.value.ok) {
-          const data = await warehousesRes.value.json();
-          if (Array.isArray(data) && data.length > 0) setWarehouses(data);
-        }
-
-        if (itemsRes.status === 'fulfilled' && itemsRes.value.ok) {
-          const data = await itemsRes.value.json();
-          if (Array.isArray(data) && data.length > 0) setItems(data);
-        }
-
-        if (movementsRes.status === 'fulfilled' && movementsRes.value.ok) {
-          const data = await movementsRes.value.json();
-          if (Array.isArray(data) && data.length > 0) setMovements(data);
-        }
-      } catch (err) {
-        console.error('[Inventory] Failed to fetch data from API:', err);
-      } finally {
-        setLoadingData(false);
-      }
-    };
-
     fetchInventoryData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ==================== PUSH NOTIFICATION & REAL-TIME CRITICAL ALERT ENGINE ====================
@@ -1495,7 +1529,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   // Asset Action Modals
   const [isRegisterAssetModalOpen, setIsRegisterAssetModalOpen] = useState(false);
   const [isMapProjectModalOpen, setIsMapProjectModalOpen] = useState(false);
-  const [isDisposalModalOpen, setIsDisposalModalOpen] = useState(false);
+  const [confirmDispose, setConfirmDispose] = useState(false);
 
   const [selectedAssetForProjectMap, setSelectedAssetForProjectMap] = useState<FixedAssetRecord | null>(null);
   const [selectedAssetForDisposal, setSelectedAssetForDisposal] = useState<FixedAssetRecord | null>(null);
@@ -1696,9 +1730,9 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     triggerPushAlert(title, body, 'info');
   };
 
-  // Asset Disposal Handler
-  const handleDisposalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Asset Disposal Handler — destructive: always gated behind ConfirmDialog
+  const handleDisposalSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!selectedAssetForDisposal) return;
 
     const salvageVal = parseFloat(disposalForm.salvageValue) || 0;
@@ -1724,8 +1758,15 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     }
 
     setFixedAssets(prev => prev.map(a => a.id === selectedAssetForDisposal.id ? updatedAsset : a));
-    setIsDisposalModalOpen(false);
+    setConfirmDispose(false);
     setSelectedAssetForDisposal(null);
+    showToast({
+      type: 'success',
+      title: isRtl ? 'تكهين الأصول' : 'Asset disposal',
+      message: isRtl
+        ? `تم تكهين الأصل ${updatedAsset.asset_code} وتحديث السجلات`
+        : `Asset ${updatedAsset.asset_code} disposed and records updated`,
+    });
 
     const title = isRtl
       ? `⬛ تم تكهين وإخراج الأصل (${updatedAsset.asset_code}) من الخدمة`
@@ -1737,8 +1778,57 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     triggerPushAlert(title, body, 'critical');
   };
 
+  // CSV bulk import — one POST per validated row with idempotency keys,
+  // then a full refetch so KPIs, tables, and forecasts stay consistent.
+  const handleImportInventoryRows = async (
+    rows: Record<string, unknown>[],
+    onProgress: (done: number, total: number) => void
+  ): Promise<ImportResult> => {
+    let ok = 0;
+    const failed: { index: number; error: string }[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      try {
+        const res = await fetch('/api/tables/inventory_items', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Idempotency-Key': crypto.randomUUID(),
+          },
+          body: JSON.stringify(rows[i]),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || `HTTP ${res.status}`);
+        }
+        ok++;
+      } catch (err: any) {
+        failed.push({ index: i + 1, error: err.message });
+      }
+      onProgress(i + 1, rows.length);
+    }
+    await fetchInventoryData();
+    setItemsPage(1);
+    showToast({
+      type: failed.length === 0 ? 'success' : 'warning',
+      title: isRtl ? 'استيراد الأصناف' : 'Items import',
+      message: isRtl
+        ? `نجح ${ok} وفشل ${failed.length} من ${rows.length} صفاً`
+        : `${ok} of ${rows.length} rows imported (${failed.length} failed)`,
+    });
+    return { ok, failed };
+  };
+
   // UI Filters
   const [searchQuery, setSearchQuery] = useState('');
+  // Debounced searches — heavy client filters re-run 300ms after typing stops
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+  const debouncedAssetSearchQuery = useDebouncedValue(assetSearchQuery, 300);
+  const debouncedMultiSearchTerm = useDebouncedValue(multiSearchTerm, 300);
+  // Items table pagination (20 rows/page keeps the 7k-line view's DOM light)
+  const [itemsPage, setItemsPage] = useState(1);
+  const ITEMS_PAGE_SIZE = 20;
+  // CSV bulk import wizard
+  const [isImportWizardOpen, setIsImportWizardOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -2250,11 +2340,12 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     const matchesWarehouse = selectedWarehouse === 'all' || item.warehouse_id === selectedWarehouse;
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
 
-    const matchesSearch = searchQuery === '' ||
-      item.name_ar.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.name_en.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.batch_no.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = debouncedSearchQuery.toLowerCase();
+    const matchesSearch = debouncedSearchQuery === '' ||
+      item.name_ar.toLowerCase().includes(q) ||
+      item.name_en.toLowerCase().includes(q) ||
+      item.sku.toLowerCase().includes(q) ||
+      item.batch_no.toLowerCase().includes(q);
 
     const isCritical = item.qty <= item.reorder_level;
     const matchesStatus = stockStatusFilter === 'all' ||
@@ -2267,13 +2358,22 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
   // Filtered Movement Logs
   const filteredMovements = movements.filter(m => {
     const matchesType = movementTypeFilter === 'all' || m.type === movementTypeFilter;
-    const matchesSearch = searchQuery === '' ||
-      m.refNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.itemNameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (m.waybillNo && m.waybillNo.toLowerCase().includes(searchQuery.toLowerCase()));
+    const mq = debouncedSearchQuery.toLowerCase();
+    const matchesSearch = debouncedSearchQuery === '' ||
+      m.refNo.toLowerCase().includes(mq) ||
+      m.itemNameAr.toLowerCase().includes(mq) ||
+      (m.waybillNo && m.waybillNo.toLowerCase().includes(mq));
 
     return matchesType && matchesSearch;
   });
+
+  // Paged slice of the filtered items (page clamps when filters shrink the list)
+  const itemsTotalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PAGE_SIZE));
+  const safeItemsPage = Math.min(itemsPage, itemsTotalPages);
+  const pagedItems = filteredItems.slice(
+    (safeItemsPage - 1) * ITEMS_PAGE_SIZE,
+    safeItemsPage * ITEMS_PAGE_SIZE
+  );
 
   const getCategoryBadge = (cat: ReliefInventoryItem['category']) => {
     switch (cat) {
@@ -2449,8 +2549,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     const matchesMaintenance = assetMaintenanceFilter === 'ALL' || status === assetMaintenanceFilter;
     const matchesWarehouse = assetWarehouseFilter === 'all' || item.warehouse_id === assetWarehouseFilter;
 
-    const query = assetSearchQuery.toLowerCase();
-    const matchesSearch = assetSearchQuery === '' ||
+    const query = debouncedAssetSearchQuery.toLowerCase();
+    const matchesSearch = debouncedAssetSearchQuery === '' ||
       item.name_ar.toLowerCase().includes(query) ||
       item.name_en.toLowerCase().includes(query) ||
       item.sku.toLowerCase().includes(query) ||
@@ -2511,21 +2611,40 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     };
   });
 
+  // Skeleton-first loading: the shell (banner + tabs) stays mounted so the
+  // viewport never flashes blank while the four sources resolve.
   if (loadingData) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-3">
-          <Spinner size="lg" variant="primary" />
-          <p className="text-sm text-slate-500 dark:text-zinc-400 font-medium">
-            {isRtl ? 'جاري تحميل بيانات المخزون من قاعدة البيانات...' : 'Loading inventory data from database...'}
-          </p>
+      <ModuleShell titleAr="نظام الإمداد والمخزون الإغاثي" titleEn="Supply Chain & Inventory OS" domainCode="NEB-09" icon={Warehouse} accent="slate" lang={lang}>
+        <div className="space-y-6 animate-in fade-in duration-300" aria-busy="true" aria-label={isRtl ? 'جاري تحميل المخزون' : 'Loading inventory'}>
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 flex items-center gap-4">
+            <Spinner size="lg" variant="primary" />
+            <p className="text-sm text-slate-500 dark:text-zinc-400 font-medium">
+              {isRtl ? 'جاري تحميل بيانات المخزون من قاعدة البيانات...' : 'Loading inventory data from database...'}
+            </p>
+          </div>
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+            <EnterpriseSkeletonTable rows={8} columns={7} colWidths={['w-28', 'w-32', 'w-24', 'w-20', 'w-20', 'w-28', 'w-24']} />
+          </div>
         </div>
-      </div>
+      </ModuleShell>
     );
   }
 
   return (
     <ModuleShell titleAr="نظام الإمداد والمخزون الإغاثي" titleEn="Supply Chain & Inventory OS" domainCode="NEB-09" icon={Warehouse} accent="slate" lang={lang}>
+    {fetchError && (
+      <div className="mb-6 bg-white dark:bg-zinc-900 border border-rose-200 dark:border-rose-900/50 rounded-2xl overflow-hidden">
+        <ErrorState
+          titleAr="تعذر تحميل بيانات المخزون"
+          title="Failed to load inventory data"
+          messageAr={fetchError}
+          message={fetchError}
+          onRetry={fetchInventoryData}
+          lang={lang}
+        />
+      </div>
+    )}
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* ==================== 1. TOP TITLE BANNER & ACTION BAR ==================== */}
@@ -2768,7 +2887,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
       {/* ==================== FLOATING REAL-TIME PUSH TOAST BANNER ==================== */}
       {activePushToast && (
-        <div className="fixed bottom-6 left-6 z-50 max-w-md bg-zinc-950 text-white border-2 border-amber-500/80 rounded-2xl p-4 shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-6 start-6 z-50 max-w-md bg-zinc-950 text-white border-2 border-amber-500/80 rounded-2xl p-4 shadow-2xl animate-in slide-in-from-bottom duration-300">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2.5 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/40 shrink-0">
@@ -3638,13 +3757,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Filter Bar */}
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                  <Search className={`w-4 h-4 text-slate-400 absolute top-3 ${isRtl ? 'right-3' : 'left-3'}`} aria-hidden="true" />
                   <input
                     type="text"
                     placeholder={isRtl ? 'بحث بكود الأصل، الاسم، الرقم التسلسلي...' : 'Search by code, name, serial...'}
+                    aria-label={isRtl ? 'بحث الأصول الثابتة' : 'Search fixed assets'}
                     value={assetSearchQuery}
                     onChange={(e) => setAssetSearchQuery(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl pr-9 pl-3 py-2 text-xs font-bold text-slate-900 dark:text-white"
+                    className={`w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl py-2 text-xs font-bold text-slate-900 dark:text-white ${isRtl ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
                   />
                 </div>
 
@@ -3805,7 +3925,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                               <button
                                 onClick={() => {
                                   setSelectedAssetForDisposal(asset);
-                                  setIsDisposalModalOpen(true);
+                                  setConfirmDispose(true);
                                 }}
                                 className="w-full px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 rounded-lg text-[10px] font-bold border border-rose-500/20 transition cursor-pointer flex items-center justify-center gap-1"
                               >
@@ -4450,6 +4570,15 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsImportWizardOpen(true)}
+              title={isRtl ? 'استيراد أصناف من ملف CSV' : 'Import items from CSV'}
+              className="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              {isRtl ? 'استيراد CSV' : 'Import CSV'}
+            </button>
             {/* Category Filter */}
             <select
               value={selectedCategory}
@@ -4506,12 +4635,32 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold">
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400 italic">
-                    {isRtl ? 'لم يتم العثور على مواد مخزنية مطابقة للبحث أو التصفية.' : 'No matching inventory items found.'}
+                  <td colSpan={7} className="p-0">
+                    <EmptyState
+                      variant={debouncedSearchQuery ? 'search' : 'empty'}
+                      titleAr="لا توجد مواد مخزنية مطابقة"
+                      title="No matching inventory items"
+                      descriptionAr="جرب كلمات مختلفة أو أزل الفلاتر — أو سجّل صنفاً مخزنياً جديداً"
+                      description="Try different keywords or clear filters — or register a new stock item"
+                      actions={[
+                        {
+                          label: 'Clear search',
+                          labelAr: 'مسح البحث',
+                          variant: 'secondary',
+                          onClick: () => { setSearchQuery(''); setItemsPage(1); },
+                        },
+                        {
+                          label: 'New item',
+                          labelAr: 'صنف جديد',
+                          onClick: () => setIsNewItemModalOpen(true),
+                        },
+                      ]}
+                      lang={lang}
+                    />
                   </td>
                 </tr>
               ) : (
-                filteredItems.map(item => {
+                pagedItems.map(item => {
                   const wh = warehouses.find(w => w.id === item.warehouse_id);
                   const br = branches.find(b => b.id === wh?.branch_id);
                   const isCritical = item.qty <= item.reorder_level;
@@ -4638,6 +4787,18 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             </tbody>
           </table>
         </div>
+        {itemsTotalPages > 1 && (
+          <div className="pt-1">
+            <Pagination
+              currentPage={safeItemsPage}
+              totalPages={itemsTotalPages}
+              totalItems={filteredItems.length}
+              pageSize={ITEMS_PAGE_SIZE}
+              onPageChange={setItemsPage}
+              lang={lang}
+            />
+          </div>
+        )}
       </div>
 
       {/* ==================== 6. STOCK MOVEMENTS & TRANSFER AUDIT LOG ==================== */}
@@ -4702,8 +4863,22 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-600 dark:text-zinc-300 font-medium">
               {filteredMovements.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400 italic">
-                    {isRtl ? 'لا توجد حركات مخزنية مسجلة تطابق التصفية.' : 'No movements logged under this filter.'}
+                  <td colSpan={7} className="p-0">
+                    <EmptyState
+                      variant="empty"
+                      titleAr="لا توجد حركات مخزنية"
+                      title="No stock movements"
+                      descriptionAr="وثّق توريداً أو صرفاً أو تحويلاً لبدء سجل التدقيق"
+                      description="Record a receipt, issue, or transfer to start the audit trail"
+                      actions={[
+                        {
+                          label: 'New movement',
+                          labelAr: 'حركة جديدة',
+                          onClick: () => setIsMovementModalOpen(true),
+                        },
+                      ]}
+                      lang={lang}
+                    />
                   </td>
                 </tr>
               ) : (
@@ -6400,13 +6575,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                         {/* Search Input */}
                         <div className="relative">
-                          <Search className="w-3.5 h-3.5 absolute right-3 top-2.5 text-slate-400" />
+                          <Search className={`w-3.5 h-3.5 absolute top-2.5 text-slate-400 ${isRtl ? 'right-3' : 'left-3'}`} aria-hidden="true" />
                           <input
                             type="text"
                             placeholder="بحث بالاسم، الكود، الهاتف..."
+                            aria-label={isRtl ? 'بحث المستفيدين' : 'Search beneficiaries'}
                             value={multiSearchTerm}
                             onChange={(e) => setMultiSearchTerm(e.target.value)}
-                            className="bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-bold rounded-xl pr-8 pl-3 py-2 text-slate-900 dark:text-white w-48 focus:w-60 transition-all focus:outline-none"
+                            className={`bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-bold rounded-xl py-2 text-slate-900 dark:text-white w-48 focus:w-60 transition-all focus:outline-none ${isRtl ? 'pr-8 pl-3' : 'pl-8 pr-3'}`}
                           />
                         </div>
                       </div>
@@ -6424,10 +6600,11 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                       const filtered = allBeneficiaries.filter(b => {
                         const matchesGov = multiGovFilter === 'ALL' || b.governorate === multiGovFilter;
                         const matchesCat = multiCategoryFilter === 'ALL' || b.category_code === multiCategoryFilter;
-                        const matchesSearch = !multiSearchTerm || 
-                          (b.full_name_ar || '').toLowerCase().includes(multiSearchTerm.toLowerCase()) ||
-                          (b.beneficiary_code || '').toLowerCase().includes(multiSearchTerm.toLowerCase()) ||
-                          (b.phone_primary || '').includes(multiSearchTerm);
+                        const mq = debouncedMultiSearchTerm.toLowerCase();
+                        const matchesSearch = !debouncedMultiSearchTerm ||
+                          (b.full_name_ar || '').toLowerCase().includes(mq) ||
+                          (b.beneficiary_code || '').toLowerCase().includes(mq) ||
+                          (b.phone_primary || '').includes(debouncedMultiSearchTerm);
                         return matchesGov && matchesCat && matchesSearch;
                       });
 
@@ -6456,8 +6633,23 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
                           <div className="divide-y divide-slate-100 dark:divide-zinc-800 max-h-60 overflow-y-auto text-xs">
                             {filtered.length === 0 ? (
-                              <div className="p-8 text-center text-slate-400 font-bold">
-                                لا يوجد مستفيدون يطابقون معايير التصفية الحالية.
+                              <div className="p-0">
+                                <EmptyState
+                                  variant="search"
+                                  titleAr="لا يوجد مستفيدون مطابقون"
+                                  title="No matching beneficiaries"
+                                  descriptionAr="جرب كلمات مختلفة أو أزل معايير التصفية"
+                                  description="Try different keywords or clear the filters"
+                                  actions={[
+                                    {
+                                      label: 'Clear search',
+                                      labelAr: 'مسح البحث',
+                                      variant: 'secondary',
+                                      onClick: () => setMultiSearchTerm(''),
+                                    },
+                                  ]}
+                                  lang={lang}
+                                />
                               </div>
                             ) : (
                               filtered.map((b) => {
@@ -7038,6 +7230,39 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           </div>
         </div>
       )}
+      <CSVImportWizard
+        open={isImportWizardOpen}
+        onClose={() => setIsImportWizardOpen(false)}
+        lang={lang}
+        title="Import inventory items"
+        titleAr="استيراد الأصناف المخزنية"
+        templateFilename="inventory-items-template.csv"
+        fields={[
+          { key: 'sku', label: 'SKU', labelAr: 'رمز المادة', required: true },
+          { key: 'name_ar', label: 'Name (AR)', labelAr: 'اسم المادة', required: true },
+          { key: 'name_en', label: 'Name (EN)', labelAr: 'الاسم بالإنجليزية' },
+          { key: 'category', label: 'Category', labelAr: 'القطاع' },
+          { key: 'qty', label: 'Quantity', labelAr: 'الكمية', type: 'number' },
+          { key: 'reorder_level', label: 'Reorder level', labelAr: 'حد إعادة الطلب', type: 'number' },
+          { key: 'unit_value_yer', label: 'Unit value (YER)', labelAr: 'قيمة الوحدة', type: 'number' },
+          { key: 'batch_no', label: 'Batch No', labelAr: 'رقم الدفعة' },
+          { key: 'warehouse_id', label: 'Warehouse ID', labelAr: 'معرف المستودع' },
+        ]}
+        onImportRows={handleImportInventoryRows}
+      />
+      <ConfirmDialog
+        open={confirmDispose}
+        onOpenChange={setConfirmDispose}
+        variant="destructive"
+        title="Dispose asset"
+        titleAr="تأكيد تكهين الأصل"
+        description={selectedAssetForDisposal ? `Permanently retire asset ${selectedAssetForDisposal.asset_code} from service? Salvage value: ${(parseFloat(disposalForm.salvageValue) || 0).toLocaleString()} YER.` : 'Permanently retire this asset from service?'}
+        descriptionAr={selectedAssetForDisposal ? `تكهين الأصل ${selectedAssetForDisposal.asset_code} وإخراجه من الخدمة نهائياً؟ القيمة المستردة: ${(parseFloat(disposalForm.salvageValue) || 0).toLocaleString()} ريال.` : 'تكهين هذا الأصل وإخراجه من الخدمة نهائياً؟'}
+        confirmLabel="Dispose"
+        confirmLabelAr="تأكيد التكهين"
+        onConfirm={() => handleDisposalSubmit()}
+        lang={lang}
+      />
     </div>
     </ModuleShell>
   );

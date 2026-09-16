@@ -369,8 +369,11 @@ router.post('/:table', authenticateToken, async (req: any, res: any) => {
     if (table === 'users' && tempPassword) {
       createdRecord._temp_password = tempPassword;
     }
-    apiCache.delete('dashboard-stats');
-    apiCache.delete('consolidated-kpis');
+    const cacheOrg = req.user?.org_id || req.user?.orgId;
+    if (cacheOrg) {
+      apiCache.delete(`dashboard-stats:${cacheOrg}`);
+      apiCache.delete(`consolidated-kpis:${cacheOrg}`);
+    }
     res.status(201).json(createdRecord);
   } catch (err: any) {
     logger.error(`Error inserting into ${table}`, { context: 'tables', error: err });
@@ -519,8 +522,11 @@ router.put('/:table/:id', authenticateToken, async (req: any, res: any) => {
       };
     }
 
-    apiCache.delete('dashboard-stats');
-    apiCache.delete('consolidated-kpis');
+    const cacheOrg = req.user?.org_id || req.user?.orgId;
+    if (cacheOrg) {
+      apiCache.delete(`dashboard-stats:${cacheOrg}`);
+      apiCache.delete(`consolidated-kpis:${cacheOrg}`);
+    }
     res.json(updatedRecord);
   } catch (err: any) {
     logger.error(`Error updating table ${table}`, { context: 'tables', error: err });
@@ -616,8 +622,11 @@ router.delete('/:table/:id', authenticateToken, async (req: any, res: any) => {
       return res.status(404).json({ error: `Record with id ${id} not found in table ${table}.` });
     }
 
-    apiCache.delete('dashboard-stats');
-    apiCache.delete('consolidated-kpis');
+    const cacheOrg = req.user?.org_id || req.user?.orgId;
+    if (cacheOrg) {
+      apiCache.delete(`dashboard-stats:${cacheOrg}`);
+      apiCache.delete(`consolidated-kpis:${cacheOrg}`);
+    }
     const deletedRecord = result.rows[0];
     // SECURITY: Strip sensitive fields from deleted record response
     if (deletedRecord) {

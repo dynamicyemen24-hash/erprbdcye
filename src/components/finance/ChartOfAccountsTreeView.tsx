@@ -31,6 +31,68 @@ import {
 import { Account, Transaction, TransactionLine } from './FinanceTypes';
 import { printHTML, createPrintDocument, getCustomFooterHTML } from '../../lib/printUtils';
 import { EnterpriseButton } from '../common/EnterpriseButton';
+import { generateNumericCode } from '../../lib/idGenerator';
+import { showToast } from '../enterprise/EnterpriseToastContainer';
+
+export type StandardSeedAccount = Omit<Account, 'id' | 'debit_total' | 'credit_total'> & {
+  debit_total?: number;
+  credit_total?: number;
+};
+
+export const STANDARD_IPSAS_SEED_ACCOUNTS: StandardSeedAccount[] = [
+  // 1. الأصول والموجودات (Assets)
+  { account_code: '1110', name_ar: 'النقدية بالصناديق والخزائن الرئيسية', name_en: 'Cash in Vaults & Petty Cash', account_type: 'ASSET', opening_balance: 5000000, current_balance: 5000000, is_active: true },
+  { account_code: '1111', name_ar: 'صندوق الإدارة العامة - المركز الرئيسي', name_en: 'HQ Main Cash Vault', account_type: 'ASSET', opening_balance: 3500000, current_balance: 3500000, is_active: true },
+  { account_code: '1112', name_ar: 'صندوق المصروفات النثرية والتشغيل', name_en: 'Petty Cash Operations', account_type: 'ASSET', opening_balance: 1500000, current_balance: 1500000, is_active: true },
+  { account_code: '1120', name_ar: 'الحسابات المصرفية بالبنوك المحلية', name_en: 'Bank Accounts', account_type: 'ASSET', opening_balance: 45000000, current_balance: 45000000, is_active: true },
+  { account_code: '1121', name_ar: 'بنك التضامن الإسلامي - حساب التبرعات العام', name_en: 'Tadhamon Bank - General Donations', account_type: 'ASSET', opening_balance: 25000000, current_balance: 25000000, is_active: true },
+  { account_code: '1122', name_ar: 'بنك الكريمي للتمويل الأصغر - حساب المشاريع', name_en: 'Kuraimi Bank - Projects Fund', account_type: 'ASSET', opening_balance: 12000000, current_balance: 12000000, is_active: true },
+  { account_code: '1123', name_ar: 'بنك اليمن والكويت - حساب كفالات الأيتام', name_en: 'YKB - Orphans Sponsorship Account', account_type: 'ASSET', opening_balance: 8000000, current_balance: 8000000, is_active: true },
+  { account_code: '1130', name_ar: 'الذمم المدينة والعهد والمدينون المتنوعون', name_en: 'Accounts Receivable & Advances', account_type: 'ASSET', opening_balance: 3200000, current_balance: 3200000, is_active: true },
+  { account_code: '1131', name_ar: 'عهد المنسقين الميدانيين للمشاريع', name_en: 'Field Coordinators Advances', account_type: 'ASSET', opening_balance: 2200000, current_balance: 2200000, is_active: true },
+  { account_code: '1132', name_ar: 'سلف العاملين المؤقتة', name_en: 'Staff Advances', account_type: 'ASSET', opening_balance: 1000000, current_balance: 1000000, is_active: true },
+  { account_code: '1140', name_ar: 'مخزون المواد والمساعدات الإغاثية', name_en: 'Relief Inventory & Supplies', account_type: 'ASSET', opening_balance: 8500000, current_balance: 8500000, is_active: true },
+  { account_code: '1141', name_ar: 'مخزون السلال الغذائية والمواد التموينية', name_en: 'Food Baskets Inventory', account_type: 'ASSET', opening_balance: 4500000, current_balance: 4500000, is_active: true },
+  { account_code: '1142', name_ar: 'مخزون الأدوية والمستلزمات الطبية', name_en: 'Medical Supplies Inventory', account_type: 'ASSET', opening_balance: 2500000, current_balance: 2500000, is_active: true },
+  { account_code: '1143', name_ar: 'مخزون مواد الإيواء والمياه والإصحاح', name_en: 'WASH & Shelter Supplies', account_type: 'ASSET', opening_balance: 1500000, current_balance: 1500000, is_active: true },
+  { account_code: '1150', name_ar: 'مصروفات مدفوعة مقدماً وتأمينات', name_en: 'Prepaid Expenses & Deposits', account_type: 'ASSET', opening_balance: 1800000, current_balance: 1800000, is_active: true },
+  { account_code: '1510', name_ar: 'الأراضي والعقارات الوقفية والمؤسسية', name_en: 'Land & Endowment Properties', account_type: 'ASSET', opening_balance: 28000000, current_balance: 28000000, is_active: true },
+  { account_code: '1520', name_ar: 'المباني والإنشاءات والمقرات', name_en: 'Buildings & Facilities', account_type: 'ASSET', opening_balance: 35000000, current_balance: 35000000, is_active: true },
+  { account_code: '1530', name_ar: 'المركبات وشاحنات النقل الإغاثي', name_en: 'Vehicles & Relief Trucks', account_type: 'ASSET', opening_balance: 18000000, current_balance: 18000000, is_active: true },
+  { account_code: '1540', name_ar: 'الأجهزة والمعدات والأنظمة التقنية', name_en: 'Equipment & IT Hardware', account_type: 'ASSET', opening_balance: 6500000, current_balance: 6500000, is_active: true },
+  { account_code: '1610', name_ar: 'مجمع إهلاك الأصول الثابتة (عكسي)', name_en: 'Accumulated Depreciation', account_type: 'ASSET', opening_balance: -8500000, current_balance: -8500000, is_active: true },
+
+  // 2. الخصوم والالتزامات (Liabilities)
+  { account_code: '2110', name_ar: 'الموردون ومتعهدو الخدمات والمقاولون', name_en: 'Accounts Payable & Contractors', account_type: 'LIABILITY', opening_balance: 12500000, current_balance: 12500000, is_active: true },
+  { account_code: '2111', name_ar: 'موردو المواد الغذائية والإغاثية', name_en: 'Relief Supplies Vendors', account_type: 'LIABILITY', opening_balance: 7500000, current_balance: 7500000, is_active: true },
+  { account_code: '2112', name_ar: 'مقاولو المشاريع الإنشائية ومشاريع المياه', name_en: 'WASH & Construction Contractors', account_type: 'LIABILITY', opening_balance: 5000000, current_balance: 5000000, is_active: true },
+  { account_code: '2120', name_ar: 'المصروفات والرواتب المستحقة غير المسددة', name_en: 'Accrued Expenses & Salaries', account_type: 'LIABILITY', opening_balance: 4200000, current_balance: 4200000, is_active: true },
+  { account_code: '2130', name_ar: 'أمانات جهات مانحة وتبرعات تحت التخصيص', name_en: 'Restricted Grants Payable', account_type: 'LIABILITY', opening_balance: 15000000, current_balance: 15000000, is_active: true },
+  { account_code: '2210', name_ar: 'مخصص مكافأة نهاية الخدمة للموظفين', name_en: 'End of Service Benefits Provision', account_type: 'LIABILITY', opening_balance: 6800000, current_balance: 6800000, is_active: true },
+
+  // 3. صافي الأصول وحقوق الملكية (Equity / Net Assets)
+  { account_code: '3110', name_ar: 'صافي الأصول العامة غير المقيدة', name_en: 'Unrestricted General Net Assets', account_type: 'EQUITY', opening_balance: 42000000, current_balance: 42000000, is_active: true },
+  { account_code: '3120', name_ar: 'صافي الأصول المقيدة للبرامج والمشاريع', name_en: 'Restricted Program Net Assets', account_type: 'EQUITY', opening_balance: 38000000, current_balance: 38000000, is_active: true },
+  { account_code: '3130', name_ar: 'رأس مال الأوقاف والأصول الوقفية الثابتة', name_en: 'Endowment Corpus & Fixed Capital', account_type: 'EQUITY', opening_balance: 25000000, current_balance: 25000000, is_active: true },
+
+  // 4. الإيرادات والتبرعات والمساهمات (Revenues)
+  { account_code: '4110', name_ar: 'إيرادات التبرعات العامة والصدقات النقدية', name_en: 'General Donations & Charities', account_type: 'REVENUE', opening_balance: 0, current_balance: 18500000, is_active: true },
+  { account_code: '4120', name_ar: 'أموال ومساهمات الزكاة الشرعية', name_en: 'Zakat Contributions', account_type: 'REVENUE', opening_balance: 0, current_balance: 14200000, is_active: true },
+  { account_code: '4210', name_ar: 'منح ومشاريع المنظمات الدولية والمؤسسية', name_en: 'Institutional & International Grants', account_type: 'REVENUE', opening_balance: 0, current_balance: 32000000, is_active: true },
+  { account_code: '4310', name_ar: 'إيرادات كفالات الأيتام الشهرية والرعاية', name_en: 'Orphans Sponsorship Contributions', account_type: 'REVENUE', opening_balance: 0, current_balance: 9600000, is_active: true },
+  { account_code: '4410', name_ar: 'عوائد الأوقاف وإيجارات العقارات التنموية', name_en: 'Endowment Yields & Rentals', account_type: 'REVENUE', opening_balance: 0, current_balance: 4800000, is_active: true },
+
+  // 5. النفقات والمصروفات التشغيلية والبرامجية (Expenses)
+  { account_code: '5110', name_ar: 'نفقات برامج الإغاثة العاجلة والأمن الغذائي', name_en: 'Food Security & Relief Program Costs', account_type: 'EXPENSE', opening_balance: 0, current_balance: 22400000, is_active: true },
+  { account_code: '5120', name_ar: 'نفقات مشاريع المياه والإصحاح البيئي (WASH)', name_en: 'WASH Projects Execution Costs', account_type: 'EXPENSE', opening_balance: 0, current_balance: 16800000, is_active: true },
+  { account_code: '5130', name_ar: 'نفقات البرامج الصحية والعيادات المتنقلة', name_en: 'Health & Medical Mission Costs', account_type: 'EXPENSE', opening_balance: 0, current_balance: 8500000, is_active: true },
+  { account_code: '5140', name_ar: 'مخصصات كفالات الأيتام والكسوة المنصرفة', name_en: 'Orphan Stipends & Eid Clothes', account_type: 'EXPENSE', opening_balance: 0, current_balance: 9100000, is_active: true },
+  { account_code: '5210', name_ar: 'رواتب وأجور الكادر الميداني والإداري', name_en: 'Salaries & Field Personnel Wages', account_type: 'EXPENSE', opening_balance: 0, current_balance: 7400000, is_active: true },
+  { account_code: '5220', name_ar: 'مصروفات الإيجارات والمرافق والاتصالات', name_en: 'Rent, Utilities & Communications', account_type: 'EXPENSE', opening_balance: 0, current_balance: 2100000, is_active: true },
+  { account_code: '5230', name_ar: 'مصاريف الصيانة والوقود والمحروقات', name_en: 'Fuel & Maintenance Expenses', account_type: 'EXPENSE', opening_balance: 0, current_balance: 1650000, is_active: true },
+  { account_code: '5410', name_ar: 'الرسوم المصرفية وعمولات التحويل والشحن', name_en: 'Bank Fees & Transfer Commissions', account_type: 'EXPENSE', opening_balance: 0, current_balance: 550000, is_active: true },
+  { account_code: '5510', name_ar: 'مصروف إهلاك الأصول الثابتة للفترة', name_en: 'Depreciation Expense', account_type: 'EXPENSE', opening_balance: 0, current_balance: 1200000, is_active: true },
+];
 
 export interface TreeNodeAccount extends Account {
   level: number;
@@ -426,7 +488,7 @@ export default function ChartOfAccountsTreeView({
     if (!newAccountForm.account_code || !newAccountForm.name_ar) return;
 
     const newAcc: Account = {
-      id: `acc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id: `acc-${Date.now()}-${generateNumericCode(1000, 9999)}`,
       account_code: newAccountForm.account_code.trim(),
       name_ar: newAccountForm.name_ar.trim(),
       name_en: newAccountForm.name_en.trim() || newAccountForm.name_ar.trim(),
@@ -445,6 +507,68 @@ export default function ChartOfAccountsTreeView({
     }
     setShowAddModal(false);
     onRefresh();
+  };
+
+  // Seed Standard IPSAS & NGO Accounts (تهيئة وتغذية الدليل المحاسبي القياسي)
+  const [isSeeding, setIsSeeding] = useState(false);
+  const handleSeedStandardTemplate = async () => {
+    const existingCodes = new Set(accounts.map(a => String(a.account_code).trim()));
+    const missingAccounts: Account[] = [];
+
+    STANDARD_IPSAS_SEED_ACCOUNTS.forEach((seed, idx) => {
+      if (!existingCodes.has(seed.account_code)) {
+        missingAccounts.push({
+          id: `seed-${Date.now()}-${generateNumericCode(1000, 9999)}-${idx}`,
+          account_code: seed.account_code,
+          name_ar: seed.name_ar,
+          name_en: seed.name_en,
+          account_type: seed.account_type,
+          opening_balance: seed.opening_balance || 0,
+          current_balance: seed.current_balance || seed.opening_balance || 0,
+          debit_total: 0,
+          credit_total: 0,
+          is_active: true
+        });
+      }
+    });
+
+    if (missingAccounts.length === 0) {
+      showToast({
+        type: 'info',
+        title: isRtl ? 'دليل الحسابات مكتمل' : 'COA Complete',
+        message: isRtl ? 'كافة حسابات الدليل المحاسبي القياسي موجودة بالفعل.' : 'All standard template accounts already exist.'
+      });
+      return;
+    }
+
+    setIsSeeding(true);
+    const updated = [...accounts, ...missingAccounts];
+    if (onSaveAccounts) {
+      onSaveAccounts(updated);
+    }
+
+    // Also persist via API if available
+    try {
+      for (const acc of missingAccounts) {
+        await fetch('/api/tables/chart_of_accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(acc)
+        }).catch(() => {});
+      }
+    } catch {
+      // Offline fallback is handled by onSaveAccounts
+    } finally {
+      setIsSeeding(false);
+      onRefresh();
+      showToast({
+        type: 'success',
+        title: isRtl ? 'تمت تهيئة الدليل القياسي بنجاح' : 'Standard COA Seeded',
+        message: isRtl 
+          ? `تمت إضافة ${missingAccounts.length} حساباً معيارياً وفق معايير IPSAS ومحاسبة المنظمات.` 
+          : `Successfully seeded ${missingAccounts.length} IPSAS standard accounts.`
+      });
+    }
   };
 
   // Submit Edit Account
@@ -982,8 +1106,18 @@ export default function ChartOfAccountsTreeView({
             </div>
           )}
 
-          {/* Action Tools (Add, Export, Print) */}
+          {/* Action Tools (Add, Export, Print, Seed) */}
           <div className="flex items-center gap-2 ms-auto">
+            <button
+              onClick={handleSeedStandardTemplate}
+              disabled={isSeeding}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+              title={isRtl ? 'تهيئة وتغذية الدليل المحاسبي القياسي المعرب وفق معايير IPSAS' : 'Seed Standard IPSAS Chart of Accounts'}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>{isSeeding ? (isRtl ? 'جاري التهيئة...' : 'Seeding...') : (isRtl ? 'تهيئة الدليل القياسي (IPSAS)' : 'Seed Standard COA')}</span>
+            </button>
+
             <button
               onClick={handleExportCSV}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl transition-all cursor-pointer"

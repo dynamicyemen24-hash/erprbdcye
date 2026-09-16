@@ -1,6 +1,8 @@
 import { showToast } from '../../components/enterprise/EnterpriseToastContainer';
 import React from 'react';
 import { Users, Search, Printer } from 'lucide-react';
+import { EmptyState } from '../../design-system/components/EmptyState';
+import { EnterpriseSkeletonTable } from '../../components/common/EnterpriseSkeletonTable';
 
 interface HREmployee360ViewProps {
   lang: 'ar' | 'en';
@@ -8,14 +10,26 @@ interface HREmployee360ViewProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   onOpenDocModal: (staff: any) => void;
+  loading?: boolean;
+  onClearSearch?: () => void;
 }
+
+const CATEGORY_STYLE: Record<string, { ar: string; en: string; cls: string }> = {
+  permanent: { ar: 'كادر دائم', en: 'Permanent FTE', cls: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  volunteer: { ar: 'متطوع ميداني', en: 'Volunteer', cls: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+  cooperator: { ar: 'متعاون', en: 'Cooperator', cls: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+  delegate: { ar: 'مندوب', en: 'Delegate', cls: 'bg-sky-500/10 text-sky-600 dark:text-sky-400' },
+  consultant: { ar: 'استشاري خبير', en: 'Consultant', cls: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+};
 
 export default function HREmployee360View({
   lang,
   filteredStaff,
   searchTerm,
   setSearchTerm,
-  onOpenDocModal
+  onOpenDocModal,
+  loading = false,
+  onClearSearch
 }: HREmployee360ViewProps) {
   const isRtl = lang === 'ar';
 
@@ -34,13 +48,14 @@ export default function HREmployee360View({
 
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute top-2.5 right-3" />
+            <Search className={`w-4 h-4 text-slate-400 absolute top-2.5 ${isRtl ? 'right-3' : 'left-3'}`} aria-hidden="true" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={isRtl ? 'بحث باسم الموظف أو الرقم الوظيفي...' : 'Search staff by name or ID...'}
-              className="pr-9 pl-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs outline-none focus:border-emerald-500"
+              aria-label={isRtl ? 'بحث الكادر' : 'Search workforce'}
+              className={`py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs outline-none focus:border-emerald-500 ${isRtl ? 'pr-9 pl-4' : 'pl-9 pr-4'}`}
             />
           </div>
         </div>
@@ -60,9 +75,15 @@ export default function HREmployee360View({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
-            {filteredStaff.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="p-0">
+                  <EnterpriseSkeletonTable rows={6} columns={6} colWidths={['w-40', 'w-32', 'w-24', 'w-16', 'w-16', 'w-28']} />
+                </td>
+              </tr>
+            ) : filteredStaff.length > 0 ? (
               filteredStaff.map((staff, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40 transition-colors">
+                <tr key={staff.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40 transition-colors">
                   <td className="p-3 font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full bg-emerald-600/10 border border-emerald-500/20 text-emerald-600 font-bold flex items-center justify-center">
                       {(staff.full_name_ar || staff.name || 'M')[0]}
@@ -77,24 +98,28 @@ export default function HREmployee360View({
                     <span className="text-[10px] text-slate-400">{staff.position_name || 'منسق ميداني senior'}</span>
                   </td>
                   <td className="p-3">
-                    <span className={`px-2 py-0.5 font-mono text-[10px] font-bold rounded ${
-                      idx % 3 === 0 
-                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' 
-                        : idx % 3 === 1 
-                        ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' 
-                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    }`}>
-                      {idx % 3 === 0 ? (isRtl ? 'كادر دائم' : 'Permanent FTE') : idx % 3 === 1 ? (isRtl ? 'متطوع ميداني' : 'Volunteer') : (isRtl ? 'استشاري خبير' : 'Consultant')}
-                    </span>
+                    {(() => {
+                      const cat = CATEGORY_STYLE[staff.employment_type] || CATEGORY_STYLE.permanent;
+                      return (
+                        <span className={`px-2 py-0.5 font-mono text-[10px] font-bold rounded ${cat.cls}`}>
+                          {isRtl ? cat.ar : cat.en}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="p-3 font-mono font-bold text-slate-700 dark:text-zinc-300">
-                    Grade A-2
+                    {staff.grade || staff.job_grade || '—'}
                   </td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded flex items-center gap-1 w-fit">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                      <span>{isRtl ? 'نشط' : 'Active'}</span>
-                    </span>
+                    {(() => {
+                      const active = (staff.status || 'active') === 'active';
+                      return (
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded flex items-center gap-1 w-fit ${active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/10 text-zinc-500 dark:text-zinc-400'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-zinc-400'}`}></span>
+                          <span>{active ? (isRtl ? 'نشط' : 'Active') : (isRtl ? 'غير نشط' : 'Inactive')}</span>
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="p-3 text-center flex items-center justify-center gap-1.5">
                     <button
@@ -116,8 +141,23 @@ export default function HREmployee360View({
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-slate-400">
-                  {isRtl ? 'لا توجد سجلات موظفين مطابقة للبحث' : 'No matching staff records found.'}
+                <td colSpan={6} className="p-0">
+                  <EmptyState
+                    variant={searchTerm ? 'search' : 'empty'}
+                    titleAr="لا توجد سجلات موظفين مطابقة"
+                    title="No matching staff records"
+                    descriptionAr="جرب كلمات مختلفة أو أزل الفلاتر"
+                    description="Try different keywords or clear the filters"
+                    actions={onClearSearch ? [
+                      {
+                        label: 'Clear filters',
+                        labelAr: 'مسح الفلاتر',
+                        variant: 'secondary',
+                        onClick: onClearSearch,
+                      },
+                    ] : undefined}
+                    lang={lang}
+                  />
                 </td>
               </tr>
             )}

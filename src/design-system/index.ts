@@ -53,8 +53,8 @@ export { Stepper, type StepData, type StepperProps } from './components/Stepper'
 export { ToastProvider, useToast, type ToastVariant, type ToastPosition, type ToastData, type AddToastOptions, type ToastContextValue, type ToastProviderProps } from './components/Toast';
 
 // ─── Command Palette ───────────────────────────────────────
-export { CommandPalette, type CommandPaletteProps, type CommandItem } from './components/CommandPalette';
-export { useCommandPalette, type UseCommandPaletteOptions, type UseCommandPaletteReturn } from './hooks/useCommandPalette';
+// NOTE: single source of truth is UniversalCommandCenter (mounted in App).
+// The legacy DS CommandPalette + useCommandPalette were removed (dead code).
 
 // ─── Navigation ────────────────────────────────────────────
 export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem } from './components/Breadcrumb';

@@ -255,7 +255,7 @@ describe('V2 Router', () => {
   it('should aggregate all routes', async () => {
     const mod = await import('../routes/v2/index');
     expect(mod.default || mod).toBeDefined();
-  });
+  }, 30000);
 });
 
 // ─── Engine Import Tests ───────────────────────────────

@@ -5,6 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { getPool, closePool } from '../../core/database';
+import { getClient } from '../../redis/client';
 import os from 'os';
 
 const router = Router();
@@ -23,9 +24,24 @@ router.get('/liveness', (req: Request, res: Response) => {
 });
 
 // ─── Readiness Check ───────────────────────────────────
+// Returns 503 until the awaited startup bootstrap has completed.
 router.get('/readiness', async (req: Request, res: Response) => {
   const checks: Record<string, any> = {};
   let allHealthy = true;
+
+  // 0. Startup bootstrap gate — never serve traffic on a half-migrated schema
+  try {
+    const { isBootstrapped, getBootstrapErrors } = await import('../../bootstrap/state');
+    if (!isBootstrapped()) {
+      checks.bootstrap = { status: 'bootstrapping', errors: getBootstrapErrors() };
+      allHealthy = false;
+    } else {
+      checks.bootstrap = { status: 'complete' };
+    }
+  } catch {
+    checks.bootstrap = { status: 'unknown' };
+    allHealthy = false;
+  }
 
   // 1. Database connectivity
   try {
@@ -76,7 +92,25 @@ router.get('/readiness', async (req: Request, res: Response) => {
     utilization: `${loadPct}%`,
   };
 
-  // 4. Disk (approximate via process)
+  // 4. Redis connectivity (if configured)
+  try {
+    const redis = getClient();
+    if (redis && redis.status === 'ready') {
+      const start = Date.now();
+      await redis.ping();
+      checks.redis = {
+        status: 'healthy',
+        latency: `${Date.now() - start}ms`,
+      };
+    } else {
+      checks.redis = { status: 'not_configured' };
+    }
+  } catch (err: any) {
+    checks.redis = { status: 'unhealthy', error: err.message };
+    allHealthy = false;
+  }
+
+  // 5. Disk (approximate via process)
   checks.disk = {
     status: 'healthy',
     note: 'Disk check via OS monitoring recommended',

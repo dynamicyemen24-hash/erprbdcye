@@ -22,6 +22,7 @@ import searchRoutes from './search.routes';
 import performanceRoutes from './performance.routes';
 import ppmRoutes from './ppm.routes';
 import communicationsRoutes from './communications.routes';
+import systemRoutes from './system.routes';  // NEW: AI Model Management
 
 const router = Router();
 
@@ -71,5 +72,8 @@ router.use('/ppm', authenticateToken, ppmRoutes);
 
 // NEB-11: Intelligent Administrative Communications OS
 router.use('/communications', authenticateToken, communicationsRoutes);
+
+// AI Model Management (NEB-13)
+router.use('/ai', authenticateToken, systemRoutes);  // NEW: Mounted at /api/v2/ai
 
 export default router;

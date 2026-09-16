@@ -12,6 +12,7 @@ import { ModuleShell } from './enterprise/ModuleShell';
 import { generateNumericCode } from '../lib/idGenerator';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
 import { cn } from '../design-system/utils/cn';
+import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 import { EmptyState } from '../design-system/components/EmptyState';
 import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
@@ -106,11 +107,14 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
   // Filter & Search States
   const [searchQuery, setSearchQuery] = useState('');
+  // Debounced search - grid re-filters 300ms after typing stops
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedRisk, setSelectedRisk] = useState<string>('ALL');
 
   // Data Loading State
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Core Data State
   const [projects, setProjects] = useState<InvestmentProject[]>([]);
@@ -209,6 +213,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
   // Fetch Investment Data from Server
   const fetchInvestmentData = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const res = await fetch('/api/investment-summary');
       if (!res.ok) throw new Error('Failed to fetch investment summary');
@@ -228,8 +233,9 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
         }
       }
     } catch (err: any) {
-      console.warn('Using enriched fallback state:', err.message);
-      populateFallbackState();
+      // No silent mock fallback: surface the failure with retry. Cached
+      // rows (if any) stay visible underneath the error banner.
+      setFetchError(err?.message || (isAr ? 'تعذر تحميل البيانات الاستثمارية' : 'Failed to load investment data'));
     } finally {
       setLoading(false);
     }
@@ -368,231 +374,6 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
     ]);
   };
 
-  const populateFallbackState = () => {
-    if (projects.length === 0) {
-      setProjects([
-        {
-          id: '1',
-          project_code: 'INV-2025-001',
-          title_ar: 'وقف البر والعطاء العقاري الموحد - مأرب',
-          title_en: 'Al-Birr Real Estate Endowment Complex - Marib',
-          category: 'REAL_ESTATE_ENDOWMENT',
-          capital_allocated_yer: 450000000,
-          accumulated_returns_yer: 112500000,
-          net_annual_profit_yer: 58500000,
-          expected_roi_pct: 14.0,
-          actual_roi_pct: 13.0,
-          irr_pct: 14.8,
-          occupancy_or_yield_pct: 96.5,
-          risk_level: 'LOW',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 75,
-          assigned_investment_manager: 'د. عبدالحكيم السقاف',
-          approval_status: 'APPROVED',
-          security_clearance_level: 3,
-          location_governorate: 'مأرب',
-          shariah_cert_number: 'SH-2025-091',
-          capex_yer: 380000000,
-          opex_annual_yer: 22000000
-        },
-        {
-          id: '2',
-          project_code: 'INV-2025-002',
-          title_ar: 'مشروع الخلايا الشمسية ومعاصر الزيتون التنموية',
-          title_en: 'Solar Powered Olive Press & Productive Agriculture',
-          category: 'AGRICULTURAL_PRODUCTIVE',
-          capital_allocated_yer: 280000000,
-          accumulated_returns_yer: 64400000,
-          net_annual_profit_yer: 39200000,
-          expected_roi_pct: 15.5,
-          actual_roi_pct: 14.0,
-          irr_pct: 15.2,
-          occupancy_or_yield_pct: 88.0,
-          risk_level: 'MEDIUM',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 70,
-          assigned_investment_manager: 'م. ناصر سعيد المعمري',
-          approval_status: 'APPROVED',
-          security_clearance_level: 2,
-          location_governorate: 'الساحل الغربي',
-          shariah_cert_number: 'SH-2025-092',
-          capex_yer: 240000000,
-          opex_annual_yer: 18000000
-        },
-        {
-          id: '3',
-          project_code: 'INV-2025-003',
-          title_ar: 'محطة مياه النقاء الاستثمارية - وحدة تحلية تجارية',
-          title_en: 'Al-Naqa Commercial Water Purification Plant',
-          category: 'SOCIAL_ENTERPRISE',
-          capital_allocated_yer: 190000000,
-          accumulated_returns_yer: 41800000,
-          net_annual_profit_yer: 24700000,
-          expected_roi_pct: 13.5,
-          actual_roi_pct: 13.0,
-          irr_pct: 13.9,
-          occupancy_or_yield_pct: 92.0,
-          risk_level: 'LOW',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 80,
-          assigned_investment_manager: 'م. أحمد سالم باثواب',
-          approval_status: 'APPROVED',
-          security_clearance_level: 2,
-          location_governorate: 'الحديدة',
-          shariah_cert_number: 'SH-2025-093',
-          capex_yer: 160000000,
-          opex_annual_yer: 12000000
-        },
-        {
-          id: '4',
-          project_code: 'INV-2025-004',
-          title_ar: 'محفظة الصكوك الأوقافية السيادية المستدامة',
-          title_en: 'Sovereign Endowment Sukuk Portfolio',
-          category: 'EQUITY_PORTFOLIO',
-          capital_allocated_yer: 350000000,
-          accumulated_returns_yer: 77000000,
-          net_annual_profit_yer: 42000000,
-          expected_roi_pct: 12.0,
-          actual_roi_pct: 12.0,
-          irr_pct: 12.5,
-          occupancy_or_yield_pct: 100.0,
-          risk_level: 'LOW',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 65,
-          assigned_investment_manager: 'أ. سالم عبدالله العولقي',
-          approval_status: 'APPROVED',
-          security_clearance_level: 3,
-          location_governorate: 'المركز الرئيسي',
-          shariah_cert_number: 'SH-2025-094',
-          capex_yer: 350000000,
-          opex_annual_yer: 2000000
-        },
-        {
-          id: '5',
-          project_code: 'INV-2025-005',
-          title_ar: 'مشروع أصل الطاقة الشمسية الموزعة والمحطات الريفية',
-          title_en: 'Rural Off-Grid Solar Energy Infrastructure Fund',
-          category: 'RENEWABLE_ENERGY',
-          capital_allocated_yer: 220000000,
-          accumulated_returns_yer: 33000000,
-          net_annual_profit_yer: 28600000,
-          expected_roi_pct: 13.0,
-          actual_roi_pct: 13.0,
-          irr_pct: 13.6,
-          occupancy_or_yield_pct: 95.0,
-          risk_level: 'LOW',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 75,
-          assigned_investment_manager: 'م. خالد عبدالرحيم',
-          approval_status: 'APPROVED',
-          security_clearance_level: 2,
-          location_governorate: 'حضرموت',
-          shariah_cert_number: 'SH-2025-095',
-          capex_yer: 195000000,
-          opex_annual_yer: 9000000
-        },
-        {
-          id: '6',
-          project_code: 'INV-2025-006',
-          title_ar: 'قطعة أرض وقفيّة استثمارية تجارية - 12 لبنة (مأرب)',
-          title_en: 'Commercial Endowment Land Plot - Marib Parcel',
-          category: 'MICRO_LAND_PARCEL',
-          capital_allocated_yer: 35000000,
-          accumulated_returns_yer: 6300000,
-          net_annual_profit_yer: 5950000,
-          expected_roi_pct: 17.0,
-          actual_roi_pct: 17.0,
-          irr_pct: 18.2,
-          occupancy_or_yield_pct: 100.0,
-          risk_level: 'LOW',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 80,
-          assigned_investment_manager: 'م. ناصر سعيد المعمري',
-          approval_status: 'APPROVED',
-          security_clearance_level: 2,
-          location_governorate: 'مأرب - المجمع',
-          shariah_cert_number: 'SH-2025-096',
-          capex_yer: 35000000,
-          opex_annual_yer: 1200000
-        },
-        {
-          id: '7',
-          project_code: 'INV-2025-007',
-          title_ar: 'مشروع مقاولات وترميم الدكاكين الأوقافية (عتق - شبوة)',
-          title_en: 'Endowment Commercial Shop Renovation Contracting',
-          category: 'MICRO_CONTRACTING',
-          capital_allocated_yer: 24000000,
-          accumulated_returns_yer: 4080000,
-          net_annual_profit_yer: 3840000,
-          expected_roi_pct: 16.0,
-          actual_roi_pct: 16.0,
-          irr_pct: 16.8,
-          occupancy_or_yield_pct: 91.0,
-          risk_level: 'LOW',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 75,
-          assigned_investment_manager: 'م. أحمد سالم باثواب',
-          approval_status: 'APPROVED',
-          security_clearance_level: 2,
-          location_governorate: 'شبوة - عتق',
-          shariah_cert_number: 'SH-2025-097',
-          capex_yer: 22000000,
-          opex_annual_yer: 1500000
-        },
-        {
-          id: '8',
-          project_code: 'INV-2025-008',
-          title_ar: 'مجمع المحلات التجارية الاستثمارية المصغرة - 12 محل (سيئون)',
-          title_en: 'Seiyun 12-Unit Micro Commercial Shops Complex',
-          category: 'MICRO_COMMERCIAL_SHOP',
-          capital_allocated_yer: 48000000,
-          accumulated_returns_yer: 8160000,
-          net_annual_profit_yer: 7680000,
-          expected_roi_pct: 16.0,
-          actual_roi_pct: 16.0,
-          irr_pct: 17.1,
-          occupancy_or_yield_pct: 100.0,
-          risk_level: 'LOW',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 75,
-          assigned_investment_manager: 'د. عبدالحكيم السقاف',
-          approval_status: 'APPROVED',
-          security_clearance_level: 2,
-          location_governorate: 'حضرموت - سيئون',
-          shariah_cert_number: 'SH-2025-098',
-          capex_yer: 42000000,
-          opex_annual_yer: 2500000
-        },
-        {
-          id: '9',
-          project_code: 'INV-2025-009',
-          title_ar: 'تأجير معدات الحفر الثقيلة والمضخات التنموية (الحديدة)',
-          title_en: 'Heavy Rig & Solar Pump Equipment Rental Fleet',
-          category: 'MICRO_EQUIPMENT_RENTAL',
-          capital_allocated_yer: 32000000,
-          accumulated_returns_yer: 5760000,
-          net_annual_profit_yer: 5440000,
-          expected_roi_pct: 17.0,
-          actual_roi_pct: 17.0,
-          irr_pct: 17.9,
-          occupancy_or_yield_pct: 94.0,
-          risk_level: 'MEDIUM',
-          endowment_preservation_status: 'PRESERVED',
-          humanitarian_distribution_pct: 70,
-          assigned_investment_manager: 'أ. سالم عبدالله العولقي',
-          approval_status: 'APPROVED',
-          security_clearance_level: 2,
-          location_governorate: 'الحديدة - الساحل',
-          shariah_cert_number: 'SH-2025-099',
-          capex_yer: 28000000,
-          opex_annual_yer: 2000000
-        }
-      ]);
-    }
-    populateFallbackContracts();
-    populateFallbackActivities();
-  };
-
   useEffect(() => {
     fetchInvestmentData();
   }, []);
@@ -636,14 +417,15 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
   // Filtered Projects List
   const filteredProjects = useMemo(() => {
     return projects.filter(p => {
-      const matchesSearch = p.title_ar.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            p.project_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            p.location_governorate.toLowerCase().includes(searchQuery.toLowerCase());
+      const q = debouncedSearchQuery.toLowerCase();
+      const matchesSearch = p.title_ar.toLowerCase().includes(q) ||
+                            p.project_code.toLowerCase().includes(q) ||
+                            p.location_governorate.toLowerCase().includes(q);
       const matchesCat = selectedCategory === 'ALL' || p.category === selectedCategory;
       const matchesRisk = selectedRisk === 'ALL' || p.risk_level === selectedRisk;
       return matchesSearch && matchesCat && matchesRisk;
     });
-  }, [projects, searchQuery, selectedCategory, selectedRisk]);
+  }, [projects, debouncedSearchQuery, selectedCategory, selectedRisk]);
 
   // Create Project Handler
   const handleCreateProject = async (e: React.FormEvent) => {
@@ -1067,13 +849,14 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
           {/* Filters Bar */}
           <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute right-3 top-3 text-slate-400" />
+              <Search className={`w-4 h-4 absolute top-3 text-slate-400 ${isAr ? 'right-3' : 'left-3'}`} />
               <input
                 type="text"
                 placeholder={isAr ? 'بحث بكود المشروع، الاسم، أو المحافظة...' : 'Search project code, name, or location...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-4 pr-10 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                aria-label={isAr ? 'بحث المشاريع الاستثمارية' : 'Search investment projects'}
+                className={`w-full py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${isAr ? 'pl-4 pr-10' : 'pr-4 pl-10'}`}
               />
             </div>
 
@@ -1108,9 +891,45 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             </div>
           </div>
 
+          {fetchError && (
+            <ErrorState
+              titleAr="تعذر تحميل البيانات الاستثمارية"
+              title="Failed to load investment data"
+              messageAr={fetchError}
+              message={fetchError}
+              onRetry={fetchInvestmentData}
+              lang={lang}
+            />
+          )}
+
           {/* Projects Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((p) => {
+            {filteredProjects.length === 0 ? (
+              <div className="col-span-full bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
+                <EmptyState
+                  variant={searchQuery || selectedCategory !== 'ALL' || selectedRisk !== 'ALL' ? 'search' : 'empty'}
+                  titleAr="لا توجد مشاريع استثمارية مطابقة"
+                  title="No matching investment projects"
+                  descriptionAr="جرب كلمات مختلفة أو أزل الفلاتر — أو سجّل مشروعاً استثمارياً جديداً"
+                  description="Try different keywords or clear filters — or register a new investment project"
+                  actions={[
+                    {
+                      label: 'Clear filters',
+                      labelAr: 'مسح الفلاتر',
+                      variant: 'secondary',
+                      onClick: () => { setSearchQuery(''); setSelectedCategory('ALL'); setSelectedRisk('ALL'); },
+                    },
+                    {
+                      label: 'New project',
+                      labelAr: 'مشروع جديد',
+                      onClick: () => setShowAddProjectModal(true),
+                    },
+                  ]}
+                  lang={lang}
+                />
+              </div>
+            ) : (
+            filteredProjects.map((p) => {
               const catInfo = getCategoryLabel(p.category);
               const CatIcon = catInfo.icon;
               const projectContracts = contracts.filter(c => c.project_id === p.id);
@@ -1212,7 +1031,7 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   </div>
                 </div>
               );
-            })}
+            }))}
           </div>
         </div>
       )}

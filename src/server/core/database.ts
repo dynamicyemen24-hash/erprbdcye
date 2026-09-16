@@ -51,7 +51,13 @@ export function getPool(): pg.Pool {
       application_name: 'nexoraos-api',
       ssl: process.env.DB_SSL_CA
         ? { rejectUnauthorized: true, ca: process.env.DB_SSL_CA }
-        : { rejectUnauthorized: process.env.DB_SSL_STRICT === 'true' },
+        // Strict TLS verification by default in production (Neon serves valid certs).
+        // Override explicitly with DB_SSL_STRICT=false for private CAs.
+        : {
+            rejectUnauthorized: process.env.DB_SSL_STRICT
+              ? process.env.DB_SSL_STRICT === 'true'
+              : process.env.NODE_ENV === 'production',
+          },
     });
 
     _pool.on('connect', () => {
@@ -126,6 +132,16 @@ export async function transaction<T>(
   let deadClient = false;
   try {
     await client.query('BEGIN');
+    // Defense-in-depth tenant isolation: scope FORCE RLS policies to the
+    // current request's organization (propagated via AsyncLocalStorage).
+    // SET LOCAL auto-resets on COMMIT/ROLLBACK — never leaks across checkouts.
+    try {
+      const { getTenantOrgId } = await import('../tenantContext');
+      const orgId = getTenantOrgId();
+      if (orgId) {
+        await client.query(`SELECT set_config('app.current_org', $1, true)`, [orgId]);
+      }
+    } catch { /* tenant scoping is best-effort here */ }
     const result = await callback(client);
     await client.query('COMMIT');
     return result;
@@ -145,6 +161,22 @@ export async function transaction<T>(
       client.release();
     }
   }
+}
+
+/**
+ * Single tenant-scoped query: runs in its own transaction with
+ * app.current_org set so FORCE RLS policies enforce isolation even for
+ * ad-hoc reads. Prefer this over raw query() for tenant data access.
+ */
+export async function queryTenant<T extends pg.QueryResultRow = any>(
+  orgId: string,
+  text: string,
+  params?: any[]
+): Promise<pg.QueryResult<T>> {
+  return transaction(async (client) => {
+    await client.query(`SELECT set_config('app.current_org', $1, true)`, [orgId]);
+    return client.query<T>(text, params);
+  });
 }
 
 export async function closePool(): Promise<void> {
@@ -230,6 +262,7 @@ export default {
   query,
   queryOne,
   queryMany,
+  queryTenant,
   transaction,
   closePool,
   initDatabase,

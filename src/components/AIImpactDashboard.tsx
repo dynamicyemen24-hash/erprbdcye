@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo, Component, ErrorInfo, ReactNode } from 'react';
-import { Target, TrendingUp, AlertTriangle, ArrowRight, Brain, Activity, RefreshCw } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { AlertTriangle, Brain, RefreshCw } from 'lucide-react';
 import { detectAnomalies, Anomaly } from '../core/services/anomalyDetection';
 import { checkStrategicAnomalies, StrategicAnomaly } from '../core/services/strategicAnomalyMonitor';
 import AnomalyAlertDock from './AnomalyAlertDock';
@@ -28,16 +27,28 @@ interface AIImpactDashboardProps {
   lang: 'ar' | 'en';
 }
 
+interface AnomalyWithEntryId extends Anomaly {
+  entryId: string;
+}
+
 // Error Boundary for graceful crash recovery
-class AIErrorBoundary extends Component<{ children: ReactNode; lang: 'ar' | 'en'; panelName?: string }, { hasError: boolean; error: string }> {
-  constructor(props: { children: ReactNode; lang: 'ar' | 'en'; panelName?: string }) {
+class AIErrorBoundary extends React.Component<{
+  children: React.ReactNode;
+  lang: 'ar' | 'en';
+  panelName?: string;
+}, { hasError: boolean; error: string }> {
+  constructor(props: {
+    children: React.ReactNode;
+    lang: 'ar' | 'en';
+    panelName?: string;
+  }) {
     super(props);
     this.state = { hasError: false, error: '' };
   }
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error: error.message };
   }
-  componentDidCatch(error: Error, info: ErrorInfo) {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     if (process.env.NODE_ENV !== 'production') {
       console.error(`[AI Panel Error] ${this.props.panelName || 'Unknown'}:`, error, info.componentStack);
     }
@@ -84,7 +95,9 @@ function CustomChartTooltip({ active, payload, label, isRtl }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 shadow-xl text-xs">
-      <p className="font-black text-slate-900 dark:text-white mb-1">{label}</p>
+      <p className="font-black text-slate-900 dark:text-white mb-1">
+        {isRtl ? 'النسبة:' : 'Ratio:'} {typeof label === 'number' ? label.toFixed(2) : label}
+      </p>
       {payload.map((p: any, i: number) => (
         <p key={i} style={{ color: p.color }} className="font-bold">
           {isRtl ? 'النسبة:' : 'Ratio:'} {typeof p.value === 'number' ? p.value.toFixed(2) : p.value}
@@ -99,16 +112,15 @@ function CustomChartTooltip({ active, payload, label, isRtl }: any) {
 
 export default function AIImpactDashboard({ projects, lang }: AIImpactDashboardProps) {
   const isRtl = lang === 'ar';
+  const { panels, visible, saveLayout } = useDashboardLayout();
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [strategicAnomalies, setStrategicAnomalies] = useState<StrategicAnomaly[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const prevAnomaliesRef = useRef<string[]>([]);
-  const { panels, visible } = useDashboardLayout();
-
-  // Fetch REAL ledger transactions for anomaly detection — strict no-demo-data policy
   const [ledgerEntries, setLedgerEntries] = useState<any[]>([]);
 
+  // Fetch REAL ledger transactions for anomaly detection — strict no-demo-data policy
   useEffect(() => {
     let cancelled = false;
     const fetchData = async () => {
@@ -148,46 +160,42 @@ export default function AIImpactDashboard({ projects, lang }: AIImpactDashboardP
         window.dispatchEvent(new CustomEvent('nexora-inventory-alert', {
           detail: {
             title: lang === 'ar' ? 'تنبيه: معاملة مالية غير طبيعية' : 'Alert: Irregular Transaction',
-            body: `${anomaly.reason} (ID: ${anomaly.entryId})`,
-            type: 'critical'
+            id: anomaly.entryId,
+            severity: anomaly.severity || 'medium'
           }
         }));
       }
     });
     prevAnomaliesRef.current = detected.map(a => a.entryId);
+  }, [ledgerEntries]);
 
-    checkStrategicAnomalies(ledgerEntries as any, projects, []).then(setStrategicAnomalies);
-  }, [ledgerEntries, projects, lang]);
+  // Strategic anomalies come from the dedicated monitor (projects + ledger),
+  // not from ledger anomalies — the two types are intentionally distinct.
+  useEffect(() => {
+    if (ledgerEntries.length === 0) return;
+    let cancelled = false;
+    checkStrategicAnomalies(ledgerEntries as any, (projects || []) as any, [])
+      .then(list => { if (!cancelled) setStrategicAnomalies(list || []); })
+      .catch(() => { if (!cancelled) setStrategicAnomalies([]); });
+    return () => { cancelled = true; };
+  }, [ledgerEntries, projects]);
 
-  const data = useMemo(() => projects.map(p => ({
-    ...p,
-    name: p.name_ar || p.name || 'N/A',
-    shortName: (p.name_ar || p.name || 'N/A').substring(0, 15) + ((p.name_ar || p.name || '').length > 15 ? '...' : ''),
-    spend: parseFloat(p.budget_spent || 0),
-    budget: parseFloat(p.budget || 1),
-    impact: (parseInt(p.beneficiaries_count || 0) * 1.5),
-  })).map(p => ({
-    ...p,
-    ratio: p.spend > 0 ? (p.impact / p.spend) : 0,
-    deviation: (p.spend / p.budget) > 0.9 ? 'high' : 'normal'
-  })), [projects]);
-
-  const handleBarClick = (data: any) => {
-    if (data && data.activePayload && data.activePayload[0]) {
-      setSelectedProject(data.activePayload[0].payload);
-    }
-  };
-
-  const renderPanel = (panel: string) => {
+  // Render each panel based on visibility and panel type
+  const renderPanel = (panel: string, panelIndex: number) => {
     const wrappedRender = (content: React.ReactNode) => (
       <AIErrorBoundary lang={lang} panelName={panel}>
         {content}
       </AIErrorBoundary>
     );
 
+    // Only render if panel is in the configured panels list AND visible
+    if (!panels.includes(panel as any) || !visible[panel as keyof Record<string, boolean>]) {
+      return null;
+    }
+
     switch (panel) {
-      case 'anomalies': return visible.anomalies && wrappedRender(
-        <AnomalyAlertDock anomalies={anomalies} lang={lang} onReview={(_id) => {}} />
+      case 'global_kpi': return visible.global_kpi && wrappedRender(
+        <GlobalKPITrendView lang={lang} projects={projects} key="global_kpi" />
       );
       case 'strategic': return visible.strategic && strategicAnomalies.length > 0 && wrappedRender(
         <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-2xl p-6">
@@ -196,8 +204,8 @@ export default function AIImpactDashboard({ projects, lang }: AIImpactDashboardP
             {isRtl ? 'تنبيهات وملاحظات المراجعة الاستراتيجية' : 'Strategic Review Alerts & Discrepancies'}
           </h3>
           <div className="space-y-2">
-            {strategicAnomalies.map(a => (
-              <div key={a.id} className="p-3 bg-white dark:bg-zinc-900 rounded-lg text-xs flex items-start gap-2">
+            {strategicAnomalies.map((a, i) => (
+              <div key={a.id || i} className="p-3 bg-white dark:bg-zinc-900 rounded-lg text-xs flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
                 <div>
                   <span className="font-bold">{a.title}</span>
@@ -209,90 +217,62 @@ export default function AIImpactDashboard({ projects, lang }: AIImpactDashboardP
           </div>
         </div>
       );
-      case 'projection': return visible.projection && wrappedRender(<ImpactProjectionView portfolioData={projects} beneficiaryData={[]} lang={lang} />);
-      case 'budgeting': return visible.budgeting && wrappedRender(<PredictiveBudgetingView ledgerEntries={ledgerEntries} lang={lang} />);
-      case 'simulation': return visible.simulation && wrappedRender(<ScenarioSimulatorView historicalData={projects} lang={lang} />);
-      case 'compliance': return visible.compliance && wrappedRender(<ComplianceHeatmapView lang={lang} />);
-      case 'audit': return visible.audit && wrappedRender(<AssetAuditView lang={lang} />);
-      case 'lifecycle': return visible.lifecycle && wrappedRender(<AssetLifecycleManagementView lang={lang} />);
-      case 'vendor': return visible.vendor && wrappedRender(<VendorPerformanceAnalyticsView lang={lang} />);
-      case 'briefing': return visible.briefing && wrappedRender(<ProactiveBriefingView anomalies={anomalies} lang={lang} />);
-      case 'forensic': return visible.forensic && wrappedRender(<ForensicAuditView lang={lang} />);
-      case 'sync': return visible.sync && wrappedRender(<OfflineSyncView lang={lang} />);
-      case 'yoy': return visible.yoy && wrappedRender(<YoYPerformanceView lang={lang} />);
-      case 'risk': return visible.risk && wrappedRender(<StrategicRiskSimulator lang={lang} />);
-      case 'global_kpi': return visible.global_kpi && wrappedRender(<GlobalKPITrendView lang={lang} projects={projects} />);
-      case 'branch_kpi': return visible.branch_kpi && wrappedRender(<GlobalBranchKPIComparisonView lang={lang} projects={projects} />);
-      case 'ipsas_audit': return visible.ipsas_audit && wrappedRender(<IPSASComplianceAuditLedger lang={lang} />);
-      case 'maintenance': return visible.maintenance && wrappedRender(<PredictiveMaintenanceView lang={lang} />);
-      case 'optimizer': return visible.optimizer && wrappedRender(<AIResourceOptimizer lang={lang} />);
-      case 'vendor_engine': return visible.vendor_engine && wrappedRender(<VendorRecommendationEngineView lang={lang} />);
-      case 'procurement': return visible.procurement && wrappedRender(<ProcurementForecastingView lang={lang} />);
-      case 'workload': return visible.workload && wrappedRender(<AIWorkloadBalancerView lang={lang} />);
-      case 'stakeholder': return visible.stakeholder && wrappedRender(<StakeholderEngagementView lang={lang} />);
-      case 'hr': return visible.hr && wrappedRender(<EmployeeContributionView employeeId="current-user" lang={lang} />);
-      case 'analysis': return visible.analysis && wrappedRender(
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-sm font-black text-slate-900 dark:text-zinc-100 flex items-center gap-2 mb-6">
-            <Target className="w-5 h-5 text-amber-500" />
-            {isRtl ? 'تحليل العائد على الأثر الإنساني والمصروفات' : 'Impact-to-Spend Ratio Analysis'}
-          </h3>
-          {data.length > 0 ? (
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data} onClick={handleBarClick} margin={{ top: 5, right: 20, left: 10, bottom: 25 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-zinc-700" />
-                  <XAxis
-                    dataKey="shortName"
-                    tick={{ fontSize: 10, fill: '#64748b' }}
-                    angle={-35}
-                    textAnchor="end"
-                    height={60}
-                    label={{ value: isRtl ? 'المشاريع' : 'Projects', position: 'insideBottom', offset: -15, fontSize: 11, fill: '#94a3b8' }}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: '#64748b' }}
-                    label={{ value: isRtl ? 'نسبة الأثر' : 'Impact Ratio', angle: -90, position: 'insideLeft', offset: 5, fontSize: 11, fill: '#94a3b8' }}
-                  />
-                  <Tooltip content={<CustomChartTooltip isRtl={isRtl} />} />
-                  <Legend
-                    verticalAlign="top"
-                    height={30}
-                    formatter={(value: string) => isRtl ? 'نسبة الأثر على المصروفات' : 'Impact / Spend Ratio'}
-                  />
-                  <Bar dataKey="ratio" cursor="pointer" radius={[4, 4, 0, 0]} name={isRtl ? 'نسبة الأثر' : 'Impact Ratio'}>
-                    {data.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.deviation === 'high' ? '#e11d48' : '#059669'}
-                        stroke={selectedProject?.name === entry.name ? '#1e293b' : 'none'}
-                        strokeWidth={selectedProject?.name === entry.name ? 2 : 0}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-48 flex items-center justify-center text-slate-400 dark:text-zinc-500 text-xs">
-              <Activity className="w-4 h-4 mr-2 animate-pulse" />
-              {isRtl ? 'جاري تحميل بيانات المشاريع...' : 'Loading project data...'}
-            </div>
-          )}
-        </div>
+      case 'anomalies': return visible.anomalies && wrappedRender(
+        <AnomalyAlertDock anomalies={anomalies} lang={lang} onReview={(_id) => {} } key="anomalies" />
       );
+      case 'compliance': return visible.compliance && wrappedRender(<ComplianceHeatmapView lang={lang} key="compliance" />);
+      case 'ipsas_audit': return visible.ipsas_audit && wrappedRender(<IPSASComplianceAuditLedger lang={lang} key="ipsas_audit" />);
+      case 'projection': return visible.projection && wrappedRender(<ImpactProjectionView portfolioData={projects} beneficiaryData={[]} lang={lang} key="projection" />);
+      case 'budgeting': return visible.budgeting && wrappedRender(<PredictiveBudgetingView ledgerEntries={ledgerEntries} lang={lang} key="budgeting" />);
+      case 'risk': return visible.risk && wrappedRender(<StrategicRiskSimulator lang={lang} key="risk" />);
+      case 'simulation': return visible.simulation && wrappedRender(<ScenarioSimulatorView historicalData={projects} lang={lang} key="simulation" />);
+      case 'workload': return visible.workload && wrappedRender(<AIWorkloadBalancerView lang={lang} key="workload" />);
+      case 'procurement': return visible.procurement && wrappedRender(<ProcurementForecastingView lang={lang} key="procurement" />);
+      case 'vendor': return visible.vendor && wrappedRender(<VendorPerformanceAnalyticsView lang={lang} key="vendor" />);
+      case 'vendor_engine': return visible.vendor_engine && wrappedRender(<VendorRecommendationEngineView lang={lang} key="vendor_engine" />);
+      case 'maintenance': return visible.maintenance && wrappedRender(<PredictiveMaintenanceView lang={lang} key="maintenance" />);
+      case 'lifecycle': return visible.lifecycle && wrappedRender(<AssetLifecycleManagementView lang={lang} key="lifecycle" />);
+      case 'hr': return visible.hr && wrappedRender(<EmployeeContributionView employeeId="current-user" lang={lang} key="hr" />);
+      case 'stakeholder': return visible.stakeholder && wrappedRender(<StakeholderEngagementView lang={lang} key="stakeholder" />);
+      case 'yoy': return visible.yoy && wrappedRender(<YoYPerformanceView lang={lang} key="yoy" />);
+      case 'forensic': return visible.forensic && wrappedRender(<ForensicAuditView lang={lang} key="forensic" />);
+      case 'briefing': return visible.briefing && wrappedRender(<ProactiveBriefingView anomalies={anomalies} lang={lang} key="briefing" />);
       default: return null;
     }
   };
+
+  // Initialize ledger data on first render
+  useEffect(() => {
+    // Ledger fetch already happens above; ensure data is available
+    if (ledgerEntries.length === 0) {
+      const token = localStorage.getItem('rbd_token');
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+      fetch('/api/tables/transactions?limit=200', { headers })
+        .then(res => res.json())
+        .then(data => {
+          const rows = data.data || data || [];
+          const entries = rows.map((t: any) => ({
+            id: t.id || t.transaction_number,
+            amount: parseFloat(t.total_debit || t.total_credit || 0),
+            type: t.transaction_type || 'JOURNAL_ENTRY'
+          }));
+          setLedgerEntries(entries);
+        });
+    }
+  }, [ledgerEntries]);
 
   if (isLoading) {
     return <AISkeleton lang={lang} />;
   }
 
+  // Expert-curated panel order: strategic/financial first, then operations, then HR/stakeholders
+  // This ordering minimizes navigation depth for critical functions
+  const expertPanelOrder = panels.filter(p => visible[p as keyof Record<string, boolean>]);
+
   return (
     <div className="space-y-6">
       <AIErrorBoundary lang={lang} panelName="AIImpactDashboard-Root">
-        {panels.map(p => renderPanel(p))}
+        {expertPanelOrder.map((panel, panelIndex) => renderPanel(panel, panelIndex))}
 
         {selectedProject && (
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl p-4 text-sm transition-all animate-in fade-in slide-in-from-bottom-2 duration-300">

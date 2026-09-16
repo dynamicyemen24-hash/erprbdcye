@@ -13,6 +13,7 @@
 
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import { clearAuthCookies, getRequestToken } from '../../core/cookies';
 import logger from '../../core/logger';
 import { revokeToken, revokeAllUserTokens } from '../../core/tokenRevocation';
 import { revokeSession, revokeAllUserSessions } from '../../core/sessionManagement';
@@ -23,8 +24,7 @@ const router = Router();
 // POST /api/auth/logout — Secure logout with full session invalidation
 router.post('/logout', async (req: any, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    const token = getRequestToken(req);
     const sessionId = req.headers['x-session-id'] as string;
 
     let userId: string | undefined;
@@ -61,6 +61,7 @@ router.post('/logout', async (req: any, res) => {
       meta: { userId, ip: req.ip },
     });
 
+    clearAuthCookies(res);
     res.json({
       status: 'success',
       message: 'تم تسجيل الخروج بنجاح',
@@ -74,8 +75,7 @@ router.post('/logout', async (req: any, res) => {
 // POST /api/auth/logout-all — Revoke ALL sessions and tokens for the user
 router.post('/logout-all', async (req: any, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    const token = getRequestToken(req);
 
     let userId: string | undefined;
 
@@ -114,6 +114,7 @@ router.post('/logout-all', async (req: any, res) => {
       meta: { userId, sessionCount, ip: req.ip },
     });
 
+    clearAuthCookies(res);
     res.json({
       status: 'success',
       message: 'تم تسجيل الخروج من جميع الأجهزة بنجاح',

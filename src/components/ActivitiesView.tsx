@@ -41,7 +41,8 @@ import {
   Sliders,
   ChevronRight,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from 'lucide-react';
 import { Project, Program } from '../types';
 import { printHTML } from '../lib/printUtils';
@@ -54,6 +55,7 @@ import { generateNumericCode } from '../lib/idGenerator';
 import { instantPrint } from '../core/export';
 import { WBSActivityTreeSymbol } from './common/SovereignSystemIcons';
 import { cn } from '../design-system/utils/cn';
+import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 import { EmptyState } from '../design-system/components/EmptyState';
 import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
@@ -325,6 +327,8 @@ export default function ActivitiesView({
   });
 
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  // Debounced search — memo filters re-run 300ms after typing stops
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
   const [isVerifyingGPS, setIsVerifyingGPS] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [fetchError, setFetchError] = useState<boolean>(false);
@@ -366,6 +370,28 @@ export default function ActivitiesView({
   useEffect(() => {
     fetchActivities();
   }, []);
+
+  // Delete activity — always routed through the shared confirm dialog
+  const handleDeleteActivity = async (id: string) => {
+    try {
+      const res = await fetch(`/api/tables/activities/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(isRtl ? 'فشل حذف النشاط' : 'Failed to delete activity');
+      setActivities(prev => prev.filter(a => a.id !== id));
+      setPendingDeleteId(null);
+      onRefresh();
+      enterpriseBus.notifyToast({
+        type: 'success',
+        title: isRtl ? 'تم حذف النشاط 🗑️' : 'Activity deleted',
+        message: isRtl ? 'تم حذف النشاط الميداني من السجلات بنجاح' : 'Field activity removed successfully',
+      });
+    } catch (err: any) {
+      enterpriseBus.notifyToast({
+        type: 'error',
+        title: isRtl ? 'خطأ' : 'Error',
+        message: err.message,
+      });
+    }
+  };
 
 
   // Task Toggle
@@ -550,6 +576,11 @@ export default function ActivitiesView({
     setActivities(prev => [newActivity, ...prev]);
     setIsModalOpen(false);
     setIsSubmitting(false);
+    enterpriseBus.notifyToast({
+      type: 'success',
+      title: isRtl ? 'تم إنشاء النشاط ✅' : 'Activity created',
+      message: isRtl ? `تم تسجيل النشاط «${formData.name_ar}» بنجاح` : `Activity "${formData.name_en || formData.name_ar}" registered successfully`,
+    });
 
     try {
       const res = await fetch('/api/tables/activities', {
@@ -785,12 +816,13 @@ export default function ActivitiesView({
 
   // Filter Activities
   const filteredActivities = useMemo(() => {
+    const q = debouncedSearchTerm.toLowerCase();
     return activities.filter(act => {
-      const matchesSearch = 
-        act.name_ar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        act.name_en?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        act.location_name_ar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        act.metadata?.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        act.name_ar?.toLowerCase().includes(q) ||
+        act.name_en?.toLowerCase().includes(q) ||
+        act.location_name_ar?.toLowerCase().includes(q) ||
+        act.metadata?.teacher_name?.toLowerCase().includes(q);
         
       const matchesSector = selectedSector === 'all' || act.sector_id === selectedSector;
       const matchesProject = selectedProject === 'all' || act.project_id === selectedProject;
@@ -799,7 +831,7 @@ export default function ActivitiesView({
 
       return matchesSearch && matchesSector && matchesProject && matchesStatus && matchesType;
     });
-  }, [activities, searchTerm, selectedSector, selectedProject, selectedStatus, selectedType]);
+  }, [activities, debouncedSearchTerm, selectedSector, selectedProject, selectedStatus, selectedType]);
 
   // Aggregated KPIs
   const activeCount = activities.filter(a => a.status_code === 'active').length;
@@ -978,15 +1010,15 @@ export default function ActivitiesView({
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 shadow-xs">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" 
-                  style={!isRtl ? { right: 'auto', left: '14px' } : {}} />
+          <Search className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 ${isRtl ? 'right-3.5' : 'left-3.5'}`}
+                  aria-hidden="true" />
           <input
             type="text"
             placeholder={isRtl ? 'بحث باسم الحلقة، المعلم، المسجد، أو المحافظة...' : 'Search by circle name, teacher, mosque, region...'}
+            aria-label={isRtl ? 'بحث الأنشطة' : 'Search activities'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pr-10 pl-4 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-500 transition-all text-slate-900 dark:text-white"
-            style={!isRtl ? { paddingRight: '16px', paddingLeft: '40px' } : {}}
+            className={`w-full py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-500 transition-all text-slate-900 dark:text-white ${isRtl ? 'pr-10 pl-4' : 'pl-10 pr-4'}`}
           />
         </div>
 
@@ -1193,13 +1225,23 @@ export default function ActivitiesView({
                     <span>{new Date(act.created_at).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US')}</span>
                   </div>
 
-                  <button
-                    onClick={() => handlePrintActivityManifest(act as unknown as Activity)}
-                    className="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>{isRtl ? 'طباعة الكشف' : 'Print Manifest'}</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handlePrintActivityManifest(act as unknown as Activity)}
+                      className="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>{isRtl ? 'طباعة الكشف' : 'Print Manifest'}</span>
+                    </button>
+                    <button
+                      onClick={() => { setPendingDeleteId(act.id); setConfirmDelete(true); }}
+                      className="text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      aria-label={isRtl ? 'حذف النشاط' : 'Delete activity'}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>{isRtl ? 'حذف' : 'Delete'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -1985,6 +2027,20 @@ export default function ActivitiesView({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        variant="destructive"
+        title="Confirm Deletion"
+        titleAr="تأكيد حذف النشاط"
+        description="Are you sure you want to delete this field activity? This cannot be undone."
+        descriptionAr="هل أنت متأكد من حذف هذا النشاط الميداني؟ لا يمكن التراجع عن الحذف."
+        confirmLabel="Delete"
+        confirmLabelAr="حذف النشاط"
+        onConfirm={() => { if (pendingDeleteId) handleDeleteActivity(pendingDeleteId); }}
+        lang={lang}
+      />
 
     </div>
     </ModuleShell>
