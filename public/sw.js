@@ -94,8 +94,9 @@ self.addEventListener('fetch', (event) => {
             return networkResponse;
           })
           .catch((err) => {
-            // Network failed, cache served if available
-            return cachedResponse;
+            // Network failed or CSP blocked external fetch, return cached response if available or silent fallback Response
+            if (cachedResponse) return cachedResponse;
+            return new Response('', { status: 204, statusText: 'Asset Unavailable' });
           });
 
         return cachedResponse || fetchPromise;

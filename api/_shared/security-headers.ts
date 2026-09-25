@@ -92,7 +92,7 @@ export function applySecurityHeaders(res: any, nonce?: string): void {
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://cdn.jsdelivr.net data:`,
     `img-src 'self' data: blob: https://*.tile.openstreetmap.org https://maps.googleapis.com`,
-    `connect-src 'self' https://*.neon.tech https://maps.googleapis.com https://*.googleapis.com`,
+    `connect-src 'self' https://*.neon.tech https://maps.googleapis.com https://*.googleapis.com https://fonts.gstatic.com https://fonts.googleapis.com`,
     "frame-src 'none'",
     "object-src 'none'",
     "base-uri 'self'",
