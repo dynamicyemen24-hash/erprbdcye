@@ -21,7 +21,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   'X-Download-Options': 'noopen',
   'X-Permitted-Cross-Domain-Policies': 'none',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()',
+  'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(self), payment=(), usb=(), browsing-topics=()',
   'Cross-Origin-Opener-Policy': 'same-origin',
   'Cross-Origin-Resource-Policy': 'same-origin',
   'Cross-Origin-Embedder-Policy': 'require-corp',

@@ -37,7 +37,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     'ambient-light-sensor=()',
     'autoplay=()',
     'battery=()',
-    'camera=()',
+    'camera=(self)',
     'display-capture=()',
     'encrypted-media=()',
     'fullscreen=(self)',
@@ -87,9 +87,10 @@ export function applySecurityHeaders(res: any, nonce?: string): void {
   const cspNonce = nonce || generateNonce();
   const cspDirectives = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${cspNonce}' 'strict-dynamic' https://www.gstatic.com https://apis.google.com`,
+    `script-src 'self' 'nonce-${cspNonce}' 'unsafe-inline' 'unsafe-eval' blob: https://www.gstatic.com https://apis.google.com`,
+    `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
-    `font-src 'self' https://fonts.gstatic.com data:`,
+    `font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://cdn.jsdelivr.net data:`,
     `img-src 'self' data: blob: https://*.tile.openstreetmap.org https://maps.googleapis.com`,
     `connect-src 'self' https://*.neon.tech https://maps.googleapis.com https://*.googleapis.com`,
     "frame-src 'none'",

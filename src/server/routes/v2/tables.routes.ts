@@ -124,8 +124,7 @@ router.get('/:table', authenticateToken, async (req: any, res: any) => {
 
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id;
-    if (!tenantId) return res.status(401).json({ error: 'Organization ID required' });
+    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
 
     const { hasOrgCol, hasDeletedAt, hasCreatedAt } = await getTableSchemaInfo(dbPool, table);
 

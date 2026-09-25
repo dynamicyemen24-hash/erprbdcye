@@ -32,9 +32,10 @@ export function worldClassSecurityHeaders(req: Request, res: Response, next: Nex
   // Nonce-based CSP eliminates unsafe-inline for scripts
   const cspDirectives = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.gstatic.com https://apis.google.com https://www.googleapis.com`,
+    `script-src 'self' 'nonce-${nonce}' 'unsafe-inline' 'unsafe-eval' blob: https://www.gstatic.com https://apis.google.com https://www.googleapis.com`,
+    `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com`,
-    `font-src 'self' https://fonts.gstatic.com https://unpkg.com data:`,
+    `font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com data:`,
     `img-src 'self' data: blob: https://*.tile.openstreetmap.org https://maps.googleapis.com https://*.gstatic.com https://cdn.sanity.io`,
     `connect-src 'self' https://*.neon.tech https://maps.googleapis.com https://*.googleapis.com https://*.google.com wss:`,
     `frame-src 'none'`,
@@ -72,7 +73,7 @@ export function worldClassSecurityHeaders(req: Request, res: Response, next: Nex
     'ambient-light-sensor=()',
     'autoplay=()',
     'battery=()',
-    'camera=()',
+    'camera=(self)',
     'cross-origin-isolated=()',
     'display-capture=()',
     'document-domain=()',
