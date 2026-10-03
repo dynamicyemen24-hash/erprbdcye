@@ -46,7 +46,7 @@ export function PrintLayout({
     <div className={cn('print-layout', className)} dir={isRtl ? 'rtl' : 'ltr'}>
       <style>{`
         @media print {
-          .print-layout { font-family: 'Inter', 'Noto Sans Arabic', sans-serif; color: #000; }
+          .print-layout { font-family: var(--ux-font-sans, system-ui, 'Segoe UI', Tahoma, sans-serif); color: #000; }
           .print-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 2px solid #059669; margin-bottom: 24px; }
           .print-logo { height: 48px; }
           .print-title { font-size: 18px; font-weight: 800; color: #059669; }

@@ -200,7 +200,7 @@ export default function InstitutionalOrgStructureView({
   // Official A4 Print
   const handlePrintOrgStructure = () => {
     const documentHTML = `
-      <div style="font-family: 'Tajawal', sans-serif; direction: rtl; text-align: right; color: #0f172a; padding: 10px;">
+      <div style="font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif; direction: rtl; text-align: right; color: #0f172a; padding: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double #059669; padding-bottom: 12px; margin-bottom: 16px;">
           <div style="display: flex; align-items: center; gap: 14px;">
             <img src="/UAMEX_ERPLOGO.png" style="height: 52px; object-fit: contain;" />
@@ -280,8 +280,7 @@ export default function InstitutionalOrgStructureView({
         <meta charset="UTF-8">
         <title>الهيكل التنظيمي والمؤسسي المعتمد - جمعية رُحماء بينهم</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
-          body { font-family: 'Tajawal', sans-serif; background: #ffffff; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Geeza Pro', sans-serif; background: #ffffff; }
           @media print {
             .no-print { display: none !important; }
             body { background: white !important; color: black !important; }

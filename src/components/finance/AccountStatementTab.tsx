@@ -238,9 +238,8 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
         <title>Account Statement - ${selectedAcc.account_code}</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;900&display=swap');
           body {
-            font-family: ${isRtl ? "'Tajawal', sans-serif" : "'Plus Jakarta Sans', sans-serif"};
+            font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Geeza Pro', sans-serif;
           }
           @media print {
             .no-print { display: none !important; }

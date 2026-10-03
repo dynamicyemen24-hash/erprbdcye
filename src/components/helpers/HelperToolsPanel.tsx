@@ -713,8 +713,7 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
         <title>تقرير تقدير الاحتياجات الإنسانية الميدانية المعتمدة</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
-          body { font-family: 'Tajawal', sans-serif; p: 2rem; background: #fff; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Geeza Pro', sans-serif; p: 2rem; background: #fff; }
         </style>
       </head>
       <body class="p-8">
@@ -793,8 +792,7 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
         <title>تقرير توزيع الميزانية المباشرة والإدارية ICR</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
-          body { font-family: 'Tajawal', sans-serif; p: 2rem; background: #fff; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Geeza Pro', sans-serif; p: 2rem; background: #fff; }
         </style>
       </head>
       <body class="p-8">

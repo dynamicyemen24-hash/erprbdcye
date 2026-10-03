@@ -134,8 +134,8 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "https://www.gstatic.com", "https://apis.google.com", "https://www.googleapis.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://unpkg.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+      fontSrc: ["'self'", "https://unpkg.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org", "https://maps.googleapis.com", "https://images.unsplash.com", "https://*.googleusercontent.com"],
       connectSrc: ["'self'", "ws:", "wss:", "http://localhost:*", "ws://localhost:*", "https://*.neon.tech", "https://maps.googleapis.com", "https://*.googleapis.com", "https://erprbdcye.org", "https://*.vercel.app", "https://*.tile.openstreetmap.org"],
       frameSrc: ["'none'"],

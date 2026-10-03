@@ -448,8 +448,7 @@ export default function EInvoicingEngineTab({
         <title>فاتورة إلكترونية ضريبية - ${inv.invoiceNumber}</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
-          body { font-family: 'Tajawal', sans-serif; background-color: #fff; color: #0f172a; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Geeza Pro', sans-serif; background-color: #fff; color: #0f172a; }
           @media print { .no-print { display: none !important; } }
         </style>
       </head>

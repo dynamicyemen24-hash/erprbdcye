@@ -365,8 +365,7 @@ export default function UnifiedExpenseEngineTab({ lang = 'ar' }: UnifiedExpenseE
         <title>سند صرف مالي معتمد - ${expense.expense_number}</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
-          body { font-family: 'Tajawal', sans-serif; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Geeza Pro', sans-serif; }
           @media print {
             .no-print { display: none !important; }
             body { background-color: white !important; }

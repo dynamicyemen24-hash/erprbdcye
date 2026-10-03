@@ -36,9 +36,8 @@ export async function exportPDF(req: Request, res: Response) {
         <meta charset="UTF-8">
         <title>${escapeHtml(report.title || report.titleEn || 'Report')}</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;700&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Noto Kufi Arabic', sans-serif; direction: rtl; padding: 20px; color: #1a1a1a; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Geeza Pro', sans-serif; direction: rtl; padding: 20px; color: #1a1a1a; }
           .header { text-align: center; border-bottom: 3px solid #059669; padding-bottom: 15px; margin-bottom: 20px; }
           .logo { width: 80px; height: 80px; margin: 0 auto 10px; }
           .org-name { font-size: 18px; font-weight: bold; color: #059669; }

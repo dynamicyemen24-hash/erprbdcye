@@ -655,7 +655,7 @@ export default function LoginView({
       className="min-h-screen w-full bg-brand-light-bg dark:bg-brand-dark-bg text-slate-900 dark:text-zinc-100 flex flex-col justify-between font-sans selection:bg-emerald-500 selection:text-white transition-colors duration-300 relative overflow-x-hidden"
       dir={isRtl ? 'rtl' : 'ltr'}
       style={{
-        fontFamily: "'Tajawal', 'Cairo', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif"
+        fontFamily: "var(--ux-font-sans)"
       }}
     >
       <style>{`

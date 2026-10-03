@@ -636,7 +636,7 @@ export default function ChartOfAccountsTreeView({
   // Print Official A4 Certified Chart of Accounts
   const handlePrintOfficialCOA = () => {
     const documentHTML = `
-      <div style="font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; direction: ${isRtl ? 'rtl' : 'ltr'}; padding: 10px; color: #0f172a;">
+      <div style="font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif; direction: ${isRtl ? 'rtl' : 'ltr'}; padding: 10px; color: #0f172a;">
         <!-- Official Header -->
         <div style="text-align: center; border-bottom: 2px solid #059669; padding-bottom: 15px; margin-bottom: 20px;">
           <h1 style="color: #059669; margin: 0; font-size: 20px; font-weight: 800;">دليل الحسابات المحاسبي الموحد والمعتمد</h1>
@@ -731,8 +731,7 @@ export default function ChartOfAccountsTreeView({
         <meta charset="UTF-8">
         <title>الدليل المحاسبي الموحد والمعتمد - جمعية رُحماء بينهم</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
-          body { font-family: 'Tajawal', sans-serif; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, 'Noto Sans Arabic', 'Geeza Pro', sans-serif; }
           @media print {
             .no-print { display: none !important; }
             body { background-color: white !important; color: black !important; }

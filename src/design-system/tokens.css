@@ -68,9 +68,13 @@
   --ux-shadow-glow: 0 0 20px rgba(5, 150, 105, 0.15);
   --ux-shadow-glow-accent: 0 0 20px rgba(217, 119, 6, 0.15);
 
-  /* ─── Typography ─────────────────────────────────────────────────────────────────── */
-  --ux-font-sans: 'Tajawal', 'Cairo', 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  --ux-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  /* ─── Typography ───────────────────────────────────────────────────────────────────
+     System font stack only — zero external font requests (no Google Fonts, no
+     network fetch, no FOIT/FOUT). Per-glyph fallback covers Arabic (Tahoma /
+     Geeza Pro / Noto Sans Arabic when locally installed) and Latin (Segoe UI /
+     system-ui). Mono targets coding + financial tabular contexts. */
+  --ux-font-sans: system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", "Geeza Pro", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ux-font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, "DejaVu Sans Mono", "Courier New", monospace;
   --ux-font-size-xs: 0.75rem;
   --ux-font-size-sm: 0.875rem;
   --ux-font-size-base: 1rem;

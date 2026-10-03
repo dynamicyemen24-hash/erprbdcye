@@ -596,7 +596,7 @@ function DocumentsPanel({ refreshKey, lang = 'ar', isRtl = true }: { refreshKey:
             <td className={TD_CLS}><span className="tabular-nums">{fmtMoney(d.total_value)}</span></td>
             <td className={TD_CLS}><button className={BTN_GHOST} onClick={() => {
               let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>حركة مخزن</title>`;
-              html += `<style>body{font-family:'Cairo',sans-serif;margin:30px;font-size:11px;color:#111;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #999;padding:5px 8px;text-align:right;}.hd{background:#059669;color:#fff;}</style>`;
+              html += `<style>body{font-family:system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;margin:30px;font-size:11px;color:#111;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #999;padding:5px 8px;text-align:right;}.hd{background:#059669;color:#fff;}</style>`;
               html += `</head><body><h2 style="color:#059669">حركة مخزن — ${d.movement_number}</h2>`;
               html += `<p>النوع: ${MOVEMENT_TYPE_LABELS[d.movement_type]?.ar || ''} | التاريخ: ${d.doc_date} | الصنف: ${d.item_name_ar}</p>`;
               html += `<table><tr class="hd"><th>الحقل</th><th>القيمة</th></tr>`;
