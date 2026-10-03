@@ -44,6 +44,14 @@ export interface EnterpriseContextType {
 
 const EnterpriseContext = createContext<EnterpriseContextType | undefined>(undefined);
 
+/** NexoraOS global brand defaults — the single fallback truth for tenant theming. */
+export const FALLBACK_BRAND = {
+  primary: '#059669',
+  accent: '#d97706',
+  darkBg: '#090d16',
+  lightBg: '#f8fafc',
+} as const;
+
 export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [lang, setLang] = useState<'ar' | 'en'>(() => {
     try {
@@ -157,14 +165,7 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, [activeOrg, lang]);
 
   const brandingColors = useMemo(() => {
-    const fallbackColors = {
-      primary: '#059669', // Emerald Green
-      accent: '#d97706',  // Accent Gold/Amber
-      darkBg: '#090d16',  // Dark Mode Background
-      lightBg: '#f8fafc', // Light Mode Background
-    };
-
-    if (!activeOrg) return fallbackColors;
+    if (!activeOrg) return { ...FALLBACK_BRAND };
 
     let settingsObj: any = {};
     if (activeOrg.settings) {
@@ -180,10 +181,10 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
 
     return {
-      primary: settingsObj?.primary_color || settingsObj?.brand_primary_color || fallbackColors.primary,
-      accent: settingsObj?.accent_color || settingsObj?.brand_accent_color || fallbackColors.accent,
-      darkBg: settingsObj?.dark_bg || settingsObj?.brand_dark_bg || fallbackColors.darkBg,
-      lightBg: settingsObj?.light_bg || settingsObj?.brand_light_bg || fallbackColors.lightBg,
+      primary: settingsObj?.primary_color || settingsObj?.brand_primary_color || FALLBACK_BRAND.primary,
+      accent: settingsObj?.accent_color || settingsObj?.brand_accent_color || FALLBACK_BRAND.accent,
+      darkBg: settingsObj?.dark_bg || settingsObj?.brand_dark_bg || FALLBACK_BRAND.darkBg,
+      lightBg: settingsObj?.light_bg || settingsObj?.brand_light_bg || FALLBACK_BRAND.lightBg,
     };
   }, [activeOrg]);
 
@@ -219,15 +220,19 @@ export const EnterpriseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } catch (e) { console.error('[NexoraOS] EnterpriseContext: Failed to persist logo/org branding', e); }
   }, [logoUrl, orgName]);
 
+  // Tenant brand attribute: drives the html[data-tenant-brand="custom"] palette
+  // derivation in src/index.css (emerald/amber scales re-derived from --brand-*).
+  // The color values themselves are injected once by App.tsx from the same
+  // brandingColors — one authority, no hidden inline palette overrides.
   useEffect(() => {
-    if (brandingColors) {
-      document.documentElement.style.setProperty('--color-primary', brandingColors.primary);
-      document.documentElement.style.setProperty('--color-accent', brandingColors.accent);
-      // Fallbacks to standard tailwind class variables
-      document.documentElement.style.setProperty('--color-emerald-600', brandingColors.primary);
-      document.documentElement.style.setProperty('--color-emerald-500', brandingColors.primary);
-      document.documentElement.style.setProperty('--color-amber-500', brandingColors.accent);
-    }
+    if (!brandingColors) return;
+    const isCustom =
+      brandingColors.primary !== FALLBACK_BRAND.primary ||
+      brandingColors.accent !== FALLBACK_BRAND.accent ||
+      brandingColors.darkBg !== FALLBACK_BRAND.darkBg ||
+      brandingColors.lightBg !== FALLBACK_BRAND.lightBg;
+    if (isCustom) document.documentElement.setAttribute('data-tenant-brand', 'custom');
+    else document.documentElement.removeAttribute('data-tenant-brand');
   }, [brandingColors]);
 
   const contextValue = useMemo(() => ({

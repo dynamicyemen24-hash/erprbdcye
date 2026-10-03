@@ -4,14 +4,19 @@
    ═══════════════════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ─── Brand Colors ──────────────────────────────────────────────────────────────── */
-  --ux-primary: #059669;
-  --ux-primary-hover: #047857;
-  --ux-primary-light: #d1fae5;
-  --ux-primary-dark: #065f46;
-  --ux-accent: #d97706;
-  --ux-accent-hover: #b45309;
-  --ux-accent-light: #fef3c7;
+  /* ─── Brand Colors ────────────────────────────────────────────────────────────────
+     Single source of truth: --brand-* (global NexoraOS defaults in src/index.css,
+     overridden per tenant by App.tsx from organization settings). Design tokens
+     DERIVE from them so one value drives Tailwind brand utilities, ux components,
+     focus rings and glow shadows together. color-mix() shades are computed at
+     runtime — a tenant recolor propagates everywhere without code changes. */
+  --ux-primary: var(--brand-primary);
+  --ux-primary-hover: color-mix(in oklab, var(--brand-primary) 86%, black);
+  --ux-primary-light: color-mix(in oklab, var(--brand-primary) 14%, white);
+  --ux-primary-dark: color-mix(in oklab, var(--brand-primary) 78%, black);
+  --ux-accent: var(--brand-accent);
+  --ux-accent-hover: color-mix(in oklab, var(--brand-accent) 85%, black);
+  --ux-accent-light: color-mix(in oklab, var(--brand-accent) 14%, white);
 
   /* ─── Semantic Colors ────────────────────────────────────────────────────────────── */
   --ux-success: #10b981;
@@ -65,8 +70,8 @@
   --ux-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   --ux-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   --ux-shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
-  --ux-shadow-glow: 0 0 20px rgba(5, 150, 105, 0.15);
-  --ux-shadow-glow-accent: 0 0 20px rgba(217, 119, 6, 0.15);
+  --ux-shadow-glow: 0 0 20px color-mix(in oklab, var(--brand-primary) 20%, transparent);
+  --ux-shadow-glow-accent: 0 0 20px color-mix(in oklab, var(--brand-accent) 20%, transparent);
 
   /* ─── Typography ───────────────────────────────────────────────────────────────────
      System font stack only — zero external font requests (no Google Fonts, no
@@ -134,12 +139,14 @@
   --ux-text-primary: #f1f5f9;
   --ux-text-secondary: #94a3b8;
   --ux-text-tertiary: #64748b;
-  --ux-primary: #34d399;
-  --ux-primary-hover: #6ee7b7;
-  --ux-primary-light: rgba(52, 211, 153, 0.1);
-  --ux-accent: #fbbf24;
-  --ux-accent-hover: #fcd34d;
-  --ux-accent-light: rgba(251, 191, 36, 0.1);
+  /* Brand derivations: darken surfaces stay fixed; brand shades lighten toward
+     the tenant primary/accent so dark mode adapts to any subscriber color. */
+  --ux-primary: color-mix(in oklab, var(--brand-primary) 68%, white);
+  --ux-primary-hover: color-mix(in oklab, var(--brand-primary) 55%, white);
+  --ux-primary-light: color-mix(in oklab, var(--brand-primary) 14%, transparent);
+  --ux-accent: color-mix(in oklab, var(--brand-accent) 80%, white);
+  --ux-accent-hover: color-mix(in oklab, var(--brand-accent) 65%, white);
+  --ux-accent-light: color-mix(in oklab, var(--brand-accent) 14%, transparent);
   --ux-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --ux-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --ux-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);

@@ -118,7 +118,7 @@ import { ActiveTab } from './core/types';
 import { resumeIntelligenceService } from './core/services/resumeIntelligence';
 import { useAppNavigationStore } from './core/stores/useAppNavigationStore';
 import { useAppUIStore } from './core/stores/useAppUIStore';
-import { ThemeProvider, LocalizationProvider, AccessibilityProvider, ToastProvider } from './design-system';
+import { ThemeProvider, LocalizationProvider, AccessibilityProvider, ToastProvider, ensureMinContrast } from './design-system';
 import { NotificationBusBridge } from './app/providers/NotificationBusBridge';
 
 export default function App() {
@@ -317,12 +317,16 @@ export default function App() {
 
   const branding = useOrganizationBranding();
 
-  // Dynamic Enterprise Branding CSS custom properties injection
+  // Dynamic Enterprise Branding CSS custom properties injection.
+  // Values pass a WCAG contrast guard first: a tenant may pick any color, but
+  // the injected brand must stay readable (≥3:1) on its light surface.
   useEffect(() => {
     try {
       const root = document.documentElement;
-      root.style.setProperty('--brand-primary', branding.primaryColor);
-      root.style.setProperty('--brand-accent', branding.accentColor);
+      const primary = ensureMinContrast(branding.primaryColor, branding.lightBg, 3);
+      const accent = ensureMinContrast(branding.accentColor, branding.lightBg, 3);
+      root.style.setProperty('--brand-primary', primary);
+      root.style.setProperty('--brand-accent', accent);
       root.style.setProperty('--brand-dark-bg', branding.darkBg);
       root.style.setProperty('--brand-light-bg', branding.lightBg);
     } catch (e) {
@@ -714,7 +718,7 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider defaultMode={theme === 'dark' ? 'dark' : 'light'} defaultDirection={lang === 'ar' ? 'rtl' : 'ltr'} defaultLocale={lang}>
+    <ThemeProvider mode={theme === 'dark' ? 'dark' : 'light'} locale={lang} defaultDirection={lang === 'ar' ? 'rtl' : 'ltr'}>
       <AccessibilityProvider skipTargetId="main-content">
     <LocalizationProvider locale={lang === 'ar' ? 'ar' : 'en'}>
     <div className="h-screen max-h-screen bg-slate-50 dark:bg-zinc-950 font-sans flex flex-col antialiased selection:bg-amber-100 selection:text-amber-900 text-slate-800 dark:text-zinc-100 transition-colors duration-200 overflow-hidden">

@@ -18,6 +18,7 @@ export { isArrowKey, isActivationKey, isEscapeKey, isNavigationKey } from './uti
 
 // ─── Theme ─────────────────────────────────────────────────
 export { ThemeProvider, useTheme, useDirection, type ThemeMode, type ThemeContextValue, type ThemeProviderProps } from './theme/ThemeContext';
+export { ensureMinContrast, contrastRatio, relativeLuminance } from './theme/brandContrast';
 
 // ─── Hooks (19 reusable hooks) ─────────────────────────────
 export { useControllableState, type UseControllableStateOptions } from './hooks/useControllableState';

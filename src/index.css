@@ -177,6 +177,39 @@
   --density-font-size: 0.82rem;
 }
 
+/* ─── Tenant Theme Propagation ─────────────────────────────────────────────────
+   When an organization ships custom brand colors, the emerald/amber scales that
+   the application UI is built on are re-derived from the tenant --brand-* values
+   (set inline on <html> by App.tsx from organization settings). This replaces the
+   old inline override of 3 palette variables, which left every other shade of the
+   scale inconsistent. Attribute-scoped, so the default NexoraOS identity is never
+   touched, and status semantics (--ux-success/…) stay fixed. */
+html[data-tenant-brand="custom"] {
+  --color-emerald-50: color-mix(in oklab, var(--brand-primary) 8%, white);
+  --color-emerald-100: color-mix(in oklab, var(--brand-primary) 16%, white);
+  --color-emerald-200: color-mix(in oklab, var(--brand-primary) 30%, white);
+  --color-emerald-300: color-mix(in oklab, var(--brand-primary) 55%, white);
+  --color-emerald-400: color-mix(in oklab, var(--brand-primary) 82%, white);
+  --color-emerald-500: var(--brand-primary);
+  --color-emerald-600: color-mix(in oklab, var(--brand-primary) 88%, black);
+  --color-emerald-700: color-mix(in oklab, var(--brand-primary) 76%, black);
+  --color-emerald-800: color-mix(in oklab, var(--brand-primary) 62%, black);
+  --color-emerald-900: color-mix(in oklab, var(--brand-primary) 48%, black);
+  --color-emerald-950: color-mix(in oklab, var(--brand-primary) 34%, black);
+
+  --color-amber-50: color-mix(in oklab, var(--brand-accent) 8%, white);
+  --color-amber-100: color-mix(in oklab, var(--brand-accent) 16%, white);
+  --color-amber-200: color-mix(in oklab, var(--brand-accent) 30%, white);
+  --color-amber-300: color-mix(in oklab, var(--brand-accent) 55%, white);
+  --color-amber-400: color-mix(in oklab, var(--brand-accent) 82%, white);
+  --color-amber-500: var(--brand-accent);
+  --color-amber-600: color-mix(in oklab, var(--brand-accent) 88%, black);
+  --color-amber-700: color-mix(in oklab, var(--brand-accent) 76%, black);
+  --color-amber-800: color-mix(in oklab, var(--brand-accent) 62%, black);
+  --color-amber-900: color-mix(in oklab, var(--brand-accent) 48%, black);
+  --color-amber-950: color-mix(in oklab, var(--brand-accent) 34%, black);
+}
+
 @layer utilities {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);

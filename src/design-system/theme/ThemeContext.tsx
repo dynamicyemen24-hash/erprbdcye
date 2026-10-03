@@ -32,6 +32,12 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const THEME_STORAGE_KEY = 'nexora-theme-mode';
 const DIRECTION_STORAGE_KEY = 'nexora-direction';
 const LOCALE_STORAGE_KEY = 'nexora-locale';
+/* Legacy keys kept as a bridge: EnterpriseContext (rbd_theme) and the app shell
+   (nexora_lang) were the historical authorities. Reads fall back to them so an
+   existing user preference survives; writes mirror back so both vocabularies
+   stay in agreement until every consumer reads the unified keys. */
+const LEGACY_THEME_STORAGE_KEY = 'rbd_theme';
+const LEGACY_LOCALE_STORAGE_KEY = 'nexora_lang';
 
 function getSystemTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') return 'dark';
@@ -42,6 +48,8 @@ function getStoredTheme(): ThemeMode {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
+    const legacy = localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+    if (legacy === 'light' || legacy === 'dark') return legacy;
   } catch {}
   return 'dark';
 }
@@ -56,7 +64,9 @@ function getStoredDirection(): 'ltr' | 'rtl' {
 
 function getStoredLocale(): string {
   try {
-    return localStorage.getItem(LOCALE_STORAGE_KEY) || 'ar';
+    const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (stored) return stored;
+    return localStorage.getItem(LEGACY_LOCALE_STORAGE_KEY) || 'ar';
   } catch {}
   return 'ar';
 }
@@ -66,6 +76,11 @@ export interface ThemeProviderProps {
   defaultMode?: ThemeMode;
   defaultDirection?: 'ltr' | 'rtl';
   defaultLocale?: string;
+  /** Controlled theme mode. When provided (App shell passes EnterpriseContext's
+      authoritative theme) the provider follows it instead of internal state. */
+  mode?: ThemeMode;
+  /** Controlled locale — same bridge as `mode`. */
+  locale?: string;
 }
 
 export function ThemeProvider({
@@ -73,10 +88,15 @@ export function ThemeProvider({
   defaultMode,
   defaultDirection,
   defaultLocale,
+  mode: controlledMode,
+  locale: controlledLocale,
 }: ThemeProviderProps) {
-  const [mode, setModeState] = useState<ThemeMode>(() => defaultMode ?? getStoredTheme());
+  const [modeState, setModeState] = useState<ThemeMode>(() => defaultMode ?? getStoredTheme());
   const [direction, setDirectionState] = useState<'ltr' | 'rtl'>(() => defaultDirection ?? getStoredDirection());
-  const [locale, setLocaleState] = useState(() => defaultLocale ?? getStoredLocale());
+  const [localeState, setLocaleState] = useState(() => defaultLocale ?? getStoredLocale());
+
+  const mode = controlledMode ?? modeState;
+  const locale = controlledLocale ?? localeState;
 
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() =>
     mode === 'system' ? getSystemTheme() : mode
@@ -114,7 +134,10 @@ export function ThemeProvider({
 
   const setMode = useCallback((newMode: ThemeMode) => {
     setModeState(newMode);
-    try { localStorage.setItem(THEME_STORAGE_KEY, newMode); } catch {}
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, newMode);
+      localStorage.setItem(LEGACY_THEME_STORAGE_KEY, newMode);
+    } catch {}
   }, []);
 
   const toggle = useCallback(() => {
@@ -129,7 +152,10 @@ export function ThemeProvider({
   const setLocale = useCallback((newLocale: string) => {
     setLocaleState(newLocale);
     setDirection(newLocale === 'ar' ? 'rtl' : 'ltr');
-    try { localStorage.setItem(LOCALE_STORAGE_KEY, newLocale); } catch {}
+    try {
+      localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
+      localStorage.setItem(LEGACY_LOCALE_STORAGE_KEY, newLocale);
+    } catch {}
   }, [setDirection]);
 
   const value = useMemo<ThemeContextValue>(
