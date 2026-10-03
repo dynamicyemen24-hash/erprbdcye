@@ -20,6 +20,20 @@ export { isArrowKey, isActivationKey, isEscapeKey, isNavigationKey } from './uti
 export { ThemeProvider, useTheme, useDirection, type ThemeMode, type ThemeContextValue, type ThemeProviderProps } from './theme/ThemeContext';
 export { ensureMinContrast, contrastRatio, relativeLuminance } from './theme/brandContrast';
 
+// ─── Pro Components (page-grade primitives) ────────────────
+export {
+  MetricTile,
+  FilterBar,
+  DraftActionBar,
+  PrintDocument,
+  type MetricTileProps,
+  type MetricTone,
+  type MetricFreshness,
+  type FilterBarProps,
+  type DraftActionBarProps,
+  type PrintDocumentProps,
+} from './pro/index';
+
 // ─── Hooks (19 reusable hooks) ─────────────────────────────
 export { useControllableState, type UseControllableStateOptions } from './hooks/useControllableState';
 export { useDisclosure, type UseDisclosureOptions, type UseDisclosureReturn } from './hooks/useDisclosure';

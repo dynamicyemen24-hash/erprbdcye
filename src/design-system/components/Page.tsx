@@ -87,7 +87,13 @@ export function PageHeader({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 min-w-0">
           {icon && (
-            <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <div
+              className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{
+                backgroundColor: 'color-mix(in oklab, var(--brand-primary) 12%, transparent)',
+                color: 'var(--ux-primary)',
+              }}
+            >
               {icon}
             </div>
           )}
