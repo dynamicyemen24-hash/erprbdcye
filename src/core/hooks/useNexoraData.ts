@@ -394,22 +394,25 @@ export function useNexoraData(lang: 'ar' | 'en') {
 
   const stats = useMemo(() => {
     const totalBudget = (data.programs || []).reduce((sum, p) => sum + (Number(p.budget) || 0), 0);
-    const totalSpent = (data.projects || []).reduce((sum, p) => sum + (Number(p.budget || 0) * 0.65), 0);
+    // Real expenditure is not part of this dataset — report 0 instead of a
+    // fabricated share of the budget so no consumer can surface fake spend.
+    const totalSpent = 0;
+    const monthlyReachRaw = data.serverStats?.monthlyBeneficiaryReach;
 
     return {
       activeProgramsCount,
       activeProjectsCount,
       pendingApprovalsCount,
-      monthlyBeneficiaryReach: data.serverStats?.monthlyBeneficiaryReach || 8450,
-      budgetUtilization: totalBudget > 0 ? totalSpent / totalBudget : 0.68,
+      monthlyBeneficiaryReach: typeof monthlyReachRaw === 'number' && Number.isFinite(monthlyReachRaw) ? monthlyReachRaw : null,
+      budgetUtilization: null,
       financials: {
-        totalProgramBudget: totalBudget || 1740000,
-        totalExpenditure: totalSpent || 1183200,
-        availableLiquidity: (totalBudget - totalSpent) > 0 ? (totalBudget - totalSpent) : 556800,
+        totalProgramBudget: totalBudget,
+        totalExpenditure: totalSpent,
+        availableLiquidity: totalBudget,
         currency: 'USD'
       }
     };
-  }, [data.programs, data.projects, data.serverStats, activeProgramsCount, activeProjectsCount, pendingApprovalsCount]);
+  }, [data.programs, data.serverStats, activeProgramsCount, activeProjectsCount, pendingApprovalsCount]);
 
   return {
     ...data,

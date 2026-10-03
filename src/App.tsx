@@ -627,16 +627,16 @@ export default function App() {
 
   const dashboardStats = useMemo(() => ({
     counts: {
-      organizations: organizations.length || 2,
+      organizations: organizations.length,
       programs: programs.length,
       projects: projects.length,
       users: users.length,
       currencies: currencies.length,
-      beneficiaries: serverStats?.counts?.beneficiaries || totalBeneficiaries || 418,
-      sponsorships: serverStats?.counts?.sponsorships || totalTargetBeneficiaries || 595
+      beneficiaries: serverStats?.counts?.beneficiaries ?? totalBeneficiaries,
+      sponsorships: serverStats?.counts?.sponsorships ?? totalTargetBeneficiaries
     },
     financials: {
-      totalProgramBudget: serverStats?.financials?.totalProgramBudget || totalProgramBudget
+      totalProgramBudget: serverStats?.financials?.totalProgramBudget ?? totalProgramBudget
     },
     recentPrograms: programs.slice(0, 5),
     recentProjects: projects.slice(0, 5),

@@ -8,8 +8,7 @@ import { ExecutiveSummaryModal } from './dashboard/ExecutiveSummaryModal';
 import { useDashboardState } from './dashboard/useDashboardState';
 import { useDashboardData } from './dashboard/useDashboardData';
 import { DashboardViewProps } from './dashboard/types';
-import { ExecutiveQuantumCockpit } from './ExecutiveQuantumCockpit';
-import { QuantumWorkFirstCockpit } from './dashboard/QuantumWorkFirstCockpit';
+import { UnifiedHomeWorkspace } from './dashboard/UnifiedHomeWorkspace';
 import { Activity, RefreshCw, AlertTriangle, Zap, LayoutDashboard, SlidersHorizontal } from 'lucide-react';
 import { cn } from '../design-system/utils/cn';
 import { ErrorState } from '../design-system/components/ErrorState';
@@ -271,9 +270,10 @@ export default function DashboardView({
               <DashboardSkeleton lang={lang} />
             ) : state.activeSubTab === 'overview' ? (
               homeMode === 'work_first' ? (
-                <QuantumWorkFirstCockpit
+                <UnifiedHomeWorkspace
                   lang={lang}
                   stats={stats}
+                  loading={loading}
                   currentUser={currentUser}
                   programs={programs}
                   projects={projects}
@@ -327,7 +327,6 @@ export default function DashboardView({
                     </div>
                   </div>
 
-                  <ExecutiveQuantumCockpit lang={lang} onNavigateTab={onNavigate} />
                   <DashboardOverviewTab
                     lang={lang}
                     stats={stats}

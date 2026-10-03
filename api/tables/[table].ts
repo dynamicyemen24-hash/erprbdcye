@@ -61,6 +61,7 @@ const ALLOWED_TABLES = new Set([
   'settings', 'exchange_rates', 'backups', 'approvals',
   'official_communications', 'official_communication_recipients',
   'commitments', 'obligations', 'commitment_payments', 'obligation_payments', 'commitment_documents',
+  'transactions', 'transaction_lines',
 ]);
 
 /**

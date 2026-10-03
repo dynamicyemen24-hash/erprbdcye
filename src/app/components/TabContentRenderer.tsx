@@ -8,7 +8,7 @@ import { lazyWithRetry } from '../../lib/lazyWithRetry';
 
 // Lazy-loaded domain views with auto-retry and resilience for asynchronous code splitting & offline support
 const DashboardView = lazyWithRetry(() => import('../../components/DashboardView'), 'DashboardView');
-const QuantumWorkFirstCockpit = lazyWithRetry(() => import('../../components/dashboard/QuantumWorkFirstCockpit'), 'QuantumWorkFirstCockpit');
+const UnifiedHomeWorkspace = lazyWithRetry(() => import('../../components/dashboard/UnifiedHomeWorkspace'), 'UnifiedHomeWorkspace');
 const DomainCenterView = lazyWithRetry(() => import('../../components/DomainCenterView'), 'DomainCenterView');
 const GeospatialDashboardView = lazyWithRetry(() => import('../../components/GeospatialDashboardView'), 'GeospatialDashboardView');
 
@@ -258,9 +258,10 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
       case 'dashboard':
         if (effectiveHomeMode === 'work_first') {
           return (
-            <QuantumWorkFirstCockpit
+            <UnifiedHomeWorkspace
               lang={lang}
               stats={dashboardStats}
+              loading={loading}
               currentUser={currentUser}
               programs={programs}
               projects={projects}

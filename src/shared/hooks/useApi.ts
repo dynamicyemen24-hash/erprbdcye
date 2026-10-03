@@ -8,7 +8,7 @@ interface UseApiOptions {
 }
 
 /** Read the session JWT so every call is permission-scoped server-side. */
-function readAuthToken(): string | null {
+export function readAuthToken(): string | null {
   try {
     return (
       localStorage.getItem('rbd_token') ||
