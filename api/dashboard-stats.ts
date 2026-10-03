@@ -1,6 +1,6 @@
 import pg from 'pg';
 import jwt from 'jsonwebtoken';
-import { applySecurityHeaders, resolveCorsOrigin } from './_shared/security-headers';
+import { applySecurityHeaders, resolveCorsOrigin } from './_shared/security-headers.js';
 
 const { Pool } = pg;
 

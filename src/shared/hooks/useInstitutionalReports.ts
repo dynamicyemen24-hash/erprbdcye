@@ -42,7 +42,17 @@ export function unwrap<T>(json: unknown): T {
 }
 
 export async function fetchReport<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(path, { signal, headers: { Accept: 'application/json' } });
+  const token =
+    (typeof localStorage !== 'undefined' && localStorage.getItem('rbd_token')) ||
+    (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('rbd_token')) ||
+    '';
+  const res = await fetch(path, {
+    signal,
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return unwrap<T>(await res.json());
 }
