@@ -486,12 +486,12 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
               <table className="w-full text-right rtl:text-right ltr:text-left text-xs">
                 <thead className="bg-slate-50 dark:bg-zinc-950 text-slate-500 dark:text-zinc-400 font-black border-b border-slate-200 dark:border-zinc-800">
                   <tr>
-                    <th className="p-4">{isRtl ? 'المستخدم والهوية' : 'User Identity'}</th>
-                    <th className="p-4">{isRtl ? 'الإدارة والدور' : 'Department & Position'}</th>
-                    <th className="p-4">{isRtl ? 'المستوى الأمني' : 'Security Clearance'}</th>
-                    <th className="p-4">{isRtl ? 'سقف الاعتماد المالي' : 'Approval Limit'}</th>
-                    <th className="p-4">{isRtl ? 'الحالة' : 'Status'}</th>
-                    <th className="p-4 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
+                    <th scope="col" className="p-4">{isRtl ? 'المستخدم والهوية' : 'User Identity'}</th>
+                    <th scope="col" className="p-4">{isRtl ? 'الإدارة والدور' : 'Department & Position'}</th>
+                    <th scope="col" className="p-4">{isRtl ? 'المستوى الأمني' : 'Security Clearance'}</th>
+                    <th scope="col" className="p-4">{isRtl ? 'سقف الاعتماد المالي' : 'Approval Limit'}</th>
+                    <th scope="col" className="p-4">{isRtl ? 'الحالة' : 'Status'}</th>
+                    <th scope="col" className="p-4 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-800 dark:text-zinc-200 font-bold">
@@ -890,10 +890,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
 
               <div className="space-y-3 text-xs">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-allowed-prefixes" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'بادئات الحسابات المسموح التعامل معها (Allowed Prefixes):' : 'Allowed Account Prefixes:'}
                   </label>
-                  <input
+                  <input id="ux-allowed-prefixes"
                     type="text"
                     defaultValue="111, 112, 113, 51, 52"
                     placeholder="e.g. 111, 113, 5 or * for all"
@@ -905,10 +905,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-blocked-confidential-accounts" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'الحسابات السرية المحظورة (Blocked Confidential Accounts):' : 'Blocked Confidential Accounts:'}
                   </label>
-                  <input
+                  <input id="ux-blocked-confidential-accounts"
                     type="text"
                     defaultValue="212, 511, 31"
                     placeholder="e.g. 212, 511 (Payroll/Equity)"
@@ -951,10 +951,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
 
               <div className="space-y-3 text-xs">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-assigned-projects" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'المشاريع المخصصة للمستخدم (Assigned Projects):' : 'Assigned Project Codes:'}
                   </label>
-                  <select
+                  <select id="ux-assigned-projects"
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-blue-500"
                   >
                     <option value="ALL">{isRtl ? '🌐 كافة المشاريع الميدانية (صلاحية كاملة)' : '🌐 All Projects (Full Access)'}</option>
@@ -994,10 +994,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
 
               <div className="space-y-3 text-xs">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-authorized-field-wbs-activities" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'حزم العمل والأنشطة الميدانية المعتمدة:' : 'Authorized Field WBS Activities:'}
                   </label>
-                  <select
+                  <select id="ux-authorized-field-wbs-activities"
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-amber-500"
                   >
                     <option value="ALL">{isRtl ? '📍 كافة الأنشطة الميدانية التابعة للفرع' : '📍 All Field Activities in Branch'}</option>
@@ -1030,10 +1030,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
 
               <div className="space-y-3 text-xs">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-allowed-product-categories" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'فئات الأصناف المسموح صرفها وإدارتها:' : 'Allowed Product Categories:'}
                   </label>
-                  <select
+                  <select id="ux-allowed-product-categories"
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-purple-500"
                   >
                     <option value="ALL">{isRtl ? '📦 كافة الفئات والأصناف المخزنية' : '📦 All Inventory Categories'}</option>
@@ -1076,8 +1076,8 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'رمز الحساب للتجربة:' : 'Test Account Code:'}</label>
-                <input
+                <label htmlFor="ux-test-account-code" className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'رمز الحساب للتجربة:' : 'Test Account Code:'}</label>
+                <input id="ux-test-account-code"
                   type="text"
                   defaultValue="11101"
                   className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono font-bold text-zinc-200 outline-none"
@@ -1085,8 +1085,8 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'المبلغ للتجربة (YER):' : 'Test Amount (YER):'}</label>
-                <input
+                <label htmlFor="ux-yer" className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'المبلغ للتجربة (YER):' : 'Test Amount (YER):'}</label>
+                <input id="ux-yer"
                   type="number"
                   defaultValue={50000}
                   className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono font-bold text-zinc-200 outline-none"
@@ -1094,8 +1094,8 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'رمز المشروع:' : 'Test Project Code:'}</label>
-                <input
+                <label htmlFor="ux-test-project-code" className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'رمز المشروع:' : 'Test Project Code:'}</label>
+                <input id="ux-test-project-code"
                   type="text"
                   defaultValue="PRJ-WASH-2026"
                   className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono font-bold text-zinc-200 outline-none"
@@ -1103,8 +1103,8 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'فئة الصنف المخزني:' : 'Test Product Category:'}</label>
-                <input
+                <label htmlFor="ux-test-product-category" className="text-[10px] text-zinc-400 font-bold">{isRtl ? 'فئة الصنف المخزني:' : 'Test Product Category:'}</label>
+                <input id="ux-test-product-category"
                   type="text"
                   defaultValue="FOOD_BASKET"
                   className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono font-bold text-zinc-200 outline-none"
@@ -1153,10 +1153,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
             <form onSubmit={handleSaveUser} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-email-username" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'البريد الإلكتروني (اسم المستخدم)' : 'Email / Username'} *
                   </label>
-                  <input
+                  <input id="ux-email-username"
                     type="email"
                     required
                     value={email}
@@ -1167,10 +1167,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-password" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'كلمة المرور' : 'Password'} {selectedUser ? (isRtl ? '(اتركه فارغاً للإبقاء على الحالية)' : '(Leave blank to keep unchanged)') : '*'}
                   </label>
-                  <input
+                  <input id="ux-password"
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
@@ -1180,10 +1180,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-full-name-arabic" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'الاسم الكامل (عربي)' : 'Full Name (Arabic)'} *
                   </label>
-                  <input
+                  <input id="ux-full-name-arabic"
                     type="text"
                     required
                     value={nameAr}
@@ -1194,10 +1194,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-full-name-english" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'الاسم الكامل (إنجليزي)' : 'Full Name (English)'}
                   </label>
-                  <input
+                  <input id="ux-full-name-english"
                     type="text"
                     value={name}
                     onChange={e => setName(e.target.value)}
@@ -1207,10 +1207,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-phone-number" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'رقم الهاتف / الواتساب' : 'Phone Number'}
                   </label>
-                  <input
+                  <input id="ux-phone-number"
                     type="text"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
@@ -1220,10 +1220,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-department" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'الإدارة / القسم' : 'Department'}
                   </label>
-                  <select
+                  <select id="ux-department"
                     value={departmentCode}
                     onChange={e => setDepartmentCode(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold focus:outline-none cursor-pointer"
@@ -1239,10 +1239,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-security-clearance-level" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'مستوى التصريح الأمني' : 'Security Clearance Level'}
                   </label>
-                  <select
+                  <select id="ux-security-clearance-level"
                     value={securityLevel}
                     onChange={e => setSecurityLevel(Number(e.target.value))}
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold focus:outline-none cursor-pointer"
@@ -1256,10 +1256,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                  <label htmlFor="ux-account-status" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                     {isRtl ? 'حالة الحساب' : 'Account Status'}
                   </label>
-                  <select
+                  <select id="ux-account-status"
                     value={status}
                     onChange={e => setStatus(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold focus:outline-none cursor-pointer"
@@ -1287,10 +1287,10 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
 
                 {canApprove && (
                   <div>
-                    <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1 text-xs">
+                    <label htmlFor="ux-max-approval-limit-yer" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1 text-xs">
                       {isRtl ? 'سقف الاعتماد المالي الأقصى (ريال يمني)' : 'Max Approval Limit (YER)'}
                     </label>
-                    <input
+                    <input id="ux-max-approval-limit-yer"
                       type="number"
                       value={maxApprovalAmount}
                       onChange={e => setMaxApprovalAmount(e.target.value)}

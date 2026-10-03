@@ -495,10 +495,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
                   
                   {/* Category Selection */}
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                    <label htmlFor="ux-coordinating-category" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                       {lang === 'ar' ? 'تصنيف الفعالية التشاركية' : 'Coordinating Category'}
                     </label>
-                    <select
+                    <select id="ux-coordinating-category"
                       value={newEventCategory}
                       onChange={(e) => setNewEventCategory(e.target.value as any)}
                       className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-hidden text-slate-800 dark:text-zinc-300"
@@ -512,10 +512,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
                   {/* Date and Priority row */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                      <label htmlFor="ux-target-date" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                         {lang === 'ar' ? 'التاريخ المجدول' : 'Target Date'}
                       </label>
-                      <input
+                      <input id="ux-target-date"
                         type="date"
                         value={newEventDate}
                         onChange={(e) => setNewEventDate(e.target.value)}
@@ -524,10 +524,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                      <label htmlFor="ux-priority" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                         {lang === 'ar' ? 'مستوى الأولوية' : 'Priority'}
                       </label>
-                      <select
+                      <select id="ux-priority"
                         value={newEventPriority}
                         onChange={(e) => setNewEventPriority(e.target.value as any)}
                         className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-hidden text-slate-800 dark:text-zinc-300"
@@ -541,10 +541,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
 
                   {/* Title Fields (Arabic / English) */}
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                    <label htmlFor="ux-event-title-arabic" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                       {lang === 'ar' ? 'عنوان الفعالية (العربية)' : 'Event Title (Arabic)'}
                     </label>
-                    <input
+                    <input id="ux-event-title-arabic"
                       type="text"
                       placeholder="مثال: التدقيق الفني الميداني لبئر الروضة..."
                       value={newEventTitleAr}
@@ -555,10 +555,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                    <label htmlFor="ux-event-title-english" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                       {lang === 'ar' ? 'عنوان الفعالية (الإنجليزية)' : 'Event Title (English)'}
                     </label>
-                    <input
+                    <input id="ux-event-title-english"
                       type="text"
                       placeholder="e.g. Field Technical Audit for Al-Rawdah..."
                       value={newEventTitleEn}
@@ -571,10 +571,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
                   {/* Location Fields */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                      <label htmlFor="ux-location-arabic" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                         {lang === 'ar' ? 'الموقع الجغرافي (عربي)' : 'Location (Arabic)'}
                       </label>
-                      <input
+                      <input id="ux-location-arabic"
                         type="text"
                         placeholder="مارب، الروضة"
                         value={newEventLocationAr}
@@ -583,10 +583,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                      <label htmlFor="ux-location-english" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                         {lang === 'ar' ? 'الموقع الجغرافي (إنجليزي)' : 'Location (English)'}
                       </label>
-                      <input
+                      <input id="ux-location-english"
                         type="text"
                         placeholder="Marib, Rawdah"
                         value={newEventLocationEn}
@@ -599,10 +599,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
                   {/* Responsible Officer row */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                      <label htmlFor="ux-lead-officer-arabic" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                         {lang === 'ar' ? 'المشرف المسؤول (عربي)' : 'Lead Officer (Arabic)'}
                       </label>
-                      <input
+                      <input id="ux-lead-officer-arabic"
                         type="text"
                         placeholder="م. طارق الوصابي"
                         value={newEventRespAr}
@@ -611,10 +611,10 @@ function CollaborativeCalendarWidgetInner({ lang, projects }: CollaborativeCalen
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                      <label htmlFor="ux-lead-officer-english" className="block text-[10px] font-black text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
                         {lang === 'ar' ? 'المشرف المسؤول (إنجليزي)' : 'Lead Officer (English)'}
                       </label>
-                      <input
+                      <input id="ux-lead-officer-english"
                         type="text"
                         placeholder="Eng. Tareq Al-Wasabi"
                         value={newEventRespEn}

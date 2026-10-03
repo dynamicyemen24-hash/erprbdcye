@@ -817,12 +817,12 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              <th>رمز المعاملة</th>
-              <th>بيان المعاملة والمشروع</th>
-              <th>مقدم الطلب</th>
-              <th>حالة الاعتماد</th>
-              <th>تاريخ الإنشاء</th>
+              <th scope="col">#</th>
+              <th scope="col">رمز المعاملة</th>
+              <th scope="col">بيان المعاملة والمشروع</th>
+              <th scope="col">مقدم الطلب</th>
+              <th scope="col">حالة الاعتماد</th>
+              <th scope="col">تاريخ الإنشاء</th>
             </tr>
           </thead>
           <tbody>
@@ -2315,11 +2315,11 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
               {selectedRequest.status === 'pending' && (
                 <div className="border-t border-slate-100 pt-4 space-y-3 print:hidden">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider block mb-1 text-right"
+                    <label htmlFor="ux-audit-comments-authorization-remar" className="text-[10px] font-black uppercase text-zinc-400 tracking-wider block mb-1 text-right"
                            style={lang === 'en' ? { textAlign: 'left' } : {}}>
                       {lang === 'ar' ? 'إضافة مذكرة تدقيق / مبررات القرار' : 'Audit Comments & Authorization Remarks'}
                     </label>
-                    <textarea
+                    <textarea id="ux-audit-comments-authorization-remar"
                       rows={2}
                       placeholder={lang === 'ar' ? 'اكتب تعليقك، ملاحظاتك، أو سبب الرفض هنا للتوثيق...' : 'Enter authorization rationale or review details...'}
                       value={commentText}
@@ -2441,13 +2441,13 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
               {/* Dynamic Entity Selector */}
               <div>
-                <label className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
+                <label htmlFor="ux-project" className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
                   {newRequestType === 'project' 
                     ? (lang === 'ar' ? 'اختر المشروع الميداني المراد اعتماده' : 'Select Target Project')
                     : (lang === 'ar' ? 'اختر السند المحاسبي المعلق' : 'Select Pending Transaction')}
                 </label>
                 
-                <select
+                <select id="ux-project"
                   required
                   value={selectedEntityId}
                   onChange={(e) => setSelectedEntityId(e.target.value)}
@@ -2502,11 +2502,11 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
               {/* Notes */}
               <div>
-                <label className="text-[10px] font-black uppercase text-zinc-400 block mb-1 text-right"
+                <label htmlFor="ux-governance-strategic-justification" className="text-[10px] font-black uppercase text-zinc-400 block mb-1 text-right"
                        style={lang === 'en' ? { textAlign: 'left' } : {}}>
                   {lang === 'ar' ? 'مذكرة المبررات والتوصيات الميدانية' : 'Governance & Strategic Justification'}
                 </label>
-                <textarea
+                <textarea id="ux-governance-strategic-justification"
                   required
                   rows={3}
                   placeholder={lang === 'ar' ? 'يرجى تقديم شرح واف للأسباب والمبررات التنفيذية لترحيل هذه الموازنة أو تدشين المشروع...' : 'Provide complete description and logical backup for authorization...'}
@@ -2560,10 +2560,10 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
               
               {/* Select Delegate */}
               <div>
-                <label className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
+                <label htmlFor="ux-select-target-delegate" className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
                   {lang === 'ar' ? 'اختر الموظف المفوض' : 'Select Target Delegate'}
                 </label>
-                <select
+                <select id="ux-select-target-delegate"
                   required
                   value={delegateId}
                   onChange={(e) => setDelegateId(e.target.value)}
@@ -2609,10 +2609,10 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
               {/* Max Amount */}
               <div>
-                <label className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
+                <label htmlFor="ux-yer" className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
                   {lang === 'ar' ? 'سقف صلاحية المبلغ المالي المسموح (YER)' : 'Maximum Authorized Threshold (YER)'}
                 </label>
-                <input
+                <input id="ux-yer"
                   type="number"
                   required
                   min="1"
@@ -2625,10 +2625,10 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
               {/* Dates */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
+                  <label htmlFor="ux-start-date" className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
                     {lang === 'ar' ? 'تاريخ البدء' : 'Start Date'}
                   </label>
-                  <input
+                  <input id="ux-start-date"
                     type="date"
                     required
                     value={delegationStartDate}
@@ -2637,10 +2637,10 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
+                  <label htmlFor="ux-end-date" className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
                     {lang === 'ar' ? 'تاريخ الانتهاء' : 'End Date'}
                   </label>
-                  <input
+                  <input id="ux-end-date"
                     type="date"
                     required
                     value={delegationEndDate}
@@ -2652,10 +2652,10 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
               {/* Reason */}
               <div>
-                <label className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
+                <label htmlFor="ux-executive-justification-rationale" className="text-[10px] font-black uppercase text-zinc-400 block mb-1">
                   {lang === 'ar' ? 'مبررات تفويض الصلاحية التنظيمية' : 'Executive Justification & Rationale'}
                 </label>
-                <textarea
+                <textarea id="ux-executive-justification-rationale"
                   required
                   rows={3}
                   placeholder={lang === 'ar' ? 'يرجى تقديم مبررات واضحة لإصدار هذا التفويض المالي المؤقت للموظف...' : 'Provide complete operational rationale for issuing temporary authority keys...'}

@@ -34,7 +34,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   if (!isMobileMenuOpen) return null;
 
   return (
-    <div className="lg:hidden fixed inset-0 z-[100] flex">
+    <div className="lg:hidden fixed inset-0 z-drawer flex">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm transition-opacity"

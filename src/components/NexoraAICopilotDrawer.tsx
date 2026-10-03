@@ -268,10 +268,10 @@ export default function NexoraAICopilotDrawer({
                 <span>{isRtl ? 'أنماط وترقيات محرك يوماكس إي آي (UAMEX AI Engine Tiers)' : 'UAMEX AI Processing Tiers'}</span>
               </h4>
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1 font-bold">
+                <label htmlFor="ux-cognitive-processing-tier" className="block text-[11px] text-slate-400 mb-1 font-bold">
                   {isRtl ? 'مستوى الذكاء ونمط التحليل المؤسسي:' : 'Cognitive Processing Tier:'}
                 </label>
-                <select
+                <select id="ux-cognitive-processing-tier"
                   value={selectedModelId}
                   onChange={(e) => handleTierChange(e.target.value)}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-100 font-bold outline-none focus:border-amber-500"
@@ -288,10 +288,10 @@ export default function NexoraAICopilotDrawer({
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1 font-bold">
+                <label htmlFor="ux-enterprise-license-api-key-optiona" className="block text-[11px] text-slate-400 mb-1 font-bold">
                   {isRtl ? 'مفتاح الترخيص المؤسسي المشفر (اختياري للترقية):' : 'Enterprise License API Key (Optional):'}
                 </label>
-                <input
+                <input id="ux-enterprise-license-api-key-optiona"
                   type="password"
                   value={customKey}
                   onChange={(e) => handleKeySave(e.target.value)}

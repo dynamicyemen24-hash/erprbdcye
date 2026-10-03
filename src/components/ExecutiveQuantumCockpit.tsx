@@ -359,10 +359,10 @@ export const ExecutiveQuantumCockpit: React.FC<ExecutiveQuantumCockpitProps> = (
               
               {/* Input Amount */}
               <div className="w-full sm:w-auto flex-1 space-y-1">
-                <label className="block text-[11px] font-bold text-slate-400">
+                <label htmlFor="ux-amount-to-convert" className="block text-[11px] font-bold text-slate-400">
                   {isRtl ? 'المبلغ المراد تحويله:' : 'Amount to convert:'}
                 </label>
-                <input
+                <input id="ux-amount-to-convert"
                   type="number"
                   value={converterAmount}
                   onChange={(e) => setConverterAmount(parseFloat(e.target.value) || 0)}
@@ -372,10 +372,10 @@ export const ExecutiveQuantumCockpit: React.FC<ExecutiveQuantumCockpitProps> = (
 
               {/* Source Currency */}
               <div className="w-full sm:w-auto flex-1 space-y-1">
-                <label className="block text-[11px] font-bold text-slate-400">
+                <label htmlFor="ux-from-currency" className="block text-[11px] font-bold text-slate-400">
                   {isRtl ? 'من عملة:' : 'From currency:'}
                 </label>
-                <select
+                <select id="ux-from-currency"
                   value={sourceCurrency}
                   onChange={(e) => setSourceCurrency(e.target.value as any)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 font-bold text-white text-xs focus:outline-none focus:border-emerald-500 cursor-pointer"
@@ -393,10 +393,10 @@ export const ExecutiveQuantumCockpit: React.FC<ExecutiveQuantumCockpitProps> = (
 
               {/* Target Currency */}
               <div className="w-full sm:w-auto flex-1 space-y-1">
-                <label className="block text-[11px] font-bold text-slate-400">
+                <label htmlFor="ux-to-currency" className="block text-[11px] font-bold text-slate-400">
                   {isRtl ? 'إلى عملة:' : 'To currency:'}
                 </label>
-                <select
+                <select id="ux-to-currency"
                   value={targetCurrency}
                   onChange={(e) => setTargetCurrency(e.target.value as any)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 font-bold text-white text-xs focus:outline-none focus:border-emerald-500 cursor-pointer"

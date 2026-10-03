@@ -234,7 +234,7 @@ export const FastRecordRetrievalDrawer: React.FC<FastRecordRetrievalDrawerProps>
 
   return (
     <div 
-      className="fixed inset-0 z-[75] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-drawer bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div 

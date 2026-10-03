@@ -435,14 +435,14 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
               <table className="w-full text-right rtl:text-right text-xs">
                 <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-semibold">
                   <tr>
-                    <th className="p-3">رقم المطالبة</th>
-                    <th className="p-3">التاجر / الشريك</th>
-                    <th className="p-3">عدد القسائم</th>
-                    <th className="p-3">المبلغ المطالب به</th>
-                    <th className="p-3">رقم الفاتورة</th>
-                    <th className="p-3">حالة المطابقة</th>
-                    <th className="p-3">الحالة والصرف</th>
-                    <th className="p-3 text-center">الإجراءات</th>
+                    <th scope="col" className="p-3">رقم المطالبة</th>
+                    <th scope="col" className="p-3">التاجر / الشريك</th>
+                    <th scope="col" className="p-3">عدد القسائم</th>
+                    <th scope="col" className="p-3">المبلغ المطالب به</th>
+                    <th scope="col" className="p-3">رقم الفاتورة</th>
+                    <th scope="col" className="p-3">حالة المطابقة</th>
+                    <th scope="col" className="p-3">الحالة والصرف</th>
+                    <th scope="col" className="p-3 text-center">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
@@ -511,12 +511,12 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
             <table className="w-full text-right text-xs">
               <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
                 <tr>
-                  <th className="p-3">رقم القسيمة</th>
-                  <th className="p-3">المستفيد المسجل</th>
-                  <th className="p-3">الصنف / الخدمة</th>
-                  <th className="p-3">التاجر المعتمد</th>
-                  <th className="p-3">القيمة الإجمالية</th>
-                  <th className="p-3">الحالة</th>
+                  <th scope="col" className="p-3">رقم القسيمة</th>
+                  <th scope="col" className="p-3">المستفيد المسجل</th>
+                  <th scope="col" className="p-3">الصنف / الخدمة</th>
+                  <th scope="col" className="p-3">التاجر المعتمد</th>
+                  <th scope="col" className="p-3">القيمة الإجمالية</th>
+                  <th scope="col" className="p-3">الحالة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
@@ -553,11 +553,11 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
             <table className="w-full text-right text-xs">
               <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
                 <tr>
-                  <th className="p-3">الطرف / الكيان</th>
-                  <th className="p-3">نوع الطرف (Party Type)</th>
-                  <th className="p-3">الهاتف / التقديم</th>
-                  <th className="p-3">المدينة / النطاق</th>
-                  <th className="p-3">الحالة</th>
+                  <th scope="col" className="p-3">الطرف / الكيان</th>
+                  <th scope="col" className="p-3">نوع الطرف (Party Type)</th>
+                  <th scope="col" className="p-3">الهاتف / التقديم</th>
+                  <th scope="col" className="p-3">المدينة / النطاق</th>
+                  <th scope="col" className="p-3">الحالة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
@@ -596,8 +596,8 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
 
             <form onSubmit={handleCreateClaim} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">التاجر / الطرف الثالث المعتمد</label>
-                <select
+                <label htmlFor="ux-field-1" className="block text-xs font-semibold text-slate-300 mb-1">التاجر / الطرف الثالث المعتمد</label>
+                <select id="ux-field-1"
                   value={selectedMerchantId}
                   onChange={(e) => setSelectedMerchantId(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-700 text-white rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500"
@@ -613,8 +613,8 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">عدد القسائم المقبولة</label>
-                  <input
+                  <label htmlFor="ux-field-2" className="block text-xs font-semibold text-slate-300 mb-1">عدد القسائم المقبولة</label>
+                  <input id="ux-field-2"
                     type="number"
                     value={claimVoucherCount}
                     onChange={(e) => setClaimVoucherCount(e.target.value)}
@@ -624,8 +624,8 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">المبلغ الإجمالي المطالب به</label>
-                  <input
+                  <label htmlFor="ux-field-3" className="block text-xs font-semibold text-slate-300 mb-1">المبلغ الإجمالي المطالب به</label>
+                  <input id="ux-field-3"
                     type="number"
                     value={claimAmount}
                     onChange={(e) => setClaimAmount(e.target.value)}
@@ -636,8 +636,8 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">رقم الفاتورة المرفقة</label>
-                <input
+                <label htmlFor="ux-field-4" className="block text-xs font-semibold text-slate-300 mb-1">رقم الفاتورة المرفقة</label>
+                <input id="ux-field-4"
                   type="text"
                   value={claimInvoiceRef}
                   onChange={(e) => setClaimInvoiceRef(e.target.value)}
@@ -684,8 +684,8 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
 
             <form onSubmit={handleVerifyVoucherCode} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">أدخل رمز القسيمة أو QR Hash</label>
-                <input
+                <label htmlFor="ux-qr-hash" className="block text-xs font-semibold text-slate-300 mb-1">أدخل رمز القسيمة أو QR Hash</label>
+                <input id="ux-qr-hash"
                   type="text"
                   value={scannedVoucherCode}
                   onChange={(e) => setScannedVoucherCode(e.target.value)}

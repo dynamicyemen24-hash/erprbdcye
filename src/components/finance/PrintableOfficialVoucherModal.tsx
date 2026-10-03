@@ -75,7 +75,7 @@ export const PrintableOfficialVoucherModal: React.FC<PrintableOfficialVoucherMod
   });
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-dialog flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
       {/* Container with Print Handling Styles */}
       <div className="relative w-full max-w-4xl bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-4">
         
@@ -218,11 +218,11 @@ export const PrintableOfficialVoucherModal: React.FC<PrintableOfficialVoucherMod
             <table className="w-full text-xs text-right border-collapse">
               <thead>
                 <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold">
-                  <th className="p-2.5 w-24">رقم الحساب</th>
-                  <th className="p-2.5">اسم الحساب بدفتر الأستاذ العام</th>
-                  <th className="p-2.5 w-28 text-left">مدين (ر.ي)</th>
-                  <th className="p-2.5 w-28 text-left">دائن (ر.ي)</th>
-                  <th className="p-2.5">البيان والشرح الإجرائي</th>
+                  <th scope="col" className="p-2.5 w-24">رقم الحساب</th>
+                  <th scope="col" className="p-2.5">اسم الحساب بدفتر الأستاذ العام</th>
+                  <th scope="col" className="p-2.5 w-28 text-left">مدين (ر.ي)</th>
+                  <th scope="col" className="p-2.5 w-28 text-left">دائن (ر.ي)</th>
+                  <th scope="col" className="p-2.5">البيان والشرح الإجرائي</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800 font-medium">

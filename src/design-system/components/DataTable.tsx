@@ -389,7 +389,7 @@ export function DataTable<T = any>({
               )} role="row">
                 {/* Selection header */}
                 {selectionMode === 'multi' && (
-                  <th className={cn(headerClass, 'w-10')} role="columnheader">
+                  <th scope="col" className={cn(headerClass, 'w-10')} role="columnheader">
                     <input
                       type="checkbox"
                       checked={allSelected}
@@ -400,7 +400,7 @@ export function DataTable<T = any>({
                     />
                   </th>
                 )}
-                {selectionMode === 'single' && <th className={cn(headerClass, 'w-10')} role="columnheader" />}
+                {selectionMode === 'single' && <th scope="col" className={cn(headerClass, 'w-10')} role="columnheader" />}
 
                 {/* Column headers */}
                 {columns.map((col) => (

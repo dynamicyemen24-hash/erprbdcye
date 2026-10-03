@@ -222,15 +222,15 @@ export default function CostCentersManagementView({
         <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 20px;">
           <thead>
             <tr style="background: #0f172a; color: #fbbf24;">
-              <th style="border: 1px solid #334155; padding: 6px; width: 12%;">كود المركز</th>
-              <th style="border: 1px solid #334155; padding: 6px;">مسمى مركز التكلفة</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 14%;">المدير المسؤول</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 13%; text-align: left;">الموازنة المعتمدة</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 13%; text-align: left;">الفعلي المباشر</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 12%; text-align: left;">التكاليف غير المباشرة</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 13%; text-align: left;">إجمالي التكلفة</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 9%; text-align: center;">الاستنفاد</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 8%; text-align: center;">الحالة</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 12%;">كود المركز</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px;">مسمى مركز التكلفة</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 14%;">المدير المسؤول</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 13%; text-align: left;">الموازنة المعتمدة</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 13%; text-align: left;">الفعلي المباشر</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 12%; text-align: left;">التكاليف غير المباشرة</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 13%; text-align: left;">إجمالي التكلفة</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 9%; text-align: center;">الاستنفاد</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 8%; text-align: center;">الحالة</th>
             </tr>
           </thead>
           <tbody>
@@ -700,16 +700,16 @@ export default function CostCentersManagementView({
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr className="bg-slate-900 text-amber-400 font-black text-[10px] uppercase border-b border-slate-800">
-                  <th className="p-3 w-32">{isRtl ? 'كود المركز' : 'Code'}</th>
-                  <th className="p-3">{isRtl ? 'مسمى مركز التكلفة' : 'Cost Center Title'}</th>
-                  <th className="p-3 w-36">{isRtl ? 'المحور / الإدارة' : 'Category'}</th>
-                  <th className="p-3 w-36">{isRtl ? 'المدير المسؤول' : 'Lead'}</th>
-                  <th className="p-3 text-left w-36">{isRtl ? 'الموازنة المعتمدة' : 'Approved Budget'}</th>
-                  <th className="p-3 text-left w-36">{isRtl ? 'الفعلي المباشر' : 'Direct Actual'}</th>
-                  <th className="p-3 text-left w-36">{isRtl ? 'تكاليف غير مباشرة' : 'ABC Overheads'}</th>
-                  <th className="p-3 text-left w-36">{isRtl ? 'إجمالي التكلفة' : 'Total Incurred'}</th>
-                  <th className="p-3 text-center w-24">{isRtl ? 'الاستنفاد' : 'Burn %'}</th>
-                  <th className="p-3 text-center w-28">{isRtl ? 'الحالة' : 'Status'}</th>
+                  <th scope="col" className="p-3 w-32">{isRtl ? 'كود المركز' : 'Code'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'مسمى مركز التكلفة' : 'Cost Center Title'}</th>
+                  <th scope="col" className="p-3 w-36">{isRtl ? 'المحور / الإدارة' : 'Category'}</th>
+                  <th scope="col" className="p-3 w-36">{isRtl ? 'المدير المسؤول' : 'Lead'}</th>
+                  <th scope="col" className="p-3 text-left w-36">{isRtl ? 'الموازنة المعتمدة' : 'Approved Budget'}</th>
+                  <th scope="col" className="p-3 text-left w-36">{isRtl ? 'الفعلي المباشر' : 'Direct Actual'}</th>
+                  <th scope="col" className="p-3 text-left w-36">{isRtl ? 'تكاليف غير مباشرة' : 'ABC Overheads'}</th>
+                  <th scope="col" className="p-3 text-left w-36">{isRtl ? 'إجمالي التكلفة' : 'Total Incurred'}</th>
+                  <th scope="col" className="p-3 text-center w-24">{isRtl ? 'الاستنفاد' : 'Burn %'}</th>
+                  <th scope="col" className="p-3 text-center w-28">{isRtl ? 'الحالة' : 'Status'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300">
@@ -1004,8 +1004,8 @@ export default function CostCentersManagementView({
             <form onSubmit={handleSaveNewCC} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'كود المركز (مثل CC-PRG-NEW)' : 'Code'}</label>
-                  <input
+                  <label htmlFor="ux-cc-prg-new" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'كود المركز (مثل CC-PRG-NEW)' : 'Code'}</label>
+                  <input id="ux-cc-prg-new"
                     type="text"
                     required
                     value={newCCForm.code}
@@ -1015,8 +1015,8 @@ export default function CostCentersManagementView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'المحور التصنيفي' : 'Category'}</label>
-                  <select
+                  <label htmlFor="ux-category" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'المحور التصنيفي' : 'Category'}</label>
+                  <select id="ux-category"
                     value={newCCForm.category}
                     onChange={e => setNewCCForm(p => ({ ...p, category: e.target.value as any }))}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold"
@@ -1030,8 +1030,8 @@ export default function CostCentersManagementView({
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'مسمى مركز التكلفة بالعربية' : 'Title (Arabic)'}</label>
-                <input
+                <label htmlFor="ux-title-arabic" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'مسمى مركز التكلفة بالعربية' : 'Title (Arabic)'}</label>
+                <input id="ux-title-arabic"
                   type="text"
                   required
                   value={newCCForm.name_ar}
@@ -1042,8 +1042,8 @@ export default function CostCentersManagementView({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'المدير المسؤول' : 'Lead'}</label>
-                  <input
+                  <label htmlFor="ux-lead" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'المدير المسؤول' : 'Lead'}</label>
+                  <input id="ux-lead"
                     type="text"
                     required
                     value={newCCForm.manager_name}
@@ -1053,8 +1053,8 @@ export default function CostCentersManagementView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'الإدارة التابع لها' : 'Department'}</label>
-                  <input
+                  <label htmlFor="ux-department" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'الإدارة التابع لها' : 'Department'}</label>
+                  <input id="ux-department"
                     type="text"
                     required
                     value={newCCForm.linked_department_code}
@@ -1065,8 +1065,8 @@ export default function CostCentersManagementView({
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'الموازنة التقديرية المعتمدة (ر.ي)' : 'Budget (YER)'}</label>
-                <input
+                <label htmlFor="ux-budget-yer" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'الموازنة التقديرية المعتمدة (ر.ي)' : 'Budget (YER)'}</label>
+                <input id="ux-budget-yer"
                   type="number"
                   required
                   value={newCCForm.approved_budget_yer}

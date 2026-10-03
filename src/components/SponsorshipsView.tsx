@@ -735,8 +735,8 @@ export default function SponsorshipsView({
         {showFilters && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-slate-100 animate-slide-down">
             <div className="space-y-1">
-              <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'حالة السداد للمحاسبة' : 'Payment Status'}</label>
-              <select
+              <label htmlFor="ux-payment-status" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'حالة السداد للمحاسبة' : 'Payment Status'}</label>
+              <select id="ux-payment-status"
                 value={filterPaymentStatus}
                 onChange={(e) => setFilterPaymentStatus(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
@@ -749,8 +749,8 @@ export default function SponsorshipsView({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'حالة التسليم الميداني' : 'Delivery Status'}</label>
-              <select
+              <label htmlFor="ux-delivery-status" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'حالة التسليم الميداني' : 'Delivery Status'}</label>
+              <select id="ux-delivery-status"
                 value={filterDeliveryStatus}
                 onChange={(e) => setFilterDeliveryStatus(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
@@ -762,8 +762,8 @@ export default function SponsorshipsView({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'عملة الكفالة' : 'Currency'}</label>
-              <select
+              <label htmlFor="ux-currency" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'عملة الكفالة' : 'Currency'}</label>
+              <select id="ux-currency"
                 value={filterCurrency}
                 onChange={(e) => setFilterCurrency(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
@@ -795,14 +795,14 @@ export default function SponsorshipsView({
             <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
               <thead className="bg-slate-50 dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 text-[10px] font-extrabold uppercase text-slate-500 dark:text-zinc-400 tracking-wider">
                 <tr>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'الكفيل والوسيط' : 'Sponsor'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'اليتيم / المستفيد' : 'Beneficiary'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'مبلغ الكفالة الشهري' : 'Commitment'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'المبلغ الكلي / المدفوع' : 'Total vs Paid'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'حالة السداد' : 'Payment'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'حالة التسليم الميداني' : 'Delivery'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'الوكيل المستلم' : 'Receiver'}</th>
-                  <th className="px-6 py-3 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الكفيل والوسيط' : 'Sponsor'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'اليتيم / المستفيد' : 'Beneficiary'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'مبلغ الكفالة الشهري' : 'Commitment'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'المبلغ الكلي / المدفوع' : 'Total vs Paid'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'حالة السداد' : 'Payment'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'حالة التسليم الميداني' : 'Delivery'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الوكيل المستلم' : 'Receiver'}</th>
+                  <th scope="col" className="px-6 py-3 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -1065,8 +1065,8 @@ export default function SponsorshipsView({
                 {/* Section: Names */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'اسم الكفيل / المتبرع (بالعربية)' : 'Sponsor Name (Arabic)'}</label>
-                    <input 
+                    <label htmlFor="ux-sponsor-name-arabic" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'اسم الكفيل / المتبرع (بالعربية)' : 'Sponsor Name (Arabic)'}</label>
+                    <input id="ux-sponsor-name-arabic" 
                       type="text" 
                       required 
                       value={sponsorNameAr}
@@ -1076,8 +1076,8 @@ export default function SponsorshipsView({
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'اسم الكفيل / المتبرع (بالإنجليزي)' : 'Sponsor Name (English)'}</label>
-                    <input 
+                    <label htmlFor="ux-sponsor-name-english" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'اسم الكفيل / المتبرع (بالإنجليزي)' : 'Sponsor Name (English)'}</label>
+                    <input id="ux-sponsor-name-english" 
                       type="text" 
                       value={sponsorName}
                       onChange={(e) => setSponsorName(e.target.value)}
@@ -1090,8 +1090,8 @@ export default function SponsorshipsView({
                 {/* Section: Beneficiary & Program resolution */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'اليتيم أو الأسرة المستفيدة' : 'Orphan Beneficiary'}</label>
-                    <select
+                    <label htmlFor="ux-orphan-beneficiary" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'اليتيم أو الأسرة المستفيدة' : 'Orphan Beneficiary'}</label>
+                    <select id="ux-orphan-beneficiary"
                       required
                       value={beneficiaryId}
                       onChange={(e) => setBeneficiaryId(e.target.value)}
@@ -1107,8 +1107,8 @@ export default function SponsorshipsView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'البرنامج المالي والغذائي' : 'Corporate Program'}</label>
-                    <select
+                    <label htmlFor="ux-corporate-program" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'البرنامج المالي والغذائي' : 'Corporate Program'}</label>
+                    <select id="ux-corporate-program"
                       value={programId}
                       onChange={(e) => setProgramId(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none"
@@ -1125,8 +1125,8 @@ export default function SponsorshipsView({
                 {/* Section: Financial allocations */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-b border-slate-100 py-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'العملة المالية' : 'Currency'}</label>
-                    <select
+                    <label htmlFor="ux-currency-8" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'العملة المالية' : 'Currency'}</label>
+                    <select id="ux-currency-8"
                       value={currencyCode}
                       onChange={(e) => setCurrencyCode(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-bold focus:outline-none"
@@ -1138,8 +1138,8 @@ export default function SponsorshipsView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'الكفالة الشهرية' : 'Monthly Pledge'}</label>
-                    <input
+                    <label htmlFor="ux-monthly-pledge" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'الكفالة الشهرية' : 'Monthly Pledge'}</label>
+                    <input id="ux-monthly-pledge"
                       type="number"
                       step="0.01"
                       required
@@ -1150,8 +1150,8 @@ export default function SponsorshipsView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'التزام الفترة الكلي' : 'Total Amount'}</label>
-                    <input
+                    <label htmlFor="ux-total-amount" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'التزام الفترة الكلي' : 'Total Amount'}</label>
+                    <input id="ux-total-amount"
                       type="number"
                       step="0.01"
                       required
@@ -1162,8 +1162,8 @@ export default function SponsorshipsView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'المبلغ المحصل فعلياً' : 'Amount Paid'}</label>
-                    <input
+                    <label htmlFor="ux-amount-paid" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'المبلغ المحصل فعلياً' : 'Amount Paid'}</label>
+                    <input id="ux-amount-paid"
                       type="number"
                       step="0.01"
                       required
@@ -1177,8 +1177,8 @@ export default function SponsorshipsView({
                 {/* Section: Receivers and Agents */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'اسم الوكيل المستلم (الأم/الولي)' : 'Receiver Name'}</label>
-                    <input 
+                    <label htmlFor="ux-receiver-name" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'اسم الوكيل المستلم (الأم/الولي)' : 'Receiver Name'}</label>
+                    <input id="ux-receiver-name" 
                       type="text" 
                       required 
                       value={receiverName}
@@ -1189,8 +1189,8 @@ export default function SponsorshipsView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'هاتف المستلم للمطابقة' : 'Receiver Phone'}</label>
-                    <input 
+                    <label htmlFor="ux-receiver-phone" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'هاتف المستلم للمطابقة' : 'Receiver Phone'}</label>
+                    <input id="ux-receiver-phone" 
                       type="text" 
                       required 
                       value={receiverPhone}
@@ -1201,8 +1201,8 @@ export default function SponsorshipsView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المندوب الميداني المسؤول' : 'Field Agent'}</label>
-                    <input 
+                    <label htmlFor="ux-field-agent" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المندوب الميداني المسؤول' : 'Field Agent'}</label>
+                    <input id="ux-field-agent" 
                       type="text" 
                       required 
                       value={fieldAgentName}
@@ -1215,8 +1215,8 @@ export default function SponsorshipsView({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'تاريخ بدء سريان الكفالة' : 'Start Date'}</label>
-                    <input 
+                    <label htmlFor="ux-start-date" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'تاريخ بدء سريان الكفالة' : 'Start Date'}</label>
+                    <input id="ux-start-date" 
                       type="date" 
                       required 
                       value={startDate}
@@ -1226,8 +1226,8 @@ export default function SponsorshipsView({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'حالة التسليم الميداني الحالي' : 'Delivery Status'}</label>
-                    <select
+                    <label htmlFor="ux-delivery-status-16" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'حالة التسليم الميداني الحالي' : 'Delivery Status'}</label>
+                    <select id="ux-delivery-status-16"
                       value={deliveryStatus}
                       onChange={(e) => setDeliveryStatus(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold focus:outline-none"
@@ -1239,8 +1239,8 @@ export default function SponsorshipsView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'تعليمات الصرف والملاحظات' : 'Special Instructions'}</label>
-                  <textarea 
+                  <label htmlFor="ux-special-instructions" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'تعليمات الصرف والملاحظات' : 'Special Instructions'}</label>
+                  <textarea id="ux-special-instructions" 
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="شروط خاصة كصرف الكفالة عيناً مواد غذائية أو تسليمها يداً بيد للجدة..."

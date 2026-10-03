@@ -651,8 +651,8 @@ export default function FinancialSettingsTab({
 
               {/* Code */}
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رمز العملة الدولي (ISO-4217)' : 'Currency Code (ISO-4217)'}</label>
-                <input 
+                <label htmlFor="ux-iso-4217" className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رمز العملة الدولي (ISO-4217)' : 'Currency Code (ISO-4217)'}</label>
+                <input id="ux-iso-4217" 
                   type="text" 
                   required 
                   maxLength={3}
@@ -666,8 +666,8 @@ export default function FinancialSettingsTab({
               {/* Names */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالعربية' : 'Arabic Name'}</label>
-                  <input 
+                  <label htmlFor="ux-arabic-name" className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالعربية' : 'Arabic Name'}</label>
+                  <input id="ux-arabic-name" 
                     type="text" 
                     required 
                     value={nameAr}
@@ -677,8 +677,8 @@ export default function FinancialSettingsTab({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية' : 'English Name'}</label>
-                  <input 
+                  <label htmlFor="ux-english-name" className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية' : 'English Name'}</label>
+                  <input id="ux-english-name" 
                     type="text" 
                     required 
                     value={nameEn}
@@ -692,8 +692,8 @@ export default function FinancialSettingsTab({
               {/* Symbol & Decimals */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'العلامة / الرمز' : 'Symbol'}</label>
-                  <input 
+                  <label htmlFor="ux-symbol" className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'العلامة / الرمز' : 'Symbol'}</label>
+                  <input id="ux-symbol" 
                     type="text" 
                     required 
                     value={symbol}
@@ -703,8 +703,8 @@ export default function FinancialSettingsTab({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'عدد الخانات العشرية' : 'Decimal Places'}</label>
-                  <input 
+                  <label htmlFor="ux-decimal-places" className="block text-[10px] font-black text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'عدد الخانات العشرية' : 'Decimal Places'}</label>
+                  <input id="ux-decimal-places" 
                     type="number" 
                     required 
                     min={0}

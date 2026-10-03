@@ -564,9 +564,9 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                                   <table className="w-full text-[10px]">
                                     <thead>
                                       <tr className="border-b border-slate-200 text-zinc-400 font-bold uppercase">
-                                        <th className="text-left py-2 pr-2">{lang === 'ar' ? 'المشروع' : 'Project'}</th>
-                                        <th className="text-center py-2 px-2">{lang === 'ar' ? 'الدرجة' : 'Score'}</th>
-                                        <th className="text-center py-2 px-2">{lang === 'ar' ? 'التصنيف' : 'Rating'}</th>
+                                        <th scope="col" className="text-left py-2 pr-2">{lang === 'ar' ? 'المشروع' : 'Project'}</th>
+                                        <th scope="col" className="text-center py-2 px-2">{lang === 'ar' ? 'الدرجة' : 'Score'}</th>
+                                        <th scope="col" className="text-center py-2 px-2">{lang === 'ar' ? 'التصنيف' : 'Rating'}</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -658,8 +658,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
               {/* Grid 1: Codes and Names */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'كود البرنامج (الرمز)' : 'Program Code'}</label>
-                  <input 
+                  <label htmlFor="ux-program-code" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'كود البرنامج (الرمز)' : 'Program Code'}</label>
+                  <input id="ux-program-code" 
                     type="text" 
                     required 
                     value={code}
@@ -669,8 +669,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'اسم البرنامج (بالعربية)' : 'Arabic Name'}</label>
-                  <input 
+                  <label htmlFor="ux-arabic-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'اسم البرنامج (بالعربية)' : 'Arabic Name'}</label>
+                  <input id="ux-arabic-name" 
                     type="text" 
                     required 
                     value={nameAr}
@@ -680,8 +680,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية (اختياري)' : 'English Name'}</label>
-                  <input 
+                  <label htmlFor="ux-english-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية (اختياري)' : 'English Name'}</label>
+                  <input id="ux-english-name" 
                     type="text" 
                     value={nameEn}
                     onChange={(e) => setNameEn(e.target.value)}
@@ -694,8 +694,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
               {/* Grid 2: Categories, Statuses */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'تصنيف ومجال العمل' : 'Program Category'}</label>
-                  <select 
+                  <label htmlFor="ux-program-category" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'تصنيف ومجال العمل' : 'Program Category'}</label>
+                  <select id="ux-program-category" 
                     value={categoryCode}
                     onChange={(e) => setCategoryCode(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none font-semibold text-slate-700"
@@ -709,8 +709,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'حالة البرنامج الحالي' : 'Operational Status'}</label>
-                  <select 
+                  <label htmlFor="ux-operational-status" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'حالة البرنامج الحالي' : 'Operational Status'}</label>
+                  <select id="ux-operational-status" 
                     value={statusCode}
                     onChange={(e) => setStatusCode(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none font-semibold text-slate-700"
@@ -722,8 +722,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'مستوى الأولوية' : 'Priority Level'}</label>
-                  <select 
+                  <label htmlFor="ux-priority-level" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'مستوى الأولوية' : 'Priority Level'}</label>
+                  <select id="ux-priority-level" 
                     value={priorityCode}
                     onChange={(e) => setPriorityCode(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none text-slate-700"
@@ -735,8 +735,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'مستوى المخاطر' : 'Risk Level'}</label>
-                  <select 
+                  <label htmlFor="ux-risk-level" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'مستوى المخاطر' : 'Risk Level'}</label>
+                  <select id="ux-risk-level" 
                     value={riskLevel}
                     onChange={(e) => setRiskLevel(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none text-slate-700"
@@ -751,8 +751,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
               {/* Grid 3: Budget and dates */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الموازنة المعتمدة (بالريال)' : 'Approved Budget'}</label>
-                  <input 
+                  <label htmlFor="ux-approved-budget" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الموازنة المعتمدة (بالريال)' : 'Approved Budget'}</label>
+                  <input id="ux-approved-budget" 
                     type="number" 
                     required 
                     value={budget}
@@ -761,8 +761,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المنجز الفعلي (%)' : 'Field Progress %'}</label>
-                  <input 
+                  <label htmlFor="ux-field-progress" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المنجز الفعلي (%)' : 'Field Progress %'}</label>
+                  <input id="ux-field-progress" 
                     type="number" 
                     min="0" 
                     max="100"
@@ -773,8 +773,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'تاريخ البدء المخطط' : 'Start Date'}</label>
-                  <input 
+                  <label htmlFor="ux-start-date" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'تاريخ البدء المخطط' : 'Start Date'}</label>
+                  <input id="ux-start-date" 
                     type="date" 
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
@@ -782,8 +782,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'تاريخ الانتهاء المتوقع' : 'End Date'}</label>
-                  <input 
+                  <label htmlFor="ux-end-date" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'تاريخ الانتهاء المتوقع' : 'End Date'}</label>
+                  <input id="ux-end-date" 
                     type="date" 
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -795,8 +795,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
               {/* Grid 4: Beneficiaries */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المستهدفين من المستفيدين (عدد)' : 'Target Beneficiaries Count'}</label>
-                  <input 
+                  <label htmlFor="ux-target-beneficiaries-count" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المستهدفين من المستفيدين (عدد)' : 'Target Beneficiaries Count'}</label>
+                  <input id="ux-target-beneficiaries-count" 
                     type="number" 
                     value={targetBeneficiaries}
                     onChange={(e) => setTargetBeneficiaries(e.target.value)}
@@ -804,8 +804,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المستفيدين الذين تم الوصول إليهم فعلياً' : 'Actual Beneficiaries Served'}</label>
-                  <input 
+                  <label htmlFor="ux-actual-beneficiaries-served" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المستفيدين الذين تم الوصول إليهم فعلياً' : 'Actual Beneficiaries Served'}</label>
+                  <input id="ux-actual-beneficiaries-served" 
                     type="number" 
                     value={actualBeneficiaries}
                     onChange={(e) => setActualBeneficiaries(e.target.value)}
@@ -816,8 +816,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'الوصف والنطاق الجغرافي للبرنامج' : 'Program Description & Scope'}</label>
-                <textarea 
+                <label htmlFor="ux-program-description-scope" className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'الوصف والنطاق الجغرافي للبرنامج' : 'Program Description & Scope'}</label>
+                <textarea id="ux-program-description-scope" 
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -828,8 +828,8 @@ export default function ProgramsView({ programs, loading, onRefresh, lang, initi
 
               {/* Objectives (goals) */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'أهداف التنمية والتحقيق المستدامة للبرنامج' : 'Program Key Objectives'}</label>
-                <textarea 
+                <label htmlFor="ux-program-key-objectives" className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'أهداف التنمية والتحقيق المستدامة للبرنامج' : 'Program Key Objectives'}</label>
+                <textarea id="ux-program-key-objectives" 
                   rows={2}
                   value={objectives}
                   onChange={(e) => setObjectives(e.target.value)}

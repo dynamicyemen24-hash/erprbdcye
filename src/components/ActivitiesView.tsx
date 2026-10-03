@@ -750,9 +750,9 @@ export default function ActivitiesView({
         <table>
           <thead>
             <tr>
-              <th style="width: 40px;">#</th>
-              <th>بيان المهمة الميدانية</th>
-              <th style="width: 120px; text-align: center;">حالة الإنجاز</th>
+              <th scope="col" style="width: 40px;">#</th>
+              <th scope="col">بيان المهمة الميدانية</th>
+              <th scope="col" style="width: 120px; text-align: center;">حالة الإنجاز</th>
             </tr>
           </thead>
           <tbody>
@@ -771,11 +771,11 @@ export default function ActivitiesView({
           <table>
             <thead>
               <tr>
-                <th>رقم السند</th>
-                <th>جهة الصرف / المستفيد</th>
-                <th>المبلغ المصروف</th>
-                <th>طريقة الصرف</th>
-                <th>التاريخ</th>
+                <th scope="col">رقم السند</th>
+                <th scope="col">جهة الصرف / المستفيد</th>
+                <th scope="col">المبلغ المصروف</th>
+                <th scope="col">طريقة الصرف</th>
+                <th scope="col">التاريخ</th>
               </tr>
             </thead>
             <tbody>
@@ -1612,8 +1612,8 @@ export default function ActivitiesView({
 
               {/* Subtype Selection */}
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'نوع وتصنيف النشاط التخصصي*' : 'Activity Subtype*'}</label>
-                <select
+                <label htmlFor="ux-activity-subtype" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'نوع وتصنيف النشاط التخصصي*' : 'Activity Subtype*'}</label>
+                <select id="ux-activity-subtype"
                   required
                   value={formData.activity_type_code}
                   onChange={(e) => setFormData(p => ({ ...p, activity_type_code: e.target.value }))}
@@ -1630,8 +1630,8 @@ export default function ActivitiesView({
               {/* Activity Names */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'اسم الحلقة / الفعالية (عربي)*' : 'Activity Name (Arabic)*'}</label>
-                  <input
+                  <label htmlFor="ux-activity-name-arabic" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'اسم الحلقة / الفعالية (عربي)*' : 'Activity Name (Arabic)*'}</label>
+                  <input id="ux-activity-name-arabic"
                     type="text"
                     required
                     placeholder="مثال: حلقة عثمان بن عفان لتحفيظ القرآن"
@@ -1642,8 +1642,8 @@ export default function ActivitiesView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'الاسم بالإنجليزية (اختياري)' : 'Activity Name (English)'}</label>
-                  <input
+                  <label htmlFor="ux-activity-name-english" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'الاسم بالإنجليزية (اختياري)' : 'Activity Name (English)'}</label>
+                  <input id="ux-activity-name-english"
                     type="text"
                     placeholder="Othman Quran Circle"
                     value={formData.name_en}
@@ -1656,8 +1656,8 @@ export default function ActivitiesView({
               {/* Project & Instructor */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المشروع الميداني المرتبط*' : 'Linked Field Project*'}</label>
-                  <select
+                  <label htmlFor="ux-linked-field-project" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المشروع الميداني المرتبط*' : 'Linked Field Project*'}</label>
+                  <select id="ux-linked-field-project"
                     required
                     value={formData.project_id}
                     onChange={(e) => setFormData(p => ({ ...p, project_id: e.target.value }))}
@@ -1672,8 +1672,8 @@ export default function ActivitiesView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'اسم المدرس / المسؤول الميداني' : 'Teacher/Coordinator'}</label>
-                  <input
+                  <label htmlFor="ux-teacher-coordinator" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'اسم المدرس / المسؤول الميداني' : 'Teacher/Coordinator'}</label>
+                  <input id="ux-teacher-coordinator"
                     type="text"
                     placeholder="الشيخ / يحيى العولقي"
                     value={formData.responsible_name}
@@ -1686,8 +1686,8 @@ export default function ActivitiesView({
               {/* Beneficiaries & Budget */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المستهدفون المباشرون' : 'Target Beneficiaries'}</label>
-                  <input
+                  <label htmlFor="ux-target-beneficiaries" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المستهدفون المباشرون' : 'Target Beneficiaries'}</label>
+                  <input id="ux-target-beneficiaries"
                     type="number"
                     min="1"
                     value={formData.target_beneficiaries}
@@ -1697,8 +1697,8 @@ export default function ActivitiesView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'الموازنة التقديرية (YER)' : 'Budget (YER)'}</label>
-                  <input
+                  <label htmlFor="ux-yer" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'الموازنة التقديرية (YER)' : 'Budget (YER)'}</label>
+                  <input id="ux-yer"
                     type="number"
                     min="0"
                     value={formData.budget}
@@ -1708,8 +1708,8 @@ export default function ActivitiesView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المحافظة / الموقع' : 'Governorate'}</label>
-                  <input
+                  <label htmlFor="ux-governorate" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المحافظة / الموقع' : 'Governorate'}</label>
+                  <input id="ux-governorate"
                     type="text"
                     placeholder="تعز، صنعاء، إلخ."
                     value={formData.governorate}
@@ -1720,8 +1720,8 @@ export default function ActivitiesView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'موقع الفعالية المادي / المسجد / المركز' : 'Venue/Mosque'}</label>
-                <input
+                <label htmlFor="ux-venue-mosque" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'موقع الفعالية المادي / المسجد / المركز' : 'Venue/Mosque'}</label>
+                <input id="ux-venue-mosque"
                   type="text"
                   placeholder="جامع عمر بن الخطاب - حي الروضة"
                   value={formData.location_name_ar}
@@ -1731,8 +1731,8 @@ export default function ActivitiesView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'وصف النشاط وأهداف التنفيذ' : 'Description & Objectives'}</label>
-                <textarea
+                <label htmlFor="ux-description-objectives" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'وصف النشاط وأهداف التنفيذ' : 'Description & Objectives'}</label>
+                <textarea id="ux-description-objectives"
                   rows={2}
                   placeholder="أدخل تفاصيل الأهداف الميدانية والنتائج المتوقعة..."
                   value={formData.description}
@@ -1816,8 +1816,8 @@ export default function ActivitiesView({
               {/* Amount & Currency */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المبلغ المطلوب للصرف*' : 'Disbursement Amount*'}</label>
-                  <input
+                  <label htmlFor="ux-disbursement-amount" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المبلغ المطلوب للصرف*' : 'Disbursement Amount*'}</label>
+                  <input id="ux-disbursement-amount"
                     type="number"
                     min="1"
                     required
@@ -1828,8 +1828,8 @@ export default function ActivitiesView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'العملة' : 'Currency'}</label>
-                  <select
+                  <label htmlFor="ux-currency" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'العملة' : 'Currency'}</label>
+                  <select id="ux-currency"
                     value={financialForm.currency}
                     onChange={(e) => setFinancialForm(prev => ({ ...prev, currency: e.target.value }))}
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -1844,8 +1844,8 @@ export default function ActivitiesView({
               {/* Payee Name & Payment Method */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'اسم المستلم / جهة الصرف*' : 'Payee Name*'}</label>
-                  <input
+                  <label htmlFor="ux-payee-name" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'اسم المستلم / جهة الصرف*' : 'Payee Name*'}</label>
+                  <input id="ux-payee-name"
                     type="text"
                     required
                     placeholder="الشيخ / يحيى العولقي"
@@ -1856,8 +1856,8 @@ export default function ActivitiesView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'طريقة وسند الدفع' : 'Payment Method'}</label>
-                  <select
+                  <label htmlFor="ux-payment-method" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'طريقة وسند الدفع' : 'Payment Method'}</label>
+                  <select id="ux-payment-method"
                     value={financialForm.paymentType}
                     onChange={(e) => setFinancialForm(prev => ({ ...prev, paymentType: e.target.value }))}
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -1871,8 +1871,8 @@ export default function ActivitiesView({
 
               {/* Expense Category & Notes */}
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'بند المصروفات وملاحظات الصرف' : 'Expense Category & Notes'}</label>
-                <textarea
+                <label htmlFor="ux-expense-category-notes" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'بند المصروفات وملاحظات الصرف' : 'Expense Category & Notes'}</label>
+                <textarea id="ux-expense-category-notes"
                   rows={2}
                   value={financialForm.notes}
                   onChange={(e) => setFinancialForm(prev => ({ ...prev, notes: e.target.value }))}
@@ -1929,8 +1929,8 @@ export default function ActivitiesView({
               
               {/* Select Activity */}
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'النشاط الميداني المستهدف' : 'Target Activity*'}</label>
-                <select
+                <label htmlFor="ux-target-activity" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'النشاط الميداني المستهدف' : 'Target Activity*'}</label>
+                <select id="ux-target-activity"
                   required
                   value={materialForm.activityId}
                   onChange={(e) => setMaterialForm(prev => ({ ...prev, activityId: e.target.value }))}
@@ -1948,8 +1948,8 @@ export default function ActivitiesView({
               {/* Warehouse & Quantity */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المستودع المصدر' : 'Source Warehouse'}</label>
-                  <select
+                  <label htmlFor="ux-source-warehouse" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'المستودع المصدر' : 'Source Warehouse'}</label>
+                  <select id="ux-source-warehouse"
                     value={materialForm.warehouseId}
                     onChange={(e) => setMaterialForm(prev => ({ ...prev, warehouseId: e.target.value }))}
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -1961,8 +1961,8 @@ export default function ActivitiesView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'الكمية المطلوبة' : 'Requested Qty'}</label>
-                  <input
+                  <label htmlFor="ux-requested-qty" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'الكمية المطلوبة' : 'Requested Qty'}</label>
+                  <input id="ux-requested-qty"
                     type="number"
                     min="1"
                     required
@@ -1975,8 +1975,8 @@ export default function ActivitiesView({
 
               {/* Requisition Notes */}
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'ملاحظات الصرف والاحتياج الميداني' : 'Requisition Notes'}</label>
-                <textarea
+                <label htmlFor="ux-requisition-notes" className="text-[10px] text-slate-500 uppercase font-black">{isRtl ? 'ملاحظات الصرف والاحتياج الميداني' : 'Requisition Notes'}</label>
+                <textarea id="ux-requisition-notes"
                   rows={2}
                   value={materialForm.notes}
                   onChange={(e) => setMaterialForm(prev => ({ ...prev, notes: e.target.value }))}

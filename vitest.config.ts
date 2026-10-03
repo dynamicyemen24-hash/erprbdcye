@@ -38,6 +38,20 @@ export default defineConfig({
             'src/server/core/**/*.test.ts',
             'src/server/middleware/**/*.test.ts',
             'src/server/routes/**/*.test.ts',
+            // These suites exercise Node-only surfaces (pg pools, Redis, the
+            // durable queue, Prometheus registries, SMTP, SQL allow-lists).
+            // They previously matched the frontend project's catch-all
+            // `src/**/*.test.ts` and therefore ran under jsdom, where
+            // node:timers/fs/net are absent — false confidence, plus every
+            // suite ran twice in CI.
+            'src/server/database/**/*.test.ts',
+            'src/server/db/**/*.test.ts',
+            'src/server/observability/**/*.test.ts',
+            'src/server/queue/**/*.test.ts',
+            'src/server/redis/**/*.test.ts',
+            'src/server/services/**/*.test.ts',
+            'src/server/governance/**/*.test.ts',
+            'src/server/validators/**/*.test.ts',
             'src/lib/**/*.test.ts',
             'src/core/**/*.test.ts',
             'tests/pmo/**/*.test.ts',
@@ -58,7 +72,19 @@ export default defineConfig({
             'src/**/*.test.tsx',
             'src/**/*.test.ts',
           ],
-          exclude: ['node_modules', 'dist'],
+          // The catch-all globs above also match every `src/server/**` suite.
+          // Those belong to the `server` project (node env); letting them
+          // through here executed each one twice per run — once in jsdom,
+          // where pg/Redis/timers behave differently and can pass for the
+          // wrong reason.
+          exclude: [
+            'node_modules',
+            'dist',
+            'src/server/**',
+            'src/lib/**',
+            'src/core/**',
+            'tests/**',
+          ],
           globals: true,
           testTimeout: 10000,
         },

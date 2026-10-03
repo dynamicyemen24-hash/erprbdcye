@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ShoppingCart, Plus, Search, Trash2, Eye, Printer, Building, Layers, 
   Activity, CheckCircle2, XCircle, Clock, ArrowRight, CheckCircle, 
@@ -21,6 +21,8 @@ import VendorRecommendationEngineView from '../features/procurement/VendorRecomm
 import VendorPerformanceAnalyticsView from '../features/procurement/VendorPerformanceAnalyticsView';
 import ProcurementForecastingView from '../features/procurement/ProcurementForecastingView';
 import { ActiveTab } from '../core/types/dashboard';
+import { PermissionGate } from './PermissionGate';
+import { PERMISSIONS } from '../shared/permissions/permission-map';
 
 interface ProcurementWorkspaceViewProps {
   projects?: any[];
@@ -49,6 +51,32 @@ interface VendorProfile {
   total_orders_count: number;
   total_spent_yer: number;
   address: string;
+}
+
+/** Map a vendors-table row (API) into the VendorProfile card shape. */
+function mapVendorRow(r: any): VendorProfile {
+  const rawScore = Number(r.performance_score ?? r.rating ?? 0);
+  const rating = rawScore > 5 ? Math.round((rawScore / 20) * 10) / 10 : rawScore;
+  const statusRaw = String(r.status || '').toUpperCase();
+  const status: VendorProfile['status'] =
+    statusRaw === 'UNDER_REVIEW' || statusRaw === 'SUSPENDED' ? statusRaw : 'QUALIFIED';
+  return {
+    id: String(r.id),
+    code: r.vendor_code || r.code || `VND-${String(r.id ?? '').slice(0, 6).toUpperCase()}`,
+    name_ar: r.party_name_ar || r.name_ar || '—',
+    name_en: r.party_name_en || r.name_en || r.party_name_ar || '—',
+    category: r.category || '—',
+    tax_number: r.tax_number || '—',
+    commercial_reg: r.commercial_registration || r.commercial_reg || '—',
+    contact_person: r.contact_person || r.contact_name || '—',
+    phone: r.phone || '—',
+    email: r.email || '—',
+    rating,
+    status,
+    total_orders_count: Number(r.total_orders_count ?? r.orders_count ?? 0),
+    total_spent_yer: Number(r.total_spent_yer ?? r.total_spent ?? 0),
+    address: r.address || '—',
+  };
 }
 
 export default function ProcurementWorkspaceView({
@@ -157,6 +185,37 @@ export default function ProcurementWorkspaceView({
       address: 'تعز - الحوبان'
     }
   ]);
+
+  // Live register from /api/operational/vendors — seed above acts only as the
+  // offline/error fallback (kept marked 'local' so operators know the source).
+  const [vendorSource, setVendorSource] = useState<'live' | 'local'>('local');
+  const [vendorsLoading, setVendorsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token') || '';
+        const res = await fetch('/api/operational/vendors', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (cancelled) return;
+        if (res.status === 401 || res.status === 403) return;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        const rows = json?.data;
+        if (Array.isArray(rows)) {
+          setVendors(rows.map(mapVendorRow));
+          setVendorSource('live');
+        }
+      } catch {
+        /* network/server failure → keep seed, source stays 'local' */
+      } finally {
+        if (!cancelled) setVendorsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Form for registering a new vendor
   const [newVendorForm, setNewVendorForm] = useState({
@@ -304,12 +363,12 @@ export default function ProcurementWorkspaceView({
           <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; margin-bottom: 20px; font-size: 11px;">
             <thead>
               <tr style="background: #0f172a; color: white;">
-                <th style="padding: 10px; border: 1px solid #cbd5e1; width: 40px;">#</th>
-                <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: ${isRtl ? 'right' : 'left'};">الصنف والمواصفات الفنية المعتمدة</th>
-                <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; width: 80px;">الوحدة</th>
-                <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; width: 80px;">الكمية</th>
-                <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; width: 120px;">سعر الوحدة (ر.ي)</th>
-                <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; width: 140px;">الإجمالي (ر.ي)</th>
+                <th scope="col" style="padding: 10px; border: 1px solid #cbd5e1; width: 40px;">#</th>
+                <th scope="col" style="padding: 10px; border: 1px solid #cbd5e1; text-align: ${isRtl ? 'right' : 'left'};">الصنف والمواصفات الفنية المعتمدة</th>
+                <th scope="col" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; width: 80px;">الوحدة</th>
+                <th scope="col" style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; width: 80px;">الكمية</th>
+                <th scope="col" style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; width: 120px;">سعر الوحدة (ر.ي)</th>
+                <th scope="col" style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; width: 140px;">الإجمالي (ر.ي)</th>
               </tr>
             </thead>
             <tbody>
@@ -594,6 +653,14 @@ export default function ProcurementWorkspaceView({
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${
+                vendorSource === 'live'
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-slate-200 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400'
+              }`}>
+                {vendorSource === 'live' ? (isRtl ? 'مباشر' : 'Live') : (isRtl ? 'محلي' : 'Local')}
+              </span>
+              {vendorsLoading && <Spinner size="xs" />}
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -607,15 +674,17 @@ export default function ProcurementWorkspaceView({
                 <option value="مواد بناء وتأهيل">{isRtl ? 'مواد بناء وتأهيل' : 'Construction & Shelter'}</option>
               </select>
 
-              <EnterpriseButton
-                variant="primary"
-                size="sm"
-                icon={<Plus className="w-4 h-4" />}
-                onClick={() => setIsRegisterVendorModalOpen(true)}
-                disabled={false}
-              >
-                {isRtl ? 'إضافة مورد' : 'Add Vendor'}
-              </EnterpriseButton>
+              <PermissionGate perm={PERMISSIONS.PROCUREMENT_WRITE} mode="disabled">
+                <EnterpriseButton
+                  variant="primary"
+                  size="sm"
+                  icon={<Plus className="w-4 h-4" />}
+                  onClick={() => setIsRegisterVendorModalOpen(true)}
+                  disabled={false}
+                >
+                  {isRtl ? 'إضافة مورد' : 'Add Vendor'}
+                </EnterpriseButton>
+              </PermissionGate>
             </div>
           </div>
 
@@ -845,8 +914,8 @@ export default function ProcurementWorkspaceView({
             <form onSubmit={handleCreateVendor} className="p-6 space-y-4 text-xs font-bold">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'اسم المورد (بالعربية)*:' : 'Vendor Name (AR)*:'}</label>
-                  <input
+                  <label htmlFor="ux-vendor-name-ar" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'اسم المورد (بالعربية)*:' : 'Vendor Name (AR)*:'}</label>
+                  <input id="ux-vendor-name-ar"
                     type="text"
                     required
                     value={newVendorForm.name_ar}
@@ -857,8 +926,8 @@ export default function ProcurementWorkspaceView({
                 </div>
 
                 <div>
-                  <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'اسم المورد (بالإنجليزية):' : 'Vendor Name (EN):'}</label>
-                  <input
+                  <label htmlFor="ux-vendor-name-en" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'اسم المورد (بالإنجليزية):' : 'Vendor Name (EN):'}</label>
+                  <input id="ux-vendor-name-en"
                     type="text"
                     value={newVendorForm.name_en}
                     onChange={(e) => setNewVendorForm({ ...newVendorForm, name_en: e.target.value })}
@@ -870,8 +939,8 @@ export default function ProcurementWorkspaceView({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'تصنيف النشاط والتوريد:' : 'Procurement Category:'}</label>
-                  <select
+                  <label htmlFor="ux-procurement-category" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'تصنيف النشاط والتوريد:' : 'Procurement Category:'}</label>
+                  <select id="ux-procurement-category"
                     value={newVendorForm.category}
                     onChange={(e) => setNewVendorForm({ ...newVendorForm, category: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none cursor-pointer"
@@ -885,8 +954,8 @@ export default function ProcurementWorkspaceView({
                 </div>
 
                 <div>
-                  <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'مسؤول الاتصال:' : 'Contact Person:'}</label>
-                  <input
+                  <label htmlFor="ux-contact-person" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'مسؤول الاتصال:' : 'Contact Person:'}</label>
+                  <input id="ux-contact-person"
                     type="text"
                     value={newVendorForm.contact_person}
                     onChange={(e) => setNewVendorForm({ ...newVendorForm, contact_person: e.target.value })}
@@ -898,8 +967,8 @@ export default function ProcurementWorkspaceView({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'رقم الهاتف / الواتساب:' : 'Phone / WhatsApp:'}</label>
-                  <input
+                  <label htmlFor="ux-phone-whatsapp" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'رقم الهاتف / الواتساب:' : 'Phone / WhatsApp:'}</label>
+                  <input id="ux-phone-whatsapp"
                     type="text"
                     value={newVendorForm.phone}
                     onChange={(e) => setNewVendorForm({ ...newVendorForm, phone: e.target.value })}
@@ -909,8 +978,8 @@ export default function ProcurementWorkspaceView({
                 </div>
 
                 <div>
-                  <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'البريد الإلكتروني:' : 'Email:'}</label>
-                  <input
+                  <label htmlFor="ux-email" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'البريد الإلكتروني:' : 'Email:'}</label>
+                  <input id="ux-email"
                     type="email"
                     value={newVendorForm.email}
                     onChange={(e) => setNewVendorForm({ ...newVendorForm, email: e.target.value })}
@@ -922,8 +991,8 @@ export default function ProcurementWorkspaceView({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'الرقم الضريبي:' : 'Tax Number:'}</label>
-                  <input
+                  <label htmlFor="ux-tax-number" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'الرقم الضريبي:' : 'Tax Number:'}</label>
+                  <input id="ux-tax-number"
                     type="text"
                     value={newVendorForm.tax_number}
                     onChange={(e) => setNewVendorForm({ ...newVendorForm, tax_number: e.target.value })}
@@ -933,8 +1002,8 @@ export default function ProcurementWorkspaceView({
                 </div>
 
                 <div>
-                  <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'السجل التجاري:' : 'Commercial Reg (CR):'}</label>
-                  <input
+                  <label htmlFor="ux-commercial-reg-cr" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'السجل التجاري:' : 'Commercial Reg (CR):'}</label>
+                  <input id="ux-commercial-reg-cr"
                     type="text"
                     value={newVendorForm.commercial_reg}
                     onChange={(e) => setNewVendorForm({ ...newVendorForm, commercial_reg: e.target.value })}
@@ -945,8 +1014,8 @@ export default function ProcurementWorkspaceView({
               </div>
 
               <div>
-                <label className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'العنوان والمقر الرئيسي:' : 'Headquarters Address:'}</label>
-                <input
+                <label htmlFor="ux-headquarters-address" className="text-slate-700 dark:text-zinc-300 block mb-1">{isRtl ? 'العنوان والمقر الرئيسي:' : 'Headquarters Address:'}</label>
+                <input id="ux-headquarters-address"
                   type="text"
                   value={newVendorForm.address}
                   onChange={(e) => setNewVendorForm({ ...newVendorForm, address: e.target.value })}

@@ -66,7 +66,7 @@ export function AccessibilityProvider({ children, skipTargetId = 'main-content',
         href={`#${skipTargetId}`}
         onClick={(e) => { e.preventDefault(); skipToContent(); }}
         className={cn(
-          'sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[9999]',
+          'sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-skip-link',
           'px-4 py-2 rounded-xl text-sm font-bold',
           'bg-emerald-600 text-white shadow-lg',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2',

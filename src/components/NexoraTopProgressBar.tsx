@@ -90,7 +90,7 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
   return (
     <>
       {/* Top Fixed High-Performance Luminous Gradient Bar */}
-      <div className="fixed top-0 left-0 right-0 z-[100000] pointer-events-none h-1 bg-emerald-950/20 dark:bg-zinc-950/40 overflow-hidden backdrop-blur-xs">
+      <div className="fixed top-0 left-0 right-0 z-skip-link pointer-events-none h-1 bg-emerald-950/20 dark:bg-zinc-950/40 overflow-hidden backdrop-blur-xs">
         <motion.div
           role="progressbar"
           aria-valuenow={progress}
@@ -120,7 +120,7 @@ export const NexoraTopProgressBar: React.FC<NexoraTopProgressBarProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.18 }}
-            className="fixed top-3 ltr:right-4 rtl:left-4 z-[99999] pointer-events-none flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-zinc-950/85 dark:bg-black/90 text-white text-xs font-semibold border border-emerald-500/40 shadow-2xl backdrop-blur-xl"
+            className="fixed top-3 ltr:right-4 rtl:left-4 z-toast pointer-events-none flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-zinc-950/85 dark:bg-black/90 text-white text-xs font-semibold border border-emerald-500/40 shadow-2xl backdrop-blur-xl"
           >
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

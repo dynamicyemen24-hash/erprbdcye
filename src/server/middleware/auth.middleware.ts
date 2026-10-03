@@ -11,6 +11,7 @@ import { serverConfig } from '../config';
 import logger from '../core/logger';
 import { queryOne } from '../core/database';
 import { getRequestToken } from '../core/cookies';
+import { resolvePermissions, type PermissionKey } from '../../shared/permissions/permission-map';
 
 // ─────────────────────────────────────────────
 // 1. JWT Authentication Middleware
@@ -104,6 +105,33 @@ export const requireRole = (...roles: string[]) => (
   if (!roles.includes(userRole)) {
     res.status(403).json({
       error: `Access Denied: Role '${userRole}' is not authorized for this operation.`
+    });
+    return;
+  }
+  next();
+};
+
+/**
+ * Requires ALL of the listed permissions (shared role/clearance matrix).
+ * The same matrix drives the client (PermissionGate / sidebar), so the UI only
+ * offers actions this middleware would accept. Fails closed: no user → 401.
+ */
+export const requirePermission = (...keys: PermissionKey[]) => (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (!req.user) {
+    res.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+  const perms = resolvePermissions(req.user);
+  const missing = keys.filter((k) => !perms.has(k));
+  if (missing.length > 0) {
+    res.status(403).json({
+      error: `Access Denied: missing permission(s): ${missing.join(', ')}`,
+      code: 'PERMISSION_DENIED',
+      missing,
     });
     return;
   }

@@ -461,11 +461,11 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 25px;">
           <thead>
             <tr style="background: #059669; color: white;">
-              <th style="padding: 6px; border: 1px solid #059669;">رقم الدفعة</th>
-              <th style="padding: 6px; border: 1px solid #059669;">البيان والمرحلة</th>
-              <th style="padding: 6px; border: 1px solid #059669;">المبلغ (ر.ي)</th>
-              <th style="padding: 6px; border: 1px solid #059669;">تاريخ الاستحقاق</th>
-              <th style="padding: 6px; border: 1px solid #059669;">حالة الصرف والاعتماد</th>
+              <th scope="col" style="padding: 6px; border: 1px solid #059669;">رقم الدفعة</th>
+              <th scope="col" style="padding: 6px; border: 1px solid #059669;">البيان والمرحلة</th>
+              <th scope="col" style="padding: 6px; border: 1px solid #059669;">المبلغ (ر.ي)</th>
+              <th scope="col" style="padding: 6px; border: 1px solid #059669;">تاريخ الاستحقاق</th>
+              <th scope="col" style="padding: 6px; border: 1px solid #059669;">حالة الصرف والاعتماد</th>
             </tr>
           </thead>
           <tbody>
@@ -1696,14 +1696,14 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               <table className="w-full text-right rtl:text-right text-xs">
                 <thead className="bg-slate-50 dark:bg-zinc-800/80 text-slate-500 dark:text-zinc-400 font-extrabold uppercase text-[10px] border-b border-slate-200 dark:border-zinc-800">
                   <tr>
-                    <th className="p-3.5">{isRtl ? 'رمز النشاط الميداني' : 'WBS Code'}</th>
-                    <th className="p-3.5">{isRtl ? 'عنوان النشاط والمشروع' : 'Activity & Project'}</th>
-                    <th className="p-3.5">{isRtl ? 'الميزانية المعتمدة' : 'Allocated Budget'}</th>
-                    <th className="p-3.5">{isRtl ? 'المشتريات الملتزم بها (POs)' : 'Committed POs'}</th>
-                    <th className="p-3.5">{isRtl ? 'الإيرادات المحصلة' : 'Revenue'}</th>
-                    <th className="p-3.5">{isRtl ? 'أوامر التوريد المرتبطة' : 'Linked POs'}</th>
-                    <th className="p-3.5">{isRtl ? 'فواتير الإيراد المرتبطة' : 'Linked Invoices'}</th>
-                    <th className="p-3.5">{isRtl ? 'حالة الانحراف' : 'Variance Status'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'رمز النشاط الميداني' : 'WBS Code'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'عنوان النشاط والمشروع' : 'Activity & Project'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'الميزانية المعتمدة' : 'Allocated Budget'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'المشتريات الملتزم بها (POs)' : 'Committed POs'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'الإيرادات المحصلة' : 'Revenue'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'أوامر التوريد المرتبطة' : 'Linked POs'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'فواتير الإيراد المرتبطة' : 'Linked Invoices'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'حالة الانحراف' : 'Variance Status'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold text-slate-800 dark:text-zinc-200">
@@ -1821,18 +1821,18 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
             <form onSubmit={handleCreatePO} className="space-y-3.5 text-xs font-bold text-slate-700 dark:text-zinc-200">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'رقم أمر الشراء' : 'PO Ref'}</label>
-                  <input type="text" value={newPoForm.poNumber} onChange={e => setNewPoForm(p => ({ ...p, poNumber: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-po-ref" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'رقم أمر الشراء' : 'PO Ref'}</label>
+                  <input id="ux-po-ref" type="text" value={newPoForm.poNumber} onChange={e => setNewPoForm(p => ({ ...p, poNumber: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'اسم المورد المعتمد' : 'Vendor Name'}</label>
-                  <input type="text" required placeholder="شركة السعيد للتوريدات" value={newPoForm.vendorNameAr} onChange={e => setNewPoForm(p => ({ ...p, vendorNameAr: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
+                  <label htmlFor="ux-vendor-name" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'اسم المورد المعتمد' : 'Vendor Name'}</label>
+                  <input id="ux-vendor-name" type="text" required placeholder="شركة السعيد للتوريدات" value={newPoForm.vendorNameAr} onChange={e => setNewPoForm(p => ({ ...p, vendorNameAr: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'النشاط الميداني المستهدف للمشروع' : 'Target WBS Activity Task'}</label>
-                <select value={newPoForm.wbsActivityId} onChange={e => setNewPoForm(p => ({ ...p, wbsActivityId: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
+                <label htmlFor="ux-target-wbs-activity-task" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'النشاط الميداني المستهدف للمشروع' : 'Target WBS Activity Task'}</label>
+                <select id="ux-target-wbs-activity-task" value={newPoForm.wbsActivityId} onChange={e => setNewPoForm(p => ({ ...p, wbsActivityId: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
                   {activityLinks.map(a => (
                     <option key={a.activityId} value={a.activityId}>{a.activityCode} - {a.activityNameAr}</option>
                   ))}
@@ -1841,12 +1841,12 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي (ر.ي)' : 'Total Amount (YER)'}</label>
-                  <input type="number" required placeholder="0" value={newPoForm.totalAmountYer} onChange={e => setNewPoForm(p => ({ ...p, totalAmountYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono font-bold text-emerald-600" />
+                  <label htmlFor="ux-total-amount-yer" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي (ر.ي)' : 'Total Amount (YER)'}</label>
+                  <input id="ux-total-amount-yer" type="number" required placeholder="0" value={newPoForm.totalAmountYer} onChange={e => setNewPoForm(p => ({ ...p, totalAmountYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono font-bold text-emerald-600" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'تاريخ التسليم المتوقع' : 'Expected Delivery'}</label>
-                  <input type="date" value={newPoForm.expectedDeliveryDate} onChange={e => setNewPoForm(p => ({ ...p, expectedDeliveryDate: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-expected-delivery" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'تاريخ التسليم المتوقع' : 'Expected Delivery'}</label>
+                  <input id="ux-expected-delivery" type="date" value={newPoForm.expectedDeliveryDate} onChange={e => setNewPoForm(p => ({ ...p, expectedDeliveryDate: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
               </div>
 
@@ -1883,18 +1883,18 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
             <form onSubmit={handleCreateSalesInvoice} className="space-y-3.5 text-xs font-bold text-slate-700 dark:text-zinc-200">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'رقم الفاتورة' : 'Invoice Code'}</label>
-                  <input type="text" value={newInvoiceForm.invoiceCode} onChange={e => setNewInvoiceForm(p => ({ ...p, invoiceCode: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-invoice-code" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'رقم الفاتورة' : 'Invoice Code'}</label>
+                  <input id="ux-invoice-code" type="text" value={newInvoiceForm.invoiceCode} onChange={e => setNewInvoiceForm(p => ({ ...p, invoiceCode: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'اسم المانح / العميل / المستأجر' : 'Client / Donor Name'}</label>
-                  <input type="text" required placeholder="مركز الملك سلمان / محفظة الأوقاف" value={newInvoiceForm.clientOrDonorNameAr} onChange={e => setNewInvoiceForm(p => ({ ...p, clientOrDonorNameAr: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
+                  <label htmlFor="ux-client-donor-name" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'اسم المانح / العميل / المستأجر' : 'Client / Donor Name'}</label>
+                  <input id="ux-client-donor-name" type="text" required placeholder="مركز الملك سلمان / محفظة الأوقاف" value={newInvoiceForm.clientOrDonorNameAr} onChange={e => setNewInvoiceForm(p => ({ ...p, clientOrDonorNameAr: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'نوع الإيراد' : 'Revenue Type'}</label>
-                <select value={newInvoiceForm.invoiceType} onChange={e => setNewInvoiceForm(p => ({ ...p, invoiceType: e.target.value as any }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
+                <label htmlFor="ux-revenue-type" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'نوع الإيراد' : 'Revenue Type'}</label>
+                <select id="ux-revenue-type" value={newInvoiceForm.invoiceType} onChange={e => setNewInvoiceForm(p => ({ ...p, invoiceType: e.target.value as any }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
                   <option value="DONOR_PLEDGE">تعهد منح وتبرعات مشروطة</option>
                   <option value="ENDOWMENT_RENT">إيجارات وعوائد أصول وقفية</option>
                   <option value="PROJECT_SERVICE_FEE">رسوم تشغيل وإدارة مشاريع ميدانية</option>
@@ -1904,12 +1904,12 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي (ر.ي)' : 'Total Amount (YER)'}</label>
-                  <input type="number" required placeholder="0" value={newInvoiceForm.totalAmountYer} onChange={e => setNewInvoiceForm(p => ({ ...p, totalAmountYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono font-bold text-blue-600" />
+                  <label htmlFor="ux-total-amount-yer-9" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي (ر.ي)' : 'Total Amount (YER)'}</label>
+                  <input id="ux-total-amount-yer-9" type="number" required placeholder="0" value={newInvoiceForm.totalAmountYer} onChange={e => setNewInvoiceForm(p => ({ ...p, totalAmountYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono font-bold text-blue-600" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'تاريخ الاستحقاق' : 'Due Date'}</label>
-                  <input type="date" value={newInvoiceForm.dueDate} onChange={e => setNewInvoiceForm(p => ({ ...p, dueDate: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-due-date" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'تاريخ الاستحقاق' : 'Due Date'}</label>
+                  <input id="ux-due-date" type="date" value={newInvoiceForm.dueDate} onChange={e => setNewInvoiceForm(p => ({ ...p, dueDate: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
               </div>
 
@@ -1950,24 +1950,24 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
               
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'كود الشراكة المولد' : 'Partnership Code'}</label>
-                  <input type="text" value={newPartnershipForm.partnershipCode} onChange={e => setNewPartnershipForm(p => ({ ...p, partnershipCode: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono text-violet-600" />
+                  <label htmlFor="ux-partnership-code" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'كود الشراكة المولد' : 'Partnership Code'}</label>
+                  <input id="ux-partnership-code" type="text" value={newPartnershipForm.partnershipCode} onChange={e => setNewPartnershipForm(p => ({ ...p, partnershipCode: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono text-violet-600" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'اسم الجهة المانحة / الشريكة (عربي)' : 'Partner Name (Arabic)'}</label>
-                  <input type="text" required placeholder="مكتب الأمم المتحدة / مركز الملك سلمان / بنك..." value={newPartnershipForm.partnerNameAr} onChange={e => setNewPartnershipForm(p => ({ ...p, partnerNameAr: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
+                  <label htmlFor="ux-partner-name-arabic" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'اسم الجهة المانحة / الشريكة (عربي)' : 'Partner Name (Arabic)'}</label>
+                  <input id="ux-partner-name-arabic" type="text" required placeholder="مكتب الأمم المتحدة / مركز الملك سلمان / بنك..." value={newPartnershipForm.partnerNameAr} onChange={e => setNewPartnershipForm(p => ({ ...p, partnerNameAr: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'عنوان اتفاقية الشراكة والمنحة' : 'Agreement Title'}</label>
-                <input type="text" required placeholder="اتفاقية منحة الاستجابة الإنسانية العاجلة الميدانية..." value={newPartnershipForm.titleAr} onChange={e => setNewPartnershipForm(p => ({ ...p, titleAr: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
+                <label htmlFor="ux-agreement-title" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'عنوان اتفاقية الشراكة والمنحة' : 'Agreement Title'}</label>
+                <input id="ux-agreement-title" type="text" required placeholder="اتفاقية منحة الاستجابة الإنسانية العاجلة الميدانية..." value={newPartnershipForm.titleAr} onChange={e => setNewPartnershipForm(p => ({ ...p, titleAr: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'فئة ونوع الشريك' : 'Partner Type'}</label>
-                  <select value={newPartnershipForm.partnerType} onChange={e => setNewPartnershipForm(p => ({ ...p, partnerType: e.target.value as any }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
+                  <label htmlFor="ux-partner-type" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'فئة ونوع الشريك' : 'Partner Type'}</label>
+                  <select id="ux-partner-type" value={newPartnershipForm.partnerType} onChange={e => setNewPartnershipForm(p => ({ ...p, partnerType: e.target.value as any }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
                     <option value="UN_AGENCY">وكالة أمم متحدة (UN Agency)</option>
                     <option value="INTERNATIONAL_DONOR">مانح دولي حكومي (International Donor)</option>
                     <option value="CSR_CORPORATE">قطاع خاص ومسؤولية مجتمعية (CSR)</option>
@@ -1980,8 +1980,8 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'شكل ونوع الاتفاقية' : 'Agreement Form'}</label>
-                  <select value={newPartnershipForm.agreementType} onChange={e => setNewPartnershipForm(p => ({ ...p, agreementType: e.target.value as any }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
+                  <label htmlFor="ux-agreement-form" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'شكل ونوع الاتفاقية' : 'Agreement Form'}</label>
+                  <select id="ux-agreement-form" value={newPartnershipForm.agreementType} onChange={e => setNewPartnershipForm(p => ({ ...p, agreementType: e.target.value as any }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
                     <option value="PCA">اتفاقية تعاون مشروع (PCA)</option>
                     <option value="GRANT_AGREEMENT">عقد اتفاقية منحة تمويلية</option>
                     <option value="MOU">مذكرة تفاهم إستراتيجية (MoU)</option>
@@ -1995,8 +1995,8 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المشروع المرتبط بالمنحة' : 'Linked Project'}</label>
-                  <select value={newPartnershipForm.projectId} onChange={e => setNewPartnershipForm(p => ({ ...p, projectId: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
+                  <label htmlFor="ux-linked-project" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المشروع المرتبط بالمنحة' : 'Linked Project'}</label>
+                  <select id="ux-linked-project" value={newPartnershipForm.projectId} onChange={e => setNewPartnershipForm(p => ({ ...p, projectId: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
                     {projects.map(prj => (
                       <option key={prj.id} value={prj.id}>{prj.name_ar}</option>
                     ))}
@@ -2005,8 +2005,8 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'مرحلة دورة الحياة Initial Lifecycle' : 'Lifecycle Stage'}</label>
-                  <select value={newPartnershipForm.lifecycleStage} onChange={e => setNewPartnershipForm(p => ({ ...p, lifecycleStage: e.target.value as any }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
+                  <label htmlFor="ux-initial-lifecycle" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'مرحلة دورة الحياة Initial Lifecycle' : 'Lifecycle Stage'}</label>
+                  <select id="ux-initial-lifecycle" value={newPartnershipForm.lifecycleStage} onChange={e => setNewPartnershipForm(p => ({ ...p, lifecycleStage: e.target.value as any }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-bold cursor-pointer">
                     <option value="ACTIVE_EXECUTION">التنفيذ النشط وصرف الدفعات</option>
                     <option value="CO_DESIGN">التصميم والمواءمة</option>
                     <option value="PCA_ASSESSMENT">تقييم القدرات PCA</option>
@@ -2017,48 +2017,48 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'إجمالي المنحة (ر.ي)' : 'Total Grant (YER)'}</label>
-                  <input type="number" required placeholder="100000000" value={newPartnershipForm.totalGrantYer} onChange={e => setNewPartnershipForm(p => ({ ...p, totalGrantYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono text-violet-600 font-black" />
+                  <label htmlFor="ux-total-grant-yer" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'إجمالي المنحة (ر.ي)' : 'Total Grant (YER)'}</label>
+                  <input id="ux-total-grant-yer" type="number" required placeholder="100000000" value={newPartnershipForm.totalGrantYer} onChange={e => setNewPartnershipForm(p => ({ ...p, totalGrantYer: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono text-violet-600 font-black" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المعادل بالدولار (USD)' : 'Equivalent (USD)'}</label>
-                  <input type="number" placeholder="66000" value={newPartnershipForm.totalGrantUsd} onChange={e => setNewPartnershipForm(p => ({ ...p, totalGrantUsd: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-usd" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'المعادل بالدولار (USD)' : 'Equivalent (USD)'}</label>
+                  <input id="ux-usd" type="number" placeholder="66000" value={newPartnershipForm.totalGrantUsd} onChange={e => setNewPartnershipForm(p => ({ ...p, totalGrantUsd: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'نسبة المساهمة الذاتية %' : 'Co-Funding Match %'}</label>
-                  <input type="number" placeholder="10" value={newPartnershipForm.matchFundingPercent} onChange={e => setNewPartnershipForm(p => ({ ...p, matchFundingPercent: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-co-funding-match" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'نسبة المساهمة الذاتية %' : 'Co-Funding Match %'}</label>
+                  <input id="ux-co-funding-match" type="number" placeholder="10" value={newPartnershipForm.matchFundingPercent} onChange={e => setNewPartnershipForm(p => ({ ...p, matchFundingPercent: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'تاريخ بداية السريان' : 'Start Date'}</label>
-                  <input type="date" value={newPartnershipForm.startDate} onChange={e => setNewPartnershipForm(p => ({ ...p, startDate: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-start-date" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'تاريخ بداية السريان' : 'Start Date'}</label>
+                  <input id="ux-start-date" type="date" value={newPartnershipForm.startDate} onChange={e => setNewPartnershipForm(p => ({ ...p, startDate: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'تاريخ انتهاء المنحة' : 'End Date'}</label>
-                  <input type="date" value={newPartnershipForm.endDate} onChange={e => setNewPartnershipForm(p => ({ ...p, endDate: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-end-date" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'تاريخ انتهاء المنحة' : 'End Date'}</label>
+                  <input id="ux-end-date" type="date" value={newPartnershipForm.endDate} onChange={e => setNewPartnershipForm(p => ({ ...p, endDate: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'اسم ضابط الاتصال الشريك' : 'Focal Point Name'}</label>
-                  <input type="text" placeholder="د. أحمد الفضلي" value={newPartnershipForm.focalPersonName} onChange={e => setNewPartnershipForm(p => ({ ...p, focalPersonName: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
+                  <label htmlFor="ux-focal-point-name" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'اسم ضابط الاتصال الشريك' : 'Focal Point Name'}</label>
+                  <input id="ux-focal-point-name" type="text" placeholder="د. أحمد الفضلي" value={newPartnershipForm.focalPersonName} onChange={e => setNewPartnershipForm(p => ({ ...p, focalPersonName: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'البريد الإلكتروني' : 'Email'}</label>
-                  <input type="email" placeholder="partner@un.org" value={newPartnershipForm.focalPersonEmail} onChange={e => setNewPartnershipForm(p => ({ ...p, focalPersonEmail: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-email" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'البريد الإلكتروني' : 'Email'}</label>
+                  <input id="ux-email" type="email" placeholder="partner@un.org" value={newPartnershipForm.focalPersonEmail} onChange={e => setNewPartnershipForm(p => ({ ...p, focalPersonEmail: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'رقم الهاتف' : 'Phone'}</label>
-                  <input type="text" placeholder="+967 770 123 456" value={newPartnershipForm.focalPersonPhone} onChange={e => setNewPartnershipForm(p => ({ ...p, focalPersonPhone: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
+                  <label htmlFor="ux-phone" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'رقم الهاتف' : 'Phone'}</label>
+                  <input id="ux-phone" type="text" placeholder="+967 770 123 456" value={newPartnershipForm.focalPersonPhone} onChange={e => setNewPartnershipForm(p => ({ ...p, focalPersonPhone: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl font-mono" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'معايير الامتثال والحوكمة (مفصولة بفارزة)' : 'Compliance Standards'}</label>
-                <input type="text" value={newPartnershipForm.complianceStandards} onChange={e => setNewPartnershipForm(p => ({ ...p, complianceStandards: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
+                <label htmlFor="ux-compliance-standards" className="block text-[10px] font-black text-slate-500 mb-1">{isRtl ? 'معايير الامتثال والحوكمة (مفصولة بفارزة)' : 'Compliance Standards'}</label>
+                <input id="ux-compliance-standards" type="text" value={newPartnershipForm.complianceStandards} onChange={e => setNewPartnershipForm(p => ({ ...p, complianceStandards: e.target.value }))} className="w-full bg-slate-50 dark:bg-zinc-800 border p-2 rounded-xl" />
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800">

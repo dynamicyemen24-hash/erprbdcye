@@ -652,7 +652,7 @@ export default function LoginView({
 
   return (
     <div 
-      className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#070b14] text-slate-900 dark:text-zinc-100 flex flex-col justify-between font-sans selection:bg-emerald-500 selection:text-white transition-colors duration-300 relative overflow-x-hidden"
+      className="min-h-screen w-full bg-brand-light-bg dark:bg-brand-dark-bg text-slate-900 dark:text-zinc-100 flex flex-col justify-between font-sans selection:bg-emerald-500 selection:text-white transition-colors duration-300 relative overflow-x-hidden"
       dir={isRtl ? 'rtl' : 'ltr'}
       style={{
         fontFamily: "'Tajawal', 'Cairo', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif"
@@ -1727,10 +1727,10 @@ export default function LoginView({
                 </p>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
+                  <label htmlFor="ux-enterprise-email" className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
                     {isRtl ? 'البريد الإلكتروني المؤسسي' : 'Enterprise Email'}
                   </label>
-                  <input
+                  <input id="ux-enterprise-email"
                     type="email"
                     required
                     value={forgotEmail}

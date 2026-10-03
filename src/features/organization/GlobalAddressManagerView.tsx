@@ -219,10 +219,10 @@ export default function GlobalAddressManagerView({
         <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 20px;">
           <thead>
             <tr style="background: #0f172a; color: #fbbf24;">
-              <th style="border: 1px solid #334155; padding: 6px; width: 5%; text-align: center;">#</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 25%;">${activeCountry.level1_label_ar}</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 30%;">${activeCountry.level2_label_ar}</th>
-              <th style="border: 1px solid #334155; padding: 6px;">الأحياء والقرى والعزل الفرعية (${activeCountry.level3_label_ar})</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 5%; text-align: center;">#</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 25%;">${activeCountry.level1_label_ar}</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 30%;">${activeCountry.level2_label_ar}</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px;">الأحياء والقرى والعزل الفرعية (${activeCountry.level3_label_ar})</th>
             </tr>
           </thead>
           <tbody>
@@ -624,8 +624,8 @@ export default function GlobalAddressManagerView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-black text-slate-500">{isRtl ? 'الاسم باللغة العربية' : 'Name (Arabic)'} *</label>
-                <input
+                <label htmlFor="ux-name-arabic" className="text-[11px] font-black text-slate-500">{isRtl ? 'الاسم باللغة العربية' : 'Name (Arabic)'} *</label>
+                <input id="ux-name-arabic"
                   type="text"
                   required
                   value={newArName}
@@ -636,8 +636,8 @@ export default function GlobalAddressManagerView({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-black text-slate-500">{isRtl ? 'الاسم باللغة الإنجليزية (اختياري)' : 'Name (English)'}</label>
-                <input
+                <label htmlFor="ux-name-english" className="text-[11px] font-black text-slate-500">{isRtl ? 'الاسم باللغة الإنجليزية (اختياري)' : 'Name (English)'}</label>
+                <input id="ux-name-english"
                   type="text"
                   value={newEnName}
                   onChange={e => setNewEnName(e.target.value)}

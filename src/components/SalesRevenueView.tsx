@@ -529,14 +529,14 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
               <table className="w-full text-start text-xs">
                 <thead className="bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-black">
                   <tr>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'رقم الفاتورة' : 'Invoice #'}</th>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'الجهة / العميل' : 'Client / Donor'}</th>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'نوع الإيراد' : 'Revenue Stream'}</th>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'المبلغ' : 'Amount'}</th>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'قناة التحصيل' : 'Gateway'}</th>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'حالة السداد' : 'Status'}</th>
-                    <th className="py-3 px-4 text-start">{isRtl ? 'تاريخ الإصدار' : 'Date'}</th>
-                    <th className="py-3 px-4 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
+                    <th scope="col" className="py-3 px-4 text-start">{isRtl ? 'رقم الفاتورة' : 'Invoice #'}</th>
+                    <th scope="col" className="py-3 px-4 text-start">{isRtl ? 'الجهة / العميل' : 'Client / Donor'}</th>
+                    <th scope="col" className="py-3 px-4 text-start">{isRtl ? 'نوع الإيراد' : 'Revenue Stream'}</th>
+                    <th scope="col" className="py-3 px-4 text-start">{isRtl ? 'المبلغ' : 'Amount'}</th>
+                    <th scope="col" className="py-3 px-4 text-start">{isRtl ? 'قناة التحصيل' : 'Gateway'}</th>
+                    <th scope="col" className="py-3 px-4 text-start">{isRtl ? 'حالة السداد' : 'Status'}</th>
+                    <th scope="col" className="py-3 px-4 text-start">{isRtl ? 'تاريخ الإصدار' : 'Date'}</th>
+                    <th scope="col" className="py-3 px-4 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -775,10 +775,10 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
 
           <form onSubmit={handleCreateInvoice} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-client-donor-organization-name" className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
                 {isRtl ? 'اسم العميل / المانح / الجهة *' : 'Client / Donor / Organization Name *'}
               </label>
-              <input
+              <input id="ux-client-donor-organization-name"
                 type="text"
                 required
                 value={newClient}
@@ -790,10 +790,10 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-total-amount" className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {isRtl ? 'المبلغ الإجمالي *' : 'Total Amount *'}
                 </label>
-                <input
+                <input id="ux-total-amount"
                   type="number"
                   required
                   min="1"
@@ -805,10 +805,10 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-currency" className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {isRtl ? 'العملة' : 'Currency'}
                 </label>
-                <select
+                <select id="ux-currency"
                   value={newCurrency}
                   onChange={(e) => setNewCurrency(e.target.value)}
                   className="w-full h-10 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 text-xs font-bold text-slate-900 dark:text-white"
@@ -822,10 +822,10 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-revenue-type" className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {isRtl ? 'نوع الإيراد' : 'Revenue Type'}
                 </label>
-                <select
+                <select id="ux-revenue-type"
                   value={newRevenueType}
                   onChange={(e) => setNewRevenueType(e.target.value)}
                   className="w-full h-10 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 text-xs font-bold text-slate-900 dark:text-white"
@@ -839,10 +839,10 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-payment-gateway" className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {isRtl ? 'قناة التحصيل المقترحة' : 'Payment Gateway'}
                 </label>
-                <select
+                <select id="ux-payment-gateway"
                   value={newGateway}
                   onChange={(e) => setNewGateway(e.target.value)}
                   className="w-full h-10 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 text-xs font-bold text-slate-900 dark:text-white"
@@ -978,10 +978,10 @@ export const SalesRevenueView: React.FC<SalesRevenueViewProps> = ({ lang, onNavi
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-payment-gateway-6" className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
                 {isRtl ? 'طريقة / قناة الاستلام:' : 'Payment Gateway:'}
               </label>
-              <select
+              <select id="ux-payment-gateway-6"
                 value={payGateway}
                 onChange={(e) => setPayGateway(e.target.value)}
                 className="w-full h-10 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3 text-xs font-bold text-slate-900 dark:text-white"

@@ -107,7 +107,7 @@ export function Tooltip({
             animate="animate"
             exit="exit"
             transition={{ duration: 0.12, ease: 'easeOut' }}
-            className={`absolute z-[100] px-2.5 py-1.5 text-[10px] font-black text-slate-100 dark:text-zinc-100 bg-slate-900/95 dark:bg-zinc-950/95 border border-zinc-800/80 rounded-lg shadow-lg pointer-events-none select-none max-w-xs text-center leading-normal whitespace-nowrap ${getPositionClasses()}`}
+            className={`absolute z-tooltip px-2.5 py-1.5 text-[10px] font-black text-slate-100 dark:text-zinc-100 bg-slate-900/95 dark:bg-zinc-950/95 border border-zinc-800/80 rounded-lg shadow-lg pointer-events-none select-none max-w-xs text-center leading-normal whitespace-nowrap ${getPositionClasses()}`}
           >
             {content}
             <div className={`absolute border-4 ${getArrowClasses()}`} />

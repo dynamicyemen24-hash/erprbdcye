@@ -690,10 +690,10 @@ export default function PrintPDFTemplateModal({
             {/* Title & Subtitle */}
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                <label htmlFor="ux-report-title" className="block text-[11px] font-bold text-slate-700 mb-1">
                   {isRtl ? 'عنوان التقرير الرئيسي:' : 'Report Title:'}
                 </label>
-                <input
+                <input id="ux-report-title"
                   type="text"
                   value={reportTitle}
                   onChange={(e) => setReportTitle(e.target.value)}
@@ -702,10 +702,10 @@ export default function PrintPDFTemplateModal({
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                <label htmlFor="ux-subtitle" className="block text-[11px] font-bold text-slate-700 mb-1">
                   {isRtl ? 'العنوان الفرعي:' : 'Subtitle:'}
                 </label>
-                <input
+                <input id="ux-subtitle"
                   type="text"
                   value={reportSubtitle}
                   onChange={(e) => setReportSubtitle(e.target.value)}
@@ -789,28 +789,28 @@ export default function PrintPDFTemplateModal({
                   {isRtl ? 'بيانات المذكرة الرسمية:' : 'Official Memo Details:'}
                 </label>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'من (جهة الإصدار):' : 'From (Sender):'}</label>
-                  <input type="text" value={memoFields.fromAr} onChange={(e) => setMemoFields(f => ({ ...f, fromAr: e.target.value }))}
+                  <label htmlFor="ux-from-sender" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'من (جهة الإصدار):' : 'From (Sender):'}</label>
+                  <input id="ux-from-sender" type="text" value={memoFields.fromAr} onChange={(e) => setMemoFields(f => ({ ...f, fromAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'إلى (جهة الإحالة):' : 'To (Recipient):'}</label>
-                  <input type="text" value={memoFields.toAr} onChange={(e) => setMemoFields(f => ({ ...f, toAr: e.target.value }))}
+                  <label htmlFor="ux-to-recipient" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'إلى (جهة الإحالة):' : 'To (Recipient):'}</label>
+                  <input id="ux-to-recipient" type="text" value={memoFields.toAr} onChange={(e) => setMemoFields(f => ({ ...f, toAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الموضوع:' : 'Subject:'}</label>
-                  <input type="text" value={memoFields.subjectAr} onChange={(e) => setMemoFields(f => ({ ...f, subjectAr: e.target.value }))}
+                  <label htmlFor="ux-subject" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الموضوع:' : 'Subject:'}</label>
+                  <input id="ux-subject" type="text" value={memoFields.subjectAr} onChange={(e) => setMemoFields(f => ({ ...f, subjectAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'نص الموضوع (كل سطر فقرة):' : 'Body (one line per paragraph):'}</label>
-                  <textarea rows={5} value={memoFields.bodyAr} onChange={(e) => setMemoFields(f => ({ ...f, bodyAr: e.target.value }))}
+                  <label htmlFor="ux-body-one-line-per-paragraph" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'نص الموضوع (كل سطر فقرة):' : 'Body (one line per paragraph):'}</label>
+                  <textarea id="ux-body-one-line-per-paragraph" rows={5} value={memoFields.bodyAr} onChange={(e) => setMemoFields(f => ({ ...f, bodyAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المراجع/المرفقات:' : 'References & Attachments:'}</label>
-                  <input type="text" value={memoFields.referencesAr} onChange={(e) => setMemoFields(f => ({ ...f, referencesAr: e.target.value }))}
+                  <label htmlFor="ux-references-attachments" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المراجع/المرفقات:' : 'References & Attachments:'}</label>
+                  <input id="ux-references-attachments" type="text" value={memoFields.referencesAr} onChange={(e) => setMemoFields(f => ({ ...f, referencesAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
               </div>
@@ -823,40 +823,40 @@ export default function PrintPDFTemplateModal({
                   {isRtl ? 'بيانات شهادة الإنجاز:' : 'Certificate of Completion Details:'}
                 </label>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الجهة المقبلة (المستلم):' : 'Receiving Entity:'}</label>
-                  <input type="text" value={certFields.entityNameAr} onChange={(e) => setCertFields(f => ({ ...f, entityNameAr: e.target.value }))}
+                  <label htmlFor="ux-receiving-entity" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الجهة المقبلة (المستلم):' : 'Receiving Entity:'}</label>
+                  <input id="ux-receiving-entity" type="text" value={certFields.entityNameAr} onChange={(e) => setCertFields(f => ({ ...f, entityNameAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المشروع/المهمة:' : 'Project / Task:'}</label>
-                  <input type="text" value={certFields.projectName} onChange={(e) => setCertFields(f => ({ ...f, projectName: e.target.value }))}
+                  <label htmlFor="ux-project-task" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المشروع/المهمة:' : 'Project / Task:'}</label>
+                  <input id="ux-project-task" type="text" value={certFields.projectName} onChange={(e) => setCertFields(f => ({ ...f, projectName: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'القيمة المالية (ريال يمني):' : 'Monetary Amount (YER):'}</label>
-                  <input type="number" value={certFields.amountYer} onChange={(e) => setCertFields(f => ({ ...f, amountYer: e.target.value }))}
+                  <label htmlFor="ux-monetary-amount-yer" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'القيمة المالية (ريال يمني):' : 'Monetary Amount (YER):'}</label>
+                  <input id="ux-monetary-amount-yer" type="number" value={certFields.amountYer} onChange={(e) => setCertFields(f => ({ ...f, amountYer: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="ltr" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ البدء:' : 'Start Date:'}</label>
-                    <input type="date" value={certFields.startDate} onChange={(e) => setCertFields(f => ({ ...f, startDate: e.target.value }))}
+                    <label htmlFor="ux-start-date" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ البدء:' : 'Start Date:'}</label>
+                    <input id="ux-start-date" type="date" value={certFields.startDate} onChange={(e) => setCertFields(f => ({ ...f, startDate: e.target.value }))}
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ الانتهاء:' : 'End Date:'}</label>
-                    <input type="date" value={certFields.endDate} onChange={(e) => setCertFields(f => ({ ...f, endDate: e.target.value }))}
+                    <label htmlFor="ux-end-date" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ الانتهاء:' : 'End Date:'}</label>
+                    <input id="ux-end-date" type="date" value={certFields.endDate} onChange={(e) => setCertFields(f => ({ ...f, endDate: e.target.value }))}
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المكان:' : 'Location:'}</label>
-                  <input type="text" value={certFields.locationAr} onChange={(e) => setCertFields(f => ({ ...f, locationAr: e.target.value }))}
+                  <label htmlFor="ux-location" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المكان:' : 'Location:'}</label>
+                  <input id="ux-location" type="text" value={certFields.locationAr} onChange={(e) => setCertFields(f => ({ ...f, locationAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'مسؤول الإصدار/الاعتماد:' : 'Issued / Authorized By:'}</label>
-                  <input type="text" value={certFields.issuedBy} onChange={(e) => setCertFields(f => ({ ...f, issuedBy: e.target.value }))}
+                  <label htmlFor="ux-issued-authorized-by" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'مسؤول الإصدار/الاعتماد:' : 'Issued / Authorized By:'}</label>
+                  <input id="ux-issued-authorized-by" type="text" value={certFields.issuedBy} onChange={(e) => setCertFields(f => ({ ...f, issuedBy: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
               </div>
@@ -869,28 +869,28 @@ export default function PrintPDFTemplateModal({
                   {isRtl ? 'بيانات تأكيد التبرع:' : 'Donation Acknowledgment Details:'}
                 </label>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'اسم المتبرع / الجهة:' : 'Donor Name / Entity:'}</label>
-                  <input type="text" value={donationFields.donorNameAr} onChange={(e) => setDonationFields(f => ({ ...f, donorNameAr: e.target.value }))}
+                  <label htmlFor="ux-donor-name-entity" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'اسم المتبرع / الجهة:' : 'Donor Name / Entity:'}</label>
+                  <input id="ux-donor-name-entity" type="text" value={donationFields.donorNameAr} onChange={(e) => setDonationFields(f => ({ ...f, donorNameAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المبلغ (ريال يمني):' : 'Amount (YER):'}</label>
-                  <input type="number" value={donationFields.amountYer} onChange={(e) => setDonationFields(f => ({ ...f, amountYer: e.target.value }))}
+                  <label htmlFor="ux-amount-yer" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المبلغ (ريال يمني):' : 'Amount (YER):'}</label>
+                  <input id="ux-amount-yer" type="number" value={donationFields.amountYer} onChange={(e) => setDonationFields(f => ({ ...f, amountYer: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="ltr" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الحملة / الصندوق:' : 'Campaign / Fund:'}</label>
-                  <input type="text" value={donationFields.campaignAr} onChange={(e) => setDonationFields(f => ({ ...f, campaignAr: e.target.value }))}
+                  <label htmlFor="ux-campaign-fund" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الحملة / الصندوق:' : 'Campaign / Fund:'}</label>
+                  <input id="ux-campaign-fund" type="text" value={donationFields.campaignAr} onChange={(e) => setDonationFields(f => ({ ...f, campaignAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'وسيلة السداد:' : 'Payment Channel:'}</label>
-                  <input type="text" value={donationFields.channelAr} onChange={(e) => setDonationFields(f => ({ ...f, channelAr: e.target.value }))}
+                  <label htmlFor="ux-payment-channel" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'وسيلة السداد:' : 'Payment Channel:'}</label>
+                  <input id="ux-payment-channel" type="text" value={donationFields.channelAr} onChange={(e) => setDonationFields(f => ({ ...f, channelAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الغرض / التوجيه:' : 'Purpose / Allocation:'}</label>
-                  <input type="text" value={donationFields.purposeAr} onChange={(e) => setDonationFields(f => ({ ...f, purposeAr: e.target.value }))}
+                  <label htmlFor="ux-purpose-allocation" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الغرض / التوجيه:' : 'Purpose / Allocation:'}</label>
+                  <input id="ux-purpose-allocation" type="text" value={donationFields.purposeAr} onChange={(e) => setDonationFields(f => ({ ...f, purposeAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
               </div>
@@ -903,30 +903,30 @@ export default function PrintPDFTemplateModal({
                   {isRtl ? 'بيانات شهادة التقدير:' : 'Appreciation Details:'}
                 </label>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'اسم المتطوع/ة:' : 'Volunteer Name:'}</label>
-                  <input type="text" value={volunteerFields.volunteerNameAr} onChange={(e) => setVolunteerFields(f => ({ ...f, volunteerNameAr: e.target.value }))}
+                  <label htmlFor="ux-volunteer-name" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'اسم المتطوع/ة:' : 'Volunteer Name:'}</label>
+                  <input id="ux-volunteer-name" type="text" value={volunteerFields.volunteerNameAr} onChange={(e) => setVolunteerFields(f => ({ ...f, volunteerNameAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المبادرة / النشاط:' : 'Initiative / Activity:'}</label>
-                  <input type="text" value={volunteerFields.initiativeAr} onChange={(e) => setVolunteerFields(f => ({ ...f, initiativeAr: e.target.value }))}
+                  <label htmlFor="ux-initiative-activity" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المبادرة / النشاط:' : 'Initiative / Activity:'}</label>
+                  <input id="ux-initiative-activity" type="text" value={volunteerFields.initiativeAr} onChange={(e) => setVolunteerFields(f => ({ ...f, initiativeAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'ساعات العمل:' : 'Hours Served:'}</label>
-                    <input type="number" value={volunteerFields.hoursServed} onChange={(e) => setVolunteerFields(f => ({ ...f, hoursServed: e.target.value }))}
+                    <label htmlFor="ux-hours-served" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'ساعات العمل:' : 'Hours Served:'}</label>
+                    <input id="ux-hours-served" type="number" value={volunteerFields.hoursServed} onChange={(e) => setVolunteerFields(f => ({ ...f, hoursServed: e.target.value }))}
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="ltr" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الفترة:' : 'Period:'}</label>
-                    <input type="text" value={volunteerFields.periodAr} onChange={(e) => setVolunteerFields(f => ({ ...f, periodAr: e.target.value }))}
+                    <label htmlFor="ux-period" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الفترة:' : 'Period:'}</label>
+                    <input id="ux-period" type="text" value={volunteerFields.periodAr} onChange={(e) => setVolunteerFields(f => ({ ...f, periodAr: e.target.value }))}
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'أسباب التقدير:' : 'Reason for Recognition:'}</label>
-                  <textarea rows={3} value={volunteerFields.excellenceAr} onChange={(e) => setVolunteerFields(f => ({ ...f, excellenceAr: e.target.value }))}
+                  <label htmlFor="ux-reason-for-recognition" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'أسباب التقدير:' : 'Reason for Recognition:'}</label>
+                  <textarea id="ux-reason-for-recognition" rows={3} value={volunteerFields.excellenceAr} onChange={(e) => setVolunteerFields(f => ({ ...f, excellenceAr: e.target.value }))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:ring-2 focus:ring-emerald-500 text-xs" dir="rtl" />
                 </div>
               </div>

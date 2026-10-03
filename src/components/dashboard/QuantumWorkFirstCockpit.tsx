@@ -998,12 +998,12 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
           <table className="w-full text-xs text-left rtl:text-right">
             <thead>
               <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-bold">
-                <th className="py-2.5 px-3">{isRtl ? 'رقم المعاملة' : 'Transaction ID'}</th>
-                <th className="py-2.5 px-3">{isRtl ? 'البيان والمشروع' : 'Description & Project'}</th>
-                <th className="py-2.5 px-3">{isRtl ? 'الفرع' : 'Branch'}</th>
-                <th className="py-2.5 px-3">{isRtl ? 'المبلغ' : 'Amount'}</th>
-                <th className="py-2.5 px-3">{isRtl ? 'حالة القيد والمسار' : 'Status & Lifecycle'}</th>
-                <th className="py-2.5 px-3 text-center">{isRtl ? 'الإجراء' : 'Action'}</th>
+                <th scope="col" className="py-2.5 px-3">{isRtl ? 'رقم المعاملة' : 'Transaction ID'}</th>
+                <th scope="col" className="py-2.5 px-3">{isRtl ? 'البيان والمشروع' : 'Description & Project'}</th>
+                <th scope="col" className="py-2.5 px-3">{isRtl ? 'الفرع' : 'Branch'}</th>
+                <th scope="col" className="py-2.5 px-3">{isRtl ? 'المبلغ' : 'Amount'}</th>
+                <th scope="col" className="py-2.5 px-3">{isRtl ? 'حالة القيد والمسار' : 'Status & Lifecycle'}</th>
+                <th scope="col" className="py-2.5 px-3 text-center">{isRtl ? 'الإجراء' : 'Action'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60 font-medium">
@@ -1370,10 +1370,10 @@ export const QuantumWorkFirstCockpit: React.FC<QuantumWorkFirstCockpitProps> = (
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                <label htmlFor="ux-additional-note-for-requester-opti" className="font-bold text-slate-700 dark:text-zinc-300 block mb-1">
                   {isRtl ? 'ملاحظة إضافية للمسؤول (اختياري):' : 'Additional note for requester (optional):'}
                 </label>
-                <textarea
+                <textarea id="ux-additional-note-for-requester-opti"
                   value={clarificationModal.note}
                   onChange={(e) => setClarificationModal(prev => ({ ...prev, note: e.target.value }))}
                   placeholder={isRtl ? 'أدخل أي توجيهات محددة لاستيفاء المعاملة...' : 'Add specific instructions...'}

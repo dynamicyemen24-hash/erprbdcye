@@ -169,10 +169,10 @@ export default function EndowmentInvestmentGovernanceSuite({
                 <table className="w-full text-[10.5px] font-bold">
                   <thead>
                     <tr className="text-slate-400 border-b border-slate-200 dark:border-zinc-800">
-                      <th className="text-start py-2 px-2">{isRtl ? 'رقم الحساب' : 'Code'}</th>
-                      <th className="text-start py-2 px-2">{isRtl ? 'اسم الحساب' : 'Account Name'}</th>
-                      <th className="text-start py-2 px-2">{isRtl ? 'النوع' : 'Type'}</th>
-                      <th className="text-end py-2 px-2">{isRtl ? 'الرصيد الحالي (بريال يمني)' : 'Current Balance (YER)'}</th>
+                      <th scope="col" className="text-start py-2 px-2">{isRtl ? 'رقم الحساب' : 'Code'}</th>
+                      <th scope="col" className="text-start py-2 px-2">{isRtl ? 'اسم الحساب' : 'Account Name'}</th>
+                      <th scope="col" className="text-start py-2 px-2">{isRtl ? 'النوع' : 'Type'}</th>
+                      <th scope="col" className="text-end py-2 px-2">{isRtl ? 'الرصيد الحالي (بريال يمني)' : 'Current Balance (YER)'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
@@ -203,10 +203,10 @@ export default function EndowmentInvestmentGovernanceSuite({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-3">
-                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-single-payment-ceiling-cap" className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
                   {isRtl ? 'الحد الأقصى لسندات الصرف الفردية (بالريال اليمني):' : 'Single Payment Ceiling Cap ($):'}
                 </label>
-                <input
+                <input id="ux-single-payment-ceiling-cap"
                   type="number"
                   value={maxPaymentCap}
                   onChange={(e) => setMaxPaymentCap(Number(e.target.value))}
@@ -216,10 +216,10 @@ export default function EndowmentInvestmentGovernanceSuite({
               </div>
 
               <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-3">
-                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-dual-signature-threshold" className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
                   {isRtl ? 'عتبة التوقيع المزدوج (بالريال اليمني):' : 'Dual Signature Threshold ($):'}
                 </label>
-                <input
+                <input id="ux-dual-signature-threshold"
                   type="number"
                   value={dualSignThreshold}
                   onChange={(e) => setDualSignThreshold(Number(e.target.value))}
@@ -409,12 +409,12 @@ export default function EndowmentInvestmentGovernanceSuite({
                 <table className="w-full text-[10.5px] font-bold">
                   <thead>
                     <tr className="text-slate-400 border-b border-slate-200 dark:border-zinc-800">
-                      <th className="text-start py-2 px-2">{isRtl ? 'المشروع' : 'Project'}</th>
-                      <th className="text-end py-2 px-2">{isRtl ? 'الموازنة المعتمدة' : 'Approved Budget'}</th>
-                      <th className="text-end py-2 px-2">{isRtl ? 'المصروف الفعلي' : 'Actual Spend'}</th>
-                      <th className="text-end py-2 px-2">{isRtl ? 'نسبة التنفيذ' : 'Utilization'}</th>
-                      <th className="text-end py-2 px-2">{isRtl ? 'الانحراف' : 'Variance'}</th>
-                      <th className="text-center py-2 px-2">{isRtl ? 'الحكم المعياري' : 'Standard Judgment'}</th>
+                      <th scope="col" className="text-start py-2 px-2">{isRtl ? 'المشروع' : 'Project'}</th>
+                      <th scope="col" className="text-end py-2 px-2">{isRtl ? 'الموازنة المعتمدة' : 'Approved Budget'}</th>
+                      <th scope="col" className="text-end py-2 px-2">{isRtl ? 'المصروف الفعلي' : 'Actual Spend'}</th>
+                      <th scope="col" className="text-end py-2 px-2">{isRtl ? 'نسبة التنفيذ' : 'Utilization'}</th>
+                      <th scope="col" className="text-end py-2 px-2">{isRtl ? 'الانحراف' : 'Variance'}</th>
+                      <th scope="col" className="text-center py-2 px-2">{isRtl ? 'الحكم المعياري' : 'Standard Judgment'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">

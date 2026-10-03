@@ -1271,13 +1271,13 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             <table className="w-full text-right text-xs">
               <thead className="bg-slate-50 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 uppercase font-bold border-b border-slate-200 dark:border-zinc-700">
                 <tr>
-                  <th className="p-3">{isAr ? 'كود النشاط' : 'Activity Code'}</th>
-                  <th className="p-3">{isAr ? 'عنوان النشاط التنفيذي' : 'Executive Operation'}</th>
-                  <th className="p-3">{isAr ? 'المشروع الاستثماري' : 'Project'}</th>
-                  <th className="p-3">{isAr ? 'التاريخ المخطط' : 'Planned Date'}</th>
-                  <th className="p-3">{isAr ? 'الميزانية المخصصة' : 'Allocated Budget'}</th>
-                  <th className="p-3">{isAr ? 'المسؤول الميداني' : 'Assigned Lead'}</th>
-                  <th className="p-3">{isAr ? 'حالة التنفيذ' : 'Status'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'كود النشاط' : 'Activity Code'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'عنوان النشاط التنفيذي' : 'Executive Operation'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'المشروع الاستثماري' : 'Project'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'التاريخ المخطط' : 'Planned Date'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'الميزانية المخصصة' : 'Allocated Budget'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'المسؤول الميداني' : 'Assigned Lead'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'حالة التنفيذ' : 'Status'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium">
@@ -1401,14 +1401,14 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             <table className="w-full text-right text-xs">
               <thead className="bg-slate-50 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 uppercase font-bold border-b border-slate-200 dark:border-zinc-700">
                 <tr>
-                  <th className="p-3">{isAr ? 'الفترة المالية' : 'Fiscal Period'}</th>
-                  <th className="p-3">{isAr ? 'المشروع الاستثماري' : 'Investment Project'}</th>
-                  <th className="p-3">{isAr ? 'الإيرادات الإجمالية' : 'Gross Revenue'}</th>
-                  <th className="p-3">{isAr ? 'المصروفات التشغيلية' : 'Op-Ex'}</th>
-                  <th className="p-3">{isAr ? 'صافي الربح' : 'Net Profit'}</th>
-                  <th className="p-3">{isAr ? 'المحول للإغاثة (75%)' : 'Charity Split'}</th>
-                  <th className="p-3">{isAr ? 'إعادة الاستثمار (25%)' : 'Reinvestment Split'}</th>
-                  <th className="p-3">{isAr ? 'التدقيق المالي' : 'Auditor'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'الفترة المالية' : 'Fiscal Period'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'المشروع الاستثماري' : 'Investment Project'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'الإيرادات الإجمالية' : 'Gross Revenue'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'المصروفات التشغيلية' : 'Op-Ex'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'صافي الربح' : 'Net Profit'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'المحول للإغاثة (75%)' : 'Charity Split'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'إعادة الاستثمار (25%)' : 'Reinvestment Split'}</th>
+                  <th scope="col" className="p-3">{isAr ? 'التدقيق المالي' : 'Auditor'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium">
@@ -1588,8 +1588,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             <form onSubmit={handleCreateProject} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'كود المشروع' : 'Project Code'}</label>
-                  <input
+                  <label htmlFor="ux-project-code" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'كود المشروع' : 'Project Code'}</label>
+                  <input id="ux-project-code"
                     type="text"
                     value={newProjectForm.project_code}
                     onChange={(e) => setNewProjectForm({...newProjectForm, project_code: e.target.value})}
@@ -1598,8 +1598,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'القطاع الاستثماري' : 'Sector'}</label>
-                  <select
+                  <label htmlFor="ux-sector" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'القطاع الاستثماري' : 'Sector'}</label>
+                  <select id="ux-sector"
                     value={newProjectForm.category}
                     onChange={(e) => setNewProjectForm({...newProjectForm, category: e.target.value})}
                     className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs font-medium"
@@ -1615,8 +1615,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان المشروع الاستثماري (بالعربية)' : 'Project Title (Arabic)'}</label>
-                <input
+                <label htmlFor="ux-project-title-arabic" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان المشروع الاستثماري (بالعربية)' : 'Project Title (Arabic)'}</label>
+                <input id="ux-project-title-arabic"
                   type="text"
                   required
                   placeholder={isAr ? 'مثال: وقف الإيمان التجاري الموحد - سيئون' : 'e.g. Al-Iman Endowment Complex'}
@@ -1628,8 +1628,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'رأس المال المخصص (CapEx YER)' : 'CapEx Capital (YER)'}</label>
-                  <input
+                  <label htmlFor="ux-capex-yer" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'رأس المال المخصص (CapEx YER)' : 'CapEx Capital (YER)'}</label>
+                  <input id="ux-capex-yer"
                     type="number"
                     value={newProjectForm.capital_allocated_yer}
                     onChange={(e) => setNewProjectForm({...newProjectForm, capital_allocated_yer: Number(e.target.value)})}
@@ -1638,8 +1638,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'العائد السنوي المتوقع (Expected ROI %)' : 'Expected ROI %'}</label>
-                  <input
+                  <label htmlFor="ux-expected-roi" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'العائد السنوي المتوقع (Expected ROI %)' : 'Expected ROI %'}</label>
+                  <input id="ux-expected-roi"
                     type="number"
                     step="0.1"
                     value={newProjectForm.expected_roi_pct}
@@ -1651,8 +1651,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نسبة تحويل الإغاثة (%)' : 'Relief Split %'}</label>
-                  <input
+                  <label htmlFor="ux-relief-split" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نسبة تحويل الإغاثة (%)' : 'Relief Split %'}</label>
+                  <input id="ux-relief-split"
                     type="number"
                     value={newProjectForm.humanitarian_distribution_pct}
                     onChange={(e) => setNewProjectForm({...newProjectForm, humanitarian_distribution_pct: Number(e.target.value)})}
@@ -1661,8 +1661,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المحافظة / الموقع' : 'Governorate'}</label>
-                  <input
+                  <label htmlFor="ux-governorate" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المحافظة / الموقع' : 'Governorate'}</label>
+                  <input id="ux-governorate"
                     type="text"
                     value={newProjectForm.location_governorate}
                     onChange={(e) => setNewProjectForm({...newProjectForm, location_governorate: e.target.value})}
@@ -1717,8 +1717,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
             <form onSubmit={handleAddContract} className="space-y-4 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المشروع المرتبط' : 'Linked Project'}</label>
-                <select
+                <label htmlFor="ux-linked-project" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المشروع المرتبط' : 'Linked Project'}</label>
+                <select id="ux-linked-project"
                   value={newContractForm.project_id}
                   onChange={(e) => setNewContractForm({...newContractForm, project_id: e.target.value})}
                   className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs font-semibold"
@@ -1730,8 +1730,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان العقد' : 'Contract Title'}</label>
-                <input
+                <label htmlFor="ux-contract-title" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان العقد' : 'Contract Title'}</label>
+                <input id="ux-contract-title"
                   type="text"
                   required
                   placeholder={isAr ? 'مثال: عقد تأجير المحلات التجارية والمكاتب' : 'e.g. Master Lease Agreement'}
@@ -1743,8 +1743,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'الطرف الثاني (المستأجر/المشغل)' : 'Second Party'}</label>
-                  <input
+                  <label htmlFor="ux-second-party" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'الطرف الثاني (المستأجر/المشغل)' : 'Second Party'}</label>
+                  <input id="ux-second-party"
                     type="text"
                     required
                     placeholder={isAr ? 'اسم الشركة أو المستأجر' : 'Entity Name'}
@@ -1755,8 +1755,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'القيمة السنوية (YER)' : 'Annual Value (YER)'}</label>
-                  <input
+                  <label htmlFor="ux-yer" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'القيمة السنوية (YER)' : 'Annual Value (YER)'}</label>
+                  <input id="ux-yer"
                     type="number"
                     value={newContractForm.value_yer}
                     onChange={(e) => setNewContractForm({...newContractForm, value_yer: Number(e.target.value)})}
@@ -1767,8 +1767,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ البداية' : 'Start Date'}</label>
-                  <input
+                  <label htmlFor="ux-start-date" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ البداية' : 'Start Date'}</label>
+                  <input id="ux-start-date"
                     type="date"
                     value={newContractForm.start_date}
                     onChange={(e) => setNewContractForm({...newContractForm, start_date: e.target.value})}
@@ -1777,8 +1777,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ الانتهاء' : 'End Date'}</label>
-                  <input
+                  <label htmlFor="ux-end-date" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ الانتهاء' : 'End Date'}</label>
+                  <input id="ux-end-date"
                     type="date"
                     value={newContractForm.end_date}
                     onChange={(e) => setNewContractForm({...newContractForm, end_date: e.target.value})}
@@ -1832,8 +1832,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
             <form onSubmit={handleAddActivity} className="space-y-4 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المشروع المرتبط' : 'Linked Project'}</label>
-                <select
+                <label htmlFor="ux-linked-project-14" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المشروع المرتبط' : 'Linked Project'}</label>
+                <select id="ux-linked-project-14"
                   value={newActivityForm.project_id}
                   onChange={(e) => setNewActivityForm({...newActivityForm, project_id: e.target.value})}
                   className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 text-xs font-semibold"
@@ -1845,8 +1845,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان النشاط التنفيذي' : 'Activity Title'}</label>
-                <input
+                <label htmlFor="ux-activity-title" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان النشاط التنفيذي' : 'Activity Title'}</label>
+                <input id="ux-activity-title"
                   type="text"
                   required
                   placeholder={isAr ? 'مثال: جني موسم الزيتون أو صيانة الفلاتر' : 'e.g. Harvest season extraction'}
@@ -1858,8 +1858,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'الميزانية المخصصة (YER)' : 'Budget (YER)'}</label>
-                  <input
+                  <label htmlFor="ux-yer-16" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'الميزانية المخصصة (YER)' : 'Budget (YER)'}</label>
+                  <input id="ux-yer-16"
                     type="number"
                     value={newActivityForm.budget_allocated_yer}
                     onChange={(e) => setNewActivityForm({...newActivityForm, budget_allocated_yer: Number(e.target.value)})}
@@ -1868,8 +1868,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ التنفيذ المخطط' : 'Planned Date'}</label>
-                  <input
+                  <label htmlFor="ux-planned-date" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'تاريخ التنفيذ المخطط' : 'Planned Date'}</label>
+                  <input id="ux-planned-date"
                     type="date"
                     value={newActivityForm.planned_date}
                     onChange={(e) => setNewActivityForm({...newActivityForm, planned_date: e.target.value})}
@@ -1879,8 +1879,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المسؤول الميداني' : 'Assigned Engineer / Lead'}</label>
-                <input
+                <label htmlFor="ux-assigned-engineer-lead" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المسؤول الميداني' : 'Assigned Engineer / Lead'}</label>
+                <input id="ux-assigned-engineer-lead"
                   type="text"
                   value={newActivityForm.assigned_lead}
                   onChange={(e) => setNewActivityForm({...newActivityForm, assigned_lead: e.target.value})}
@@ -1935,10 +1935,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
             <form onSubmit={handleAddReturn} className="space-y-4 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-fiscal-period" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
                   {isAr ? 'الفترة المالية (الربع/السنة)' : 'Fiscal Period'}
                 </label>
-                <input
+                <input id="ux-fiscal-period"
                   type="text"
                   required
                   value={newReturnForm.fiscal_period}
@@ -1949,10 +1949,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
+                  <label htmlFor="ux-yer-20" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'إجمالي الإيرادات (YER)' : 'Gross Revenue'}
                   </label>
-                  <input
+                  <input id="ux-yer-20"
                     type="number"
                     value={newReturnForm.gross_revenue_yer}
                     onChange={(e) => setNewReturnForm({...newReturnForm, gross_revenue_yer: Number(e.target.value)})}
@@ -1961,10 +1961,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
+                  <label htmlFor="ux-yer-21" className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'المصروفات التشغيلية (YER)' : 'Op-Ex'}
                   </label>
-                  <input
+                  <input id="ux-yer-21"
                     type="number"
                     value={newReturnForm.operational_expenses_yer}
                     onChange={(e) => setNewReturnForm({...newReturnForm, operational_expenses_yer: Number(e.target.value)})}
@@ -2115,8 +2115,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'رأس المال المقترح (CapEx - YER)' : 'Proposed Capital'}</label>
-                  <input
+                  <label htmlFor="ux-capex-yer-22" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'رأس المال المقترح (CapEx - YER)' : 'Proposed Capital'}</label>
+                  <input id="ux-capex-yer-22"
                     type="number"
                     value={newProjectForm.capex_yer}
                     onChange={(e) => {
@@ -2127,8 +2127,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المصروفات التشغيلية السنوية (OpEx)' : 'Annual OpEx'}</label>
-                  <input
+                  <label htmlFor="ux-opex" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'المصروفات التشغيلية السنوية (OpEx)' : 'Annual OpEx'}</label>
+                  <input id="ux-opex"
                     type="number"
                     value={newProjectForm.opex_annual_yer}
                     onChange={(e) => setNewProjectForm({ ...newProjectForm, opex_annual_yer: Number(e.target.value) })}
@@ -2139,8 +2139,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'معدل العائد المتوقع ROI (%)' : 'Target ROI %'}</label>
-                  <input
+                  <label htmlFor="ux-roi" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'معدل العائد المتوقع ROI (%)' : 'Target ROI %'}</label>
+                  <input id="ux-roi"
                     type="number"
                     step="0.5"
                     value={newProjectForm.expected_roi_pct}
@@ -2149,8 +2149,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نسبة تخصيص الإغاثة (%)' : 'Humanitarian Share %'}</label>
-                  <input
+                  <label htmlFor="ux-humanitarian-share" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نسبة تخصيص الإغاثة (%)' : 'Humanitarian Share %'}</label>
+                  <input id="ux-humanitarian-share"
                     type="number"
                     value={newProjectForm.humanitarian_distribution_pct}
                     onChange={(e) => setNewProjectForm({ ...newProjectForm, humanitarian_distribution_pct: Number(e.target.value) })}
@@ -2260,8 +2260,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               className="space-y-4 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان الوثيقة / العقد' : 'Document Title'}</label>
-                <input
+                <label htmlFor="ux-document-title" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'عنوان الوثيقة / العقد' : 'Document Title'}</label>
+                <input id="ux-document-title"
                   type="text"
                   required
                   value={archiveFormState.doc_title}
@@ -2272,8 +2272,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نوع الأرشيف' : 'Archive Category'}</label>
-                  <select
+                  <label htmlFor="ux-archive-category" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'نوع الأرشيف' : 'Archive Category'}</label>
+                  <select id="ux-archive-category"
                     value={archiveFormState.doc_type}
                     onChange={(e) => setArchiveFormState({ ...archiveFormState, doc_type: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 font-semibold"
@@ -2285,8 +2285,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'كود المشروع المرتبط' : 'Project Code'}</label>
-                  <input
+                  <label htmlFor="ux-project-code-28" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'كود المشروع المرتبط' : 'Project Code'}</label>
+                  <input id="ux-project-code-28"
                     type="text"
                     value={archiveFormState.project_code}
                     onChange={(e) => setArchiveFormState({ ...archiveFormState, project_code: e.target.value })}
@@ -2296,8 +2296,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'مستوى السرية والصلاحيات' : 'Confidentiality Level'}</label>
-                <select
+                <label htmlFor="ux-confidentiality-level" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'مستوى السرية والصلاحيات' : 'Confidentiality Level'}</label>
+                <select id="ux-confidentiality-level"
                   value={archiveFormState.confidentiality_level}
                   onChange={(e) => setArchiveFormState({ ...archiveFormState, confidentiality_level: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 font-mono text-[11px]"
@@ -2310,8 +2310,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'ملاحظات الأرشفة والفرسنة' : 'Archiving Notes'}</label>
-                <textarea
+                <label htmlFor="ux-archiving-notes" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">{isAr ? 'ملاحظات الأرشفة والفرسنة' : 'Archiving Notes'}</label>
+                <textarea id="ux-archiving-notes"
                   rows={2}
                   value={archiveFormState.archiving_notes}
                   onChange={(e) => setArchiveFormState({ ...archiveFormState, archiving_notes: e.target.value })}
@@ -2407,10 +2407,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               className="space-y-4 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-activity-title-31" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {isAr ? 'اسم النشاط الاستثماري' : 'Activity Title'}
                 </label>
-                <input
+                <input id="ux-activity-title-31"
                   type="text"
                   required
                   value={microForm.title_ar}
@@ -2421,10 +2421,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                  <label htmlFor="ux-micro-category" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'تصنيف النشاط المصغر' : 'Micro Category'}
                   </label>
-                  <select
+                  <select id="ux-micro-category"
                     value={microForm.category}
                     onChange={(e) => setMicroForm({ ...microForm, category: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg p-2 font-semibold"
@@ -2436,10 +2436,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                  <label htmlFor="ux-location" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'الموقع الجغرافي / المحافظة' : 'Location'}
                   </label>
-                  <input
+                  <input id="ux-location"
                     type="text"
                     required
                     value={microForm.location}
@@ -2451,10 +2451,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                  <label htmlFor="ux-yer-34" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'رأس المال / التكلفة (YER)' : 'Capital (YER)'}
                   </label>
-                  <input
+                  <input id="ux-yer-34"
                     type="number"
                     required
                     value={microForm.capital_yer}
@@ -2463,10 +2463,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                  <label htmlFor="ux-roi-35" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'معدل العائد المتوقع ROI %' : 'Expected ROI %'}
                   </label>
-                  <input
+                  <input id="ux-roi-35"
                     type="number"
                     step="0.1"
                     required
@@ -2479,10 +2479,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                  <label htmlFor="ux-area-units" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'المساحة / عدد الوحدات' : 'Area / Units'}
                   </label>
-                  <input
+                  <input id="ux-area-units"
                     type="text"
                     value={microForm.area_size}
                     onChange={(e) => setMicroForm({ ...microForm, area_size: e.target.value })}
@@ -2490,10 +2490,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                  <label htmlFor="ux-deed-contract-no" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                     {isAr ? 'رقم الصك / عقد المقاولة' : 'Deed / Contract No.'}
                   </label>
-                  <input
+                  <input id="ux-deed-contract-no"
                     type="text"
                     value={microForm.deed_number}
                     onChange={(e) => setMicroForm({ ...microForm, deed_number: e.target.value })}
@@ -2503,10 +2503,10 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-boundaries-scope" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {isAr ? 'حدود الأرض / نطاق المقاولة / المواصفات' : 'Boundaries & Scope'}
                 </label>
-                <textarea
+                <textarea id="ux-boundaries-scope"
                   rows={2}
                   value={microForm.boundaries_ar}
                   onChange={(e) => setMicroForm({ ...microForm, boundaries_ar: e.target.value })}

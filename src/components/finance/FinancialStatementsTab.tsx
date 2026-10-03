@@ -391,10 +391,10 @@ function FinancialStatementsTabInner({ accounts, lang }: FinancialStatementsTabP
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
               <thead>
                 <tr className="bg-zinc-900 text-emerald-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                  <th className="p-3 w-28">{lang === 'ar' ? 'رقم الحساب' : 'Account Code'}</th>
-                  <th className="p-3">{lang === 'ar' ? 'اسم الحساب في الدليل' : 'Account Name'}</th>
-                  <th className="p-3 text-right w-32">{lang === 'ar' ? 'أرصدة مدينة' : 'Debit Bal'}</th>
-                  <th className="p-3 text-right w-32">{lang === 'ar' ? 'أرصدة دائنة' : 'Credit Bal'}</th>
+                  <th scope="col" className="p-3 w-28">{lang === 'ar' ? 'رقم الحساب' : 'Account Code'}</th>
+                  <th scope="col" className="p-3">{lang === 'ar' ? 'اسم الحساب في الدليل' : 'Account Name'}</th>
+                  <th scope="col" className="p-3 text-right w-32">{lang === 'ar' ? 'أرصدة مدينة' : 'Debit Bal'}</th>
+                  <th scope="col" className="p-3 text-right w-32">{lang === 'ar' ? 'أرصدة دائنة' : 'Credit Bal'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300 font-mono font-semibold">

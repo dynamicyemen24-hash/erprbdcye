@@ -222,9 +222,9 @@ export default function BiometricSecuritySettingsView({ lang, currentUser }: { l
             <table className="w-full text-xs">
               <thead className="bg-slate-50 dark:bg-zinc-800 border-b border-slate-200 dark:border-zinc-700 text-zinc-500 font-bold uppercase text-[9px]">
                 <tr>
-                  <th className="p-3 text-right">{isAr ? 'المستخدم' : 'User'}</th>
-                  <th className="p-3 text-center">{isAr ? 'المصادقة الحيوية' : 'Biometric Auth'}</th>
-                  <th className="p-3 text-center">{isAr ? 'مستوى الحساسية' : 'Sensitivity Level'}</th>
+                  <th scope="col" className="p-3 text-right">{isAr ? 'المستخدم' : 'User'}</th>
+                  <th scope="col" className="p-3 text-center">{isAr ? 'المصادقة الحيوية' : 'Biometric Auth'}</th>
+                  <th scope="col" className="p-3 text-center">{isAr ? 'مستوى الحساسية' : 'Sensitivity Level'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -293,9 +293,9 @@ export default function BiometricSecuritySettingsView({ lang, currentUser }: { l
           <table className="w-full text-xs">
             <thead className="bg-slate-50 dark:bg-zinc-800 border-b border-slate-200 dark:border-zinc-700 text-zinc-500 font-bold uppercase text-[9px]">
               <tr>
-                <th className="p-3 text-right">{isAr ? 'المستخدم' : 'User'}</th>
-                <th className="p-3 text-center">{isAr ? 'التوقيت' : 'Timestamp'}</th>
-                <th className="p-3 text-center">{isAr ? 'الحالة' : 'Status'}</th>
+                <th scope="col" className="p-3 text-right">{isAr ? 'المستخدم' : 'User'}</th>
+                <th scope="col" className="p-3 text-center">{isAr ? 'التوقيت' : 'Timestamp'}</th>
+                <th scope="col" className="p-3 text-center">{isAr ? 'الحالة' : 'Status'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">

@@ -95,7 +95,7 @@ export const HeaderQuickMenu: React.FC<HeaderQuickMenuProps> = ({
 
       {isOpen && (
         <div 
-          className={`absolute top-full mt-2 w-64 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl z-[1000] p-2 space-y-1 text-slate-800 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute top-full mt-2 w-64 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl z-dropdown p-2 space-y-1 text-slate-800 dark:text-zinc-100 animate-in fade-in zoom-in-95 duration-150 ${
             isRtl ? 'left-0' : 'right-0'
           }`}
         >

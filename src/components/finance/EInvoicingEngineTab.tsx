@@ -499,13 +499,13 @@ export default function EInvoicingEngineTab({
           <table class="w-full text-xs text-right border-collapse">
             <thead>
               <tr class="bg-slate-900 text-white font-black">
-                <th class="p-2.5">#</th>
-                <th class="p-2.5">رمز البند</th>
-                <th class="p-2.5">الوصف والبيان التفصيلي</th>
-                <th class="p-2.5 text-center">الكمية</th>
-                <th class="p-2.5 text-center">سعر الوحدة</th>
-                <th class="p-2.5 text-center">نسبة الضريبة</th>
-                <th class="p-2.5 text-left">الإجمالي (YER)</th>
+                <th scope="col" class="p-2.5">#</th>
+                <th scope="col" class="p-2.5">رمز البند</th>
+                <th scope="col" class="p-2.5">الوصف والبيان التفصيلي</th>
+                <th scope="col" class="p-2.5 text-center">الكمية</th>
+                <th scope="col" class="p-2.5 text-center">سعر الوحدة</th>
+                <th scope="col" class="p-2.5 text-center">نسبة الضريبة</th>
+                <th scope="col" class="p-2.5 text-left">الإجمالي (YER)</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 font-bold">
@@ -830,11 +830,11 @@ export default function EInvoicingEngineTab({
                     <table className="w-full text-xs text-right border-collapse">
                       <thead>
                         <tr className="bg-slate-900 text-white font-black text-[10px]">
-                          <th className="p-2">الوصف والبيان</th>
-                          <th className="p-2 text-center">الكمية</th>
-                          <th className="p-2 text-center">السعر</th>
-                          <th className="p-2 text-center">الضريبة</th>
-                          <th className="p-2 text-left">الإجمالي YER</th>
+                          <th scope="col" className="p-2">الوصف والبيان</th>
+                          <th scope="col" className="p-2 text-center">الكمية</th>
+                          <th scope="col" className="p-2 text-center">السعر</th>
+                          <th scope="col" className="p-2 text-center">الضريبة</th>
+                          <th scope="col" className="p-2 text-left">الإجمالي YER</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold text-slate-700 dark:text-zinc-300">
@@ -959,8 +959,8 @@ export default function EInvoicingEngineTab({
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-slate-600 dark:text-zinc-400">رقم الفاتورة الآلي:</label>
-                  <input
+                  <label htmlFor="ux-field-1" className="text-[11px] font-extrabold text-slate-600 dark:text-zinc-400">رقم الفاتورة الآلي:</label>
+                  <input id="ux-field-1"
                     type="text"
                     value={newInvForm.invoiceNumber}
                     onChange={(e) => setNewInvForm({ ...newInvForm, invoiceNumber: e.target.value })}
@@ -969,8 +969,8 @@ export default function EInvoicingEngineTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-slate-600 dark:text-zinc-400">نوع الفاتورة الإلكترونية:</label>
-                  <select
+                  <label htmlFor="ux-field-2" className="text-[11px] font-extrabold text-slate-600 dark:text-zinc-400">نوع الفاتورة الإلكترونية:</label>
+                  <select id="ux-field-2"
                     value={newInvForm.invoiceType}
                     onChange={(e) => setNewInvForm({ ...newInvForm, invoiceType: e.target.value as any })}
                     className="w-full bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-2.5 text-xs font-bold"
@@ -983,8 +983,8 @@ export default function EInvoicingEngineTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-slate-600 dark:text-zinc-400">اسم العميل / MAn / Donor:</label>
-                  <input
+                  <label htmlFor="ux-man-donor" className="text-[11px] font-extrabold text-slate-600 dark:text-zinc-400">اسم العميل / MAn / Donor:</label>
+                  <input id="ux-man-donor"
                     type="text"
                     placeholder="مثال: مركز الملك سلمان / منظمة الصحة العالمية"
                     value={newInvForm.buyerNameAr}
@@ -995,8 +995,8 @@ export default function EInvoicingEngineTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-slate-600 dark:text-zinc-400">الرقم الضريبي للعميل:</label>
-                  <input
+                  <label htmlFor="ux-field-4" className="text-[11px] font-extrabold text-slate-600 dark:text-zinc-400">الرقم الضريبي للعميل:</label>
+                  <input id="ux-field-4"
                     type="text"
                     value={newInvForm.buyerTaxId}
                     onChange={(e) => setNewInvForm({ ...newInvForm, buyerTaxId: e.target.value })}

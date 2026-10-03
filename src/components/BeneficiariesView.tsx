@@ -850,8 +850,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
         {showFilters && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-100 animate-slide-down">
             <div className="space-y-1">
-              <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'تصنيف الحالة' : 'Category'}</label>
-              <select
+              <label htmlFor="ux-category" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'تصنيف الحالة' : 'Category'}</label>
+              <select id="ux-category"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
@@ -864,8 +864,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'المحافظة' : 'Governorate'}</label>
-              <select
+              <label htmlFor="ux-governorate" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'المحافظة' : 'Governorate'}</label>
+              <select id="ux-governorate"
                 value={filterGov}
                 onChange={(e) => setFilterGov(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
@@ -878,8 +878,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'الجنس' : 'Gender'}</label>
-              <select
+              <label htmlFor="ux-gender" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'الجنس' : 'Gender'}</label>
+              <select id="ux-gender"
                 value={filterGender}
                 onChange={(e) => setFilterGender(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
@@ -891,8 +891,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'الحالة في النظام' : 'Status'}</label>
-              <select
+              <label htmlFor="ux-status" className="text-[10px] font-extrabold text-zinc-400 uppercase">{lang === 'ar' ? 'الحالة في النظام' : 'Status'}</label>
+              <select id="ux-status"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg p-2 text-xs font-semibold focus:outline-none"
@@ -928,14 +928,14 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
             <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
               <thead className="bg-slate-50 dark:bg-zinc-950 border-b border-slate-200 dark:border-zinc-800 text-[10px] font-extrabold uppercase text-slate-500 dark:text-zinc-400 tracking-wider">
                 <tr>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'كود الحالة' : 'Code'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'الاسم الرباعي' : 'Full Name'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'التصنيف' : 'Category'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'المنطقة والموقع' : 'Location'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'الهاتف' : 'Phone'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'الحالة المادية' : 'Financial'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'العمر' : 'Age'}</th>
-                  <th className="px-6 py-3 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'كود الحالة' : 'Code'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الاسم الرباعي' : 'Full Name'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'التصنيف' : 'Category'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'المنطقة والموقع' : 'Location'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الهاتف' : 'Phone'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الحالة المادية' : 'Financial'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'العمر' : 'Age'}</th>
+                  <th scope="col" className="px-6 py-3 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -1338,8 +1338,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'كود السجل (تلقائي ذكي)' : 'Master Code'}</label>
-                        <input 
+                        <label htmlFor="ux-master-code" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'كود السجل (تلقائي ذكي)' : 'Master Code'}</label>
+                        <input id="ux-master-code" 
                           type="text" 
                           required 
                           readOnly
@@ -1350,8 +1350,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
                       {archetype === 'INDIVIDUAL' && (
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'تصنيف الحالة المستحقة' : 'Category'}</label>
-                          <select 
+                          <label htmlFor="ux-category-6" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'تصنيف الحالة المستحقة' : 'Category'}</label>
+                          <select id="ux-category-6" 
                             value={categoryCode}
                             onChange={(e) => setCategoryCode(e.target.value)}
                             className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none"
@@ -1368,8 +1368,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
                       {archetype === 'FAMILY' && (
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عدد أفراد الأسرة' : 'Family Size'}</label>
-                          <input 
+                          <label htmlFor="ux-family-size" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عدد أفراد الأسرة' : 'Family Size'}</label>
+                          <input id="ux-family-size" 
                             type="number" 
                             value={familySize}
                             onChange={(e) => setFamilySize(e.target.value)}
@@ -1381,12 +1381,12 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
                       {archetype === 'COMMUNITY_ENTITY' && (
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">
+                          <label htmlFor="ux-mosque" className="text-[11px] font-extrabold text-slate-500">
                             {entitySubtype === 'MOSQUE' ? (lang === 'ar' ? 'سعة المصلين التقريبية' : 'Capacity') :
                              entitySubtype === 'WATER_WELL' ? (lang === 'ar' ? 'عدد الأسر المستفيدة' : 'Beneficiary Families') :
                              (lang === 'ar' ? 'عدد الأسر بالمخيم' : 'Camp Families')}
                           </label>
-                          <input 
+                          <input id="ux-mosque" 
                             type="number" 
                             value={capacityCount}
                             onChange={(e) => setCapacityCount(e.target.value)}
@@ -1398,12 +1398,12 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500">
+                      <label htmlFor="ux-individual" className="text-[11px] font-extrabold text-slate-500">
                         {archetype === 'INDIVIDUAL' ? (lang === 'ar' ? 'الاسم الرباعي للشخص المستفيد' : 'Full Name (Arabic)') :
                          archetype === 'FAMILY' ? (lang === 'ar' ? 'اسم رب الأسرة المعيل رباعياً' : 'Family Head Name') :
                          (lang === 'ar' ? 'اسم المسجد / بئر الماء / المخيم رسمياً' : 'Facility Official Name')}
                       </label>
-                      <input 
+                      <input id="ux-individual" 
                         type="text" 
                         required 
                         value={fullNameAr}
@@ -1421,10 +1421,10 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                     {archetype !== 'COMMUNITY_ENTITY' && (
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">
+                          <label htmlFor="ux-national-id-11-digits" className="text-[11px] font-extrabold text-slate-500">
                             {lang === 'ar' ? 'الرقم الوطني للبطاقة الشخصية (11 رقم)' : 'National ID (11 digits)'}
                           </label>
-                          <input 
+                          <input id="ux-national-id-11-digits" 
                             type="text" 
                             value={nationalId}
                             maxLength={11}
@@ -1465,12 +1465,12 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                     {archetype === 'COMMUNITY_ENTITY' && (
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">
+                          <label htmlFor="ux-mosque-11" className="text-[11px] font-extrabold text-slate-500">
                             {entitySubtype === 'MOSQUE' ? (lang === 'ar' ? 'اسم إمام / ناظر المسجد' : 'Imam/Supervisor Name') :
                              entitySubtype === 'WATER_WELL' ? (lang === 'ar' ? 'مسؤول لجنة البئر / المهندس' : 'Well Manager') :
                              (lang === 'ar' ? 'مشرف المخيم الميداني' : 'Camp Coordinator')}
                           </label>
-                          <input 
+                          <input id="ux-mosque-11" 
                             type="text" 
                             value={supervisorName}
                             onChange={(e) => setSupervisorName(e.target.value)}
@@ -1479,8 +1479,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'هاتف المشرف للتواصل' : 'Supervisor Phone'}</label>
-                          <input 
+                          <label htmlFor="ux-supervisor-phone" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'هاتف المشرف للتواصل' : 'Supervisor Phone'}</label>
+                          <input id="ux-supervisor-phone" 
                             type="text" 
                             value={supervisorPhone}
                             onChange={(e) => setSupervisorPhone(e.target.value)}
@@ -1495,8 +1495,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                     {archetype !== 'COMMUNITY_ENTITY' && (
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'رقم الهاتف الأساسي' : 'Primary Phone'}</label>
-                          <input 
+                          <label htmlFor="ux-primary-phone" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'رقم الهاتف الأساسي' : 'Primary Phone'}</label>
+                          <input id="ux-primary-phone" 
                             type="text" 
                             required
                             value={phonePrimary}
@@ -1506,8 +1506,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'العمر بالسنوات' : 'Age'}</label>
-                          <input 
+                          <label htmlFor="ux-age" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'العمر بالسنوات' : 'Age'}</label>
+                          <input id="ux-age" 
                             type="number" 
                             value={age}
                             onChange={(e) => setAge(e.target.value)}
@@ -1543,8 +1543,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
                     {archetype !== 'COMMUNITY_ENTITY' && (
                       <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'حالة السكن' : 'Housing Status'}</label>
-                        <select 
+                        <label htmlFor="ux-housing-status" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'حالة السكن' : 'Housing Status'}</label>
+                        <select id="ux-housing-status" 
                           value={housingStatus}
                           onChange={(e) => setHousingStatus(e.target.value)}
                           className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none"
@@ -1564,8 +1564,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                     {archetype === 'COMMUNITY_ENTITY' && entitySubtype === 'WATER_WELL' && (
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عمق البئر بالأمتار' : 'Well Depth (Meters)'}</label>
-                          <input 
+                          <label htmlFor="ux-well-depth-meters" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عمق البئر بالأمتار' : 'Well Depth (Meters)'}</label>
+                          <input id="ux-well-depth-meters" 
                             type="number" 
                             value={wellDepth}
                             onChange={(e) => setWellDepth(e.target.value)}
@@ -1574,8 +1574,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'قدرة منظومة الطاقة الشمسية (وات)' : 'Solar System (Watts)'}</label>
-                          <input 
+                          <label htmlFor="ux-solar-system-watts" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'قدرة منظومة الطاقة الشمسية (وات)' : 'Solar System (Watts)'}</label>
+                          <input id="ux-solar-system-watts" 
                             type="number" 
                             value={solarPump}
                             onChange={(e) => setSolarPump(e.target.value)}
@@ -1588,8 +1588,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
                     {archetype === 'COMMUNITY_ENTITY' && entitySubtype === 'SHELTER_CARAVAN' && (
                       <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عدد الكرفانات / الوحدات السكنية' : 'Caravans Count'}</label>
-                        <input 
+                        <label htmlFor="ux-caravans-count" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'عدد الكرفانات / الوحدات السكنية' : 'Caravans Count'}</label>
+                        <input id="ux-caravans-count" 
                           type="number" 
                           value={caravansCount}
                           onChange={(e) => setCaravansCount(e.target.value)}
@@ -1602,8 +1602,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                     {archetype === 'INDIVIDUAL' && (
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المستوى التعليمي' : 'Education Level'}</label>
-                          <input 
+                          <label htmlFor="ux-education-level" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المستوى التعليمي' : 'Education Level'}</label>
+                          <input id="ux-education-level" 
                             type="text" 
                             value={educationLevel}
                             onChange={(e) => setEducationLevel(e.target.value)}
@@ -1612,8 +1612,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'مستوى حفظ القرآن' : 'Quran Memorization'}</label>
-                          <input 
+                          <label htmlFor="ux-quran-memorization" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'مستوى حفظ القرآن' : 'Quran Memorization'}</label>
+                          <input id="ux-quran-memorization" 
                             type="text" 
                             value={quranMemorization}
                             onChange={(e) => setQuranMemorization(e.target.value)}
@@ -1626,8 +1626,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المستوى المعيشي والاحتياج' : 'Need Level'}</label>
-                        <select 
+                        <label htmlFor="ux-need-level" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'المستوى المعيشي والاحتياج' : 'Need Level'}</label>
+                        <select id="ux-need-level" 
                           value={financialStatus}
                           onChange={(e) => setFinancialStatus(e.target.value)}
                           className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-xs font-bold focus:outline-none"
@@ -1655,8 +1655,8 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'ملاحظات تفصيلية أو احتياجات خاصة' : 'Dossier Notes'}</label>
-                      <textarea 
+                      <label htmlFor="ux-dossier-notes" className="text-[11px] font-extrabold text-slate-500">{lang === 'ar' ? 'ملاحظات تفصيلية أو احتياجات خاصة' : 'Dossier Notes'}</label>
+                      <textarea id="ux-dossier-notes" 
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder="توصيات الباحث الميداني..."

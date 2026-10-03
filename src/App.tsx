@@ -81,7 +81,7 @@ const CustomizableShortcutsModal = lazyWithRetry(() => import('./components/shor
 const FastRecordRetrievalDrawer = lazyWithRetry(() => import('./components/records/FastRecordRetrievalDrawer'), 'FastRecordRetrievalDrawer');
 import { EnvironmentModeBanner } from './components/EnvironmentModeBanner';
 import { FloatingEnterpriseDock } from './components/FloatingEnterpriseDock';
-import { EnterpriseToastContainer, showToast } from './components/enterprise/EnterpriseToastContainer';
+import { showToast } from './components/enterprise/EnterpriseToastContainer';
 import { OfflineSyncTelemetryBar } from './components/common/OfflineSyncTelemetryBar';
 
 import { 
@@ -118,7 +118,8 @@ import { ActiveTab } from './core/types';
 import { resumeIntelligenceService } from './core/services/resumeIntelligence';
 import { useAppNavigationStore } from './core/stores/useAppNavigationStore';
 import { useAppUIStore } from './core/stores/useAppUIStore';
-import { ThemeProvider, LocalizationProvider } from './design-system';
+import { ThemeProvider, LocalizationProvider, AccessibilityProvider, ToastProvider } from './design-system';
+import { NotificationBusBridge } from './app/providers/NotificationBusBridge';
 
 export default function App() {
   const { isTrainingMode, environmentMode } = useEnvironmentMode();
@@ -714,15 +715,25 @@ export default function App() {
 
   return (
     <ThemeProvider defaultMode={theme === 'dark' ? 'dark' : 'light'} defaultDirection={lang === 'ar' ? 'rtl' : 'ltr'} defaultLocale={lang}>
-      <LocalizationProvider locale={lang === 'ar' ? 'ar' : 'en'}>
+      <AccessibilityProvider skipTargetId="main-content">
+    <LocalizationProvider locale={lang === 'ar' ? 'ar' : 'en'}>
     <div className="h-screen max-h-screen bg-slate-50 dark:bg-zinc-950 font-sans flex flex-col antialiased selection:bg-amber-100 selection:text-amber-900 text-slate-800 dark:text-zinc-100 transition-colors duration-200 overflow-hidden">
       
-      {/* GLOBAL ENTERPRISE TOAST SYSTEM */}
-      <EnterpriseToastContainer lang={lang} />
+      {/* GLOBAL NOTIFICATION SYSTEM
+          The Design System renderer is now the single mounted viewport. It
+          derives politeness from the variant (error/warning = assertive,
+          success/info = polite) per WCAG 4.1.3 Status Messages, and mirrors its
+          own position under RTL. The legacy EnterpriseToastContainer is no
+          longer mounted — rendering it alongside this would double every
+          message — but `showToast` still resolves through the bus, so the ~40
+          view files that import it are unaffected. */}
+      <ToastProvider>
+        <NotificationBusBridge />
+      </ToastProvider>
 
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-emerald-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-skip-link focus:bg-emerald-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
       >
         تخطي إلى المحتوى الرئيسي
       </a>
@@ -1267,7 +1278,7 @@ export default function App() {
       <OfflineSyncTelemetryBar lang={lang} onSyncNow={fetchAllData} />
 
       {/* Dynamic Toast System */}
-      <div className={`fixed bottom-6 ${lang === 'ar' ? 'left-6' : 'right-6'} z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none`}>
+      <div className={`fixed bottom-6 ${lang === 'ar' ? 'left-6' : 'right-6'} z-toast flex flex-col gap-3 max-w-sm w-full pointer-events-none`}>
         <AnimatePresence>
           {toasts.map(toast => (
             <motion.div
@@ -1343,6 +1354,7 @@ export default function App() {
       <PWAUpdatePrompt lang={lang} />
     </div>
       </LocalizationProvider>
+    </AccessibilityProvider>
     </ThemeProvider>
   );
 }

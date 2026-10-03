@@ -227,7 +227,7 @@ function ToastContainer({ position, toasts, onRemove }: ToastContainerProps) {
   return createPortal(
     <div
       className={cn(
-        'fixed z-[200] flex flex-col gap-2 w-full max-w-sm pointer-events-none',
+        'fixed z-toast flex flex-col gap-2 w-full max-w-sm pointer-events-none',
         positionClasses[isRtl ? rtlPosition : position]
       )}
       aria-live="polite"

@@ -176,10 +176,10 @@ export const MobileFieldForm: React.FC<MobileFieldFormProps> = ({
             <div className="space-y-4 animate-fade-in">
               {/* Beneficiary Name */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label htmlFor="ux-beneficiary-full-name" className="block text-xs font-bold text-slate-300 mb-1.5">
                   {lang === 'ar' ? 'اسم المستفيد الثلاثي / الرباعي *' : 'Beneficiary Full Name *'}
                 </label>
-                <input
+                <input id="ux-beneficiary-full-name"
                   type="text"
                   required
                   placeholder={lang === 'ar' ? 'مثال: محمد أحمد علي عبدالله' : 'e.g. Mohammed Ahmed Ali'}
@@ -191,11 +191,11 @@ export const MobileFieldForm: React.FC<MobileFieldFormProps> = ({
 
               {/* National ID / Family Card */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                <label htmlFor="ux-national-id-family-card" className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
                   <span>{lang === 'ar' ? 'رقم الهوية الوطنية / البطاقة العائلية *' : 'National ID / Family Card *'}</span>
                   <CreditCard className="w-4 h-4 text-emerald-400" />
                 </label>
-                <input
+                <input id="ux-national-id-family-card"
                   type="text"
                   required
                   placeholder="010100XXXXX"
@@ -207,11 +207,11 @@ export const MobileFieldForm: React.FC<MobileFieldFormProps> = ({
 
               {/* Mobile Phone Number */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                <label htmlFor="ux-mobile-phone" className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
                   <span>{lang === 'ar' ? 'رقم الهاتف المحمول' : 'Mobile Phone'}</span>
                   <Phone className="w-4 h-4 text-emerald-400" />
                 </label>
-                <input
+                <input id="ux-mobile-phone"
                   type="tel"
                   placeholder="77XXXXXXX / 73XXXXXXX"
                   value={mobileNumber}
@@ -236,11 +236,11 @@ export const MobileFieldForm: React.FC<MobileFieldFormProps> = ({
             <div className="space-y-4 animate-fade-in">
               {/* Service Package Selection */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                <label htmlFor="ux-field-service-package" className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
                   <span>{lang === 'ar' ? 'حزمة الخدمة الميدانية *' : 'Field Service Package *'}</span>
                   <Package className="w-4 h-4 text-emerald-400" />
                 </label>
-                <select
+                <select id="ux-field-service-package"
                   value={servicePackage}
                   onChange={e => setServicePackage(e.target.value)}
                   className="w-full h-14 px-4 bg-slate-800 border-2 border-slate-700 focus:border-emerald-500 rounded-2xl text-base text-white outline-none transition-all"
@@ -272,8 +272,8 @@ export const MobileFieldForm: React.FC<MobileFieldFormProps> = ({
               {/* Location Tag */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'المحافظة' : 'Governorate'}</label>
-                  <input
+                  <label htmlFor="ux-governorate" className="block text-[11px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'المحافظة' : 'Governorate'}</label>
+                  <input id="ux-governorate"
                     type="text"
                     value={governorate}
                     onChange={e => setGovernorate(e.target.value)}
@@ -281,8 +281,8 @@ export const MobileFieldForm: React.FC<MobileFieldFormProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'المديرية' : 'District'}</label>
-                  <input
+                  <label htmlFor="ux-district" className="block text-[11px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'المديرية' : 'District'}</label>
+                  <input id="ux-district"
                     type="text"
                     value={district}
                     onChange={e => setDistrict(e.target.value)}

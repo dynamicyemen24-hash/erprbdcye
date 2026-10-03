@@ -844,11 +844,11 @@ export default function TransactionDocumentCycleTracker({
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
           <thead>
             <tr style="background-color: #334155; color: white;">
-              <th style="padding: 8px; text-align: center; width: 40px;">#</th>
-              <th style="padding: 8px; text-align: left;">الحساب الدفتري Ledger Account</th>
-              <th style="padding: 8px; text-align: left;">الشرح والبيان الفرعي Line Narration</th>
-              <th style="padding: 8px; text-align: right;">مدين (Debit)</th>
-              <th style="padding: 8px; text-align: right;">دائن (Credit)</th>
+              <th scope="col" style="padding: 8px; text-align: center; width: 40px;">#</th>
+              <th scope="col" style="padding: 8px; text-align: left;">الحساب الدفتري Ledger Account</th>
+              <th scope="col" style="padding: 8px; text-align: left;">الشرح والبيان الفرعي Line Narration</th>
+              <th scope="col" style="padding: 8px; text-align: right;">مدين (Debit)</th>
+              <th scope="col" style="padding: 8px; text-align: right;">دائن (Credit)</th>
             </tr>
           </thead>
           <tbody>
@@ -871,10 +871,10 @@ export default function TransactionDocumentCycleTracker({
         <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
           <thead>
             <tr style="background-color: #f1f5f9; text-align: left;">
-              <th style="padding: 6px;">التاريخ الوقت</th>
-              <th style="padding: 6px;">الإجراء المنفذ</th>
-              <th style="padding: 6px;">المستخدم المسؤول</th>
-              <th style="padding: 6px;">تفاصيل المراجعة</th>
+              <th scope="col" style="padding: 6px;">التاريخ الوقت</th>
+              <th scope="col" style="padding: 6px;">الإجراء المنفذ</th>
+              <th scope="col" style="padding: 6px;">المستخدم المسؤول</th>
+              <th scope="col" style="padding: 6px;">تفاصيل المراجعة</th>
             </tr>
           </thead>
           <tbody>
@@ -1001,8 +1001,8 @@ export default function TransactionDocumentCycleTracker({
           {/* Quick Filters */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">{isRtl ? 'نوع المعاملة' : 'Voucher Type'}</label>
-              <select
+              <label htmlFor="ux-voucher-type" className="block text-[9px] font-black text-slate-400 uppercase mb-1">{isRtl ? 'نوع المعاملة' : 'Voucher Type'}</label>
+              <select id="ux-voucher-type"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as any)}
                 className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
@@ -1015,8 +1015,8 @@ export default function TransactionDocumentCycleTracker({
             </div>
 
             <div>
-              <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">{isRtl ? 'المرحلة المستندية' : 'Workflow State'}</label>
-              <select
+              <label htmlFor="ux-workflow-state" className="block text-[9px] font-black text-slate-400 uppercase mb-1">{isRtl ? 'المرحلة المستندية' : 'Workflow State'}</label>
+              <select id="ux-workflow-state"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
                 className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
@@ -1036,9 +1036,9 @@ export default function TransactionDocumentCycleTracker({
               <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-slate-50 text-slate-400 border-b border-slate-200/50 text-[10px] font-black uppercase">
-                    <th className="p-2.5">{isRtl ? 'رقم السند/المستند' : 'Ref No'}</th>
-                    <th className="p-2.5">{isRtl ? 'النوع والقيمة' : 'Type & Amount'}</th>
-                    <th className="p-2.5 text-center">{isRtl ? 'الدورة والربط' : 'Cycle & Links'}</th>
+                    <th scope="col" className="p-2.5">{isRtl ? 'رقم السند/المستند' : 'Ref No'}</th>
+                    <th scope="col" className="p-2.5">{isRtl ? 'النوع والقيمة' : 'Type & Amount'}</th>
+                    <th scope="col" className="p-2.5 text-center">{isRtl ? 'الدورة والربط' : 'Cycle & Links'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1282,10 +1282,10 @@ export default function TransactionDocumentCycleTracker({
                       <table className="w-full text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                         <thead>
                           <tr className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[10px] font-black uppercase">
-                            <th className="p-2.5">{isRtl ? 'الكود والحساب' : 'Account'}</th>
-                            <th className="p-2.5">{isRtl ? 'البيان الفرعي' : 'Line Narration'}</th>
-                            <th className="p-2.5 text-right">{isRtl ? 'مدين Debit' : 'Debit'}</th>
-                            <th className="p-2.5 text-right">{isRtl ? 'دائن Credit' : 'Credit'}</th>
+                            <th scope="col" className="p-2.5">{isRtl ? 'الكود والحساب' : 'Account'}</th>
+                            <th scope="col" className="p-2.5">{isRtl ? 'البيان الفرعي' : 'Line Narration'}</th>
+                            <th scope="col" className="p-2.5 text-right">{isRtl ? 'مدين Debit' : 'Debit'}</th>
+                            <th scope="col" className="p-2.5 text-right">{isRtl ? 'دائن Credit' : 'Credit'}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -1388,8 +1388,8 @@ export default function TransactionDocumentCycleTracker({
 
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'قيمة الدفعة / السند (YER)' : 'Payment Amount (YER)'}</label>
-                            <input
+                            <label htmlFor="ux-yer" className="block font-bold text-slate-600 mb-1">{isRtl ? 'قيمة الدفعة / السند (YER)' : 'Payment Amount (YER)'}</label>
+                            <input id="ux-yer"
                               type="number"
                               required
                               value={quickPayAmount}
@@ -1398,8 +1398,8 @@ export default function TransactionDocumentCycleTracker({
                             />
                           </div>
                           <div>
-                            <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'الرقم المرجعي / الشيك' : 'Check / Ref Reference'}</label>
-                            <input
+                            <label htmlFor="ux-check-ref-reference" className="block font-bold text-slate-600 mb-1">{isRtl ? 'الرقم المرجعي / الشيك' : 'Check / Ref Reference'}</label>
+                            <input id="ux-check-ref-reference"
                               type="text"
                               value={quickPayRef}
                               onChange={(e) => setQuickPayRef(e.target.value)}
@@ -1411,8 +1411,8 @@ export default function TransactionDocumentCycleTracker({
 
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'الذمم المدينة / الالتزام المدفوع' : 'Liability Account (Debit)'}</label>
-                            <select
+                            <label htmlFor="ux-liability-account-debit" className="block font-bold text-slate-600 mb-1">{isRtl ? 'الذمم المدينة / الالتزام المدفوع' : 'Liability Account (Debit)'}</label>
+                            <select id="ux-liability-account-debit"
                               required
                               value={quickPayAccount}
                               onChange={(e) => setQuickPayAccount(e.target.value)}
@@ -1428,8 +1428,8 @@ export default function TransactionDocumentCycleTracker({
                           </div>
 
                           <div>
-                            <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'حساب الصندوق / البنك الدائن' : 'Bank/Cash Asset (Credit)'}</label>
-                            <select
+                            <label htmlFor="ux-bank-cash-asset-credit" className="block font-bold text-slate-600 mb-1">{isRtl ? 'حساب الصندوق / البنك الدائن' : 'Bank/Cash Asset (Credit)'}</label>
+                            <select id="ux-bank-cash-asset-credit"
                               required
                               value={quickPayCashAccount}
                               onChange={(e) => setQuickPayCashAccount(e.target.value)}
@@ -1447,8 +1447,8 @@ export default function TransactionDocumentCycleTracker({
 
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'طريقة السداد' : 'Payment Method'}</label>
-                            <select
+                            <label htmlFor="ux-payment-method" className="block font-bold text-slate-600 mb-1">{isRtl ? 'طريقة السداد' : 'Payment Method'}</label>
+                            <select id="ux-payment-method"
                               value={quickPayMethod}
                               onChange={(e) => setQuickPayMethod(e.target.value)}
                               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
@@ -1533,8 +1533,8 @@ export default function TransactionDocumentCycleTracker({
                     {/* Manual Linking Form */}
                     <form onSubmit={handleLinkExistingTx} className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/60 flex flex-col sm:flex-row gap-3 items-end">
                       <div className="flex-1">
-                        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'ربط مستند يدوي بقائمة المعاملات' : 'Manually Associate with Companion Doc'}</label>
-                        <select
+                        <label htmlFor="ux-manually-associate-with-companion" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'ربط مستند يدوي بقائمة المعاملات' : 'Manually Associate with Companion Doc'}</label>
+                        <select id="ux-manually-associate-with-companion"
                           required
                           value={linkTargetTxId}
                           onChange={(e) => setLinkTargetTxId(e.target.value)}
@@ -1723,8 +1723,8 @@ export default function TransactionDocumentCycleTracker({
                       
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'نص التنبيه والملاحظة الرقابية' : 'Alert text'}</label>
-                          <input
+                          <label htmlFor="ux-alert-text" className="block font-bold text-slate-600 mb-1">{isRtl ? 'نص التنبيه والملاحظة الرقابية' : 'Alert text'}</label>
+                          <input id="ux-alert-text"
                             type="text"
                             required
                             value={alertTextInput}
@@ -1735,8 +1735,8 @@ export default function TransactionDocumentCycleTracker({
                         </div>
 
                         <div>
-                          <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'مستوى خطورة التحذير' : 'Severity Level'}</label>
-                          <select
+                          <label htmlFor="ux-severity-level" className="block font-bold text-slate-600 mb-1">{isRtl ? 'مستوى خطورة التحذير' : 'Severity Level'}</label>
+                          <select id="ux-severity-level"
                             value={alertSeverity}
                             onChange={(e) => setAlertSeverity(e.target.value as any)}
                             className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
@@ -1771,8 +1771,8 @@ export default function TransactionDocumentCycleTracker({
                     <form onSubmit={handleDispatchNotification} className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3 text-xs">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                          <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'جهة الاتصال / المستلم' : 'Recipient Name / Supplier'}</label>
-                          <input
+                          <label htmlFor="ux-recipient-name-supplier" className="block font-bold text-slate-600 mb-1">{isRtl ? 'جهة الاتصال / المستلم' : 'Recipient Name / Supplier'}</label>
+                          <input id="ux-recipient-name-supplier"
                             type="text"
                             required
                             value={notifSupplierName}
@@ -1783,8 +1783,8 @@ export default function TransactionDocumentCycleTracker({
                         </div>
 
                         <div>
-                          <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'قناة الإرسال' : 'Delivery Channel'}</label>
-                          <select
+                          <label htmlFor="ux-delivery-channel" className="block font-bold text-slate-600 mb-1">{isRtl ? 'قناة الإرسال' : 'Delivery Channel'}</label>
+                          <select id="ux-delivery-channel"
                             value={notifChannel}
                             onChange={(e) => setNotifChannel(e.target.value as any)}
                             className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
@@ -1796,8 +1796,8 @@ export default function TransactionDocumentCycleTracker({
                         </div>
 
                         <div>
-                          <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'قالب التنبيه التلقائي' : 'Notification Template'}</label>
-                          <select
+                          <label htmlFor="ux-notification-template" className="block font-bold text-slate-600 mb-1">{isRtl ? 'قالب التنبيه التلقائي' : 'Notification Template'}</label>
+                          <select id="ux-notification-template"
                             value={notifTemplate}
                             onChange={(e) => setNotifTemplate(e.target.value)}
                             className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
@@ -1810,8 +1810,8 @@ export default function TransactionDocumentCycleTracker({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="block font-bold text-slate-600 mb-1">{isRtl ? 'نص الرسالة المرسلة بالبوابة (معدل):' : 'Gateway Message text (Editable):'}</label>
-                        <textarea
+                        <label htmlFor="ux-gateway-message-text-editable" className="block font-bold text-slate-600 mb-1">{isRtl ? 'نص الرسالة المرسلة بالبوابة (معدل):' : 'Gateway Message text (Editable):'}</label>
+                        <textarea id="ux-gateway-message-text-editable"
                           rows={3}
                           value={notifText}
                           onChange={(e) => setNotifText(e.target.value)}
@@ -1857,10 +1857,10 @@ export default function TransactionDocumentCycleTracker({
                         <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                           <thead>
                             <tr className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[10px] font-black uppercase">
-                              <th className="p-2.5">{isRtl ? 'التاريخ الوقت' : 'Date / Time'}</th>
-                              <th className="p-2.5">{isRtl ? 'الإجراء' : 'Action'}</th>
-                              <th className="p-2.5">{isRtl ? 'المسؤول' : 'User'}</th>
-                              <th className="p-2.5">{isRtl ? 'التفاصيل والملف' : 'Audit Details'}</th>
+                              <th scope="col" className="p-2.5">{isRtl ? 'التاريخ الوقت' : 'Date / Time'}</th>
+                              <th scope="col" className="p-2.5">{isRtl ? 'الإجراء' : 'Action'}</th>
+                              <th scope="col" className="p-2.5">{isRtl ? 'المسؤول' : 'User'}</th>
+                              <th scope="col" className="p-2.5">{isRtl ? 'التفاصيل والملف' : 'Audit Details'}</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">

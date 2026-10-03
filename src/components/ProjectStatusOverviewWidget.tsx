@@ -2585,10 +2585,10 @@ export default function ProjectStatusOverviewWidget({
 
                                 {/* Last Touchpoint Date */}
                                 <div className="flex flex-col gap-1.5">
-                                  <label className="text-[9px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-extrabold">
+                                  <label htmlFor="ux-last-interaction-date" className="text-[9px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-extrabold">
                                     {isRtl ? 'تاريخ آخر تواصل ميداني:' : 'Last Interaction Date:'}
                                   </label>
-                                  <input
+                                  <input id="ux-last-interaction-date"
                                     type="date"
                                     value={selectedStkCell.lastDate}
                                     onChange={(e) => {
@@ -2959,10 +2959,10 @@ export default function ProjectStatusOverviewWidget({
                                 >
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <div className="flex flex-col gap-1">
-                                      <label className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
+                                      <label htmlFor="ux-communication-type" className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
                                         {isRtl ? 'نوع التواصل:' : 'Communication Type:'}
                                       </label>
-                                      <select
+                                      <select id="ux-communication-type"
                                         value={newLogType}
                                         onChange={(e) => setNewLogType(e.target.value as any)}
                                         className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg text-[9.5px] font-bold text-slate-700 dark:text-zinc-300 px-2 py-1 outline-none cursor-pointer"
@@ -2973,10 +2973,10 @@ export default function ProjectStatusOverviewWidget({
                                     </div>
 
                                     <div className="flex flex-col gap-1">
-                                      <label className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
+                                      <label htmlFor="ux-stakeholder-source-en" className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
                                         {isRtl ? 'الجهة المرسلة / الشريك (إنكليزي):' : 'Stakeholder Source (EN):'}
                                       </label>
-                                      <input
+                                      <input id="ux-stakeholder-source-en"
                                         type="text"
                                         required
                                         placeholder="e.g. UNICEF Water Engineer"
@@ -2987,10 +2987,10 @@ export default function ProjectStatusOverviewWidget({
                                     </div>
 
                                     <div className="flex flex-col gap-1">
-                                      <label className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
+                                      <label htmlFor="ux-stakeholder-source-ar" className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
                                         {isRtl ? 'الجهة المرسلة / الشريك (عربي):' : 'Stakeholder Source (AR):'}
                                       </label>
-                                      <input
+                                      <input id="ux-stakeholder-source-ar"
                                         type="text"
                                         placeholder="مثال: مهندس مياه اليونيسف"
                                         value={newLogSourceAr}
@@ -3002,10 +3002,10 @@ export default function ProjectStatusOverviewWidget({
 
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div className="flex flex-col gap-1">
-                                      <label className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
+                                      <label htmlFor="ux-communication-content-en" className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
                                         {isRtl ? 'تفاصيل الملاحظات / المراسلات (إنكليزي):' : 'Communication Content (EN):'}
                                       </label>
-                                      <textarea
+                                      <textarea id="ux-communication-content-en"
                                         required
                                         rows={2}
                                         placeholder="Enter the communication details in English..."
@@ -3016,10 +3016,10 @@ export default function ProjectStatusOverviewWidget({
                                     </div>
 
                                     <div className="flex flex-col gap-1">
-                                      <label className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
+                                      <label htmlFor="ux-communication-content-ar" className="text-[8.5px] text-slate-400 dark:text-zinc-500 font-bold uppercase">
                                         {isRtl ? 'تفاصيل الملاحظات / المراسلات (عربي):' : 'Communication Content (AR):'}
                                       </label>
-                                      <textarea
+                                      <textarea id="ux-communication-content-ar"
                                         rows={2}
                                         placeholder="أدخل تفاصيل التواصل باللغة العربية..."
                                         value={newLogContentAr}

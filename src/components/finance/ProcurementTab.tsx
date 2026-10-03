@@ -727,12 +727,12 @@ export default function ProcurementTab({
             <table class="w-full text-xs text-right border-collapse border border-slate-200 mb-6">
               <thead>
                 <tr class="bg-slate-900 text-white font-extrabold uppercase">
-                  <th class="p-3 border border-slate-200 text-center w-12">#</th>
-                  <th class="p-3 border border-slate-200">المواد والأصناف المستلمة</th>
-                  <th class="p-3 border border-slate-200 text-center w-24">المطلوب (PO)</th>
-                  <th class="p-3 border border-slate-200 text-center w-24">المستلم فعلاً</th>
-                  <th class="p-3 border border-slate-200 text-center w-24 bg-emerald-950 text-emerald-300">المقبول مخزنياً</th>
-                  <th class="p-3 border border-slate-200 text-center w-24 text-rose-300">المرفوض/التالف</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-center w-12">#</th>
+                  <th scope="col" class="p-3 border border-slate-200">المواد والأصناف المستلمة</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-center w-24">المطلوب (PO)</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-center w-24">المستلم فعلاً</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-center w-24 bg-emerald-950 text-emerald-300">المقبول مخزنياً</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-center w-24 text-rose-300">المرفوض/التالف</th>
                 </tr>
               </thead>
               <tbody>
@@ -872,11 +872,11 @@ export default function ProcurementTab({
             <table class="w-full text-xs text-right border-collapse border border-slate-200 mb-8">
               <thead>
                 <tr class="bg-slate-900 text-white font-extrabold uppercase">
-                  <th class="p-3 border border-slate-200 text-center w-12">#</th>
-                  <th class="p-3 border border-slate-200">المواد المطلوبة ومواصفاتها الفنية</th>
-                  <th class="p-3 border border-slate-200 text-center w-24">الكمية</th>
-                  <th class="p-3 border border-slate-200 text-left w-32">السعر (ر.ي)</th>
-                  <th class="p-3 border border-slate-200 text-left w-32">الإجمالي (ر.ي)</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-center w-12">#</th>
+                  <th scope="col" class="p-3 border border-slate-200">المواد المطلوبة ومواصفاتها الفنية</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-center w-24">الكمية</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-left w-32">السعر (ر.ي)</th>
+                  <th scope="col" class="p-3 border border-slate-200 text-left w-32">الإجمالي (ر.ي)</th>
                 </tr>
               </thead>
               <tbody>
@@ -1132,8 +1132,8 @@ export default function ProcurementTab({
             <h4 className="font-black text-xs text-slate-800 uppercase tracking-wider">{isRtl ? 'إنشاء طلب شراء احتياج' : 'New Requisition'}</h4>
             <form onSubmit={handleCreateRequisition} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'عنوان الاحتياج الإغاثي/التشغيلي' : 'Requisition Title'}</label>
-                <input 
+                <label htmlFor="ux-requisition-title" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'عنوان الاحتياج الإغاثي/التشغيلي' : 'Requisition Title'}</label>
+                <input id="ux-requisition-title" 
                   type="text" 
                   required
                   placeholder={isRtl ? 'مثال: شراء دقيق وتوريد سلال غذائية لعدن' : 'e.g., Purchase of medical kits'}
@@ -1145,8 +1145,8 @@ export default function ProcurementTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'المشروع المستهدف' : 'Target Project'}</label>
-                  <select
+                  <label htmlFor="ux-target-project" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'المشروع المستهدف' : 'Target Project'}</label>
+                  <select id="ux-target-project"
                     value={prForm.project_id}
                     onChange={(e) => setPrForm(prev => ({ ...prev, project_id: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700"
@@ -1157,8 +1157,8 @@ export default function ProcurementTab({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'نوع الاحتياج الفني' : 'Category'}</label>
-                  <select
+                  <label htmlFor="ux-category" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'نوع الاحتياج الفني' : 'Category'}</label>
+                  <select id="ux-category"
                     value={prForm.category}
                     onChange={(e) => setPrForm(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700"
@@ -1173,8 +1173,8 @@ export default function ProcurementTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مقدم الطلب' : 'Requested By'}</label>
-                  <input 
+                  <label htmlFor="ux-requested-by" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مقدم الطلب' : 'Requested By'}</label>
+                  <input id="ux-requested-by" 
                     type="text" 
                     value={prForm.requested_by}
                     onChange={(e) => setPrForm(prev => ({ ...prev, requested_by: e.target.value }))}
@@ -1182,8 +1182,8 @@ export default function ProcurementTab({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'أولوية الطلب' : 'Priority'}</label>
-                  <select
+                  <label htmlFor="ux-priority" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'أولوية الطلب' : 'Priority'}</label>
+                  <select id="ux-priority"
                     value={prForm.priority}
                     onChange={(e) => setPrForm(prev => ({ ...prev, priority: e.target.value as any }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700"
@@ -1258,8 +1258,8 @@ export default function ProcurementTab({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الملاحظات الإضافية والتعليمات الميدانية' : 'Field Notes'}</label>
-                <textarea 
+                <label htmlFor="ux-field-notes" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الملاحظات الإضافية والتعليمات الميدانية' : 'Field Notes'}</label>
+                <textarea id="ux-field-notes" 
                   rows={2}
                   value={prForm.notes}
                   onChange={(e) => setPrForm(prev => ({ ...prev, notes: e.target.value }))}
@@ -1281,12 +1281,12 @@ export default function ProcurementTab({
               <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-slate-900 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                    <th className="p-3 w-28">{isRtl ? 'رقم الطلب' : 'PR Number'}</th>
-                    <th className="p-3">{isRtl ? 'بيان الاحتياج والمشروع' : 'Request details'}</th>
-                    <th className="p-3 text-right w-36">{isRtl ? 'القيمة التقديرية' : 'Est. Amount'}</th>
-                    <th className="p-3 text-center w-24">{isRtl ? 'الأولوية' : 'Priority'}</th>
-                    <th className="p-3 text-center w-28">{isRtl ? 'الحالة' : 'Status'}</th>
-                    <th className="p-3 text-center w-36">{isRtl ? 'الرقابة والاعتماد' : 'Controls'}</th>
+                    <th scope="col" className="p-3 w-28">{isRtl ? 'رقم الطلب' : 'PR Number'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'بيان الاحتياج والمشروع' : 'Request details'}</th>
+                    <th scope="col" className="p-3 text-right w-36">{isRtl ? 'القيمة التقديرية' : 'Est. Amount'}</th>
+                    <th scope="col" className="p-3 text-center w-24">{isRtl ? 'الأولوية' : 'Priority'}</th>
+                    <th scope="col" className="p-3 text-center w-28">{isRtl ? 'الحالة' : 'Status'}</th>
+                    <th scope="col" className="p-3 text-center w-36">{isRtl ? 'الرقابة والاعتماد' : 'Controls'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-slate-700">
@@ -1391,8 +1391,8 @@ export default function ProcurementTab({
               <form onSubmit={handleAddQuotation} className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المورد / الشركة التجارية' : 'Supplier Name'}</label>
-                    <input 
+                    <label htmlFor="ux-supplier-name" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المورد / الشركة التجارية' : 'Supplier Name'}</label>
+                    <input id="ux-supplier-name" 
                       type="text" 
                       required
                       placeholder={isRtl ? 'مثال: شركة حضرموت للتجارة' : 'Supplier Company Name'}
@@ -1402,8 +1402,8 @@ export default function ProcurementTab({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مرجع عرض الأسعار والرمز' : 'Quote Reference'}</label>
-                    <input 
+                    <label htmlFor="ux-quote-reference" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مرجع عرض الأسعار والرمز' : 'Quote Reference'}</label>
+                    <input id="ux-quote-reference" 
                       type="text" 
                       required
                       placeholder="e.g. QTY-2026-X"
@@ -1417,8 +1417,8 @@ export default function ProcurementTab({
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'فترة التسليم (أيام)' : 'Delivery (days)'}</label>
-                      <input 
+                      <label htmlFor="ux-delivery-days" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'فترة التسليم (أيام)' : 'Delivery (days)'}</label>
+                      <input id="ux-delivery-days" 
                         type="number" 
                         required
                         min="1"
@@ -1428,8 +1428,8 @@ export default function ProcurementTab({
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'درجة المطابقة الفنية %' : 'Tech Quality %'}</label>
-                      <input 
+                      <label htmlFor="ux-tech-quality" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'درجة المطابقة الفنية %' : 'Tech Quality %'}</label>
+                      <input id="ux-tech-quality" 
                         type="number" 
                         required
                         min="50"
@@ -1442,8 +1442,8 @@ export default function ProcurementTab({
                   </div>
                   
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الملاحظات الإضافية على عرض الأسعار' : 'Supplier notes'}</label>
-                    <input 
+                    <label htmlFor="ux-supplier-notes" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الملاحظات الإضافية على عرض الأسعار' : 'Supplier notes'}</label>
+                    <input id="ux-supplier-notes" 
                       type="text" 
                       placeholder={isRtl ? 'تفاصيل السعر والضمان...' : 'Warranty details...'}
                       value={quoteForm.notes}
@@ -1600,8 +1600,8 @@ export default function ProcurementTab({
             <h4 className="font-black text-xs text-slate-800 uppercase tracking-wider">{isRtl ? 'توليد أمر الشراء الرسمي' : 'Generate Purchase Order'}</h4>
             <form onSubmit={handleGeneratePO} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اختيار طلب الشراء المعتمد' : 'Select Approved PR'}</label>
-                <select
+                <label htmlFor="ux-select-approved-pr" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اختيار طلب الشراء المعتمد' : 'Select Approved PR'}</label>
+                <select id="ux-select-approved-pr"
                   value={poForm.pr_id}
                   onChange={(e) => {
                     const selectedPrQuotes = quotations.filter(q => q.pr_id === e.target.value);
@@ -1624,8 +1624,8 @@ export default function ProcurementTab({
 
               {poForm.pr_id && (
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'عرض سعر المورد المعتمد' : 'Select Winner Bidding'}</label>
-                  <select
+                  <label htmlFor="ux-select-winner-bidding" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'عرض سعر المورد المعتمد' : 'Select Winner Bidding'}</label>
+                  <select id="ux-select-winner-bidding"
                     value={poForm.quote_id}
                     onChange={(e) => setPoForm(prev => ({ ...prev, quote_id: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700"
@@ -1640,8 +1640,8 @@ export default function ProcurementTab({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مستودع الاستلام والوجهة' : 'Destination Warehouse'}</label>
-                  <select
+                  <label htmlFor="ux-destination-warehouse" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مستودع الاستلام والوجهة' : 'Destination Warehouse'}</label>
+                  <select id="ux-destination-warehouse"
                     value={poForm.warehouse_id}
                     onChange={(e) => setPoForm(prev => ({ ...prev, warehouse_id: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700"
@@ -1652,8 +1652,8 @@ export default function ProcurementTab({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ التسليم الأقصى' : 'Target Delivery Date'}</label>
-                  <input 
+                  <label htmlFor="ux-target-delivery-date" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ التسليم الأقصى' : 'Target Delivery Date'}</label>
+                  <input id="ux-target-delivery-date" 
                     type="date"
                     required
                     value={poForm.delivery_date}
@@ -1664,8 +1664,8 @@ export default function ProcurementTab({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الشروط القانونية والمالية للتوريد' : 'Terms & Conditions'}</label>
-                <textarea
+                <label htmlFor="ux-terms-conditions" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الشروط القانونية والمالية للتوريد' : 'Terms & Conditions'}</label>
+                <textarea id="ux-terms-conditions"
                   rows={3}
                   value={poForm.terms}
                   onChange={(e) => setPoForm(prev => ({ ...prev, terms: e.target.value }))}
@@ -1687,12 +1687,12 @@ export default function ProcurementTab({
               <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-slate-900 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                    <th className="p-3 w-28">{isRtl ? 'رقم أمر الشراء' : 'PO Number'}</th>
-                    <th className="p-3">{isRtl ? 'المورد المعتمد وبيان الطلب' : 'Supplier & PR'}</th>
-                    <th className="p-3 text-right w-36">{isRtl ? 'إجمالي قيمة العقد' : 'Total Amount'}</th>
-                    <th className="p-3 text-center w-28">{isRtl ? 'تاريخ الاستلام الأقصى' : 'Delivery Target'}</th>
-                    <th className="p-3 text-center w-24">{isRtl ? 'الحالة' : 'Status'}</th>
-                    <th className="p-3 text-center w-24">{isRtl ? 'الطباعة' : 'Action'}</th>
+                    <th scope="col" className="p-3 w-28">{isRtl ? 'رقم أمر الشراء' : 'PO Number'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'المورد المعتمد وبيان الطلب' : 'Supplier & PR'}</th>
+                    <th scope="col" className="p-3 text-right w-36">{isRtl ? 'إجمالي قيمة العقد' : 'Total Amount'}</th>
+                    <th scope="col" className="p-3 text-center w-28">{isRtl ? 'تاريخ الاستلام الأقصى' : 'Delivery Target'}</th>
+                    <th scope="col" className="p-3 text-center w-24">{isRtl ? 'الحالة' : 'Status'}</th>
+                    <th scope="col" className="p-3 text-center w-24">{isRtl ? 'الطباعة' : 'Action'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-slate-700">
@@ -1794,8 +1794,8 @@ export default function ProcurementTab({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المسؤول المستلم (أمين المستودع/لجنة الفحص)' : 'Received & Inspected By'}</label>
-                  <input 
+                  <label htmlFor="ux-received-inspected-by" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المسؤول المستلم (أمين المستودع/لجنة الفحص)' : 'Received & Inspected By'}</label>
+                  <input id="ux-received-inspected-by" 
                     type="text" 
                     required
                     placeholder={isRtl ? 'مثال: أ. جابر عياش' : 'Inspector Name'}
@@ -1807,8 +1807,8 @@ export default function ProcurementTab({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المستودع المستهدف' : 'Target Warehouse'}</label>
-                    <input 
+                    <label htmlFor="ux-target-warehouse" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المستودع المستهدف' : 'Target Warehouse'}</label>
+                    <input id="ux-target-warehouse" 
                       type="text" 
                       required
                       value={grnForm.warehouse_name}
@@ -1817,8 +1817,8 @@ export default function ProcurementTab({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ الاستلام والعد الميداني' : 'Receipt Date'}</label>
-                    <input 
+                    <label htmlFor="ux-receipt-date" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ الاستلام والعد الميداني' : 'Receipt Date'}</label>
+                    <input id="ux-receipt-date" 
                       type="date" 
                       required
                       value={grnForm.received_date}
@@ -1880,8 +1880,8 @@ export default function ProcurementTab({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تقرير الفحص والمطابقة النوعية' : 'Inspection quality report'}</label>
-                  <textarea 
+                  <label htmlFor="ux-inspection-quality-report" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تقرير الفحص والمطابقة النوعية' : 'Inspection quality report'}</label>
+                  <textarea id="ux-inspection-quality-report" 
                     rows={2}
                     value={grnForm.notes}
                     onChange={(e) => setGrnForm(prev => ({ ...prev, notes: e.target.value }))}
@@ -1904,13 +1904,13 @@ export default function ProcurementTab({
               <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-slate-900 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                    <th className="p-3 w-32">{isRtl ? 'رقم محضر الاستلام' : 'GRN Number'}</th>
-                    <th className="p-3 w-32">{isRtl ? 'أمر شراء PO' : 'PO Number'}</th>
-                    <th className="p-3">{isRtl ? 'المستلم ومستودع التوريد' : 'Receiver & Whse'}</th>
-                    <th className="p-3 w-36 text-center">{isRtl ? 'تاريخ الفحص' : 'Date'}</th>
-                    <th className="p-3 w-32 text-center">{isRtl ? 'المطابقة النوعية' : 'Quality'}</th>
-                    <th className="p-3 w-28 text-center">{isRtl ? 'الحالة' : 'Status'}</th>
-                    <th className="p-3 w-20 text-center">{isRtl ? 'الطباعة' : 'Print'}</th>
+                    <th scope="col" className="p-3 w-32">{isRtl ? 'رقم محضر الاستلام' : 'GRN Number'}</th>
+                    <th scope="col" className="p-3 w-32">{isRtl ? 'أمر شراء PO' : 'PO Number'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'المستلم ومستودع التوريد' : 'Receiver & Whse'}</th>
+                    <th scope="col" className="p-3 w-36 text-center">{isRtl ? 'تاريخ الفحص' : 'Date'}</th>
+                    <th scope="col" className="p-3 w-32 text-center">{isRtl ? 'المطابقة النوعية' : 'Quality'}</th>
+                    <th scope="col" className="p-3 w-28 text-center">{isRtl ? 'الحالة' : 'Status'}</th>
+                    <th scope="col" className="p-3 w-20 text-center">{isRtl ? 'الطباعة' : 'Print'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-slate-700 font-semibold">
@@ -1993,8 +1993,8 @@ export default function ProcurementTab({
 
                   {/* Account Dimensions */}
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'حساب مدين: تكلفة النشاط / مركز التكلفة' : 'Debit Account: Activity / Project Expense'}</label>
-                    <select
+                    <label htmlFor="ux-debit-account-activity-project-exp" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'حساب مدين: تكلفة النشاط / مركز التكلفة' : 'Debit Account: Activity / Project Expense'}</label>
+                    <select id="ux-debit-account-activity-project-exp"
                       value={settlementForm.expense_account_id}
                       onChange={(e) => setSettlementForm(prev => ({ ...prev, expense_account_id: e.target.value }))}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:outline-none"
@@ -2008,8 +2008,8 @@ export default function ProcurementTab({
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'حساب دائن: ذمم الموردين / التزامات معلقة' : 'Credit Account: Supplier Liabilities'}</label>
-                    <select
+                    <label htmlFor="ux-credit-account-supplier-liabilitie" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'حساب دائن: ذمم الموردين / التزامات معلقة' : 'Credit Account: Supplier Liabilities'}</label>
+                    <select id="ux-credit-account-supplier-liabilitie"
                       value={settlementForm.payable_account_id}
                       onChange={(e) => setSettlementForm(prev => ({ ...prev, payable_account_id: e.target.value }))}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:outline-none"
@@ -2024,8 +2024,8 @@ export default function ProcurementTab({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'طريقة التسوية المالية' : 'Payment Method'}</label>
-                      <select
+                      <label htmlFor="ux-payment-method" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'طريقة التسوية المالية' : 'Payment Method'}</label>
+                      <select id="ux-payment-method"
                         value={settlementForm.payment_method}
                         onChange={(e) => setSettlementForm(prev => ({ ...prev, payment_method: e.target.value }))}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700"
@@ -2036,8 +2036,8 @@ export default function ProcurementTab({
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رقم الشيك أو الحوالة' : 'Ref / Cheque Number'}</label>
-                      <input 
+                      <label htmlFor="ux-ref-cheque-number" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رقم الشيك أو الحوالة' : 'Ref / Cheque Number'}</label>
+                      <input id="ux-ref-cheque-number" 
                         type="text" 
                         placeholder="e.g. CHQ-99451"
                         value={settlementForm.reference_number}
@@ -2048,8 +2048,8 @@ export default function ProcurementTab({
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'البيان وشرح القيد المحاسبي المولد' : 'Voucher Narration'}</label>
-                    <textarea 
+                    <label htmlFor="ux-voucher-narration" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'البيان وشرح القيد المحاسبي المولد' : 'Voucher Narration'}</label>
+                    <textarea id="ux-voucher-narration" 
                       rows={2}
                       value={settlementForm.description}
                       onChange={(e) => setSettlementForm(prev => ({ ...prev, description: e.target.value }))}
@@ -2080,11 +2080,11 @@ export default function ProcurementTab({
               <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-slate-900 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                    <th className="p-3 w-28">{isRtl ? 'رقم أمر الشراء' : 'PO Number'}</th>
-                    <th className="p-3">{isRtl ? 'المورد والمطابقة والبيان المالي' : 'Supplier & Match Narration'}</th>
-                    <th className="p-3 text-right w-36">{isRtl ? 'القيمة المسواة' : 'Settled Amount'}</th>
-                    <th className="p-3 text-center w-28">{isRtl ? 'طريقة السداد' : 'Payment Method'}</th>
-                    <th className="p-3 text-center w-24">{isRtl ? 'القيد المالي' : 'Ledger State'}</th>
+                    <th scope="col" className="p-3 w-28">{isRtl ? 'رقم أمر الشراء' : 'PO Number'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'المورد والمطابقة والبيان المالي' : 'Supplier & Match Narration'}</th>
+                    <th scope="col" className="p-3 text-right w-36">{isRtl ? 'القيمة المسواة' : 'Settled Amount'}</th>
+                    <th scope="col" className="p-3 text-center w-28">{isRtl ? 'طريقة السداد' : 'Payment Method'}</th>
+                    <th scope="col" className="p-3 text-center w-24">{isRtl ? 'القيد المالي' : 'Ledger State'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-slate-700 font-semibold">

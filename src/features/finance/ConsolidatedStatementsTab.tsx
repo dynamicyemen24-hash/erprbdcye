@@ -162,12 +162,12 @@ export default function ConsolidatedStatementsTab({ lang, accounts = [] }: Conso
           <table className="w-full text-xs text-right rtl:text-right ltr:text-left border-collapse">
             <thead>
               <tr className="bg-slate-900 text-amber-400 font-black border-b border-zinc-800 uppercase text-[10px]">
-                <th className="p-3.5">{isRtl ? 'البند المحاسبي الموحد' : 'Consolidated Account Title'}</th>
-                <th className="p-3.5 text-center">{isRtl ? 'المركز الرئيسي' : 'Main HQ'}</th>
-                <th className="p-3.5 text-center">{isRtl ? 'فرع عدن والمحافظات' : 'Aden Branch'}</th>
-                <th className="p-3.5 text-center">{isRtl ? 'فرع تعز والميدان' : 'Taiz Branch'}</th>
-                <th className="p-3.5 text-center text-rose-400">{isRtl ? 'التسويات البينية' : 'Inter-Eliminations'}</th>
-                <th className="p-3.5 text-center text-emerald-400 bg-zinc-950">{isRtl ? 'إجمالي الميزانية الموحدة' : 'Consolidated Total'}</th>
+                <th scope="col" className="p-3.5">{isRtl ? 'البند المحاسبي الموحد' : 'Consolidated Account Title'}</th>
+                <th scope="col" className="p-3.5 text-center">{isRtl ? 'المركز الرئيسي' : 'Main HQ'}</th>
+                <th scope="col" className="p-3.5 text-center">{isRtl ? 'فرع عدن والمحافظات' : 'Aden Branch'}</th>
+                <th scope="col" className="p-3.5 text-center">{isRtl ? 'فرع تعز والميدان' : 'Taiz Branch'}</th>
+                <th scope="col" className="p-3.5 text-center text-rose-400">{isRtl ? 'التسويات البينية' : 'Inter-Eliminations'}</th>
+                <th scope="col" className="p-3.5 text-center text-emerald-400 bg-zinc-950">{isRtl ? 'إجمالي الميزانية الموحدة' : 'Consolidated Total'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60 font-mono text-slate-800 dark:text-zinc-200">

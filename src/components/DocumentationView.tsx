@@ -284,12 +284,12 @@ export function DocumentationView({ lang = 'en' }: DocumentationViewProps) {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-zinc-800">
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400">{t('العنوان', 'Title', lang)}</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden md:table-cell">{t('الفئة', 'Category', lang)}</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden lg:table-cell">{t('الحالة', 'Status', lang)}</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden lg:table-cell">{t('الإصدار', 'Version', lang)}</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden xl:table-cell">{t('آخر تحديث', 'Updated', lang)}</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-slate-500 dark:text-zinc-400">{t('إجراءات', 'Actions', lang)}</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400">{t('العنوان', 'Title', lang)}</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden md:table-cell">{t('الفئة', 'Category', lang)}</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden lg:table-cell">{t('الحالة', 'Status', lang)}</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden lg:table-cell">{t('الإصدار', 'Version', lang)}</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-zinc-400 hidden xl:table-cell">{t('آخر تحديث', 'Updated', lang)}</th>
+                  <th scope="col" className="px-4 py-3 text-right text-xs font-bold text-slate-500 dark:text-zinc-400">{t('إجراءات', 'Actions', lang)}</th>
                 </tr>
               </thead>
               <tbody>

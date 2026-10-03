@@ -328,11 +328,11 @@ export default function GlobalAddressCascadePicker({
 
       {/* 3. Level 4: Detailed Street Address & Landmark */}
       <div className="space-y-1">
-        <label className="text-[10px] font-black text-slate-500 uppercase flex items-center gap-1.5">
+        <label htmlFor="ux-detailed-street-landmark-building" className="text-[10px] font-black text-slate-500 uppercase flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5 text-emerald-600" />
           <span>{isRtl ? 'الشارع والقرية والمعلم البارز (العنوان التفصيلي)' : 'Detailed Street, Landmark & Building'}</span>
         </label>
-        <input
+        <input id="ux-detailed-street-landmark-building"
           type="text"
           disabled={disabled}
           value={detailedStreet}
@@ -384,8 +384,8 @@ export default function GlobalAddressCascadePicker({
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-0.5">
-                <label className="text-[9px] font-black text-slate-400 uppercase">{isRtl ? 'خط العرض (Latitude)' : 'Latitude'}</label>
-                <input
+                <label htmlFor="ux-latitude" className="text-[9px] font-black text-slate-400 uppercase">{isRtl ? 'خط العرض (Latitude)' : 'Latitude'}</label>
+                <input id="ux-latitude"
                   type="number"
                   step="any"
                   disabled={disabled}
@@ -399,8 +399,8 @@ export default function GlobalAddressCascadePicker({
                 />
               </div>
               <div className="space-y-0.5">
-                <label className="text-[9px] font-black text-slate-400 uppercase">{isRtl ? 'خط الطول (Longitude)' : 'Longitude'}</label>
-                <input
+                <label htmlFor="ux-longitude" className="text-[9px] font-black text-slate-400 uppercase">{isRtl ? 'خط الطول (Longitude)' : 'Longitude'}</label>
+                <input id="ux-longitude"
                   type="number"
                   step="any"
                   disabled={disabled}

@@ -655,12 +655,12 @@ export default function ChartOfAccountsTreeView({
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px;">
           <thead>
             <tr style="background: #059669; color: #ffffff; text-align: right;">
-              <th style="padding: 8px; border: 1px solid #047857; width: 120px;">كود الحساب</th>
-              <th style="padding: 8px; border: 1px solid #047857;">اسم الحساب في الدليل</th>
-              <th style="padding: 8px; border: 1px solid #047857; width: 80px; text-align: center;">المستوى</th>
-              <th style="padding: 8px; border: 1px solid #047857; width: 90px; text-align: center;">طبيعة الحساب</th>
-              <th style="padding: 8px; border: 1px solid #047857; width: 130px; text-align: left;">الرصيد الافتتاحي (ر.ي)</th>
-              <th style="padding: 8px; border: 1px solid #047857; width: 140px; text-align: left;">الرصيد الحالي (ر.ي)</th>
+              <th scope="col" style="padding: 8px; border: 1px solid #047857; width: 120px;">كود الحساب</th>
+              <th scope="col" style="padding: 8px; border: 1px solid #047857;">اسم الحساب في الدليل</th>
+              <th scope="col" style="padding: 8px; border: 1px solid #047857; width: 80px; text-align: center;">المستوى</th>
+              <th scope="col" style="padding: 8px; border: 1px solid #047857; width: 90px; text-align: center;">طبيعة الحساب</th>
+              <th scope="col" style="padding: 8px; border: 1px solid #047857; width: 130px; text-align: left;">الرصيد الافتتاحي (ر.ي)</th>
+              <th scope="col" style="padding: 8px; border: 1px solid #047857; width: 140px; text-align: left;">الرصيد الحالي (ر.ي)</th>
             </tr>
           </thead>
           <tbody>
@@ -1158,14 +1158,14 @@ export default function ChartOfAccountsTreeView({
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr className="bg-zinc-900 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                  <th className="p-3 w-32">{isRtl ? 'كود الحساب' : 'Code'}</th>
-                  <th className="p-3">{isRtl ? 'اسم الحساب في الدليل' : 'Account Title'}</th>
-                  <th className="p-3 w-28 text-center">{isRtl ? 'المستوى' : 'Level'}</th>
-                  <th className="p-3 w-32">{isRtl ? 'النوع الرئيسي' : 'Type'}</th>
-                  <th className="p-3 w-32 text-center">{isRtl ? 'طبيعة الحساب' : 'Nature'}</th>
-                  <th className="p-3 text-left w-40">{isRtl ? 'الرصيد الافتتاحي' : 'Opening Bal'}</th>
-                  <th className="p-3 text-left w-44">{isRtl ? 'الرصيد الحالي' : 'Current Balance'}</th>
-                  <th className="p-3 text-center w-24">{isRtl ? 'إجراءات' : 'Actions'}</th>
+                  <th scope="col" className="p-3 w-32">{isRtl ? 'كود الحساب' : 'Code'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'اسم الحساب في الدليل' : 'Account Title'}</th>
+                  <th scope="col" className="p-3 w-28 text-center">{isRtl ? 'المستوى' : 'Level'}</th>
+                  <th scope="col" className="p-3 w-32">{isRtl ? 'النوع الرئيسي' : 'Type'}</th>
+                  <th scope="col" className="p-3 w-32 text-center">{isRtl ? 'طبيعة الحساب' : 'Nature'}</th>
+                  <th scope="col" className="p-3 text-left w-40">{isRtl ? 'الرصيد الافتتاحي' : 'Opening Bal'}</th>
+                  <th scope="col" className="p-3 text-left w-44">{isRtl ? 'الرصيد الحالي' : 'Current Balance'}</th>
+                  <th scope="col" className="p-3 text-center w-24">{isRtl ? 'إجراءات' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300">
@@ -1269,8 +1269,8 @@ export default function ChartOfAccountsTreeView({
             <form onSubmit={handleSubmitAddAccount} className="space-y-3.5">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'كود الحساب' : 'Account Code'} *</label>
-                  <input
+                  <label htmlFor="ux-account-code" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'كود الحساب' : 'Account Code'} *</label>
+                  <input id="ux-account-code"
                     type="text"
                     required
                     value={newAccountForm.account_code}
@@ -1281,8 +1281,8 @@ export default function ChartOfAccountsTreeView({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'نوع الحساب الرئيسي' : 'Account Type'}</label>
-                  <select
+                  <label htmlFor="ux-account-type" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'نوع الحساب الرئيسي' : 'Account Type'}</label>
+                  <select id="ux-account-type"
                     value={newAccountForm.account_type}
                     onChange={(e) => setNewAccountForm(p => ({ ...p, account_type: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-bold text-slate-700 dark:text-zinc-200 focus:outline-none"
@@ -1297,8 +1297,8 @@ export default function ChartOfAccountsTreeView({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الحساب بالعربية' : 'Account Name (Arabic)'} *</label>
-                <input
+                <label htmlFor="ux-account-name-arabic" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الحساب بالعربية' : 'Account Name (Arabic)'} *</label>
+                <input id="ux-account-name-arabic"
                   type="text"
                   required
                   value={newAccountForm.name_ar}
@@ -1309,8 +1309,8 @@ export default function ChartOfAccountsTreeView({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الحساب بالإنجليزية (اختياري)' : 'Account Name (English)'}</label>
-                <input
+                <label htmlFor="ux-account-name-english" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الحساب بالإنجليزية (اختياري)' : 'Account Name (English)'}</label>
+                <input id="ux-account-name-english"
                   type="text"
                   value={newAccountForm.name_en}
                   onChange={(e) => setNewAccountForm(p => ({ ...p, name_en: e.target.value }))}
@@ -1321,8 +1321,8 @@ export default function ChartOfAccountsTreeView({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الرصيد الافتتاحي (ر.ي)' : 'Opening Balance (YER)'}</label>
-                  <input
+                  <label htmlFor="ux-opening-balance-yer" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الرصيد الافتتاحي (ر.ي)' : 'Opening Balance (YER)'}</label>
+                  <input id="ux-opening-balance-yer"
                     type="number"
                     value={newAccountForm.opening_balance}
                     onChange={(e) => setNewAccountForm(p => ({ ...p, opening_balance: e.target.value }))}
@@ -1389,8 +1389,8 @@ export default function ChartOfAccountsTreeView({
 
             <form onSubmit={handleSubmitEditAccount} className="space-y-3.5">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'كود الحساب (ثابت)' : 'Account Code'}</label>
-                <input
+                <label htmlFor="ux-account-code-6" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'كود الحساب (ثابت)' : 'Account Code'}</label>
+                <input id="ux-account-code-6"
                   type="text"
                   disabled
                   value={accountToEdit.account_code}
@@ -1399,8 +1399,8 @@ export default function ChartOfAccountsTreeView({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الحساب بالعربية' : 'Account Name (Arabic)'} *</label>
-                <input
+                <label htmlFor="ux-account-name-arabic-7" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الحساب بالعربية' : 'Account Name (Arabic)'} *</label>
+                <input id="ux-account-name-arabic-7"
                   type="text"
                   required
                   value={accountToEdit.name_ar}
@@ -1410,8 +1410,8 @@ export default function ChartOfAccountsTreeView({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الحساب بالإنجليزية' : 'Account Name (English)'}</label>
-                <input
+                <label htmlFor="ux-account-name-english-8" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الحساب بالإنجليزية' : 'Account Name (English)'}</label>
+                <input id="ux-account-name-english-8"
                   type="text"
                   value={accountToEdit.name_en || ''}
                   onChange={(e) => setAccountToEdit({ ...accountToEdit, name_en: e.target.value })}

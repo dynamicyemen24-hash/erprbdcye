@@ -103,7 +103,7 @@ const AccountSearchSelect: React.FC<AccountSearchSelectProps> = ({ accounts, val
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-2xl z-[999] max-h-60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-2xl z-dropdown max-h-60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
           <div className="p-1.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 shrink-0">
             <input
               type="text"
@@ -259,7 +259,7 @@ const ActivitySearchSelect: React.FC<ActivitySearchSelectProps> = ({ options, va
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-2xl z-[999] max-h-60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-2xl z-dropdown max-h-60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
           <div className="p-1.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 shrink-0">
             <input
               type="text"
@@ -1063,11 +1063,11 @@ export default function VoucherEntryTab({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Organization / Subscriber */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 uppercase font-black flex items-center gap-1">
+            <label htmlFor="ux-organization-tenant" className="text-[10px] text-zinc-400 uppercase font-black flex items-center gap-1">
               <Building className="w-3 h-3 text-zinc-400" />
               <span>{lang === 'ar' ? 'المنظمة / الشريك المؤسسي*' : 'Organization / Tenant*'}</span>
             </label>
-            <select
+            <select id="ux-organization-tenant"
               value={entryForm.organization_id}
               onChange={(e) => setEntryForm(p => ({ ...p, organization_id: e.target.value }))}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-bold text-slate-800"
@@ -1082,8 +1082,8 @@ export default function VoucherEntryTab({
 
           {/* Voucher Type */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'نوع السند/المعاملة*' : 'Voucher Type*'}</label>
-            <select
+            <label htmlFor="ux-voucher-type" className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'نوع السند/المعاملة*' : 'Voucher Type*'}</label>
+            <select id="ux-voucher-type"
               value={entryForm.transaction_type}
               onChange={(e) => setEntryForm(p => ({ ...p, transaction_type: e.target.value }))}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-bold"
@@ -1098,8 +1098,8 @@ export default function VoucherEntryTab({
 
           {/* Special Cases Subtype */}
           <div className="space-y-1">
-            <label className="text-[10px] text-amber-600 dark:text-amber-400 uppercase font-black">{lang === 'ar' ? 'تصنيف الحالة التشغيلية الخاص' : 'Voucher Operational Subtype'}</label>
-            <select
+            <label htmlFor="ux-voucher-operational-subtype" className="text-[10px] text-amber-600 dark:text-amber-400 uppercase font-black">{lang === 'ar' ? 'تصنيف الحالة التشغيلية الخاص' : 'Voucher Operational Subtype'}</label>
+            <select id="ux-voucher-operational-subtype"
               value={entryForm.voucher_subtype}
               onChange={(e) => setEntryForm(p => ({ ...p, voucher_subtype: e.target.value }))}
               className="w-full px-3 py-2 bg-amber-500/5 border border-amber-500/20 rounded-xl focus:outline-none font-bold text-amber-800 dark:text-amber-300"
@@ -1114,8 +1114,8 @@ export default function VoucherEntryTab({
 
           {/* Payment Method & Gateways */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'وسيلة الدفع والتحويل' : 'Payment Method / Gateway'}</label>
-            <select
+            <label htmlFor="ux-payment-method-gateway" className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'وسيلة الدفع والتحويل' : 'Payment Method / Gateway'}</label>
+            <select id="ux-payment-method-gateway"
               value={entryForm.payment_method}
               onChange={(e) => setEntryForm(p => ({ ...p, payment_method: e.target.value }))}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-bold text-slate-900"
@@ -1131,8 +1131,8 @@ export default function VoucherEntryTab({
 
           {/* Reference */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'رقم الشيك أو المرجع' : 'Reference / Check'}</label>
-            <input
+            <label htmlFor="ux-reference-check" className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'رقم الشيك أو المرجع' : 'Reference / Check'}</label>
+            <input id="ux-reference-check"
               type="text"
               placeholder="REF-88776"
               value={entryForm.reference_number}
@@ -1145,11 +1145,11 @@ export default function VoucherEntryTab({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Currency Selection */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 uppercase font-black flex items-center gap-1">
+            <label htmlFor="ux-currency" className="text-[10px] text-zinc-400 uppercase font-black flex items-center gap-1">
               <Coins className="w-3 h-3 text-amber-500" />
               <span>{lang === 'ar' ? 'عملة الحركة (Currency)*' : 'Transaction Currency*'}</span>
             </label>
-            <select
+            <select id="ux-currency"
               value={entryForm.currency_id}
               onChange={(e) => setEntryForm(p => ({ ...p, currency_id: e.target.value }))}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-bold text-amber-700"
@@ -1164,8 +1164,8 @@ export default function VoucherEntryTab({
 
           {/* Exchange Rate */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'سعر الصرف لـ (YER)*' : 'Exchange Rate (YER)*'}</label>
-            <input
+            <label htmlFor="ux-yer" className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'سعر الصرف لـ (YER)*' : 'Exchange Rate (YER)*'}</label>
+            <input id="ux-yer"
               type="number"
               step="any"
               min="0.0001"
@@ -1179,8 +1179,8 @@ export default function VoucherEntryTab({
 
           {/* Branch / Dimension */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'الفرع المستفيد / الصلاحية' : 'Branch / Permission'}</label>
-            <select
+            <label htmlFor="ux-branch-permission" className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'الفرع المستفيد / الصلاحية' : 'Branch / Permission'}</label>
+            <select id="ux-branch-permission"
               value={entryForm.branch_code}
               onChange={(e) => setEntryForm(p => ({ ...p, branch_code: e.target.value }))}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
@@ -1193,8 +1193,8 @@ export default function VoucherEntryTab({
 
           {/* Security Protection Levels */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'مستوى الحماية المالي' : 'Financial Protection Level'}</label>
-            <select
+            <label htmlFor="ux-financial-protection-level" className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'مستوى الحماية المالي' : 'Financial Protection Level'}</label>
+            <select id="ux-financial-protection-level"
               value={entryForm.security_level}
               onChange={(e) => setEntryForm(p => ({ ...p, security_level: parseInt(e.target.value) }))}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-bold text-amber-600"
@@ -1209,8 +1209,8 @@ export default function VoucherEntryTab({
 
         {/* Global Narration */}
         <div className="space-y-1">
-          <label className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'البيان وشرح المعاملة العام*' : 'General Voucher Narration*'}</label>
-          <input
+          <label htmlFor="ux-general-voucher-narration" className="text-[10px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'البيان وشرح المعاملة العام*' : 'General Voucher Narration*'}</label>
+          <input id="ux-general-voucher-narration"
             type="text"
             required
             placeholder={lang === 'ar' ? 'مثال: صرف مساعدات التنمية الإنسانية لدورة صيف 2026' : 'Example: Disbursing humanitarian aid summer cycle'}
@@ -1235,8 +1235,8 @@ export default function VoucherEntryTab({
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
                 {/* Mediator / Agent */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'الوسيط / المندوب الميداني' : 'Mediator / Field Agent'}</label>
-                  <input
+                  <label htmlFor="ux-mediator-field-agent" className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'الوسيط / المندوب الميداني' : 'Mediator / Field Agent'}</label>
+                  <input id="ux-mediator-field-agent"
                     type="text"
                     placeholder={lang === 'ar' ? 'اسم الوسيط الميداني' : 'Agent Name'}
                     value={entryForm.mediator_agent}
@@ -1247,8 +1247,8 @@ export default function VoucherEntryTab({
 
                 {/* Sponsor / Donor */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'الكفيل / المانح' : 'Sponsor / Donor'}</label>
-                  <input
+                  <label htmlFor="ux-sponsor-donor" className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'الكفيل / المانح' : 'Sponsor / Donor'}</label>
+                  <input id="ux-sponsor-donor"
                     type="text"
                     placeholder={lang === 'ar' ? 'اسم الكفيل أو الجهة المانحة' : 'Sponsor Name'}
                     value={entryForm.sponsor_donor}
@@ -1259,8 +1259,8 @@ export default function VoucherEntryTab({
 
                 {/* Disburser / Cashier */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'المسلّم / أمين الصندوق' : 'Disburser / Cashier'}</label>
-                  <input
+                  <label htmlFor="ux-disburser-cashier" className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'المسلّم / أمين الصندوق' : 'Disburser / Cashier'}</label>
+                  <input id="ux-disburser-cashier"
                     type="text"
                     placeholder={lang === 'ar' ? 'اسم أمين الصندوق/المسلم' : 'Cashier Name'}
                     value={entryForm.disburser_cashier}
@@ -1271,8 +1271,8 @@ export default function VoucherEntryTab({
 
                 {/* Recipient / Beneficiary */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'المستلِم / المستفيد' : 'Recipient / Beneficiary'}</label>
-                  <input
+                  <label htmlFor="ux-recipient-beneficiary" className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'المستلِم / المستفيد' : 'Recipient / Beneficiary'}</label>
+                  <input id="ux-recipient-beneficiary"
                     type="text"
                     placeholder={lang === 'ar' ? 'اسم المستلم النهائي' : 'Recipient Name'}
                     value={entryForm.recipient_beneficiary}
@@ -1283,8 +1283,8 @@ export default function VoucherEntryTab({
 
                 {/* Cost Center Code */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'مركز التكلفة (Cost Center)' : 'Cost Center'}</label>
-                  <select
+                  <label htmlFor="ux-cost-center" className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'مركز التكلفة (Cost Center)' : 'Cost Center'}</label>
+                  <select id="ux-cost-center"
                     value={entryForm.cost_center_code}
                     onChange={(e) => setEntryForm(p => ({ ...p, cost_center_code: e.target.value }))}
                     className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold text-emerald-600 dark:text-emerald-400 text-xs"
@@ -1313,8 +1313,8 @@ export default function VoucherEntryTab({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'توقيع المحاسب المنشئ' : 'Prepared By'}</label>
-                  <input
+                  <label htmlFor="ux-prepared-by" className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'توقيع المحاسب المنشئ' : 'Prepared By'}</label>
+                  <input id="ux-prepared-by"
                     type="text"
                     placeholder={lang === 'ar' ? 'اسم المحاسب المنشئ' : 'Prepared By'}
                     value={entryForm.prepared_by}
@@ -1324,8 +1324,8 @@ export default function VoucherEntryTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'توقيع المراجع المالي' : 'Reviewed By'}</label>
-                  <input
+                  <label htmlFor="ux-reviewed-by" className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'توقيع المراجع المالي' : 'Reviewed By'}</label>
+                  <input id="ux-reviewed-by"
                     type="text"
                     placeholder={lang === 'ar' ? 'اسم المراجع المالي' : 'Reviewed By'}
                     value={entryForm.reviewed_by}
@@ -1335,8 +1335,8 @@ export default function VoucherEntryTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'توقيع الآمر بالصرف/المدير المالي' : 'Approved By'}</label>
-                  <input
+                  <label htmlFor="ux-approved-by" className="text-[10px] text-slate-500 font-extrabold">{lang === 'ar' ? 'توقيع الآمر بالصرف/المدير المالي' : 'Approved By'}</label>
+                  <input id="ux-approved-by"
                     type="text"
                     placeholder={lang === 'ar' ? 'اسم الآمر بالصرف' : 'Approved By'}
                     value={entryForm.approved_by}
@@ -1423,8 +1423,8 @@ export default function VoucherEntryTab({
 
               {/* Line description */}
               <div className="flex-1 space-y-1 w-full">
-                <label className="text-[9px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'البيان السطري (اختياري)' : 'Line Narration'}</label>
-                <input
+                <label htmlFor="ux-line-narration" className="text-[9px] text-zinc-400 uppercase font-black">{lang === 'ar' ? 'البيان السطري (اختياري)' : 'Line Narration'}</label>
+                <input id="ux-line-narration"
                   type="text"
                   placeholder={lang === 'ar' ? 'شرح تفصيلي لهذا البند...' : 'Detailed narration...'}
                   value={line.description}
@@ -1435,10 +1435,10 @@ export default function VoucherEntryTab({
 
               {/* Debit */}
               <div className="w-full lg:w-28 space-y-1">
-                <label className="text-[9px] text-rose-600 uppercase font-black">
+                <label htmlFor="ux-yer-20" className="text-[9px] text-rose-600 uppercase font-black">
                   {lang === 'ar' ? `مدين (${selectedCurrency?.code || 'YER'})` : `Debit (${selectedCurrency?.code || 'YER'})`}
                 </label>
-                <input
+                <input id="ux-yer-20"
                   type="number"
                   min="0"
                   step="any"
@@ -1455,10 +1455,10 @@ export default function VoucherEntryTab({
 
               {/* Credit */}
               <div className="w-full lg:w-28 space-y-1">
-                <label className="text-[9px] text-emerald-600 uppercase font-black">
+                <label htmlFor="ux-yer-21" className="text-[9px] text-emerald-600 uppercase font-black">
                   {lang === 'ar' ? `دائن (${selectedCurrency?.code || 'YER'})` : `Credit (${selectedCurrency?.code || 'YER'})`}
                 </label>
-                <input
+                <input id="ux-yer-21"
                   type="number"
                   min="0"
                   step="any"

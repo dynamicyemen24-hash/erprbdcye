@@ -772,11 +772,11 @@ export default function ControlPanelView({
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
                         <tr className="bg-slate-100/30 dark:bg-zinc-900/30 text-slate-400 border-b border-slate-100 dark:border-zinc-800 text-[10px] font-extrabold uppercase">
-                          <th className="p-3 text-center w-20">{isRtl ? 'الوقت' : 'Time'}</th>
-                          <th className="p-3 w-32">{isRtl ? 'التصنيف' : 'Category'}</th>
-                          <th className="p-3">{isRtl ? 'اسم المعاملة / الواجهة' : 'Transaction Name / Endpoint'}</th>
-                          <th className="p-3 text-right w-32">{isRtl ? 'مدة الاستجابة' : 'Response Delay'}</th>
-                          <th className="p-3 text-center w-24">{isRtl ? 'مؤشر الـ SLA' : 'SLA Status'}</th>
+                          <th scope="col" className="p-3 text-center w-20">{isRtl ? 'الوقت' : 'Time'}</th>
+                          <th scope="col" className="p-3 w-32">{isRtl ? 'التصنيف' : 'Category'}</th>
+                          <th scope="col" className="p-3">{isRtl ? 'اسم المعاملة / الواجهة' : 'Transaction Name / Endpoint'}</th>
+                          <th scope="col" className="p-3 text-right w-32">{isRtl ? 'مدة الاستجابة' : 'Response Delay'}</th>
+                          <th scope="col" className="p-3 text-center w-24">{isRtl ? 'مؤشر الـ SLA' : 'SLA Status'}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80 font-medium text-slate-700 dark:text-zinc-300">
@@ -960,10 +960,10 @@ export default function ControlPanelView({
               <table className="w-full text-xs text-right dir-rtl">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-500 font-extrabold uppercase">
-                    <th className="py-3 px-4">{isRtl ? 'المستوى الإداري' : 'Role Tier'}</th>
-                    <th className="py-3 px-4">{isRtl ? 'نطاق الوصول' : 'Scope'}</th>
-                    <th className="py-3 px-4">{isRtl ? 'المصادقة' : 'Auth Protocol'}</th>
-                    <th className="py-3 px-4">{isRtl ? 'الحالة' : 'Status'}</th>
+                    <th scope="col" className="py-3 px-4">{isRtl ? 'المستوى الإداري' : 'Role Tier'}</th>
+                    <th scope="col" className="py-3 px-4">{isRtl ? 'نطاق الوصول' : 'Scope'}</th>
+                    <th scope="col" className="py-3 px-4">{isRtl ? 'المصادقة' : 'Auth Protocol'}</th>
+                    <th scope="col" className="py-3 px-4">{isRtl ? 'الحالة' : 'Status'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60 font-medium">

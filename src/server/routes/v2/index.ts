@@ -13,6 +13,7 @@ import projectRoutes from './project.routes';
 import procurementRoutes from './procurement.routes';
 import serviceDeliveryRoutes from './serviceDelivery.routes';
 import reportingRoutes from './reporting.routes';
+import institutionalReportsRoutes from './institutional-reports.routes';
 import strategyRoutes from './strategy.routes';
 import domainsRoutes from './domains.routes';
 import inventoryRoutes from './inventory.routes';
@@ -54,6 +55,9 @@ router.use('/expense', authenticateToken, expenseRoutes);
 
 // Reports & Analytics (cross-domain)
 router.use('/reports', authenticateToken, reportingRoutes);
+
+// Institutional Reports & Analytics (IPSAS / donor / executive — read-only)
+router.use('/institutional-reports', authenticateToken, institutionalReportsRoutes);
 
 // NEB-01: Strategy & Performance
 router.use('/strategy', authenticateToken, strategyRoutes);

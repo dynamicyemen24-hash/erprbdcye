@@ -455,10 +455,10 @@ export default function UnifiedExpenseEngineTab({ lang = 'ar' }: UnifiedExpenseE
             <table class="w-full text-xs text-right border-collapse">
               <thead class="bg-slate-800 text-white">
                 <tr>
-                  <th class="p-3">البيان والتفاصيل المحاسبية</th>
-                  <th class="p-3 text-center">المبلغ الأساسي</th>
-                  <th class="p-3 text-center">الضريبة المضافة</th>
-                  <th class="p-3 text-center">صافي المبلغ المستحق</th>
+                  <th scope="col" class="p-3">البيان والتفاصيل المحاسبية</th>
+                  <th scope="col" class="p-3 text-center">المبلغ الأساسي</th>
+                  <th scope="col" class="p-3 text-center">الضريبة المضافة</th>
+                  <th scope="col" class="p-3 text-center">صافي المبلغ المستحق</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200 bg-white">
@@ -1088,12 +1088,12 @@ function RecordsView({
           <table className="w-full">
             <thead className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700">
               <tr className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                <th className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الرقم', 'Number')}</th>
-                <th className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الفئة', 'Category')}</th>
-                <th className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الجهة', 'Counterparty')}</th>
-                <th className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('المبلغ', 'Amount')}</th>
-                <th className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الحالة', 'Status')}</th>
-                <th className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الإجراءات', 'Actions')}</th>
+                <th scope="col" className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الرقم', 'Number')}</th>
+                <th scope="col" className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الفئة', 'Category')}</th>
+                <th scope="col" className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الجهة', 'Counterparty')}</th>
+                <th scope="col" className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('المبلغ', 'Amount')}</th>
+                <th scope="col" className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الحالة', 'Status')}</th>
+                <th scope="col" className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>{t('الإجراءات', 'Actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -1344,10 +1344,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
         <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-category" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('الفئة', 'Category')} *
               </label>
-              <select
+              <select id="ux-category"
                 required
                 value={formData.categoryCode}
                 onChange={(e) => setFormData({ ...formData, categoryCode: e.target.value })}
@@ -1361,10 +1361,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-counterparty-type" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('نوع الجهة', 'Counterparty Type')}
               </label>
-              <select
+              <select id="ux-counterparty-type"
                 value={formData.counterpartyType}
                 onChange={(e) => setFormData({ ...formData, counterpartyType: e.target.value as any })}
                 className="w-full px-3 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"
@@ -1377,10 +1377,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-counterparty-name" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('اسم الجهة', 'Counterparty Name')} *
               </label>
-              <input
+              <input id="ux-counterparty-name"
                 type="text"
                 required
                 value={formData.counterpartyName}
@@ -1390,10 +1390,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-amount" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('المبلغ', 'Amount')} *
               </label>
-              <input
+              <input id="ux-amount"
                 type="number"
                 required
                 step="0.01"
@@ -1404,10 +1404,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-currency" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('العملة', 'Currency')}
               </label>
-              <select
+              <select id="ux-currency"
                 value={formData.currencyCode}
                 onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value })}
                 className="w-full px-3 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"
@@ -1420,10 +1420,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-exchange-rate" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('معدل الصرف', 'Exchange Rate')}
               </label>
-              <input
+              <input id="ux-exchange-rate"
                 type="number"
                 step="0.0001"
                 value={formData.exchangeRate}
@@ -1433,10 +1433,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-vat-rate" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('نسبة الضريبة %', 'VAT Rate %')}
               </label>
-              <input
+              <input id="ux-vat-rate"
                 type="number"
                 step="0.01"
                 value={formData.vatRate}
@@ -1446,10 +1446,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-payment-method" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('طريقة الدفع', 'Payment Method')}
               </label>
-              <select
+              <select id="ux-payment-method"
                 value={formData.paymentMethod}
                 onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as PaymentMethod })}
                 className="w-full px-3 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"
@@ -1461,10 +1461,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-due-date" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('تاريخ الاستحقاق', 'Due Date')}
               </label>
-              <input
+              <input id="ux-due-date"
                 type="date"
                 value={formData.paymentDueDate}
                 onChange={(e) => setFormData({ ...formData, paymentDueDate: e.target.value })}
@@ -1473,10 +1473,10 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-description" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 {t('الوصف', 'Description')}
               </label>
-              <textarea
+              <textarea id="ux-description"
                 rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}

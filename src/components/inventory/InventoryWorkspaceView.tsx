@@ -144,7 +144,7 @@ function DataTable({ headers, rows, empty }: {
     <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-zinc-800">
       <table className="w-full min-w-max">
         <thead className="bg-slate-50 dark:bg-zinc-900">
-          <tr>{headers.map((h, i) => <th key={i} className={TH_CLS}>{h}</th>)}</tr>
+          <tr>{headers.map((h, i) => <th scope="col" key={i} className={TH_CLS}>{h}</th>)}</tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60 bg-white dark:bg-zinc-900">
           {rows}

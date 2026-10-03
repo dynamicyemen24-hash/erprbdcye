@@ -435,8 +435,8 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
 
           <div className="space-y-3.5">
             <div>
-              <label className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">{lang === 'ar' ? 'المبلغ المراد تحويله' : 'Amount to Convert'}</label>
-              <input 
+              <label htmlFor="ux-amount-to-convert" className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">{lang === 'ar' ? 'المبلغ المراد تحويله' : 'Amount to Convert'}</label>
+              <input id="ux-amount-to-convert" 
                 type="number"
                 value={calcAmount}
                 onChange={(e) => setCalcAmount(e.target.value)}
@@ -446,8 +446,8 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">{lang === 'ar' ? 'من عملة' : 'From Currency'}</label>
-                <select 
+                <label htmlFor="ux-from-currency" className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">{lang === 'ar' ? 'من عملة' : 'From Currency'}</label>
+                <select id="ux-from-currency" 
                   value={calcFrom}
                   onChange={(e) => setCalcFrom(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg text-xs font-bold text-slate-700 dark:text-zinc-300 focus:outline-none"
@@ -458,8 +458,8 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">{lang === 'ar' ? 'إلى عملة' : 'To Currency'}</label>
-                <select 
+                <label htmlFor="ux-to-currency" className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">{lang === 'ar' ? 'إلى عملة' : 'To Currency'}</label>
+                <select id="ux-to-currency" 
                   value={calcTo}
                   onChange={(e) => setCalcTo(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-lg text-xs font-bold text-slate-700 dark:text-zinc-300 focus:outline-none"
@@ -531,10 +531,10 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
 
             <div className="space-y-2">
               <div>
-                <label className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">
+                <label htmlFor="ux-locked-payout" className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">
                   1 USD → YER {lang === 'ar' ? '(صنعاء المعتمد)' : '(Locked Payout)'}
                 </label>
-                <input 
+                <input id="ux-locked-payout" 
                   type="number"
                   step="0.01"
                   value={usdToYerManual}
@@ -545,10 +545,10 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">
+                <label htmlFor="ux-sar-to-yer-locked" className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">
                   1 SAR → YER {lang === 'ar' ? '(ريال سعودي مقابل يمني)' : '(SAR to YER Locked)'}
                 </label>
-                <input 
+                <input id="ux-sar-to-yer-locked" 
                   type="number"
                   step="0.01"
                   value={sarToYerManual}
@@ -559,10 +559,10 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">
+                <label htmlFor="ux-usd-to-sar-locked" className="block text-[10px] text-slate-400 font-extrabold uppercase mb-1">
                   1 USD → SAR {lang === 'ar' ? '(دولار مقابل سعودي)' : '(USD to SAR Locked)'}
                 </label>
-                <input 
+                <input id="ux-usd-to-sar-locked" 
                   type="number"
                   step="0.01"
                   value={usdToSarManual}
@@ -642,12 +642,12 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
               <thead>
                 <tr className="bg-zinc-900 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                  <th className="p-3">{lang === 'ar' ? 'اسم الكفيل والجهة المانحة' : 'Sponsor'}</th>
-                  <th className="p-3 w-32">{lang === 'ar' ? 'المبلغ بالعملة الأجنبية' : 'Foreign Amount'}</th>
-                  <th className="p-3 w-40">{lang === 'ar' ? 'العملة الأصلية' : 'Currency'}</th>
-                  <th className="p-3 w-44 text-right">{lang === 'ar' ? 'الريال الموازي (صنعاء)' : 'Sanaa Payout (YER)'}</th>
-                  <th className="p-3 w-44 text-right">{lang === 'ar' ? 'الريال الموازي (عدن)' : 'Aden Payout (YER)'}</th>
-                  <th className="p-3 w-32 text-center">{lang === 'ar' ? 'حالة السداد' : 'Payment Status'}</th>
+                  <th scope="col" className="p-3">{lang === 'ar' ? 'اسم الكفيل والجهة المانحة' : 'Sponsor'}</th>
+                  <th scope="col" className="p-3 w-32">{lang === 'ar' ? 'المبلغ بالعملة الأجنبية' : 'Foreign Amount'}</th>
+                  <th scope="col" className="p-3 w-40">{lang === 'ar' ? 'العملة الأصلية' : 'Currency'}</th>
+                  <th scope="col" className="p-3 w-44 text-right">{lang === 'ar' ? 'الريال الموازي (صنعاء)' : 'Sanaa Payout (YER)'}</th>
+                  <th scope="col" className="p-3 w-44 text-right">{lang === 'ar' ? 'الريال الموازي (عدن)' : 'Aden Payout (YER)'}</th>
+                  <th scope="col" className="p-3 w-32 text-center">{lang === 'ar' ? 'حالة السداد' : 'Payment Status'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300">

@@ -401,11 +401,11 @@ export default function ManagementAccountingTab({
               <table class="w-full text-xs text-right border-collapse">
                 <thead>
                   <tr class="bg-slate-200 font-extrabold text-slate-800">
-                    <th class="p-2">بند التكلفة</th>
-                    <th class="p-2">انحراف السعر / المعدل</th>
-                    <th class="p-2">انحراف الكمية / الكفاءة</th>
-                    <th class="p-2">الانحراف الكلي</th>
-                    <th class="p-2">التقييم</th>
+                    <th scope="col" class="p-2">بند التكلفة</th>
+                    <th scope="col" class="p-2">انحراف السعر / المعدل</th>
+                    <th scope="col" class="p-2">انحراف الكمية / الكفاءة</th>
+                    <th scope="col" class="p-2">الانحراف الكلي</th>
+                    <th scope="col" class="p-2">التقييم</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
@@ -618,11 +618,11 @@ export default function ManagementAccountingTab({
                 </h4>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-500 flex justify-between">
+                  <label htmlFor="ux-span-fixed-costs-span-span-classn" className="text-[10px] font-black text-slate-500 flex justify-between">
                     <span>التكاليف الثابتة (Fixed Costs):</span>
                     <span className="font-mono text-slate-900 dark:text-white">{cvpState.fixedCostsYer.toLocaleString()} YER</span>
                   </label>
-                  <input
+                  <input id="ux-span-fixed-costs-span-span-classn"
                     type="range"
                     min="10000000"
                     max="100000000"
@@ -634,11 +634,11 @@ export default function ManagementAccountingTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-500 flex justify-between">
+                  <label htmlFor="ux-span-vc-unit-span-span-classname" className="text-[10px] font-black text-slate-500 flex justify-between">
                     <span>التكلفة المتغيرة للوحدة (VC/Unit):</span>
                     <span className="font-mono text-slate-900 dark:text-white">{cvpState.variableCostPerUnitYer.toLocaleString()} YER</span>
                   </label>
-                  <input
+                  <input id="ux-span-vc-unit-span-span-classname"
                     type="range"
                     min="2000"
                     max="30000"
@@ -650,11 +650,11 @@ export default function ManagementAccountingTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-500 flex justify-between">
+                  <label htmlFor="ux-span-price-unit-span-span-classna" className="text-[10px] font-black text-slate-500 flex justify-between">
                     <span>سعر / عائد الوحدة (Price/Unit):</span>
                     <span className="font-mono text-slate-900 dark:text-white">{cvpState.sellingPricePerUnitYer.toLocaleString()} YER</span>
                   </label>
-                  <input
+                  <input id="ux-span-price-unit-span-span-classna"
                     type="range"
                     min="5000"
                     max="50000"
@@ -666,11 +666,11 @@ export default function ManagementAccountingTab({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-500 flex justify-between">
+                  <label htmlFor="ux-span-target-units-span-span-class" className="text-[10px] font-black text-slate-500 flex justify-between">
                     <span>الكمية المستهدفة (Target Units):</span>
                     <span className="font-mono text-slate-900 dark:text-white">{cvpState.targetUnits.toLocaleString()}</span>
                   </label>
-                  <input
+                  <input id="ux-span-target-units-span-span-class"
                     type="range"
                     min="1000"
                     max="20000"
@@ -775,15 +775,15 @@ export default function ManagementAccountingTab({
               <table className="w-full text-xs text-right border-collapse">
                 <thead>
                   <tr className="bg-zinc-900 text-amber-400 font-black text-[10px] uppercase">
-                    <th className="p-3">بند التكلفة والمستلزمات</th>
-                    <th className="p-3 text-center">الكمية المعيارية (SQ)</th>
-                    <th className="p-3 text-center">الكمية الفعلية (AQ)</th>
-                    <th className="p-3 text-center">السعر المعياري (SP)</th>
-                    <th className="p-3 text-center">السعر فعلي (AP)</th>
-                    <th className="p-3 text-right">انحراف السعر / المعدل</th>
-                    <th className="p-3 text-right">انحراف الكمية / الكفاءة</th>
-                    <th className="p-3 text-right">الانحراف الكلي</th>
-                    <th className="p-3 text-center">التصنيف</th>
+                    <th scope="col" className="p-3">بند التكلفة والمستلزمات</th>
+                    <th scope="col" className="p-3 text-center">الكمية المعيارية (SQ)</th>
+                    <th scope="col" className="p-3 text-center">الكمية الفعلية (AQ)</th>
+                    <th scope="col" className="p-3 text-center">السعر المعياري (SP)</th>
+                    <th scope="col" className="p-3 text-center">السعر فعلي (AP)</th>
+                    <th scope="col" className="p-3 text-right">انحراف السعر / المعدل</th>
+                    <th scope="col" className="p-3 text-right">انحراف الكمية / الكفاءة</th>
+                    <th scope="col" className="p-3 text-right">الانحراف الكلي</th>
+                    <th scope="col" className="p-3 text-center">التصنيف</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold text-slate-700 dark:text-zinc-300">

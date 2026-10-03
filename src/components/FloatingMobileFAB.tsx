@@ -1533,10 +1533,10 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                     {/* Reporter Name & Phone */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
+                        <label htmlFor="ux-field-reporter-name" className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
                           {isRtl ? 'اسم المبلّغ الميداني *' : 'Field Reporter Name *'}
                         </label>
-                        <input
+                        <input id="ux-field-reporter-name"
                           type="text"
                           value={reporterName}
                           onChange={(e) => setReporterName(e.target.value)}
@@ -1545,10 +1545,10 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
+                        <label htmlFor="ux-contact-phone" className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
                           {isRtl ? 'رقم هاتف التواصل *' : 'Contact Phone *'}
                         </label>
-                        <input
+                        <input id="ux-contact-phone"
                           type="tel"
                           value={reporterPhone}
                           onChange={(e) => setReporterPhone(e.target.value)}
@@ -1561,10 +1561,10 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                     {/* Governorate & District */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
+                        <label htmlFor="ux-governorate" className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
                           {isRtl ? 'المحافظة *' : 'Governorate *'}
                         </label>
-                        <select
+                        <select id="ux-governorate"
                           value={governorate}
                           onChange={(e) => setGovernorate(e.target.value)}
                           className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
@@ -1577,10 +1577,10 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                         </select>
                       </div>
                       <div>
-                        <label className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
+                        <label htmlFor="ux-district-area" className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
                           {isRtl ? 'المديرية / المنطقة *' : 'District / Area *'}
                         </label>
-                        <input
+                        <input id="ux-district-area"
                           type="text"
                           value={district}
                           onChange={(e) => setDistrict(e.target.value)}
@@ -1593,10 +1593,10 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
                     {/* Emergency Type & Severity */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
+                        <label htmlFor="ux-emergency-disaster-type" className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
                           {isRtl ? 'نوع الطوارئ الكارثية *' : 'Emergency Disaster Type *'}
                         </label>
-                        <select
+                        <select id="ux-emergency-disaster-type"
                           value={emergencyType}
                           onChange={(e) => setEmergencyType(e.target.value)}
                           className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
@@ -1639,10 +1639,10 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
 
                     {/* Situation Description */}
                     <div>
-                      <label className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
+                      <label htmlFor="ux-emergency-details-current-field-im" className="text-xs font-black text-slate-500 dark:text-zinc-400 block mb-1">
                         {isRtl ? 'شرح تفاصيل البلاغ والأثر الميداني العاجل *' : 'Emergency Details & Current Field Impact *'}
                       </label>
-                      <textarea
+                      <textarea id="ux-emergency-details-current-field-im"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         rows={4}

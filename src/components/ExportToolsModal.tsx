@@ -266,10 +266,10 @@ export default function ExportToolsModal({
 
               {/* Template Selection */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-slate-600 dark:text-zinc-300 uppercase tracking-wider">
+                <label htmlFor="ux-report-template" className="text-[11px] font-black text-slate-600 dark:text-zinc-300 uppercase tracking-wider">
                   {isRtl ? 'قالب التقرير' : 'Report Template'}
                 </label>
-                <select
+                <select id="ux-report-template"
                   value={selectedTemplate}
                   onChange={e => setSelectedTemplate(e.target.value as ReportTemplateId)}
                   className="w-full p-2.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white cursor-pointer focus:ring-2 focus:ring-emerald-500/40"

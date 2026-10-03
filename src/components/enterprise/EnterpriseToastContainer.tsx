@@ -46,7 +46,7 @@ export const EnterpriseToastContainer: React.FC<{ lang?: 'ar' | 'en' }> = ({ lan
 
   return (
     <div 
-      className={`fixed top-14 z-[99999] flex flex-col gap-2.5 max-w-sm w-[90vw] pointer-events-none transition-all duration-300 ${
+      className={`fixed top-14 z-toast flex flex-col gap-2.5 max-w-sm w-[90vw] pointer-events-none transition-all duration-300 ${
         isRtl ? 'left-4' : 'right-4'
       }`}
       dir={isRtl ? 'rtl' : 'ltr'}

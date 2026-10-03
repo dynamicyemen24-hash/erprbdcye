@@ -106,7 +106,7 @@ export const EnvironmentModeHeaderButton: React.FC<EnvironmentModeHeaderButtonPr
       {/* Popover Dropdown */}
       {isOpen && (
         <div 
-          className={`absolute top-full mt-2 w-80 md:w-96 rounded-2xl bg-zinc-950/95 backdrop-blur-md border border-zinc-800 shadow-2xl p-4 z-[999] text-right animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute top-full mt-2 w-80 md:w-96 rounded-2xl bg-zinc-950/95 backdrop-blur-md border border-zinc-800 shadow-2xl p-4 z-dropdown text-right animate-in fade-in zoom-in-95 duration-150 ${
             isRtl ? 'left-0 md:left-auto md:right-0' : 'right-0 md:right-auto md:left-0'
           }`}
           dir={isRtl ? 'rtl' : 'ltr'}
@@ -345,7 +345,7 @@ const EnvironmentModeConfirmModal: React.FC<EnvironmentModeConfirmModalProps> = 
   const targetConfig = ENVIRONMENT_MODES[targetMode];
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150" onClick={onCancel}>
+    <div className="fixed inset-0 z-dialog flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150" onClick={onCancel}>
       <div
         className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-zinc-800 p-6 max-w-md w-full animate-in zoom-in-95 duration-200 text-right"
         onClick={(e) => e.stopPropagation()}

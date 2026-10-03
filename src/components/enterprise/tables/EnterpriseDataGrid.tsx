@@ -400,7 +400,7 @@ export function EnterpriseDataGrid<T>({
           <thead className="sticky top-0 z-10 bg-slate-100/95 dark:bg-zinc-900/95 backdrop-blur-xs border-b border-slate-200 dark:border-zinc-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-zinc-400 shadow-2xs">
             <tr>
               {visibleColumns.map((col) => (
-                <th 
+                <th scope="col" 
                   key={col.key}
                   className={`${densityPadding} font-extrabold whitespace-nowrap select-none ${col.sortable ? 'cursor-pointer hover:bg-slate-200/70 dark:hover:bg-zinc-800 transition-colors' : ''}`}
                   style={{ width: col.width, textAlign: col.align || (isRtl ? 'right' : 'left') }}
@@ -426,7 +426,7 @@ export function EnterpriseDataGrid<T>({
                   </div>
                 </th>
               ))}
-              {onRowClick && <th className="px-3 py-2.5 w-10 text-center"></th>}
+              {onRowClick && <th scope="col" className="px-3 py-2.5 w-10 text-center"></th>}
             </tr>
           </thead>
 

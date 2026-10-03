@@ -47,6 +47,10 @@ scripts/probe_*.cjs
 tmp_*.txt
 summary.txt
 
+# Agent/tool scratch run dumps (x1.txt, x1e.txt pattern)
+?[0-9].txt
+?[0-9]e.txt
+
 # Playwright
 /test-results/
 /playwright-report/

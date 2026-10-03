@@ -384,12 +384,12 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
               <table class="w-full text-xs text-right border-collapse border border-slate-200 mb-8">
                 <thead>
                   <tr class="bg-slate-950 text-white font-extrabold uppercase">
-                    <th class="p-3 border border-slate-200 text-center w-12">#</th>
-                    <th class="p-3 border border-slate-200 w-32">${lang === 'ar' ? 'رمز الحساب' : 'Code'}</th>
-                    <th class="p-3 border border-slate-200 w-48">${lang === 'ar' ? 'اسم الحساب في الدليل' : 'Account Name'}</th>
-                    <th class="p-3 border border-slate-200">${lang === 'ar' ? 'الشرح التفصيلي للسطر' : 'Line Description'}</th>
-                    <th class="p-3 border border-slate-200 text-right w-32">${lang === 'ar' ? 'مدين (ر.ي)' : 'Debit (YER)'}</th>
-                    <th class="p-3 border border-slate-200 text-right w-32">${lang === 'ar' ? 'دائن (ر.ي)' : 'Credit (YER)'}</th>
+                    <th scope="col" class="p-3 border border-slate-200 text-center w-12">#</th>
+                    <th scope="col" class="p-3 border border-slate-200 w-32">${lang === 'ar' ? 'رمز الحساب' : 'Code'}</th>
+                    <th scope="col" class="p-3 border border-slate-200 w-48">${lang === 'ar' ? 'اسم الحساب في الدليل' : 'Account Name'}</th>
+                    <th scope="col" class="p-3 border border-slate-200">${lang === 'ar' ? 'الشرح التفصيلي للسطر' : 'Line Description'}</th>
+                    <th scope="col" class="p-3 border border-slate-200 text-right w-32">${lang === 'ar' ? 'مدين (ر.ي)' : 'Debit (YER)'}</th>
+                    <th scope="col" class="p-3 border border-slate-200 text-right w-32">${lang === 'ar' ? 'دائن (ر.ي)' : 'Credit (YER)'}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -796,13 +796,13 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
               <thead>
                 <tr className="bg-zinc-900 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                  <th className="p-3 w-12">#</th>
-                  <th className="p-3 w-36">{lang === 'ar' ? 'رقم القيد' : 'Voucher No'}</th>
-                  <th className="p-3 w-28">{lang === 'ar' ? 'تاريخ الترحيل' : 'Posting Date'}</th>
-                  <th className="p-3 w-32">{lang === 'ar' ? 'نوع السند' : 'Type'}</th>
-                  <th className="p-3">{lang === 'ar' ? 'الشرح والبيان العام' : 'Narration'}</th>
-                  <th className="p-3 text-right w-44">{lang === 'ar' ? 'القيمة المتزنة (ريال يمني)' : 'Balanced Amount (YER)'}</th>
-                  <th className="p-3 text-center w-36">{lang === 'ar' ? 'المستندات' : 'Documents'}</th>
+                  <th scope="col" className="p-3 w-12">#</th>
+                  <th scope="col" className="p-3 w-36">{lang === 'ar' ? 'رقم القيد' : 'Voucher No'}</th>
+                  <th scope="col" className="p-3 w-28">{lang === 'ar' ? 'تاريخ الترحيل' : 'Posting Date'}</th>
+                  <th scope="col" className="p-3 w-32">{lang === 'ar' ? 'نوع السند' : 'Type'}</th>
+                  <th scope="col" className="p-3">{lang === 'ar' ? 'الشرح والبيان العام' : 'Narration'}</th>
+                  <th scope="col" className="p-3 text-right w-44">{lang === 'ar' ? 'القيمة المتزنة (ريال يمني)' : 'Balanced Amount (YER)'}</th>
+                  <th scope="col" className="p-3 text-center w-36">{lang === 'ar' ? 'المستندات' : 'Documents'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 text-slate-700">

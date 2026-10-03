@@ -297,44 +297,44 @@ export default function UnifiedRevenueEngineTab({ lang, projects }: UnifiedReven
           <h4 className="text-xs font-black text-slate-700 dark:text-zinc-200">{isAr ? 'تسجيل إيراد جديد (يبدأ كمسودة)' : 'Register New Revenue (starts as DRAFT)'}</h4>
           <div className="grid md:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المسار الإيرادي' : 'Revenue Stream'}</label>
-              <select value={form.streamCode} onChange={e => setForm(f => ({ ...f, streamCode: e.target.value, currencyCode: streams.find(s => s.stream_code === e.target.value)?.default_currency || f.currencyCode }))} className={inputCls}>
+              <label htmlFor="ux-revenue-stream" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المسار الإيرادي' : 'Revenue Stream'}</label>
+              <select id="ux-revenue-stream" value={form.streamCode} onChange={e => setForm(f => ({ ...f, streamCode: e.target.value, currencyCode: streams.find(s => s.stream_code === e.target.value)?.default_currency || f.currencyCode }))} className={inputCls}>
                 <option value="">{isAr ? '— اختر المسار —' : '— Select stream —'}</option>
                 {streams.map(s => <option key={s.id} value={s.stream_code}>{s.name_ar} ({s.stream_code})</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'الجهة / الممول' : 'Counterparty / Funder'}</label>
-              <input value={form.counterpartyName} onChange={e => setForm(f => ({ ...f, counterpartyName: e.target.value }))} className={inputCls} placeholder={isAr ? 'اسم الجهة' : 'Party name'} />
+              <label htmlFor="ux-counterparty-funder" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'الجهة / الممول' : 'Counterparty / Funder'}</label>
+              <input id="ux-counterparty-funder" value={form.counterpartyName} onChange={e => setForm(f => ({ ...f, counterpartyName: e.target.value }))} className={inputCls} placeholder={isAr ? 'اسم الجهة' : 'Party name'} />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المشروع' : 'Project'}</label>
-              <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} className={inputCls}>
+              <label htmlFor="ux-project" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المشروع' : 'Project'}</label>
+              <select id="ux-project" value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} className={inputCls}>
                 <option value="">{isAr ? '— بدون مشروع —' : '— No project —'}</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{(p.project_code || p.code || '')} — {p.name_ar}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المبلغ' : 'Amount'} *</label>
-              <input required type="number" min="0.01" step="0.01" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} className={inputCls} />
+              <label htmlFor="ux-amount" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المبلغ' : 'Amount'} *</label>
+              <input id="ux-amount" required type="number" min="0.01" step="0.01" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} className={inputCls} />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'العملة' : 'Currency'}</label>
-              <select value={form.currencyCode} onChange={e => setForm(f => ({ ...f, currencyCode: e.target.value }))} className={inputCls}>
+              <label htmlFor="ux-currency" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'العملة' : 'Currency'}</label>
+              <select id="ux-currency" value={form.currencyCode} onChange={e => setForm(f => ({ ...f, currencyCode: e.target.value }))} className={inputCls}>
                 {['YER', 'USD', 'SAR', 'EUR', 'AED'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'تاريخ الإيراد' : 'Revenue Date'}</label>
-              <input type="date" value={form.revenueDate} onChange={e => setForm(f => ({ ...f, revenueDate: e.target.value }))} className={inputCls} />
+              <label htmlFor="ux-revenue-date" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'تاريخ الإيراد' : 'Revenue Date'}</label>
+              <input id="ux-revenue-date" type="date" value={form.revenueDate} onChange={e => setForm(f => ({ ...f, revenueDate: e.target.value }))} className={inputCls} />
             </div>
             <div className="md:col-span-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'الوصف' : 'Description'}</label>
-              <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={inputCls} />
+              <label htmlFor="ux-description" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'الوصف' : 'Description'}</label>
+              <input id="ux-description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={inputCls} />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المرجع' : 'Reference'}</label>
-              <input value={form.referenceNumber} onChange={e => setForm(f => ({ ...f, referenceNumber: e.target.value }))} className={inputCls} />
+              <label htmlFor="ux-reference" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المرجع' : 'Reference'}</label>
+              <input id="ux-reference" value={form.referenceNumber} onChange={e => setForm(f => ({ ...f, referenceNumber: e.target.value }))} className={inputCls} />
             </div>
           </div>
           <div className="flex justify-end gap-2">
@@ -361,14 +361,14 @@ export default function UnifiedRevenueEngineTab({ lang, projects }: UnifiedReven
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50 dark:bg-zinc-800/60 text-slate-400 dark:text-zinc-500 text-[10px] uppercase">
-                  <th className="px-4 py-2.5 text-start font-black">{isAr ? 'الرقم' : 'Number'}</th>
-                  <th className="px-4 py-2.5 text-start font-black">{isAr ? 'النوع' : 'Type'}</th>
-                  <th className="px-4 py-2.5 text-start font-black">{isAr ? 'الجهة' : 'Counterparty'}</th>
-                  <th className="px-4 py-2.5 text-start font-black">{isAr ? 'المشروع' : 'Project'}</th>
-                  <th className="px-4 py-2.5 text-end font-black">{isAr ? 'المبلغ' : 'Amount'}</th>
-                  <th className="px-4 py-2.5 text-end font-black">{isAr ? 'المحصّل' : 'Collected'}</th>
-                  <th className="px-4 py-2.5 text-center font-black">{isAr ? 'الحالة' : 'Status'}</th>
-                  <th className="px-4 py-2.5 text-center font-black">{isAr ? 'إجراءات' : 'Actions'}</th>
+                  <th scope="col" className="px-4 py-2.5 text-start font-black">{isAr ? 'الرقم' : 'Number'}</th>
+                  <th scope="col" className="px-4 py-2.5 text-start font-black">{isAr ? 'النوع' : 'Type'}</th>
+                  <th scope="col" className="px-4 py-2.5 text-start font-black">{isAr ? 'الجهة' : 'Counterparty'}</th>
+                  <th scope="col" className="px-4 py-2.5 text-start font-black">{isAr ? 'المشروع' : 'Project'}</th>
+                  <th scope="col" className="px-4 py-2.5 text-end font-black">{isAr ? 'المبلغ' : 'Amount'}</th>
+                  <th scope="col" className="px-4 py-2.5 text-end font-black">{isAr ? 'المحصّل' : 'Collected'}</th>
+                  <th scope="col" className="px-4 py-2.5 text-center font-black">{isAr ? 'الحالة' : 'Status'}</th>
+                  <th scope="col" className="px-4 py-2.5 text-center font-black">{isAr ? 'إجراءات' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -435,12 +435,12 @@ export default function UnifiedRevenueEngineTab({ lang, projects }: UnifiedReven
               {isAr ? 'المتبقي:' : 'Outstanding:'} <b>{fmt(Number(collectFor.amount) - Number(collectFor.collected_amount))} {collectFor.currency_code}</b>
             </p>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المبلغ المحصّل' : 'Collection Amount'} *</label>
-              <input required type="number" min="0.01" step="0.01" value={collectAmount} onChange={e => setCollectAmount(e.target.value)} className={inputCls} />
+              <label htmlFor="ux-collection-amount" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'المبلغ المحصّل' : 'Collection Amount'} *</label>
+              <input id="ux-collection-amount" required type="number" min="0.01" step="0.01" value={collectAmount} onChange={e => setCollectAmount(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'طريقة الدفع' : 'Payment Method'}</label>
-              <select value={collectMethod} onChange={e => setCollectMethod(e.target.value)} className={inputCls}>
+              <label htmlFor="ux-payment-method" className="text-[10px] font-bold text-slate-400 uppercase">{isAr ? 'طريقة الدفع' : 'Payment Method'}</label>
+              <select id="ux-payment-method" value={collectMethod} onChange={e => setCollectMethod(e.target.value)} className={inputCls}>
                 <option value="CASH">{isAr ? 'نقداً' : 'Cash'}</option>
                 <option value="BANK_TRANSFER">{isAr ? 'حوالة بنكية' : 'Bank Transfer'}</option>
                 <option value="CHECK">{isAr ? 'شيك' : 'Check'}</option>

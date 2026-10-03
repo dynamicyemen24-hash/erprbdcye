@@ -499,14 +499,14 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              <th>كود المشروع</th>
-              <th>اسم المشروع</th>
-              <th>البرنامج التنموي التابع</th>
-              <th>الإنجاز</th>
-              <th>الموازنة المعتمدة (ر.ي)</th>
-              <th>المستفيدون (فعلي / مستهدف)</th>
-              <th>الحالة</th>
+              <th scope="col">#</th>
+              <th scope="col">كود المشروع</th>
+              <th scope="col">اسم المشروع</th>
+              <th scope="col">البرنامج التنموي التابع</th>
+              <th scope="col">الإنجاز</th>
+              <th scope="col">الموازنة المعتمدة (ر.ي)</th>
+              <th scope="col">المستفيدون (فعلي / مستهدف)</th>
+              <th scope="col">الحالة</th>
             </tr>
           </thead>
           <tbody>
@@ -1065,12 +1065,12 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
               <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
                 <thead className="bg-slate-50 dark:bg-zinc-800/80 border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-bold uppercase text-[10px]">
                   <tr>
-                    <th className="px-6 py-4">{lang === 'ar' ? 'الرمز والمسمى' : 'Code & Title'}</th>
-                    <th className="px-6 py-4">{lang === 'ar' ? 'البرنامج المرتبط' : 'Linked Program'}</th>
-                    <th className="px-6 py-4">{lang === 'ar' ? 'الموقع والنطاق' : 'Location'}</th>
-                    <th className="px-6 py-4">{lang === 'ar' ? 'الموازنة المقررة' : 'Budget'}</th>
-                    <th className="px-6 py-4">{lang === 'ar' ? 'الإنجاز الفعلي' : 'Progress'}</th>
-                    <th className="px-6 py-4 text-center">{lang === 'ar' ? 'خيارات السحب' : 'Actions'}</th>
+                    <th scope="col" className="px-6 py-4">{lang === 'ar' ? 'الرمز والمسمى' : 'Code & Title'}</th>
+                    <th scope="col" className="px-6 py-4">{lang === 'ar' ? 'البرنامج المرتبط' : 'Linked Program'}</th>
+                    <th scope="col" className="px-6 py-4">{lang === 'ar' ? 'الموقع والنطاق' : 'Location'}</th>
+                    <th scope="col" className="px-6 py-4">{lang === 'ar' ? 'الموازنة المقررة' : 'Budget'}</th>
+                    <th scope="col" className="px-6 py-4">{lang === 'ar' ? 'الإنجاز الفعلي' : 'Progress'}</th>
+                    <th scope="col" className="px-6 py-4 text-center">{lang === 'ar' ? 'خيارات السحب' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -1252,8 +1252,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
 
               {/* Linking to Program */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'البرنامج التنموي التابع له' : 'Parent Developmental Program'}</label>
-                <select 
+                <label htmlFor="ux-parent-developmental-program" className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'البرنامج التنموي التابع له' : 'Parent Developmental Program'}</label>
+                <select id="ux-parent-developmental-program" 
                   required
                   value={programId}
                   onChange={(e) => setProgramId(e.target.value)}
@@ -1271,8 +1271,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
               {/* Codes & Names */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رمز المشروع (الكود)' : 'Project Code'}</label>
-                  <input 
+                  <label htmlFor="ux-project-code" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رمز المشروع (الكود)' : 'Project Code'}</label>
+                  <input id="ux-project-code" 
                     type="text" 
                     required 
                     value={code}
@@ -1282,8 +1282,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'اسم المشروع (بالعربية)' : 'Arabic Name'}</label>
-                  <input 
+                  <label htmlFor="ux-arabic-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'اسم المشروع (بالعربية)' : 'Arabic Name'}</label>
+                  <input id="ux-arabic-name" 
                     type="text" 
                     required 
                     value={nameAr}
@@ -1293,8 +1293,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية (اختياري)' : 'English Name'}</label>
-                  <input 
+                  <label htmlFor="ux-english-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية (اختياري)' : 'English Name'}</label>
+                  <input id="ux-english-name" 
                     type="text" 
                     value={nameEn}
                     onChange={(e) => setNameEn(e.target.value)}
@@ -1330,8 +1330,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
               {/* Status and Priority */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'حالة العمل الحالية' : 'Operational Status'}</label>
-                  <select 
+                  <label htmlFor="ux-operational-status" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'حالة العمل الحالية' : 'Operational Status'}</label>
+                  <select id="ux-operational-status" 
                     value={statusCode}
                     onChange={(e) => setStatusCode(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none font-semibold text-slate-700"
@@ -1343,8 +1343,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'مستوى الأولوية' : 'Priority'}</label>
-                  <select 
+                  <label htmlFor="ux-priority" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'مستوى الأولوية' : 'Priority'}</label>
+                  <select id="ux-priority" 
                     value={priorityCode}
                     onChange={(e) => setPriorityCode(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none text-slate-700"
@@ -1359,8 +1359,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
               {/* Budgets & Progress */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الموازنة (بالريال)' : 'Project Budget'}</label>
-                  <input 
+                  <label htmlFor="ux-project-budget" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الموازنة (بالريال)' : 'Project Budget'}</label>
+                  <input id="ux-project-budget" 
                     type="number" 
                     required 
                     value={budget}
@@ -1369,8 +1369,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الإنجاز الفعلي (%)' : 'Progress Percent'}</label>
-                  <input 
+                  <label htmlFor="ux-progress-percent" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الإنجاز الفعلي (%)' : 'Progress Percent'}</label>
+                  <input id="ux-progress-percent" 
                     type="number" 
                     min="0" 
                     max="100"
@@ -1381,8 +1381,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المستفيدين المستهدفين' : 'Target Beneficiaries'}</label>
-                  <input 
+                  <label htmlFor="ux-target-beneficiaries" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المستفيدين المستهدفين' : 'Target Beneficiaries'}</label>
+                  <input id="ux-target-beneficiaries" 
                     type="number" 
                     value={targetBeneficiaries}
                     onChange={(e) => setTargetBeneficiaries(e.target.value)}
@@ -1390,8 +1390,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المستفيدين الفعليين' : 'Actual Beneficiaries'}</label>
-                  <input 
+                  <label htmlFor="ux-actual-beneficiaries" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المستفيدين الفعليين' : 'Actual Beneficiaries'}</label>
+                  <input id="ux-actual-beneficiaries" 
                     type="number" 
                     value={actualBeneficiaries}
                     onChange={(e) => setActualBeneficiaries(e.target.value)}
@@ -1403,8 +1403,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
               {/* Dates */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'تاريخ البدء الفعلي' : 'Start Date'}</label>
-                  <input 
+                  <label htmlFor="ux-start-date" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'تاريخ البدء الفعلي' : 'Start Date'}</label>
+                  <input id="ux-start-date" 
                     type="date" 
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
@@ -1412,8 +1412,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'التاريخ المتوقع للإنجاز' : 'End Date'}</label>
-                  <input 
+                  <label htmlFor="ux-end-date" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'التاريخ المتوقع للإنجاز' : 'End Date'}</label>
+                  <input id="ux-end-date" 
                     type="date" 
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -1424,8 +1424,8 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'نبذة عن المشروع وأنشطته' : 'Project Summary & Scope'}</label>
-                <textarea 
+                <label htmlFor="ux-project-summary-scope" className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'نبذة عن المشروع وأنشطته' : 'Project Summary & Scope'}</label>
+                <textarea id="ux-project-summary-scope" 
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}

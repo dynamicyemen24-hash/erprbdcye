@@ -575,9 +575,9 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 11px;">
               <thead>
                 <tr style="background-color: #0f172a; color: #ffffff;">
-                  <th style="padding: 8px 10px; text-align: ${isRtl ? 'right' : 'left'};">المصرف الشرعي</th>
-                  <th style="padding: 8px 10px; text-align: center; width: 80px;">النسبة</th>
-                  <th style="padding: 8px 10px; text-align: right; width: 160px;">المبلغ المخصص (YER)</th>
+                  <th scope="col" style="padding: 8px 10px; text-align: ${isRtl ? 'right' : 'left'};">المصرف الشرعي</th>
+                  <th scope="col" style="padding: 8px 10px; text-align: center; width: 80px;">النسبة</th>
+                  <th scope="col" style="padding: 8px 10px; text-align: right; width: 160px;">المبلغ المخصص (YER)</th>
                 </tr>
               </thead>
               <tbody>
@@ -739,9 +739,9 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
           <table class="w-full text-xs text-right border-collapse">
             <thead>
               <tr class="bg-slate-900 text-white font-black">
-                <th class="p-2.5">القطاع الإنساني</th>
-                <th class="p-2.5">المعيار التأسيسي</th>
-                <th class="p-2.5 text-left">الكمية المقدرة المطلوبة</th>
+                <th scope="col" class="p-2.5">القطاع الإنساني</th>
+                <th scope="col" class="p-2.5">المعيار التأسيسي</th>
+                <th scope="col" class="p-2.5 text-left">الكمية المقدرة المطلوبة</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 font-bold">
@@ -813,8 +813,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
           <table class="w-full text-xs text-right border-collapse">
             <thead>
               <tr class="bg-slate-900 text-white font-black">
-                <th class="p-2.5">بند النفقات التشغيلية</th>
-                <th class="p-2.5 text-left">المبلغ المخصص (YER)</th>
+                <th scope="col" class="p-2.5">بند النفقات التشغيلية</th>
+                <th scope="col" class="p-2.5 text-left">المبلغ المخصص (YER)</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 font-bold">
@@ -1035,10 +1035,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-[11px] font-black text-slate-600 dark:text-zinc-400 mb-1">
+                    <label htmlFor="ux-total-individual-beneficiaries" className="block text-[11px] font-black text-slate-600 dark:text-zinc-400 mb-1">
                       {isRtl ? 'عدد المستفيدين الأفراد:' : 'Total Individual Beneficiaries:'}
                     </label>
-                    <input
+                    <input id="ux-total-individual-beneficiaries"
                       type="number"
                       value={beneficiaryCount}
                       onChange={(e) => setBeneficiaryCount(Math.max(1, parseInt(e.target.value) || 0))}
@@ -1047,10 +1047,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-black text-slate-600 dark:text-zinc-400 mb-1">
+                    <label htmlFor="ux-yemeni-family-size-persons" className="block text-[11px] font-black text-slate-600 dark:text-zinc-400 mb-1">
                       {isRtl ? 'متوسط حجم الأسرة اليمنية (أفراد):' : 'Yemeni Family Size (Persons):'}
                     </label>
-                    <input
+                    <input id="ux-yemeni-family-size-persons"
                       type="number"
                       value={avgFamilySize}
                       onChange={(e) => setAvgFamilySize(Math.max(1, parseInt(e.target.value) || 1))}
@@ -1059,10 +1059,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-black text-slate-600 dark:text-zinc-400 mb-1">
+                    <label htmlFor="ux-response-duration-days" className="block text-[11px] font-black text-slate-600 dark:text-zinc-400 mb-1">
                       {isRtl ? 'مدة التدخل الإغاثي (بالأيام):' : 'Response Duration (Days):'}
                     </label>
-                    <input
+                    <input id="ux-response-duration-days"
                       type="range"
                       min="1"
                       max="180"
@@ -1200,8 +1200,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
 
                 <div className="space-y-2 text-xs font-bold">
                   <div>
-                    <label className="text-slate-600 dark:text-zinc-400">تكاليف الكادر الميداني المباشر (YER):</label>
-                    <input
+                    <label htmlFor="ux-yer" className="text-slate-600 dark:text-zinc-400">تكاليف الكادر الميداني المباشر (YER):</label>
+                    <input id="ux-yer"
                       type="number"
                       value={directPersonnelYer}
                       onChange={(e) => setDirectPersonnelYer(parseFloat(e.target.value) || 0)}
@@ -1210,8 +1210,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                   </div>
 
                   <div>
-                    <label className="text-slate-600 dark:text-zinc-400">المشتريات واللوجستيات الميدانية (YER):</label>
-                    <input
+                    <label htmlFor="ux-yer-5" className="text-slate-600 dark:text-zinc-400">المشتريات واللوجستيات الميدانية (YER):</label>
+                    <input id="ux-yer-5"
                       type="number"
                       value={directFieldLogisticYer}
                       onChange={(e) => setDirectFieldLogisticYer(parseFloat(e.target.value) || 0)}
@@ -1220,8 +1220,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                   </div>
 
                   <div>
-                    <label className="text-slate-600 dark:text-zinc-400">التجهيزات والمعدات (YER):</label>
-                    <input
+                    <label htmlFor="ux-yer-6" className="text-slate-600 dark:text-zinc-400">التجهيزات والمعدات (YER):</label>
+                    <input id="ux-yer-6"
                       type="number"
                       value={equipmentSuppliesYer}
                       onChange={(e) => setEquipmentSuppliesYer(parseFloat(e.target.value) || 0)}
@@ -1230,8 +1230,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                   </div>
 
                   <div>
-                    <label className="text-slate-600 dark:text-zinc-400">نسبة المصاريف الإدارية ICR (محددة بالمعيار):</label>
-                    <select
+                    <label htmlFor="ux-icr" className="text-slate-600 dark:text-zinc-400">نسبة المصاريف الإدارية ICR (محددة بالمعيار):</label>
+                    <select id="ux-icr"
                       value={icrPercentage}
                       onChange={(e) => setIcrPercentage(parseFloat(e.target.value))}
                       className="w-full bg-white dark:bg-zinc-800 border rounded-xl p-2 font-black mt-1 text-slate-900 dark:text-white"
@@ -1305,8 +1305,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </h3>
 
                 <div>
-                  <label className="text-slate-600 dark:text-zinc-400">مستوى التهديد الأمني بالموقع (1 منخفض - 5 حرج):</label>
-                  <input
+                  <label htmlFor="ux-1-5" className="text-slate-600 dark:text-zinc-400">مستوى التهديد الأمني بالموقع (1 منخفض - 5 حرج):</label>
+                  <input id="ux-1-5"
                     type="range"
                     min="1"
                     max="5"
@@ -1317,8 +1317,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </div>
 
                 <div>
-                  <label className="text-slate-600 dark:text-zinc-400">سلامة فحص المورد والتراخيص (1 ضعيف - 5 ممتاز):</label>
-                  <input
+                  <label htmlFor="ux-1-5-9" className="text-slate-600 dark:text-zinc-400">سلامة فحص المورد والتراخيص (1 ضعيف - 5 ممتاز):</label>
+                  <input id="ux-1-5-9"
                     type="range"
                     min="1"
                     max="5"
@@ -1329,8 +1329,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </div>
 
                 <div>
-                  <label className="text-slate-600 dark:text-zinc-400">تقلبات سعر الصرف والعملة (1 مستقر - 5 متذبذب):</label>
-                  <input
+                  <label htmlFor="ux-1-5-10" className="text-slate-600 dark:text-zinc-400">تقلبات سعر الصرف والعملة (1 مستقر - 5 متذبذب):</label>
+                  <input id="ux-1-5-10"
                     type="range"
                     min="1"
                     max="5"
@@ -1341,8 +1341,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </div>
 
                 <div>
-                  <label className="text-slate-600 dark:text-zinc-400">جاهزية الطرق واللوجستيات (1 مغلقة - 5 مفتوحة):</label>
-                  <input
+                  <label htmlFor="ux-1-5-11" className="text-slate-600 dark:text-zinc-400">جاهزية الطرق واللوجستيات (1 مغلقة - 5 مفتوحة):</label>
+                  <input id="ux-1-5-11"
                     type="range"
                     min="1"
                     max="5"
@@ -1486,10 +1486,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               <table className="w-full text-xs text-right border-collapse">
                 <thead>
                   <tr className="bg-slate-900 text-white font-black text-[10px]">
-                    <th className="p-3">كود DAC</th>
-                    <th className="p-3">القطاع الإنساني والتنموي</th>
-                    <th className="p-3">معيار IATI</th>
-                    <th className="p-3 text-center">نسخ العنصر</th>
+                    <th scope="col" className="p-3">كود DAC</th>
+                    <th scope="col" className="p-3">القطاع الإنساني والتنموي</th>
+                    <th scope="col" className="p-3">معيار IATI</th>
+                    <th scope="col" className="p-3 text-center">نسخ العنصر</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-zinc-800 font-bold text-slate-800 dark:text-zinc-200">
@@ -1542,8 +1542,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </h3>
                 
                 <div>
-                  <label className="text-xs font-black text-slate-700 dark:text-zinc-300">أدخل كود الحساب للتحقق (مثال: 1101-01 أو 5101-02):</label>
-                  <input
+                  <label htmlFor="ux-1101-01-5101-02" className="text-xs font-black text-slate-700 dark:text-zinc-300">أدخل كود الحساب للتحقق (مثال: 1101-01 أو 5101-02):</label>
+                  <input id="ux-1101-01-5101-02"
                     type="text"
                     value={ipsasCode}
                     onChange={(e) => setIpsasCode(e.target.value)}
@@ -1577,8 +1577,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
 
                 <div className="grid grid-cols-2 gap-2 text-xs font-bold">
                   <div>
-                    <label className="text-slate-600 dark:text-zinc-400">مجموع الجانب المدين Debit:</label>
-                    <input
+                    <label htmlFor="ux-debit" className="text-slate-600 dark:text-zinc-400">مجموع الجانب المدين Debit:</label>
+                    <input id="ux-debit"
                       type="number"
                       value={debitAmount}
                       onChange={(e) => setDebitAmount(parseFloat(e.target.value) || 0)}
@@ -1586,8 +1586,8 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                     />
                   </div>
                   <div>
-                    <label className="text-slate-600 dark:text-zinc-400">مجموع الجانب الدائن Credit:</label>
-                    <input
+                    <label htmlFor="ux-credit" className="text-slate-600 dark:text-zinc-400">مجموع الجانب الدائن Credit:</label>
+                    <input id="ux-credit"
                       type="number"
                       value={creditAmount}
                       onChange={(e) => setCreditAmount(parseFloat(e.target.value) || 0)}
@@ -1702,10 +1702,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
             {/* Inputs Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
-                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-yer-15" className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
                   {lang === 'ar' ? 'السيولة النقدية والأرصدة البنكية (YER)' : 'Cash & Bank Balances (YER)'}
                 </label>
-                <input
+                <input id="ux-yer-15"
                   type="number"
                   value={zakatCash}
                   onChange={(e) => setZakatCash(Number(e.target.value))}
@@ -1715,10 +1715,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               </div>
 
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
-                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-21-yer" className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
                   {lang === 'ar' ? 'سعر جرام الذهب عيار 21 اليوم (YER)' : 'Gold Price / Gram 21K (YER)'}
                 </label>
-                <input
+                <input id="ux-21-yer"
                   type="number"
                   value={zakatGoldPrice}
                   onChange={(e) => setZakatGoldPrice(Number(e.target.value))}
@@ -1728,10 +1728,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               </div>
 
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
-                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-investment-gold-grams" className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
                   {lang === 'ar' ? 'ذهب الاستثمار / الادخار (جرام)' : 'Investment Gold (Grams)'}
                 </label>
-                <input
+                <input id="ux-investment-gold-grams"
                   type="number"
                   value={zakatGoldGrams}
                   onChange={(e) => setZakatGoldGrams(Number(e.target.value))}
@@ -1741,10 +1741,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               </div>
 
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
-                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-yer-18" className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
                   {lang === 'ar' ? 'قيمة عروض التجارة والمخزون المتاح (YER)' : 'Trade Goods & Merchandise (YER)'}
                 </label>
-                <input
+                <input id="ux-yer-18"
                   type="number"
                   value={zakatTradeGoods}
                   onChange={(e) => setZakatTradeGoods(Number(e.target.value))}
@@ -1754,10 +1754,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               </div>
 
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
-                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-good-receivables-yer" className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
                   {lang === 'ar' ? 'الديون المرجوة للجمعية (الذمم المدينة)' : 'Good Receivables (YER)'}
                 </label>
-                <input
+                <input id="ux-good-receivables-yer"
                   type="number"
                   value={zakatReceivables}
                   onChange={(e) => setZakatReceivables(Number(e.target.value))}
@@ -1767,10 +1767,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
               </div>
 
               <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 space-y-2">
-                <label className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-deductible-due-debts-yer" className="text-xs font-black text-slate-700 dark:text-zinc-300 block">
                   {lang === 'ar' ? 'الديون والالتزامات الحالة الواجبة الخصم' : 'Deductible Due Debts (YER)'}
                 </label>
-                <input
+                <input id="ux-deductible-due-debts-yer"
                   type="number"
                   value={zakatDebtsDue}
                   onChange={(e) => setZakatDebtsDue(Number(e.target.value))}
@@ -1897,10 +1897,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                  <label htmlFor="ux-amount" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                     {lang === 'ar' ? 'المبلغ المراد تحويله:' : 'Amount:'}
                   </label>
-                  <input
+                  <input id="ux-amount"
                     type="number"
                     value={fxAmount}
                     onChange={(e) => setFxAmount(Number(e.target.value))}
@@ -1909,10 +1909,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                  <label htmlFor="ux-from" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                     {lang === 'ar' ? 'من عملة:' : 'From:'}
                   </label>
-                  <select
+                  <select id="ux-from"
                     value={fxFrom}
                     onChange={(e) => setFxFrom(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-bold"
@@ -1926,10 +1926,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                  <label htmlFor="ux-field-23" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                     {lang === 'ar' ? 'إلى عملة:' : 'To:'}
                   </label>
-                  <select
+                  <select id="ux-field-23"
                     value={fxTo}
                     onChange={(e) => setFxTo(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-bold"
@@ -1968,10 +1968,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                  <label htmlFor="ux-usd" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                     {lang === 'ar' ? 'الموازنة التقديرية للمشروع (USD):' : 'Estimated Project Budget (USD):'}
                   </label>
-                  <input
+                  <input id="ux-usd"
                     type="number"
                     value={projectBudgetUsd}
                     onChange={(e) => setProjectBudgetUsd(Number(e.target.value))}
@@ -1980,10 +1980,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                  <label htmlFor="ux-execution-duration-months" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                     {lang === 'ar' ? 'فترة تنفيذ المشروع (بالأشهر):' : 'Execution Duration (Months):'}
                   </label>
-                  <input
+                  <input id="ux-execution-duration-months"
                     type="number"
                     value={projectDurationMonths}
                     onChange={(e) => setProjectDurationMonths(Number(e.target.value))}
@@ -2045,10 +2045,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                  <label htmlFor="ux-gregorian-date" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                     {lang === 'ar' ? 'التاريخ الميلادي:' : 'Gregorian Date:'}
                   </label>
-                  <input
+                  <input id="ux-gregorian-date"
                     type="date"
                     value={selectedGregorianDate}
                     onChange={(e) => setSelectedGregorianDate(e.target.value)}
@@ -2161,10 +2161,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    <label htmlFor="ux-document-type" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                       {lang === 'ar' ? 'نوع المستند / المعاملة:' : 'Document Type:'}
                     </label>
-                    <select
+                    <select id="ux-document-type"
                       value={stampDocType}
                       onChange={(e) => setStampDocType(e.target.value)}
                       className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-xs font-bold"
@@ -2179,10 +2179,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                    <label htmlFor="ux-reference-code" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                       {lang === 'ar' ? 'الرقم المرجعي للمستند:' : 'Reference Code:'}
                     </label>
-                    <input
+                    <input id="ux-reference-code"
                       type="text"
                       value={stampDocRef}
                       onChange={(e) => setStampDocRef(e.target.value)}
@@ -2192,10 +2192,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                  <label htmlFor="ux-designated-target-beneficiary" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                     {lang === 'ar' ? 'الجهة / المستفيد / القسم المستهدف:' : 'Designated Target / Beneficiary:'}
                   </label>
-                  <input
+                  <input id="ux-designated-target-beneficiary"
                     type="text"
                     value={stampBeneficiaryOrOrg}
                     onChange={(e) => setStampBeneficiaryOrOrg(e.target.value)}
@@ -2204,10 +2204,10 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
+                  <label htmlFor="ux-certification-notes" className="text-xs font-bold text-slate-600 dark:text-zinc-400 mb-1 block">
                     {lang === 'ar' ? 'ملاحظات الاعتماد والتحقق:' : 'Certification Notes:'}
                   </label>
-                  <textarea
+                  <textarea id="ux-certification-notes"
                     rows={2}
                     value={stampNotes}
                     onChange={(e) => setStampNotes(e.target.value)}

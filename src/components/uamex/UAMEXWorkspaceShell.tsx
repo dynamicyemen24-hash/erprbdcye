@@ -354,7 +354,7 @@ function WorkspaceTable<T extends Record<string, any>>({
           <thead className="bg-slate-50 dark:bg-zinc-800/50 border-b border-slate-200 dark:border-zinc-700">
             <tr>
               {selectable && (
-                <th className="w-10 px-3 py-3">
+                <th scope="col" className="w-10 px-3 py-3">
                   <input
                     type="checkbox"
                     checked={selectedIds.length === data.length && data.length > 0}
@@ -365,7 +365,7 @@ function WorkspaceTable<T extends Record<string, any>>({
                 </th>
               )}
               {columns.map(col => (
-                <th
+                <th scope="col"
                   key={col.key}
                   className={`px-3 py-3 text-[10px] font-black text-slate-500 dark:text-zinc-400 uppercase tracking-wider ${
                     col.align === 'center' ? 'text-center' : col.align === 'end' ? 'text-end' : 'text-start'

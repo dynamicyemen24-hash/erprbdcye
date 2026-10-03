@@ -63,7 +63,7 @@ export const OfflineSyncTelemetryBar: React.FC<OfflineSyncTelemetryBarProps> = (
 
   return (
     <div 
-      className="fixed bottom-16 sm:bottom-6 left-1/2 -translate-x-1/2 z-[90] max-w-lg w-[92%] sm:w-auto animate-in slide-in-from-bottom duration-300 pointer-events-auto"
+      className="fixed bottom-16 sm:bottom-6 left-1/2 -translate-x-1/2 z-toast max-w-lg w-[92%] sm:w-auto animate-in slide-in-from-bottom duration-300 pointer-events-auto"
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <div className={`px-4 py-2.5 rounded-2xl border shadow-xl backdrop-blur-xl flex items-center justify-between gap-3 text-xs ${

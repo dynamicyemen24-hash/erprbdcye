@@ -1,10 +1,98 @@
 @import "tailwindcss";
+
+/* ─── Design Token & Motion Layers ───────────────────────────────────────────
+   Canonical order (lowest → highest precedence for equal specificity):
+
+     1. tokens.css      — design tokens (colour, space, motion, z-index)
+     2. animations.css  — Design System v3 `ux-*` motion primitives
+     3. shared/styles/animations.css — legacy `animate-*` motion vocabulary
+     4. (rules below)   — app-level `nexora-*` primitives + print layer
+
+   `shared/styles/animations.css` is imported here because it is NOT referenced
+   anywhere in the module graph, yet its utilities are used in 13 source files
+   (`animate-scale-in` ×21, `animate-shimmer-sweep` ×2, `animate-float-slow` ×2,
+   `animate-wave`, `animate-shimmer` ×12). Without this import those animations
+   silently resolve to nothing at runtime: the class is emitted, the markup is
+   correct, the build passes, and the motion simply never happens.
+
+   Legacy file is loaded BEFORE the app-level rules below on purpose: the three
+   classes it overlaps with (`animate-fade-in`, `animate-fade-out`,
+   `animate-shimmer`) are re-declared further down this file against the
+   `nexora-*` keyframes, so the newer definitions keep winning and existing
+   behaviour is unchanged.
+   ─────────────────────────────────────────────────────────────────────────── */
 @import "./design-system/tokens.css";
 @import "./design-system/animations.css";
+@import "./shared/styles/animations.css";
 
 /* Configure the dark: variant to follow the application-managed .dark class
    (instead of the OS media query) so the in-app theme toggle actually works. */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Keyboard Focus Baseline (WCAG 2.4.7 Focus Visible, Level AA) ─────────────
+   WHY A BASE-LAYER RULE AND NOT A COMPONENT ONE
+   112 elements in the view layer ship `outline-none` with no replacement
+   affordance. Each one silently deletes the browser's focus indicator, which is
+   how a keyboard-only operator loses their place on a page. Fixing them
+   component-by-component is slow and pointless: focus is a property of the
+   *platform*, not of any one widget, so it is declared once, here.
+
+   THE RING IS A box-shadow, NOT AN outline — ON PURPOSE
+   `--ux-focus-ring` was already authored as a two-tone box-shadow in
+   tokens.css but had never been applied to a single element. An outline-based
+   ring would be self-defeating: `outline-none` only clears `outline-style`, so
+   all 112 of those sites would cancel the ring we had just declared.
+   `box-shadow` is untouched by `outline-none`, so one declaration covers the
+   whole app — 863 buttons, 413 inputs, 175 selects — without editing a .tsx.
+
+   WHY `@layer base` AND NOT A BARE RULE
+   index.css establishes Tailwind v4's cascade layers via `@import "tailwindcss"`.
+   Unlayered CSS outranks *every* layer, so a bare `:focus-visible {}` here would
+   override the `focus:ring-*` utilities components already configure, giving
+   some elements two competing rings. In `@layer base` the precedence is right:
+   components that style their own focus ring keep it; everything else inherits
+   this baseline.
+
+   WHY `:focus-visible` AND NOT `:focus`
+   A permanent ring on pointer interaction is noise on a dense ERP workspace.
+   `:focus-visible` reveals the ring for keyboard and assistive-technology
+   navigation only, and suppresses it for mouse clicks.                        */
+@layer base {
+  :where(
+    a[href],
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [role='button'],
+    [role='link'],
+    [role='tab'],
+    [role='menuitem'],
+    [role='menuitemcheckbox'],
+    [role='menuitemradio'],
+    [role='option'],
+    [role='checkbox'],
+    [role='switch'],
+    [role='combobox'],
+    [role='slider'],
+    [role='spinbutton'],
+    [role='textbox'],
+    [role='gridcell'],
+    [role='treeitem'],
+    [tabindex]:not([tabindex='-1'])
+  ):focus-visible {
+    box-shadow: var(--ux-focus-ring);
+  }
+
+  /* WCAG 2.4.11 Focus Not Obscured (Minimum), new in WCAG 2.2. The shell pins
+     a header and a ribbon to the top of the viewport; without this the browser
+     scrolls a focused control to y=0 and hides it underneath them. */
+  :root {
+    scroll-padding-block-start: var(--z-skip-link);
+  }
+}
+
 
 @theme {
   --spacing-safe-bottom: env(safe-area-inset-bottom);
@@ -17,6 +105,24 @@
   --color-brand-accent: var(--brand-accent);
   --color-brand-dark-bg: var(--brand-dark-bg);
   --color-brand-light-bg: var(--brand-light-bg);
+
+  /* ─── Z-Index Governance Scale ──────────────────────────────────────────────
+     Registered as Tailwind utilities so `z-dialog`, `z-toast`, … are real,
+     tree-shakeable classes rather than hardcoded `z-[400]` arbitrary values.
+     The custom values are replaced by `var(--z-*)` at runtime, which keeps a
+     single source of truth in the `:root` block below — a layer can be
+     re-tuned centrally without touching a component. */
+  --z-index-base: 0;
+  --z-index-sticky: 10;
+  --z-index-dropdown: 20;
+  --z-index-popover: 30;
+  --z-index-tooltip: 40;
+  --z-index-drawer: 50;
+  --z-index-dialog: 60;
+  --z-index-command: 70;
+  --z-index-critical: 80;
+  --z-index-toast: 90;
+  --z-index-skip-link: 100;
 }
 
 /* NexoraOS Design System 2.0 Z-Index Layer Governance Tokens */
@@ -27,6 +133,17 @@
   --brand-dark-bg: #090d16;
   --brand-light-bg: #f8fafc;
 
+  /* ─── Z-Index Governance Scale (single source of truth) ──────────────────────
+     Ordered and contiguous, so a layer can never accidentally out-rank a layer
+     meant to sit above it. The Tailwind `@theme` mirror above replaces these
+     numbers with `var(--z-*)` at runtime.
+
+       sticky(10) < dropdown(20) < popover(30) < tooltip(40) < drawer(50)
+         < dialog(60) < command(70) < critical(80) < toast(90) < skip-link(100)
+
+     `toast` outranks `dialog` deliberately: a confirmation must remain visible
+     above the modal that raised it. `skip-link` is last so the bypass control
+     can always reach the top of the stacking order. */
   --z-base: 0;
   --z-sticky: 10;
   --z-dropdown: 20;
@@ -36,6 +153,8 @@
   --z-dialog: 60;
   --z-command: 70;
   --z-critical: 80;
+  --z-toast: 90;
+  --z-skip-link: 100;
 
   /* Density Defaults (Comfortable) */
   --density-padding-y: 0.5rem;

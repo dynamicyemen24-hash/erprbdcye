@@ -427,10 +427,10 @@ export function FieldEfficiencyWidget({ lang }: FieldEfficiencyWidgetProps) {
               {showSimulator && (
                 <form onSubmit={handleSimulateSubmit} className="space-y-2 bg-white dark:bg-zinc-900 p-2.5 border border-slate-200/60 dark:border-zinc-800/80 rounded-xl animate-in slide-in-from-bottom duration-200">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 block">
+                    <label htmlFor="ux-target-region" className="text-[9px] font-bold text-slate-400 block">
                       {lang === 'ar' ? 'المنطقة الجغرافية' : 'Target Region'}
                     </label>
-                    <select
+                    <select id="ux-target-region"
                       value={simRegion}
                       onChange={(e) => setSimRegion(e.target.value)}
                       className="w-full text-[10px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded px-1.5 py-1 text-slate-700 dark:text-zinc-300 focus:outline-hidden cursor-pointer"
@@ -472,10 +472,10 @@ export function FieldEfficiencyWidget({ lang }: FieldEfficiencyWidgetProps) {
 
                   <div className="grid grid-cols-2 gap-1.5">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 block">
+                      <label htmlFor="ux-sector" className="text-[9px] font-bold text-slate-400 block">
                         {lang === 'ar' ? 'متوسطة' : 'Sector'}
                       </label>
-                      <select
+                      <select id="ux-sector"
                         value={simSector}
                         onChange={(e) => setSimSector(e.target.value as any)}
                         className="w-full text-[10px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded px-1.5 py-1 text-slate-700 dark:text-zinc-300 focus:outline-hidden cursor-pointer"
@@ -488,10 +488,10 @@ export function FieldEfficiencyWidget({ lang }: FieldEfficiencyWidgetProps) {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 block">
+                      <label htmlFor="ux-count" className="text-[9px] font-bold text-slate-400 block">
                         {lang === 'ar' ? 'متوسط' : 'Count'}
                       </label>
-                      <input
+                      <input id="ux-count"
                         type="number"
                         min="1"
                         max="50"

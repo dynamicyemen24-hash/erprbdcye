@@ -277,7 +277,7 @@ function Modal({ open, onClose, title, children, size = 'lg' }: ModalProps) {
   if (!open) return null;
   const sizeClasses = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-2xl', xl: 'max-w-4xl' };
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-dialog bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
       <div className={`bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b border-slate-200 dark:border-zinc-800 flex justify-between items-center">
           <h3 className="text-sm font-black text-slate-900 dark:text-white">{title}</h3>
@@ -412,24 +412,24 @@ function CreateTenderModal({ open, onClose, lang, projects, onSubmit }: CreateTe
 
       {step === 0 && (
         <div className="space-y-4">
-          <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('عنوان المناقصة (عربي)', 'Tender Title (Arabic)')} *</label>
-            <input type="text" value={formData.titleAr} onChange={e => setFormData({ ...formData, titleAr: e.target.value })} className={commonInputCls} placeholder={t('مثال: توريد مواد غذائية للإغاثة', 'e.g. Food baskets supply')} />
+          <div><label htmlFor="ux-tender-title-arabic" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('عنوان المناقصة (عربي)', 'Tender Title (Arabic)')} *</label>
+            <input id="ux-tender-title-arabic" type="text" value={formData.titleAr} onChange={e => setFormData({ ...formData, titleAr: e.target.value })} className={commonInputCls} placeholder={t('مثال: توريد مواد غذائية للإغاثة', 'e.g. Food baskets supply')} />
           </div>
-          <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('العنوان (إنجليزي)', 'Title (English)')}</label>
-            <input type="text" value={formData.titleEn} onChange={e => setFormData({ ...formData, titleEn: e.target.value })} className={commonInputCls} />
+          <div><label htmlFor="ux-title-english" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('العنوان (إنجليزي)', 'Title (English)')}</label>
+            <input id="ux-title-english" type="text" value={formData.titleEn} onChange={e => setFormData({ ...formData, titleEn: e.target.value })} className={commonInputCls} />
           </div>
-          <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('الوصف والمهام (عربي)', 'Description & Scope (Arabic)')} *</label>
-            <textarea value={formData.descriptionAr} onChange={e => setFormData({ ...formData, descriptionAr: e.target.value })} rows={4} className={commonInputCls + ' resize-none'} />
+          <div><label htmlFor="ux-description-scope-arabic" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('الوصف والمهام (عربي)', 'Description & Scope (Arabic)')} *</label>
+            <textarea id="ux-description-scope-arabic" value={formData.descriptionAr} onChange={e => setFormData({ ...formData, descriptionAr: e.target.value })} rows={4} className={commonInputCls + ' resize-none'} />
           </div>
-          <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('الوصف (إنجليزي)', 'Description (English)')}</label>
-            <textarea value={formData.descriptionEn} onChange={e => setFormData({ ...formData, descriptionEn: e.target.value })} rows={3} className={commonInputCls + ' resize-none'} />
+          <div><label htmlFor="ux-description-english" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('الوصف (إنجليزي)', 'Description (English)')}</label>
+            <textarea id="ux-description-english" value={formData.descriptionEn} onChange={e => setFormData({ ...formData, descriptionEn: e.target.value })} rows={3} className={commonInputCls + ' resize-none'} />
           </div>
         </div>
       )}
 {step === 1 && (
         <div className="space-y-4">
-          <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('نوع المناقصة', 'Tender Type')}</label>
-            <select value={formData.tenderType} onChange={e => setFormData({ ...formData, tenderType: e.target.value as TenderType })} className={commonInputCls}>
+          <div><label htmlFor="ux-tender-type" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('نوع المناقصة', 'Tender Type')}</label>
+            <select id="ux-tender-type" value={formData.tenderType} onChange={e => setFormData({ ...formData, tenderType: e.target.value as TenderType })} className={commonInputCls}>
               <option value="WORKS">{t('أعمال (إنشائية)', 'Works')}</option>
               <option value="SUPPLIES">{t('لوازم وتوريدات', 'Supplies')}</option>
               <option value="SERVICES">{t('خدمات', 'Services')}</option>
@@ -438,8 +438,8 @@ function CreateTenderModal({ open, onClose, lang, projects, onSubmit }: CreateTe
               <option value="COMBINED">{t('مشروع مركّب', 'Combined')}</option>
             </select>
           </div>
-          <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('إجراء المناقصة', 'Procurement Process')}</label>
-            <select value={formData.processType} onChange={e => setFormData({ ...formData, processType: e.target.value as TenderProcessType })} className={commonInputCls}>
+          <div><label htmlFor="ux-procurement-process" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('إجراء المناقصة', 'Procurement Process')}</label>
+            <select id="ux-procurement-process" value={formData.processType} onChange={e => setFormData({ ...formData, processType: e.target.value as TenderProcessType })} className={commonInputCls}>
               <option value="OPEN">{t('مناقصة عامة مفتوحة', 'Open Tender')}</option>
               <option value="RESTRICTED">{t('مناقصة مقتصرة', 'Restricted Tender')}</option>
               <option value="NEGOTIATED">{t('تفاوض مباشر', 'Negotiated Procedure')}</option>
@@ -447,8 +447,8 @@ function CreateTenderModal({ open, onClose, lang, projects, onSubmit }: CreateTe
               <option value="FRAMEWORK">{t('اتفاقية إطارية', 'Framework Agreement')}</option>
             </select>
           </div>
-          <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('المشروع المرتبط', 'Linked Project')}</label>
-            <select value={formData.projectId || ''} onChange={e => setFormData({ ...formData, projectId: e.target.value })} className={commonInputCls}>
+          <div><label htmlFor="ux-linked-project" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('المشروع المرتبط', 'Linked Project')}</label>
+            <select id="ux-linked-project" value={formData.projectId || ''} onChange={e => setFormData({ ...formData, projectId: e.target.value })} className={commonInputCls}>
               <option value="">{t('-- بدون مشروع --', '-- No Project --')}</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name_ar || p.name_en}</option>)}
             </select>
@@ -458,20 +458,20 @@ function CreateTenderModal({ open, onClose, lang, projects, onSubmit }: CreateTe
 
       {step === 2 && (
         <div className="space-y-4">
-          <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('القيمة التقديرية', 'Estimated Value')}</label>
-            <input type="number" value={formData.estimatedValue || ''} onChange={e => setFormData({ ...formData, estimatedValue: parseFloat(e.target.value) || 0 })} className={commonInputCls} placeholder="0" />
+          <div><label htmlFor="ux-estimated-value" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('القيمة التقديرية', 'Estimated Value')}</label>
+            <input id="ux-estimated-value" type="number" value={formData.estimatedValue || ''} onChange={e => setFormData({ ...formData, estimatedValue: parseFloat(e.target.value) || 0 })} className={commonInputCls} placeholder="0" />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('العملة', 'Currency')}</label>
-              <select value={formData.currencyCode} onChange={e => setFormData({ ...formData, currencyCode: e.target.value })} className={commonInputCls}>
+            <div><label htmlFor="ux-currency" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('العملة', 'Currency')}</label>
+              <select id="ux-currency" value={formData.currencyCode} onChange={e => setFormData({ ...formData, currencyCode: e.target.value })} className={commonInputCls}>
                 <option value="USD">USD — {t('دولار', 'USD')}</option>
                 <option value="EUR">EUR — {t('يورو', 'Euro')}</option>
                 <option value="YER">YER — {t('ريال', 'YER')}</option>
                 <option value="SYP">SYP — {t('ليرة', 'SYP')}</option>
               </select>
             </div>
-            <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('موعد تسليم العروض', 'Submission Deadline')}</label>
-              <input type="date" value={formData.submissionDeadline} onChange={e => setFormData({ ...formData, submissionDeadline: e.target.value })} className={commonInputCls} />
+            <div><label htmlFor="ux-submission-deadline" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('موعد تسليم العروض', 'Submission Deadline')}</label>
+              <input id="ux-submission-deadline" type="date" value={formData.submissionDeadline} onChange={e => setFormData({ ...formData, submissionDeadline: e.target.value })} className={commonInputCls} />
             </div>
           </div>
         </div>
@@ -516,20 +516,20 @@ function BidEvaluationModal({ open, onClose, bid, lang, onSave }: BidEvaluationM
   return (
     <Modal open={open} onClose={onClose} title={t('تقييم عرض ' + bid.vendor_name_ar, 'Evaluate Bid — ' + (bid.vendor_name_en || bid.vendor_name_ar))} size="md">
       <div className="space-y-3">
-        <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('درجة تقييم فنية (0–100)', 'Technical Score (0–100)')}</label>
-          <input type="number" min="0" max="100" value={technicalScore} onChange={e => setTechnicalScore(parseFloat(e.target.value))} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-mono" />
+        <div><label htmlFor="ux-technical-score-0-100" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('درجة تقييم فنية (0–100)', 'Technical Score (0–100)')}</label>
+          <input id="ux-technical-score-0-100" type="number" min="0" max="100" value={technicalScore} onChange={e => setTechnicalScore(parseFloat(e.target.value))} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-mono" />
         </div>
-        <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('درجة تقييم مالي (0–100)', 'Financial Score (0–100)')}</label>
-          <input type="number" min="0" max="100" value={financialScore} onChange={e => setFinancialScore(parseFloat(e.target.value))} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-mono" />
+        <div><label htmlFor="ux-financial-score-0-100" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('درجة تقييم مالي (0–100)', 'Financial Score (0–100)')}</label>
+          <input id="ux-financial-score-0-100" type="number" min="0" max="100" value={financialScore} onChange={e => setFinancialScore(parseFloat(e.target.value))} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-mono" />
         </div>
-        <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('درجة امتثال الشروط (0–100)', 'Compliance Score (0–100)')}</label>
-          <input type="number" min="0" max="100" value={complianceScore} onChange={e => setComplianceScore(parseFloat(e.target.value))} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-mono" />
+        <div><label htmlFor="ux-compliance-score-0-100" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('درجة امتثال الشروط (0–100)', 'Compliance Score (0–100)')}</label>
+          <input id="ux-compliance-score-0-100" type="number" min="0" max="100" value={complianceScore} onChange={e => setComplianceScore(parseFloat(e.target.value))} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-mono" />
         </div>
-        <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('ملاحظات (عربي)', 'Notes (Arabic)')}</label>
-          <textarea value={notesAr} onChange={e => setNotesAr(e.target.value)} rows={2} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-semibold resize-none" />
+        <div><label htmlFor="ux-notes-arabic" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('ملاحظات (عربي)', 'Notes (Arabic)')}</label>
+          <textarea id="ux-notes-arabic" value={notesAr} onChange={e => setNotesAr(e.target.value)} rows={2} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-semibold resize-none" />
         </div>
-        <div><label className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('ملاحظات (إنجليزي)', 'Notes (English)')}</label>
-          <textarea value={notesEn} onChange={e => setNotesEn(e.target.value)} rows={2} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-semibold resize-none" />
+        <div><label htmlFor="ux-notes-english" className="block text-xs font-black text-slate-800 dark:text-white mb-1">{t('ملاحظات (إنجليزي)', 'Notes (English)')}</label>
+          <textarea id="ux-notes-english" value={notesEn} onChange={e => setNotesEn(e.target.value)} rows={2} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl outline-none focus:border-emerald-500 font-semibold resize-none" />
         </div>
       </div>
       <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-zinc-800 mt-4">
@@ -848,13 +848,13 @@ function TenderDetailDrawer({ open, onClose, tender: initialTender, bids: initia
             {sortedBids.length > 0 ? (
               <table className="w-full text-[10px] font-bold">
                 <thead><tr className="text-slate-500 border-b border-slate-200">
-                  <th className="text-start py-2 px-2">{t('المورد', 'Vendor')}</th>
-                  <th className="text-end py-2 px-2">{t('المبلغ', 'Amount')}</th>
-                  <th className="text-end py-2 px-2">{t('فني', 'Tech')}</th>
-                  <th className="text-end py-2 px-2">{t('مالي', 'Fin')}</th>
-                  <th className="text-end py-2 px-2">{t('امتثال', 'Comp')}</th>
-                  <th className="text-end py-2 px-2">{t('الدرجة', 'Score')}</th>
-                  <th className="text-center py-2 px-2">{t('ترسية', 'Award')}</th>
+                  <th scope="col" className="text-start py-2 px-2">{t('المورد', 'Vendor')}</th>
+                  <th scope="col" className="text-end py-2 px-2">{t('المبلغ', 'Amount')}</th>
+                  <th scope="col" className="text-end py-2 px-2">{t('فني', 'Tech')}</th>
+                  <th scope="col" className="text-end py-2 px-2">{t('مالي', 'Fin')}</th>
+                  <th scope="col" className="text-end py-2 px-2">{t('امتثال', 'Comp')}</th>
+                  <th scope="col" className="text-end py-2 px-2">{t('الدرجة', 'Score')}</th>
+                  <th scope="col" className="text-center py-2 px-2">{t('ترسية', 'Award')}</th>
                 </tr></thead>
                 <tbody>
                   {sortedBids.map(bid => (
@@ -1159,14 +1159,14 @@ export default function TenderWorkspaceView({
             <table className="w-full text-[10px] font-bold">
               <thead>
                 <tr className="text-slate-400 border-b border-slate-200">
-                  <th className="text-start py-2 px-2">{t('رقم المناقصة', 'Tender No.')}</th>
-                  <th className="text-start py-2 px-2">{t('العنوان', 'Title')}</th>
-                  <th className="text-start py-2 px-2">{t('نوع', 'Type')}</th>
-                  <th className="text-start py-2 px-2">{t('إجراء', 'Process')}</th>
-                  <th className="text-end py-2 px-2">{t('القيمة', 'Value')}</th>
-                  <th className="text-end py-2 px-2">{t('العروض', 'Bids')}</th>
-                  <th className="text-center py-2 px-2">{t('الحالة', 'Status')}</th>
-                  <th className="text-center py-2 px-2">{t('إجراءات', 'Actions')}</th>
+                  <th scope="col" className="text-start py-2 px-2">{t('رقم المناقصة', 'Tender No.')}</th>
+                  <th scope="col" className="text-start py-2 px-2">{t('العنوان', 'Title')}</th>
+                  <th scope="col" className="text-start py-2 px-2">{t('نوع', 'Type')}</th>
+                  <th scope="col" className="text-start py-2 px-2">{t('إجراء', 'Process')}</th>
+                  <th scope="col" className="text-end py-2 px-2">{t('القيمة', 'Value')}</th>
+                  <th scope="col" className="text-end py-2 px-2">{t('العروض', 'Bids')}</th>
+                  <th scope="col" className="text-center py-2 px-2">{t('الحالة', 'Status')}</th>
+                  <th scope="col" className="text-center py-2 px-2">{t('إجراءات', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>

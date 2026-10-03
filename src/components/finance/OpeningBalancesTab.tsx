@@ -292,11 +292,11 @@ export default function OpeningBalancesTab({ accounts, lang, onRefresh }: Openin
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr className="bg-zinc-900 text-emerald-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                  <th className="p-3 w-32">{isRtl ? 'رقم الحساب' : 'Code'}</th>
-                  <th className="p-3">{isRtl ? 'اسم الحساب' : 'Account Name'}</th>
-                  <th className="p-3 w-36">{isRtl ? 'النوع الرئيسي' : 'Type'}</th>
-                  <th className="p-3 text-right w-44">{isRtl ? 'الرصيد الافتتاحي الحالي' : 'Opening Balance'}</th>
-                  <th className="p-3 text-right w-48">{isRtl ? 'تعديل الرصيد الافتتاحي الجديد' : 'New Opening Balance'}</th>
+                  <th scope="col" className="p-3 w-32">{isRtl ? 'رقم الحساب' : 'Code'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'اسم الحساب' : 'Account Name'}</th>
+                  <th scope="col" className="p-3 w-36">{isRtl ? 'النوع الرئيسي' : 'Type'}</th>
+                  <th scope="col" className="p-3 text-right w-44">{isRtl ? 'الرصيد الافتتاحي الحالي' : 'Opening Balance'}</th>
+                  <th scope="col" className="p-3 text-right w-48">{isRtl ? 'تعديل الرصيد الافتتاحي الجديد' : 'New Opening Balance'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold">
@@ -351,11 +351,11 @@ export default function OpeningBalancesTab({ accounts, lang, onRefresh }: Openin
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr className="bg-zinc-900 text-emerald-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                  <th className="p-3 w-32">{isRtl ? 'كود المخزن' : 'Warehouse Code'}</th>
-                  <th className="p-3">{isRtl ? 'اسم المستودع الميداني' : 'Warehouse Name'}</th>
-                  <th className="p-3">{isRtl ? 'فئة المواد الإغاثية' : 'Category'}</th>
-                  <th className="p-3 text-right">{isRtl ? 'الكمية الافتتاحية' : 'Initial Qty'}</th>
-                  <th className="p-3 text-right">{isRtl ? 'القيمة الإجمالية (YER)' : 'Total Value YER'}</th>
+                  <th scope="col" className="p-3 w-32">{isRtl ? 'كود المخزن' : 'Warehouse Code'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'اسم المستودع الميداني' : 'Warehouse Name'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'فئة المواد الإغاثية' : 'Category'}</th>
+                  <th scope="col" className="p-3 text-right">{isRtl ? 'الكمية الافتتاحية' : 'Initial Qty'}</th>
+                  <th scope="col" className="p-3 text-right">{isRtl ? 'القيمة الإجمالية (YER)' : 'Total Value YER'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-semibold">
@@ -381,11 +381,11 @@ export default function OpeningBalancesTab({ accounts, lang, onRefresh }: Openin
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr className="bg-zinc-900 text-emerald-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                  <th className="p-3 w-32">{isRtl ? 'كود الحساب' : 'Code'}</th>
-                  <th className="p-3">{isRtl ? 'الجهة البنكية / الصندوق' : 'Treasury / Bank Name'}</th>
-                  <th className="p-3 font-mono">{isRtl ? 'رقم الحساب' : 'Account No'}</th>
-                  <th className="p-3 text-center">{isRtl ? 'العملة' : 'Currency'}</th>
-                  <th className="p-3 text-right">{isRtl ? 'الرصيد الافتتاحي المعتمد' : 'Opening Balance'}</th>
+                  <th scope="col" className="p-3 w-32">{isRtl ? 'كود الحساب' : 'Code'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'الجهة البنكية / الصندوق' : 'Treasury / Bank Name'}</th>
+                  <th scope="col" className="p-3 font-mono">{isRtl ? 'رقم الحساب' : 'Account No'}</th>
+                  <th scope="col" className="p-3 text-center">{isRtl ? 'العملة' : 'Currency'}</th>
+                  <th scope="col" className="p-3 text-right">{isRtl ? 'الرصيد الافتتاحي المعتمد' : 'Opening Balance'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-semibold">

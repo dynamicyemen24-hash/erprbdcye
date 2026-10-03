@@ -520,12 +520,12 @@ export default function FinancialBIAnalyticsTab({
             <table className="w-full text-[10.5px] font-bold">
               <thead>
                 <tr className="text-slate-400 border-b border-slate-200">
-                  <th className="text-start py-2 px-2">{lang === 'ar' ? 'المشروع' : 'Project'}</th>
-                  <th className="text-end py-2 px-2">{lang === 'ar' ? 'الموازنة المعتمدة' : 'Approved Budget'}</th>
-                  <th className="text-end py-2 px-2">{lang === 'ar' ? 'المصروف الفعلي' : 'Actual Spend'}</th>
-                  <th className="text-end py-2 px-2">{lang === 'ar' ? 'نسبة التنفيذ' : 'Utilization'}</th>
-                  <th className="text-end py-2 px-2">{lang === 'ar' ? 'الانحراف' : 'Variance'}</th>
-                  <th className="text-center py-2 px-2">{lang === 'ar' ? 'الحكم المعياري' : 'Standard Judgment'}</th>
+                  <th scope="col" className="text-start py-2 px-2">{lang === 'ar' ? 'المشروع' : 'Project'}</th>
+                  <th scope="col" className="text-end py-2 px-2">{lang === 'ar' ? 'الموازنة المعتمدة' : 'Approved Budget'}</th>
+                  <th scope="col" className="text-end py-2 px-2">{lang === 'ar' ? 'المصروف الفعلي' : 'Actual Spend'}</th>
+                  <th scope="col" className="text-end py-2 px-2">{lang === 'ar' ? 'نسبة التنفيذ' : 'Utilization'}</th>
+                  <th scope="col" className="text-end py-2 px-2">{lang === 'ar' ? 'الانحراف' : 'Variance'}</th>
+                  <th scope="col" className="text-center py-2 px-2">{lang === 'ar' ? 'الحكم المعياري' : 'Standard Judgment'}</th>
                 </tr>
               </thead>
               <tbody>

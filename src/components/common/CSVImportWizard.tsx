@@ -280,13 +280,13 @@ export default function CSVImportWizard({
                 <table className="w-full text-[11px]">
                   <thead className="sticky top-0 bg-slate-50 dark:bg-zinc-800">
                     <tr>
-                      <th className="p-2 text-start font-black text-slate-500">#</th>
+                      <th scope="col" className="p-2 text-start font-black text-slate-500">#</th>
                       {fields.filter((f) => mapping.includes(f.key)).map((f) => (
-                        <th key={f.key} className="p-2 text-start font-black text-slate-500">
+                        <th scope="col" key={f.key} className="p-2 text-start font-black text-slate-500">
                           {isRtl ? f.labelAr || f.label : f.label}
                         </th>
                       ))}
-                      <th className="p-2 text-start font-black text-slate-500">{isRtl ? 'الحالة' : 'Status'}</th>
+                      <th scope="col" className="p-2 text-start font-black text-slate-500">{isRtl ? 'الحالة' : 'Status'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">

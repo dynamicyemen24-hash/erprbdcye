@@ -528,13 +528,13 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         <table>
           <thead>
             <tr>
-              <th style="width: 80px;">رمز الهدف</th>
-              <th>الهدف الاستراتيجي</th>
-              <th style="width: 50px;">الوزن</th>
-              <th style="width: 60px;">الإنجاز</th>
-              <th style="width: 100px;">الموازنة المعتمدة</th>
-              <th style="width: 120px;">المسؤول المباشر</th>
-              <th style="width: 70px;">الحالة</th>
+              <th scope="col" style="width: 80px;">رمز الهدف</th>
+              <th scope="col">الهدف الاستراتيجي</th>
+              <th scope="col" style="width: 50px;">الوزن</th>
+              <th scope="col" style="width: 60px;">الإنجاز</th>
+              <th scope="col" style="width: 100px;">الموازنة المعتمدة</th>
+              <th scope="col" style="width: 120px;">المسؤول المباشر</th>
+              <th scope="col" style="width: 70px;">الحالة</th>
             </tr>
           </thead>
           <tbody>
@@ -1246,12 +1246,12 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               <table className="w-full text-xs text-right text-slate-800 dark:text-zinc-200">
                 <thead className="bg-slate-50 dark:bg-zinc-800/80 text-slate-500 dark:text-zinc-400 font-bold uppercase text-[10px]">
                   <tr>
-                    <th className="p-3">{lang === 'ar' ? 'رمز الهدف' : 'Goal Code'}</th>
-                    <th className="p-3">{lang === 'ar' ? 'الهدف الاستراتيجي' : 'Strategic Objective'}</th>
-                    <th className="p-3">{lang === 'ar' ? 'المجال المرتبط' : 'Domain'}</th>
-                    <th className="p-3">{lang === 'ar' ? 'الإنجاز' : 'Progress'}</th>
-                    <th className="p-3">{lang === 'ar' ? 'الميزانية (YER)' : 'Budget (YER)'}</th>
-                    <th className="p-3">{lang === 'ar' ? 'المسؤول التنفيذي' : 'Executive Owner'}</th>
+                    <th scope="col" className="p-3">{lang === 'ar' ? 'رمز الهدف' : 'Goal Code'}</th>
+                    <th scope="col" className="p-3">{lang === 'ar' ? 'الهدف الاستراتيجي' : 'Strategic Objective'}</th>
+                    <th scope="col" className="p-3">{lang === 'ar' ? 'المجال المرتبط' : 'Domain'}</th>
+                    <th scope="col" className="p-3">{lang === 'ar' ? 'الإنجاز' : 'Progress'}</th>
+                    <th scope="col" className="p-3">{lang === 'ar' ? 'الميزانية (YER)' : 'Budget (YER)'}</th>
+                    <th scope="col" className="p-3">{lang === 'ar' ? 'المسؤول التنفيذي' : 'Executive Owner'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -1295,10 +1295,10 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
 
             <form onSubmit={handleSaveGoalUpdate} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-goal-title" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {lang === 'ar' ? 'عنوان الهدف الاستراتيجي:' : 'Goal Title:'}
                 </label>
-                <input
+                <input id="ux-goal-title"
                   type="text"
                   disabled
                   value={selectedGoal.title_ar}
@@ -1307,10 +1307,10 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-progress-percentage" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {lang === 'ar' ? 'نسبة الإنجاز الفعلي (%):' : 'Progress Percentage (%):'}
                 </label>
-                <input
+                <input id="ux-progress-percentage"
                   type="number"
                   min="0"
                   max="100"
@@ -1321,10 +1321,10 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-current-kpi-metric" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {lang === 'ar' ? `القيمة الحالية لمؤشر الأداء (${selectedGoal.kpi_unit_ar || ''}):` : 'Current KPI Metric:'}
                 </label>
-                <input
+                <input id="ux-current-kpi-metric"
                   type="number"
                   value={updateForm.kpi_current}
                   onChange={(e) => setUpdateForm({ ...updateForm, kpi_current: parseFloat(e.target.value) || 0 })}
@@ -1333,10 +1333,10 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-yer" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {lang === 'ar' ? 'المبلغ المصروف حتى الآن (YER):' : 'Spent Budget (YER):'}
                 </label>
-                <input
+                <input id="ux-yer"
                   type="number"
                   value={updateForm.spent_budget_yer}
                   onChange={(e) => setUpdateForm({ ...updateForm, spent_budget_yer: parseFloat(e.target.value) || 0 })}
@@ -1345,10 +1345,10 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
+                <label htmlFor="ux-status" className="block font-bold text-slate-700 dark:text-zinc-300 mb-1">
                   {lang === 'ar' ? 'حالة الإنجاز:' : 'Status:'}
                 </label>
-                <select
+                <select id="ux-status"
                   value={updateForm.status}
                   onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}
                   className="w-full p-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold focus:ring-2 focus:ring-emerald-500"
@@ -1402,8 +1402,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
             <form onSubmit={handleCreateNewGoal} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold mb-1">{lang === 'ar' ? 'رمز الهدف:' : 'Goal Code:'}</label>
-                  <input
+                  <label htmlFor="ux-goal-code" className="block font-bold mb-1">{lang === 'ar' ? 'رمز الهدف:' : 'Goal Code:'}</label>
+                  <input id="ux-goal-code"
                     type="text"
                     required
                     value={newGoalForm.goal_code}
@@ -1412,8 +1412,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
                   />
                 </div>
                 <div>
-                  <label className="block font-bold mb-1">{lang === 'ar' ? 'الركيزة:' : 'Pillar:'}</label>
-                  <select
+                  <label htmlFor="ux-pillar" className="block font-bold mb-1">{lang === 'ar' ? 'الركيزة:' : 'Pillar:'}</label>
+                  <select id="ux-pillar"
                     value={newGoalForm.pillar_code}
                     onChange={(e) => setNewGoalForm({ ...newGoalForm, pillar_code: e.target.value })}
                     className="w-full p-2 bg-slate-50 dark:bg-zinc-800 border rounded-xl font-bold"
@@ -1428,8 +1428,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div>
-                <label className="block font-bold mb-1">{lang === 'ar' ? 'عنوان الهدف (عربي):' : 'Title (AR):'}</label>
-                <input
+                <label htmlFor="ux-title-ar" className="block font-bold mb-1">{lang === 'ar' ? 'عنوان الهدف (عربي):' : 'Title (AR):'}</label>
+                <input id="ux-title-ar"
                   type="text"
                   required
                   value={newGoalForm.title_ar}
@@ -1440,8 +1440,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div>
-                <label className="block font-bold mb-1">{lang === 'ar' ? 'عنوان الهدف (إنكليزي):' : 'Title (EN):'}</label>
-                <input
+                <label htmlFor="ux-title-en" className="block font-bold mb-1">{lang === 'ar' ? 'عنوان الهدف (إنكليزي):' : 'Title (EN):'}</label>
+                <input id="ux-title-en"
                   type="text"
                   required
                   value={newGoalForm.title_en}
@@ -1453,8 +1453,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold mb-1">{lang === 'ar' ? 'المستهدف KPI Target:' : 'Target KPI:'}</label>
-                  <input
+                  <label htmlFor="ux-kpi-target" className="block font-bold mb-1">{lang === 'ar' ? 'المستهدف KPI Target:' : 'Target KPI:'}</label>
+                  <input id="ux-kpi-target"
                     type="number"
                     required
                     value={newGoalForm.kpi_target}
@@ -1463,8 +1463,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
                   />
                 </div>
                 <div>
-                  <label className="block font-bold mb-1">{lang === 'ar' ? 'الميزانية المخصصة (YER):' : 'Allocated Budget:'}</label>
-                  <input
+                  <label htmlFor="ux-yer-11" className="block font-bold mb-1">{lang === 'ar' ? 'الميزانية المخصصة (YER):' : 'Allocated Budget:'}</label>
+                  <input id="ux-yer-11"
                     type="number"
                     value={newGoalForm.allocated_budget_yer}
                     onChange={(e) => setNewGoalForm({ ...newGoalForm, allocated_budget_yer: parseFloat(e.target.value) || 0 })}
@@ -1475,8 +1475,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold mb-1">{lang === 'ar' ? 'المسؤول التنفيذي:' : 'Owner Name:'}</label>
-                  <input
+                  <label htmlFor="ux-owner-name" className="block font-bold mb-1">{lang === 'ar' ? 'المسؤول التنفيذي:' : 'Owner Name:'}</label>
+                  <input id="ux-owner-name"
                     type="text"
                     value={newGoalForm.assigned_owner_name}
                     onChange={(e) => setNewGoalForm({ ...newGoalForm, assigned_owner_name: e.target.value })}
@@ -1484,8 +1484,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
                   />
                 </div>
                 <div>
-                  <label className="block font-bold mb-1">{lang === 'ar' ? 'المجال المؤسسي:' : 'Linked Domain:'}</label>
-                  <select
+                  <label htmlFor="ux-linked-domain" className="block font-bold mb-1">{lang === 'ar' ? 'المجال المؤسسي:' : 'Linked Domain:'}</label>
+                  <select id="ux-linked-domain"
                     value={newGoalForm.linked_domain}
                     onChange={(e) => setNewGoalForm({ ...newGoalForm, linked_domain: e.target.value })}
                     className="w-full p-2 bg-slate-50 dark:bg-zinc-800 border rounded-xl font-bold"
@@ -1542,8 +1542,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
 
             <form onSubmit={handleCreateNewSwot} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold mb-1">{lang === 'ar' ? 'فئة العنصر:' : 'Category:'}</label>
-                <select
+                <label htmlFor="ux-category" className="block font-bold mb-1">{lang === 'ar' ? 'فئة العنصر:' : 'Category:'}</label>
+                <select id="ux-category"
                   value={newSwotForm.category}
                   onChange={(e) => setNewSwotForm({ ...newSwotForm, category: e.target.value })}
                   className="w-full p-2 bg-slate-50 dark:bg-zinc-800 border rounded-xl font-bold"
@@ -1556,8 +1556,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div>
-                <label className="block font-bold mb-1">{lang === 'ar' ? 'العنوان (عربي):' : 'Title (AR):'}</label>
-                <input
+                <label htmlFor="ux-title-ar-15" className="block font-bold mb-1">{lang === 'ar' ? 'العنوان (عربي):' : 'Title (AR):'}</label>
+                <input id="ux-title-ar-15"
                   type="text"
                   required
                   value={newSwotForm.title_ar}
@@ -1567,8 +1567,8 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
               </div>
 
               <div>
-                <label className="block font-bold mb-1">{lang === 'ar' ? 'الإجراء الاستراتيجي الموصى به:' : 'Strategic Action:'}</label>
-                <textarea
+                <label htmlFor="ux-strategic-action" className="block font-bold mb-1">{lang === 'ar' ? 'الإجراء الاستراتيجي الموصى به:' : 'Strategic Action:'}</label>
+                <textarea id="ux-strategic-action"
                   value={newSwotForm.strategic_action_ar}
                   onChange={(e) => setNewSwotForm({ ...newSwotForm, strategic_action_ar: e.target.value })}
                   rows={2}

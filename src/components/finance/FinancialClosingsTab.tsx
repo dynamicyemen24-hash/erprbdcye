@@ -289,10 +289,10 @@ export default function FinancialClosingsTab({ accounts, lang, onRefresh }: Fina
       {/* Annual Closing Action Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-zinc-800/40 p-4 rounded-xl border border-slate-200 dark:border-zinc-800">
         <div className="space-y-1">
-          <label className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black block uppercase">
+          <label htmlFor="ux-target-fiscal-year" className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black block uppercase">
             {lang === 'ar' ? 'السنة المالية المستهدفة' : 'Target Fiscal Year'}
           </label>
-          <input
+          <input id="ux-target-fiscal-year"
             type="text"
             value={fiscalYear}
             onChange={(e) => setFiscalYear(e.target.value)}
@@ -301,10 +301,10 @@ export default function FinancialClosingsTab({ accounts, lang, onRefresh }: Fina
         </div>
 
         <div className="space-y-1">
-          <label className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black block uppercase">
+          <label htmlFor="ux-retained-earnings-equity" className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black block uppercase">
             {lang === 'ar' ? 'حساب الأرباح المدورة (الملكية)*' : 'Retained Earnings (Equity)*'}
           </label>
-          <select
+          <select id="ux-retained-earnings-equity"
             value={retainedEarningsId}
             onChange={(e) => setRetainedEarningsId(e.target.value)}
             className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs font-bold text-slate-800 dark:text-zinc-100 focus:outline-none"

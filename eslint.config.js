@@ -50,6 +50,37 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/**/*.tsx'],
+    rules: {
+      // ─── Design System Governance ────────────────────────────────────────────
+      // These rules do not forbid design-system work: `src/design-system/**` and
+      // the legacy shims are exempted below. They stop *application* code from
+      // re-introducing the layer debt that was settled in the v3.1 upgrade.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "JSXAttribute[name.name='className'] Literal[value=/\\bz-\\[\\d+\\]/]",
+          message:
+            'Use the governed z-index scale (z-base, z-dropdown, z-popover, z-tooltip, z-drawer, z-dialog, z-command, z-critical, z-toast, z-skip-link) instead of an arbitrary z-[N] value. See src/index.css.',
+        },
+        {
+          selector:
+            "JSXAttribute[name.name='className'] Literal[value=/\\b(bg|text|border)-\\[#[0-9a-fA-F]{3,8}\\]/]",
+          message:
+            'Avoid arbitrary hex colour utilities. Use the design tokens (--ux-*, --brand-*) or the Tailwind palette so light/dark theming stays consistent.',
+        },
+      ],
+    },
+  },
+  {
+    // The Design System itself is where arbitrary values are legitimately
+    // authored (it *defines* the scale), so the governance rules above are
+    // relaxed for it and for the premium UX layer that wraps it.
+    files: ['src/design-system/**/*.{ts,tsx}', 'src/components/uamex/**/*.{ts,tsx}'],
+    rules: { 'no-restricted-syntax': 'off' },
+  },
+  {
     files: ['src/server/**/*.ts'],
     rules: {
       'no-console': 'off',

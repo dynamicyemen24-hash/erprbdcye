@@ -34,7 +34,7 @@ const NexoraMicroProgressInner: React.FC = () => {
   return (
     <div
       aria-hidden="true"
-      className="fixed top-0 left-0 right-0 z-[100001] pointer-events-none h-[2px] overflow-hidden"
+      className="fixed top-0 left-0 right-0 z-skip-link pointer-events-none h-[2px] overflow-hidden"
       style={{ opacity: visible ? 1 : 0, transition: 'opacity 250ms ease' }}
     >
       <div

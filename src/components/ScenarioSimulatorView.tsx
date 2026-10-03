@@ -34,8 +34,8 @@ export default function ScenarioSimulatorView({ historicalData, lang }: Scenario
       </h3>
       
       <div className="space-y-4 mb-6">
-        <label className="text-xs font-bold block">{lang === 'ar' ? 'تغيير التمويل (%)' : 'Funding Change (%)'}</label>
-        <input 
+        <label htmlFor="ux-funding-change" className="text-xs font-bold block">{lang === 'ar' ? 'تغيير التمويل (%)' : 'Funding Change (%)'}</label>
+        <input id="ux-funding-change" 
           type="range" 
           min="-50" 
           max="100" 

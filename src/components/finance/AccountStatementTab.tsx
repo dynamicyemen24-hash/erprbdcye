@@ -304,13 +304,13 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
           <table class="w-full text-xs text-right border-collapse border border-slate-200">
             <thead>
               <tr class="bg-slate-900 text-white font-extrabold uppercase">
-                <th class="p-2 border border-slate-200 text-center w-10">#</th>
-                <th class="p-2 border border-slate-200 w-24">${isRtl ? 'التاريخ' : 'Date'}</th>
-                <th class="p-2 border border-slate-200 w-28">${isRtl ? 'رقم القيد' : 'Voucher No'}</th>
-                <th class="p-2 border border-slate-200">${isRtl ? 'الشرح والبيان' : 'Narration'}</th>
-                <th class="p-2 border border-slate-200 text-right w-28">${isRtl ? 'مدين' : 'Debit'}</th>
-                <th class="p-2 border border-slate-200 text-right w-28">${isRtl ? 'دائن' : 'Credit'}</th>
-                <th class="p-2 border border-slate-200 text-right w-32 bg-slate-800 text-white">${isRtl ? 'الرصيد الجاري' : 'Balance'}</th>
+                <th scope="col" class="p-2 border border-slate-200 text-center w-10">#</th>
+                <th scope="col" class="p-2 border border-slate-200 w-24">${isRtl ? 'التاريخ' : 'Date'}</th>
+                <th scope="col" class="p-2 border border-slate-200 w-28">${isRtl ? 'رقم القيد' : 'Voucher No'}</th>
+                <th scope="col" class="p-2 border border-slate-200">${isRtl ? 'الشرح والبيان' : 'Narration'}</th>
+                <th scope="col" class="p-2 border border-slate-200 text-right w-28">${isRtl ? 'مدين' : 'Debit'}</th>
+                <th scope="col" class="p-2 border border-slate-200 text-right w-28">${isRtl ? 'دائن' : 'Credit'}</th>
+                <th scope="col" class="p-2 border border-slate-200 text-right w-32 bg-slate-800 text-white">${isRtl ? 'الرصيد الجاري' : 'Balance'}</th>
               </tr>
             </thead>
             <tbody>
@@ -371,10 +371,10 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Account Selector */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase font-black">
+            <label htmlFor="ux-select-ledger-account" className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase font-black">
               {isRtl ? 'اختر الحساب المالي*' : 'Select Ledger Account*'}
             </label>
-            <select
+            <select id="ux-select-ledger-account"
               value={selectedAccountId}
               onChange={(e) => setSelectedAccountId(e.target.value)}
               className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-800 dark:text-zinc-100 focus:outline-none"
@@ -390,10 +390,10 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
 
           {/* Start Date */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase font-black">
+            <label htmlFor="ux-start-date" className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase font-black">
               {isRtl ? 'تاريخ البدء*' : 'Start Date*'}
             </label>
-            <input
+            <input id="ux-start-date"
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
@@ -403,10 +403,10 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
 
           {/* End Date */}
           <div className="space-y-1">
-            <label className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase font-black">
+            <label htmlFor="ux-end-date" className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase font-black">
               {isRtl ? 'تاريخ النهاية*' : 'End Date*'}
             </label>
-            <input
+            <input id="ux-end-date"
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
@@ -579,12 +579,12 @@ export default function AccountStatementTab({ accounts, transactions, lines, lan
               <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-zinc-900 dark:bg-zinc-950 text-amber-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                    <th className="p-3 w-24">{isRtl ? 'التاريخ' : 'Date'}</th>
-                    <th className="p-3 w-28">{isRtl ? 'المستند' : 'Voucher No'}</th>
-                    <th className="p-3">{isRtl ? 'الشرح والبيان العام والسطري' : 'Description'}</th>
-                    <th className="p-3 text-right w-28">{isRtl ? 'مدين YER' : 'Debit'}</th>
-                    <th className="p-3 text-right w-28">{isRtl ? 'دائن YER' : 'Credit'}</th>
-                    <th className="p-3 text-right w-32 bg-zinc-800/80 text-white">{isRtl ? 'الرصيد الجاري' : 'Running Balance'}</th>
+                    <th scope="col" className="p-3 w-24">{isRtl ? 'التاريخ' : 'Date'}</th>
+                    <th scope="col" className="p-3 w-28">{isRtl ? 'المستند' : 'Voucher No'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'الشرح والبيان العام والسطري' : 'Description'}</th>
+                    <th scope="col" className="p-3 text-right w-28">{isRtl ? 'مدين YER' : 'Debit'}</th>
+                    <th scope="col" className="p-3 text-right w-28">{isRtl ? 'دائن YER' : 'Credit'}</th>
+                    <th scope="col" className="p-3 text-right w-32 bg-zinc-800/80 text-white">{isRtl ? 'الرصيد الجاري' : 'Running Balance'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold font-mono">

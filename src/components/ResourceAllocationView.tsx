@@ -1166,13 +1166,13 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr className="bg-slate-900 text-amber-400 font-black text-[9px] uppercase border-b border-zinc-800">
-                  <th className="p-3 rounded-s">{isRtl ? 'المورد الفني' : 'Resource Name'}</th>
-                  <th className="p-3">{isRtl ? 'النوع' : 'Category'}</th>
-                  <th className="p-3">{isRtl ? 'الدور والمسؤولية' : 'Assigned Role'}</th>
-                  <th className="p-3">{isRtl ? 'المشروع المرتبط' : 'Bound Project'}</th>
-                  <th className="p-3 text-center">{isRtl ? 'الفترة الزمنية' : 'Timeline Frame'}</th>
-                  <th className="p-3 text-center">{isRtl ? 'نسبة الالتزام' : 'Load Percent'}</th>
-                  <th className="p-3 text-center rounded-e">{isRtl ? 'إجراءات' : 'Actions'}</th>
+                  <th scope="col" className="p-3 rounded-s">{isRtl ? 'المورد الفني' : 'Resource Name'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'النوع' : 'Category'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'الدور والمسؤولية' : 'Assigned Role'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'المشروع المرتبط' : 'Bound Project'}</th>
+                  <th scope="col" className="p-3 text-center">{isRtl ? 'الفترة الزمنية' : 'Timeline Frame'}</th>
+                  <th scope="col" className="p-3 text-center">{isRtl ? 'نسبة الالتزام' : 'Load Percent'}</th>
+                  <th scope="col" className="p-3 text-center rounded-e">{isRtl ? 'إجراءات' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-900 font-semibold text-slate-700">
@@ -1477,10 +1477,10 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
 
               {/* 1. Project Selection */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
+                <label htmlFor="ux-target-project" className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
                   {isRtl ? 'المشروع المستهدف بالجدولة *' : 'Target Project *'}
                 </label>
-                <select
+                <select id="ux-target-project"
                   required
                   value={newAlloc.projectId}
                   onChange={(e) => setNewAlloc(prev => ({ ...prev, projectId: e.target.value }))}
@@ -1497,10 +1497,10 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
 
               {/* 2. Resource Selection */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
+                <label htmlFor="ux-human-or-asset-resource" className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
                   {isRtl ? 'المورد البشري أو العيني المراد تخصيصه *' : 'Human or Asset Resource *'}
                 </label>
-                <select
+                <select id="ux-human-or-asset-resource"
                   required
                   value={newAlloc.resourceId}
                   onChange={(e) => setNewAlloc(prev => ({ ...prev, resourceId: e.target.value }))}
@@ -1530,10 +1530,10 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
               {/* 3. Role description inside the project */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
+                  <label htmlFor="ux-resource-role-arabic" className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
                     {isRtl ? 'دور المورد في المشروع (عربي) *' : 'Resource Role (Arabic) *'}
                   </label>
-                  <input
+                  <input id="ux-resource-role-arabic"
                     type="text"
                     required
                     value={newAlloc.roleAr}
@@ -1544,10 +1544,10 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
+                  <label htmlFor="ux-english" className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
                     {isRtl ? 'دور المورد في المشروع (English)' : 'Resource Role (English)'}
                   </label>
-                  <input
+                  <input id="ux-english"
                     type="text"
                     value={newAlloc.roleEn}
                     onChange={(e) => setNewAlloc(prev => ({ ...prev, roleEn: e.target.value }))}
@@ -1560,10 +1560,10 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
               {/* 4. Scheduling timeframe */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
+                  <label htmlFor="ux-start-date" className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
                     {isRtl ? 'تاريخ بدء التخصيص *' : 'Start Date *'}
                   </label>
-                  <input
+                  <input id="ux-start-date"
                     type="date"
                     required
                     value={newAlloc.startDate}
@@ -1573,10 +1573,10 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
+                  <label htmlFor="ux-end-date" className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
                     {isRtl ? 'تاريخ انتهاء التخصيص *' : 'End Date *'}
                   </label>
-                  <input
+                  <input id="ux-end-date"
                     type="date"
                     required
                     value={newAlloc.endDate}

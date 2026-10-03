@@ -531,12 +531,12 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
               <table className="w-full text-xs text-left rtl:text-right">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-500 font-bold bg-slate-50 dark:bg-zinc-900/40">
-                    <th className="py-2.5 px-3">#</th>
-                    <th className="py-2.5 px-3">{isRtl ? 'البند / المخرج' : 'Line Item'}</th>
-                    <th className="py-2.5 px-3 text-center">{isRtl ? 'الكمية' : 'Qty'}</th>
-                    <th className="py-2.5 px-3 text-center">{isRtl ? 'الوحدة' : 'Unit'}</th>
-                    <th className="py-2.5 px-3">{isRtl ? 'سعر الوحدة' : 'Unit Price'}</th>
-                    <th className="py-2.5 px-3">{isRtl ? 'الإجمالي' : 'Total'}</th>
+                    <th scope="col" className="py-2.5 px-3">#</th>
+                    <th scope="col" className="py-2.5 px-3">{isRtl ? 'البند / المخرج' : 'Line Item'}</th>
+                    <th scope="col" className="py-2.5 px-3 text-center">{isRtl ? 'الكمية' : 'Qty'}</th>
+                    <th scope="col" className="py-2.5 px-3 text-center">{isRtl ? 'الوحدة' : 'Unit'}</th>
+                    <th scope="col" className="py-2.5 px-3">{isRtl ? 'سعر الوحدة' : 'Unit Price'}</th>
+                    <th scope="col" className="py-2.5 px-3">{isRtl ? 'الإجمالي' : 'Total'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium">
@@ -659,10 +659,10 @@ export const UniversalObjectPageModal: React.FC<UniversalObjectPageModalProps> =
               <table className="w-full text-xs text-left rtl:text-right">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-500 font-bold bg-slate-50 dark:bg-zinc-900/40">
-                    <th className="py-2.5 px-3">{isRtl ? 'التاريخ والوقت' : 'Timestamp'}</th>
-                    <th className="py-2.5 px-3">{isRtl ? 'العملية الإجرائية' : 'Action'}</th>
-                    <th className="py-2.5 px-3">{isRtl ? 'المستخدم' : 'User'}</th>
-                    <th className="py-2.5 px-3">{isRtl ? 'عنوان IP / الجهاز' : 'IP / Device'}</th>
+                    <th scope="col" className="py-2.5 px-3">{isRtl ? 'التاريخ والوقت' : 'Timestamp'}</th>
+                    <th scope="col" className="py-2.5 px-3">{isRtl ? 'العملية الإجرائية' : 'Action'}</th>
+                    <th scope="col" className="py-2.5 px-3">{isRtl ? 'المستخدم' : 'User'}</th>
+                    <th scope="col" className="py-2.5 px-3">{isRtl ? 'عنوان IP / الجهاز' : 'IP / Device'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium">

@@ -110,9 +110,9 @@ export const EnterpriseExperienceModeModal: React.FC<EnterpriseExperienceModeMod
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-dialog bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
       <div 
-        className="bg-white dark:bg-[#090d16] border border-slate-200 dark:border-zinc-800 rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="bg-white dark:bg-brand-dark-bg border border-slate-200 dark:border-zinc-800 rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
         dir={isRtl ? 'rtl' : 'ltr'}
       >
         {/* Header Strip */}

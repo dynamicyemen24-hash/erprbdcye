@@ -1335,13 +1335,13 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               <table className="w-full text-xs border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-slate-900 text-amber-400 font-black text-[9px] uppercase border-b border-zinc-800">
-                    <th className="p-3 rounded-s">{isRtl ? 'الموظف والقطاع' : 'Employee & Department'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'الراتب الأساسي' : 'Basic Salary'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'بدل ميداني' : 'Field Allowance'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'بدل مخاطر' : 'Hazard Pay'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'الخصومات' : 'Deductions'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'صافي المستحق' : 'Net Payout'}</th>
-                    <th className="p-3 text-center rounded-e">{isRtl ? 'الحالة وتاريخ الصرف' : 'Status & Date'}</th>
+                    <th scope="col" className="p-3 rounded-s">{isRtl ? 'الموظف والقطاع' : 'Employee & Department'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'الراتب الأساسي' : 'Basic Salary'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'بدل ميداني' : 'Field Allowance'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'بدل مخاطر' : 'Hazard Pay'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'الخصومات' : 'Deductions'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'صافي المستحق' : 'Net Payout'}</th>
+                    <th scope="col" className="p-3 text-center rounded-e">{isRtl ? 'الحالة وتاريخ الصرف' : 'Status & Date'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-slate-700 font-semibold">
@@ -1459,12 +1459,12 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               <table className="w-full text-xs border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-slate-900 text-amber-400 font-black text-[9px] uppercase border-b border-zinc-800">
-                    <th className="p-3 rounded-s">{isRtl ? 'العهد والرمز التسلسلي' : 'Asset & Serial'}</th>
-                    <th className="p-3">{isRtl ? 'التصنيف' : 'Category'}</th>
-                    <th className="p-3">{isRtl ? 'الموظف المسؤول' : 'Assigned Custodian'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'تاريخ التسليم' : 'Assigned Date'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'الحالة الفنية' : 'Condition'}</th>
-                    <th className="p-3 text-center rounded-e">{isRtl ? 'حالة العهدة' : 'Status'}</th>
+                    <th scope="col" className="p-3 rounded-s">{isRtl ? 'العهد والرمز التسلسلي' : 'Asset & Serial'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'التصنيف' : 'Category'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'الموظف المسؤول' : 'Assigned Custodian'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'تاريخ التسليم' : 'Assigned Date'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'الحالة الفنية' : 'Condition'}</th>
+                    <th scope="col" className="p-3 text-center rounded-e">{isRtl ? 'حالة العهدة' : 'Status'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-slate-700 font-semibold">
@@ -1915,10 +1915,10 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               {/* Role Profile Selection */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">
+                <label htmlFor="ux-role-profile-job-template" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">
                   {isRtl ? 'ملف تعريف الدور والمسمى الوظيفي' : 'Role Profile / Job Template'}
                 </label>
-                <select
+                <select id="ux-role-profile-job-template"
                   value={roleProfile}
                   onChange={(e) => applyRoleProfile(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none font-semibold text-slate-700 cursor-pointer"
@@ -1940,8 +1940,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               {/* Email */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'البريد الإلكتروني المهني' : 'Work Email'}</label>
-                <input 
+                <label htmlFor="ux-work-email" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'البريد الإلكتروني المهني' : 'Work Email'}</label>
+                <input id="ux-work-email" 
                   type="email" 
                   required 
                   disabled={!!selectedUser}
@@ -1955,8 +1955,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               {/* Names */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'الاسم بالكامل (عربي)' : 'Arabic Full Name'}</label>
-                  <input 
+                  <label htmlFor="ux-arabic-full-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'الاسم بالكامل (عربي)' : 'Arabic Full Name'}</label>
+                  <input id="ux-arabic-full-name" 
                     type="text" 
                     required 
                     value={nameAr}
@@ -1966,8 +1966,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'الاسم بالكامل (English)' : 'English Full Name'}</label>
-                  <input 
+                  <label htmlFor="ux-english" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'الاسم بالكامل (English)' : 'English Full Name'}</label>
+                  <input id="ux-english" 
                     type="text" 
                     required 
                     value={name}
@@ -1981,8 +1981,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               {/* Phone, security level, language */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'رقم الهاتف' : 'Phone'}</label>
-                  <input 
+                  <label htmlFor="ux-phone" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'رقم الهاتف' : 'Phone'}</label>
+                  <input id="ux-phone" 
                     type="text" 
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -1991,8 +1991,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'المستوى الأمني للوصول' : 'Security Level'}</label>
-                  <select 
+                  <label htmlFor="ux-security-level" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'المستوى الأمني للوصول' : 'Security Level'}</label>
+                  <select id="ux-security-level" 
                     value={securityLevel}
                     onChange={(e) => setSecurityLevel(parseInt(e.target.value))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none text-slate-700 font-semibold cursor-pointer"
@@ -2005,8 +2005,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'اللغة الافتراضية' : 'Default Language'}</label>
-                  <select 
+                  <label htmlFor="ux-default-language" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'اللغة الافتراضية' : 'Default Language'}</label>
+                  <select id="ux-default-language" 
                     value={defaultLanguage}
                     onChange={(e) => setDefaultLanguage(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none text-slate-700 font-medium cursor-pointer"
@@ -2020,8 +2020,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               {/* Department and position */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'القسم (Department)' : 'Department Code'}</label>
-                  <input 
+                  <label htmlFor="ux-department" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'القسم (Department)' : 'Department Code'}</label>
+                  <input id="ux-department" 
                     type="text" 
                     value={departmentCode}
                     onChange={(e) => setDepartmentCode(e.target.value)}
@@ -2030,8 +2030,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'المسمى الوظيفي (Position)' : 'Position Code'}</label>
-                  <input 
+                  <label htmlFor="ux-position" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{isRtl ? 'المسمى الوظيفي (Position)' : 'Position Code'}</label>
+                  <input id="ux-position" 
                     type="text" 
                     value={positionCode}
                     onChange={(e) => setPositionCode(e.target.value)}
@@ -2061,8 +2061,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                     </label>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">{isRtl ? 'الحد الأقصى للاعتماد (بالريال)' : 'Max Approval Amount Limit'}</label>
-                    <input 
+                    <label htmlFor="ux-max-approval-amount-limit" className="block text-xs font-bold text-slate-500 mb-1 uppercase">{isRtl ? 'الحد الأقصى للاعتماد (بالريال)' : 'Max Approval Amount Limit'}</label>
+                    <input id="ux-max-approval-amount-limit" 
                       type="number" 
                       disabled={!canApprove}
                       value={maxApprovalAmount}
@@ -2131,8 +2131,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
             </div>
             <form onSubmit={handleStockSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'نوع الحركة المخزنية' : 'Movement Type'}</label>
-                <select 
+                <label htmlFor="ux-movement-type" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'نوع الحركة المخزنية' : 'Movement Type'}</label>
+                <select id="ux-movement-type" 
                   value={stockForm.type}
                   onChange={(e) => setStockForm(prev => ({ ...prev, type: e.target.value as any }))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 cursor-pointer"
@@ -2143,8 +2143,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'المادة المخزنية المستهدفة' : 'Select Inventory Item'}</label>
-                <select 
+                <label htmlFor="ux-select-inventory-item" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'المادة المخزنية المستهدفة' : 'Select Inventory Item'}</label>
+                <select id="ux-select-inventory-item" 
                   value={stockForm.itemId}
                   onChange={(e) => setStockForm(prev => ({ ...prev, itemId: e.target.value }))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-700 cursor-pointer"
@@ -2159,8 +2159,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الكمية المطلوبة' : 'Quantity'}</label>
-                  <input 
+                  <label htmlFor="ux-quantity" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الكمية المطلوبة' : 'Quantity'}</label>
+                  <input id="ux-quantity" 
                     type="number" 
                     required
                     min="1"
@@ -2170,8 +2170,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مستودع المادة الحقيقي' : 'Warehouse Location'}</label>
-                  <select 
+                  <label htmlFor="ux-warehouse-location" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مستودع المادة الحقيقي' : 'Warehouse Location'}</label>
+                  <select id="ux-warehouse-location" 
                     value={stockForm.warehouseId}
                     onChange={(e) => setStockForm(prev => ({ ...prev, warehouseId: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 cursor-pointer"
@@ -2184,8 +2184,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الملاحظات والبيان الموجه' : 'Movement Notes'}</label>
-                <textarea 
+                <label htmlFor="ux-movement-notes" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الملاحظات والبيان الموجه' : 'Movement Notes'}</label>
+                <textarea id="ux-movement-notes" 
                   rows={2}
                   required
                   value={stockForm.notes}
@@ -2234,8 +2234,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الأصل (عربي)' : 'Asset Name (Arabic)'}</label>
-                  <input 
+                  <label htmlFor="ux-asset-name-arabic" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الأصل (عربي)' : 'Asset Name (Arabic)'}</label>
+                  <input id="ux-asset-name-arabic" 
                     type="text" 
                     required
                     placeholder="e.g. مولد كهربائي كمنز 100KVA"
@@ -2245,8 +2245,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الأصل (English)' : 'Asset Name (English)'}</label>
-                  <input 
+                  <label htmlFor="ux-english-17" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم الأصل (English)' : 'Asset Name (English)'}</label>
+                  <input id="ux-english-17" 
                     type="text" 
                     placeholder="e.g. Cummins 100KVA Generator"
                     value={assetForm.nameEn}
@@ -2285,8 +2285,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رمز هيكل حزمة العمل (WBS Code)' : 'WBS Activity Code'}</label>
-                    <input 
+                    <label htmlFor="ux-wbs-code" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رمز هيكل حزمة العمل (WBS Code)' : 'WBS Activity Code'}</label>
+                    <input id="ux-wbs-code" 
                       type="text" 
                       placeholder="e.g. WBS-MAR-1.2.4"
                       value={assetForm.wbsCode}
@@ -2305,8 +2305,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'خط العرض (Latitude)' : 'Latitude'}</label>
-                    <input 
+                    <label htmlFor="ux-latitude" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'خط العرض (Latitude)' : 'Latitude'}</label>
+                    <input id="ux-latitude" 
                       type="text" 
                       placeholder="15.4582"
                       value={assetForm.latitude}
@@ -2315,8 +2315,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'خط الطول (Longitude)' : 'Longitude'}</label>
-                    <input 
+                    <label htmlFor="ux-longitude" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'خط الطول (Longitude)' : 'Longitude'}</label>
+                    <input id="ux-longitude" 
                       type="text" 
                       placeholder="45.3289"
                       value={assetForm.longitude}
@@ -2325,8 +2325,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رمز المرجع GIS' : 'GIS Ref Code'}</label>
-                    <input 
+                    <label htmlFor="ux-gis" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رمز المرجع GIS' : 'GIS Ref Code'}</label>
+                    <input id="ux-gis" 
                       type="text" 
                       placeholder="GIS-YEM-MAR-001"
                       value={assetForm.gisCode}
@@ -2339,8 +2339,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الموقع والمحافظة (عربي)' : 'Location (Arabic)'}</label>
-                  <input 
+                  <label htmlFor="ux-location-arabic" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الموقع والمحافظة (عربي)' : 'Location (Arabic)'}</label>
+                  <input id="ux-location-arabic" 
                     type="text" 
                     required
                     placeholder="e.g. مأرب - موقع سد مأرب"
@@ -2350,8 +2350,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'المين العيني/المسؤول' : 'Custodian'}</label>
-                  <input 
+                  <label htmlFor="ux-custodian" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'المين العيني/المسؤول' : 'Custodian'}</label>
+                  <input id="ux-custodian" 
                     type="text" 
                     placeholder="م. عبدالغني العوامي"
                     value={assetForm.custodian}
@@ -2363,8 +2363,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تكلفة الشراء الأصلية (YER)' : 'Purchase Cost (YER)'}</label>
-                  <input 
+                  <label htmlFor="ux-yer" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تكلفة الشراء الأصلية (YER)' : 'Purchase Cost (YER)'}</label>
+                  <input id="ux-yer" 
                     type="number" 
                     required
                     value={assetForm.originalCost}
@@ -2373,8 +2373,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ الشراء/الاستلام' : 'Purchase Date'}</label>
-                  <input 
+                  <label htmlFor="ux-purchase-date" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ الشراء/الاستلام' : 'Purchase Date'}</label>
+                  <input id="ux-purchase-date" 
                     type="date" 
                     required
                     value={assetForm.purchaseDate}
@@ -2383,8 +2383,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الرقم التسلسلي Serial' : 'Serial Number'}</label>
-                  <input 
+                  <label htmlFor="ux-serial" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الرقم التسلسلي Serial' : 'Serial Number'}</label>
+                  <input id="ux-serial" 
                     type="text" 
                     value={assetForm.serialNumber}
                     onChange={(e) => setAssetForm(prev => ({ ...prev, serialNumber: e.target.value }))}
@@ -2395,8 +2395,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'فئة تصنيف الأصل' : 'Asset Type'}</label>
-                  <select 
+                  <label htmlFor="ux-asset-type" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'فئة تصنيف الأصل' : 'Asset Type'}</label>
+                  <select id="ux-asset-type" 
                     value={assetForm.type}
                     onChange={(e) => setAssetForm(prev => ({ ...prev, type: e.target.value as any }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 font-bold cursor-pointer"
@@ -2408,8 +2408,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'العمر الإنتاجي (سنوات)' : 'Useful Life (Years)'}</label>
-                  <input 
+                  <label htmlFor="ux-useful-life-years" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'العمر الإنتاجي (سنوات)' : 'Useful Life (Years)'}</label>
+                  <input id="ux-useful-life-years" 
                     type="number" 
                     value={assetForm.usefulLifeYears}
                     onChange={(e) => setAssetForm(prev => ({ ...prev, usefulLifeYears: e.target.value }))}
@@ -2417,8 +2417,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'قيمة الخردة/المتبقية (YER)' : 'Salvage Value'}</label>
-                  <input 
+                  <label htmlFor="ux-yer-29" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'قيمة الخردة/المتبقية (YER)' : 'Salvage Value'}</label>
+                  <input id="ux-yer-29" 
                     type="number" 
                     value={assetForm.salvageValue}
                     onChange={(e) => setAssetForm(prev => ({ ...prev, salvageValue: e.target.value }))}
@@ -2461,8 +2461,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
             <form onSubmit={handleNewItemSubmit} className="p-6 space-y-4 text-xs font-bold text-slate-700">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المادة (عربي)' : 'Item Name (Arabic)'}</label>
-                  <input 
+                  <label htmlFor="ux-item-name-arabic" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المادة (عربي)' : 'Item Name (Arabic)'}</label>
+                  <input id="ux-item-name-arabic" 
                     type="text" 
                     required
                     placeholder="مثال: تمور فاخرة مغلفة - كرتون 10كجم"
@@ -2472,8 +2472,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المادة (English)' : 'Item Name (English)'}</label>
-                  <input 
+                  <label htmlFor="ux-english-31" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المادة (English)' : 'Item Name (English)'}</label>
+                  <input id="ux-english-31" 
                     type="text" 
                     placeholder="e.g. Premium Dates Carton 10kg"
                     value={newItemForm.nameEn}
@@ -2485,8 +2485,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الرصيد الافتتاحي' : 'Initial Qty'}</label>
-                  <input 
+                  <label htmlFor="ux-initial-qty" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الرصيد الافتتاحي' : 'Initial Qty'}</label>
+                  <input id="ux-initial-qty" 
                     type="number" 
                     required
                     min="1"
@@ -2496,8 +2496,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'وحدة القياس (عربي)' : 'Unit (Arabic)'}</label>
-                  <input 
+                  <label htmlFor="ux-unit-arabic" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'وحدة القياس (عربي)' : 'Unit (Arabic)'}</label>
+                  <input id="ux-unit-arabic" 
                     type="text" 
                     required
                     placeholder="كرتون / سلة / وجبة"
@@ -2507,8 +2507,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'وحدة القياس (English)' : 'Unit (English)'}</label>
-                  <input 
+                  <label htmlFor="ux-english-34" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'وحدة القياس (English)' : 'Unit (English)'}</label>
+                  <input id="ux-english-34" 
                     type="text" 
                     placeholder="carton / basket"
                     value={newItemForm.unitEn}
@@ -2520,8 +2520,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مستودع الحفظ والتخزين' : 'Warehouse Location'}</label>
-                  <select 
+                  <label htmlFor="ux-warehouse-location-35" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'مستودع الحفظ والتخزين' : 'Warehouse Location'}</label>
+                  <select id="ux-warehouse-location-35" 
                     value={newItemForm.warehouseId}
                     onChange={(e) => setNewItemForm(prev => ({ ...prev, warehouseId: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 font-bold cursor-pointer"
@@ -2532,8 +2532,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'التصنيف القطاعي' : 'Sector Category'}</label>
-                  <select 
+                  <label htmlFor="ux-sector-category" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'التصنيف القطاعي' : 'Sector Category'}</label>
+                  <select id="ux-sector-category" 
                     value={newItemForm.category}
                     onChange={(e) => setNewItemForm(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 font-bold cursor-pointer"
@@ -2550,8 +2550,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'سعر الوحدة (YER)' : 'Unit Price (YER)'}</label>
-                  <input 
+                  <label htmlFor="ux-yer-37" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'سعر الوحدة (YER)' : 'Unit Price (YER)'}</label>
+                  <input id="ux-yer-37" 
                     type="number" 
                     required
                     value={newItemForm.unitValueYer}
@@ -2560,8 +2560,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'حد إعادة الطلب' : 'Reorder Level'}</label>
-                  <input 
+                  <label htmlFor="ux-reorder-level" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'حد إعادة الطلب' : 'Reorder Level'}</label>
+                  <input id="ux-reorder-level" 
                     type="number" 
                     required
                     value={newItemForm.reorderLevel}
@@ -2570,8 +2570,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رقم الشحنة/الدفعة' : 'Batch No'}</label>
-                  <input 
+                  <label htmlFor="ux-batch-no" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رقم الشحنة/الدفعة' : 'Batch No'}</label>
+                  <input id="ux-batch-no" 
                     type="text" 
                     value={newItemForm.batchNo}
                     onChange={(e) => setNewItemForm(prev => ({ ...prev, batchNo: e.target.value }))}
@@ -2581,8 +2581,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ انتهاء الصلاحية' : 'Expiry Date'}</label>
-                <input 
+                <label htmlFor="ux-expiry-date" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ انتهاء الصلاحية' : 'Expiry Date'}</label>
+                <input id="ux-expiry-date" 
                   type="date" 
                   value={newItemForm.expiryDate}
                   onChange={(e) => setNewItemForm(prev => ({ ...prev, expiryDate: e.target.value }))}
@@ -2622,8 +2622,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
             <form onSubmit={handleNewWarehouseSubmit} className="p-6 space-y-4 text-xs font-bold text-slate-700">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المستودع (عربي)' : 'Depot Name (Arabic)'}</label>
-                  <input 
+                  <label htmlFor="ux-depot-name-arabic" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المستودع (عربي)' : 'Depot Name (Arabic)'}</label>
+                  <input id="ux-depot-name-arabic" 
                     type="text" 
                     required
                     placeholder="مثال: مستودع الجوف الإغاثي"
@@ -2633,8 +2633,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المستودع (English)' : 'Depot Name (English)'}</label>
-                  <input 
+                  <label htmlFor="ux-english-42" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم المستودع (English)' : 'Depot Name (English)'}</label>
+                  <input id="ux-english-42" 
                     type="text" 
                     placeholder="e.g. Al-Jawf Relief Warehouse"
                     value={newWarehouseForm.nameEn}
@@ -2646,8 +2646,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الموقع والمحافظة (عربي)' : 'Location (Arabic)'}</label>
-                  <input 
+                  <label htmlFor="ux-location-arabic-43" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الموقع والمحافظة (عربي)' : 'Location (Arabic)'}</label>
+                  <input id="ux-location-arabic-43" 
                     type="text" 
                     required
                     placeholder="مثال: الجوف - مدينة الحزم"
@@ -2657,8 +2657,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الموقع (English)' : 'Location (English)'}</label>
-                  <input 
+                  <label htmlFor="ux-english-44" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'الموقع (English)' : 'Location (English)'}</label>
+                  <input id="ux-english-44" 
                     type="text" 
                     placeholder="e.g. Al Jawf - Al Hazm City"
                     value={newWarehouseForm.locationEn}
@@ -2670,8 +2670,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم أمين المستودع' : 'Depot Keeper Name'}</label>
-                  <input 
+                  <label htmlFor="ux-depot-keeper-name" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'اسم أمين المستودع' : 'Depot Keeper Name'}</label>
+                  <input id="ux-depot-keeper-name" 
                     type="text" 
                     required
                     placeholder="أ. أحمد الشميري"
@@ -2681,8 +2681,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'السعة الاستيعابية (m³)' : 'Storage Capacity'}</label>
-                  <input 
+                  <label htmlFor="ux-storage-capacity" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'السعة الاستيعابية (m³)' : 'Storage Capacity'}</label>
+                  <input id="ux-storage-capacity" 
                     type="text" 
                     required
                     value={newWarehouseForm.capacity}
@@ -2769,8 +2769,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'نوع الصيانة' : 'Maintenance Type'}</label>
-                    <select
+                    <label htmlFor="ux-maintenance-type" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'نوع الصيانة' : 'Maintenance Type'}</label>
+                    <select id="ux-maintenance-type"
                       value={newLogForm.type}
                       onChange={(e) => setNewLogForm(prev => ({ ...prev, type: e.target.value as any }))}
                       className="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold cursor-pointer"
@@ -2782,8 +2782,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تكلفة الصيانة (YER)' : 'Cost (YER)'}</label>
-                    <input 
+                    <label htmlFor="ux-yer-48" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تكلفة الصيانة (YER)' : 'Cost (YER)'}</label>
+                    <input id="ux-yer-48" 
                       type="number" 
                       placeholder="0"
                       value={newLogForm.costYer}
@@ -2793,8 +2793,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ الصيانة القادمة' : 'Next Service Date'}</label>
-                    <input 
+                    <label htmlFor="ux-next-service-date" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تاريخ الصيانة القادمة' : 'Next Service Date'}</label>
+                    <input id="ux-next-service-date" 
                       type="date" 
                       value={newLogForm.nextMaintenanceDate}
                       onChange={(e) => setNewLogForm(prev => ({ ...prev, nextMaintenanceDate: e.target.value }))}
@@ -2805,8 +2805,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'المركز الفني / المهندس المنفذ' : 'Service Provider / Center'}</label>
-                    <input 
+                    <label htmlFor="ux-service-provider-center" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'المركز الفني / المهندس المنفذ' : 'Service Provider / Center'}</label>
+                    <input id="ux-service-provider-center" 
                       type="text" 
                       placeholder="e.g. المركز الفني الهندسي المعتمد"
                       value={newLogForm.technician}
@@ -2816,8 +2816,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رقم الفاتورة / المرجع' : 'Invoice / Voucher Ref'}</label>
-                    <input 
+                    <label htmlFor="ux-invoice-voucher-ref" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'رقم الفاتورة / المرجع' : 'Invoice / Voucher Ref'}</label>
+                    <input id="ux-invoice-voucher-ref" 
                       type="text" 
                       placeholder="e.g. INV-MAINT-2026-001"
                       value={newLogForm.invoiceRef}
@@ -2828,8 +2828,8 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تفاصيل الأعمال والقطع المستبدلة' : 'Work Description & Replaced Parts'}</label>
-                  <input 
+                  <label htmlFor="ux-work-description-replaced-parts" className="block text-[10px] font-black text-slate-500 uppercase mb-1">{isRtl ? 'تفاصيل الأعمال والقطع المستبدلة' : 'Work Description & Replaced Parts'}</label>
+                  <input id="ux-work-description-replaced-parts" 
                     type="text" 
                     placeholder="وصف الإجراء والقطع..."
                     value={newLogForm.descriptionAr}
@@ -2881,12 +2881,12 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
                     <table className="w-full text-right border-collapse">
                       <thead className="bg-slate-100 text-slate-600 font-extrabold text-[10px] border-b border-slate-200">
                         <tr>
-                          <th className="p-2.5">{isRtl ? 'التاريخ' : 'Date'}</th>
-                          <th className="p-2.5">{isRtl ? 'نوع الصيانة' : 'Type'}</th>
-                          <th className="p-2.5">{isRtl ? 'التفاصيل والقطع' : 'Description'}</th>
-                          <th className="p-2.5">{isRtl ? 'المزود/المهندس' : 'Vendor'}</th>
-                          <th className="p-2.5">{isRtl ? 'التكلفة (YER)' : 'Cost'}</th>
-                          <th className="p-2.5">{isRtl ? 'المعاملة المالية' : 'Capitalized?'}</th>
+                          <th scope="col" className="p-2.5">{isRtl ? 'التاريخ' : 'Date'}</th>
+                          <th scope="col" className="p-2.5">{isRtl ? 'نوع الصيانة' : 'Type'}</th>
+                          <th scope="col" className="p-2.5">{isRtl ? 'التفاصيل والقطع' : 'Description'}</th>
+                          <th scope="col" className="p-2.5">{isRtl ? 'المزود/المهندس' : 'Vendor'}</th>
+                          <th scope="col" className="p-2.5">{isRtl ? 'التكلفة (YER)' : 'Cost'}</th>
+                          <th scope="col" className="p-2.5">{isRtl ? 'المعاملة المالية' : 'Capitalized?'}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-[11px] font-medium">

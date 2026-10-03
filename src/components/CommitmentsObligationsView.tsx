@@ -461,7 +461,7 @@ export default function CommitmentsObligationsView({
               <thead>
                 <tr className="bg-slate-50 dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800">
                   {['رقم التعهد','النوع','العنوان','المبلغ','المصروف','النسبة','الحالة','الأولوية','إجراءات'].map(h => (
-                    <th key={h} className="px-4 py-3 text-right font-black text-slate-600 dark:text-zinc-300 uppercase text-[10px]">{h}</th>
+                    <th scope="col" key={h} className="px-4 py-3 text-right font-black text-slate-600 dark:text-zinc-300 uppercase text-[10px]">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -517,7 +517,7 @@ export default function CommitmentsObligationsView({
               <thead>
                 <tr className="bg-slate-50 dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800">
                   {['رقم الالتزام','النوع','العنوان','المبلغ','المدفوع','الدورية','الحالة','الاستحقاق','إجراءات'].map(h => (
-                    <th key={h} className="px-4 py-3 text-right font-black text-slate-600 dark:text-zinc-300 uppercase text-[10px]">{h}</th>
+                    <th scope="col" key={h} className="px-4 py-3 text-right font-black text-slate-600 dark:text-zinc-300 uppercase text-[10px]">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -676,38 +676,38 @@ export default function CommitmentsObligationsView({
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'العنوان بالعربية *' : 'Title (Ar) *'}</label>
-                  <input type="text" value={formData.titleAr} onChange={e => setFormData({ ...formData, titleAr: e.target.value })}
+                  <label htmlFor="ux-title-ar" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'العنوان بالعربية *' : 'Title (Ar) *'}</label>
+                  <input id="ux-title-ar" type="text" value={formData.titleAr} onChange={e => setFormData({ ...formData, titleAr: e.target.value })}
                     className="w-full h-9 px-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30 focus:outline-none" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'العنوان بالإنجليزية' : 'Title (En)'}</label>
-                  <input type="text" value={formData.titleEn} onChange={e => setFormData({ ...formData, titleEn: e.target.value })}
+                  <label htmlFor="ux-title-en" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'العنوان بالإنجليزية' : 'Title (En)'}</label>
+                  <input id="ux-title-en" type="text" value={formData.titleEn} onChange={e => setFormData({ ...formData, titleEn: e.target.value })}
                     className="w-full h-9 px-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30 focus:outline-none" />
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الوصف' : 'Description'}</label>
-                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2}
+                <label htmlFor="ux-description" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الوصف' : 'Description'}</label>
+                <textarea id="ux-description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30 focus:outline-none resize-none" />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'النوع *' : 'Type *'}</label>
-                  <select value={modalMode === 'commitment' ? formData.commitmentType : formData.obligationType}
+                  <label htmlFor="ux-type" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'النوع *' : 'Type *'}</label>
+                  <select id="ux-type" value={modalMode === 'commitment' ? formData.commitmentType : formData.obligationType}
                     onChange={e => modalMode === 'commitment' ? setFormData({ ...formData, commitmentType: e.target.value }) : setFormData({ ...formData, obligationType: e.target.value })}
                     className="w-full h-9 px-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs">
                     {(modalMode === 'commitment' ? COMMITMENT_TYPES : OBLIGATION_TYPES).map(t => <option key={t.value} value={t.value}>{isRtl ? t.labelAr : t.labelEn}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي *' : 'Total Amount *'}</label>
-                  <input type="number" value={formData.totalAmount} onChange={e => setFormData({ ...formData, totalAmount: e.target.value })}
+                  <label htmlFor="ux-total-amount" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المبلغ الإجمالي *' : 'Total Amount *'}</label>
+                  <input id="ux-total-amount" type="number" value={formData.totalAmount} onChange={e => setFormData({ ...formData, totalAmount: e.target.value })}
                     className="w-full h-9 px-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30 focus:outline-none" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'العملة' : 'Currency'}</label>
-                  <select value={formData.currencyCode} onChange={e => setFormData({ ...formData, currencyCode: e.target.value })}
+                  <label htmlFor="ux-currency" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'العملة' : 'Currency'}</label>
+                  <select id="ux-currency" value={formData.currencyCode} onChange={e => setFormData({ ...formData, currencyCode: e.target.value })}
                     className="w-full h-9 px-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs">
                     <option value="YER">YER</option><option value="USD">USD</option><option value="SAR">SAR</option>
                   </select>
@@ -715,41 +715,41 @@ export default function CommitmentsObligationsView({
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الدورية' : 'Periodicity'}</label>
-                  <select value={formData.periodicity} onChange={e => setFormData({ ...formData, periodicity: e.target.value })}
+                  <label htmlFor="ux-periodicity" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الدورية' : 'Periodicity'}</label>
+                  <select id="ux-periodicity" value={formData.periodicity} onChange={e => setFormData({ ...formData, periodicity: e.target.value })}
                     className="w-full h-9 px-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs">
                     {PERIODICITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{isRtl ? p.labelAr : p.labelEn}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الأولوية' : 'Priority'}</label>
-                  <select value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })}
+                  <label htmlFor="ux-priority" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'الأولوية' : 'Priority'}</label>
+                  <select id="ux-priority" value={formData.priority} onChange={e => setFormData({ ...formData, priority: e.target.value })}
                     className="w-full h-9 px-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs">
                     <option value="LOW">{isRtl ? 'منخفضة' : 'Low'}</option><option value="NORMAL">{isRtl ? 'عادية' : 'Normal'}</option>
                     <option value="HIGH">{isRtl ? 'عالية' : 'High'}</option><option value="URGENT">{isRtl ? 'عاجلة' : 'Urgent'}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ البدء' : 'Start Date'}</label>
-                  <input type="date" value={formData.startDate} onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                  <label htmlFor="ux-start-date" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ البدء' : 'Start Date'}</label>
+                  <input id="ux-start-date" type="date" value={formData.startDate} onChange={e => setFormData({ ...formData, startDate: e.target.value })}
                     className="w-full h-9 px-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ الاستحقاق' : 'Next Due Date'}</label>
-                  <input type="date" value={formData.nextDueDate} onChange={e => setFormData({ ...formData, nextDueDate: e.target.value })}
+                  <label htmlFor="ux-next-due-date" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'تاريخ الاستحقاق' : 'Next Due Date'}</label>
+                  <input id="ux-next-due-date" type="date" value={formData.nextDueDate} onChange={e => setFormData({ ...formData, nextDueDate: e.target.value })}
                     className="w-full h-9 px-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المرجع' : 'Reference'}</label>
-                  <input type="text" value={formData.referenceDocument} onChange={e => setFormData({ ...formData, referenceDocument: e.target.value })}
+                  <label htmlFor="ux-reference" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'المرجع' : 'Reference'}</label>
+                  <input id="ux-reference" type="text" value={formData.referenceDocument} onChange={e => setFormData({ ...formData, referenceDocument: e.target.value })}
                     className="w-full h-9 px-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30 focus:outline-none" />
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'ملاحظات داخلية' : 'Internal Notes'}</label>
-                <textarea value={formData.internalNotes} onChange={e => setFormData({ ...formData, internalNotes: e.target.value })} rows={2}
+                <label htmlFor="ux-internal-notes" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'ملاحظات داخلية' : 'Internal Notes'}</label>
+                <textarea id="ux-internal-notes" value={formData.internalNotes} onChange={e => setFormData({ ...formData, internalNotes: e.target.value })} rows={2}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30 focus:outline-none resize-none" />
               </div>
             </div>
@@ -823,13 +823,13 @@ function PaymentModal({ isRtl, target, mode, onClose, onRecord, getCurrencySymbo
             <div className="flex justify-between"><span className="text-slate-500">{isRtl ? 'المتبقي' : 'Remaining'}</span><span className="font-bold text-emerald-600">{formatAmount2(remaining)} {getCurrencySymbol(target.currency_code)}</span></div>
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'مبلغ الدفعة *' : 'Payment Amount *'}</label>
-            <input type="number" value={amount} onChange={e => setAmount(e.target.value)} max={remaining}
+            <label htmlFor="ux-payment-amount" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'مبلغ الدفعة *' : 'Payment Amount *'}</label>
+            <input id="ux-payment-amount" type="number" value={amount} onChange={e => setAmount(e.target.value)} max={remaining}
               className="w-full h-9 px-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30 focus:outline-none" />
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'طريقة الدفع' : 'Payment Method'}</label>
-            <select value={method} onChange={e => setMethod(e.target.value)}
+            <label htmlFor="ux-payment-method" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'طريقة الدفع' : 'Payment Method'}</label>
+            <select id="ux-payment-method" value={method} onChange={e => setMethod(e.target.value)}
               className="w-full h-9 px-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs">
               <option value="BANK_TRANSFER">{isRtl ? 'تحويل بنكي' : 'Bank Transfer'}</option>
               <option value="CASH">{isRtl ? 'نقداً' : 'Cash'}</option>
@@ -838,8 +838,8 @@ function PaymentModal({ isRtl, target, mode, onClose, onRecord, getCurrencySymbo
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'ملاحظات' : 'Notes'}</label>
-            <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
+            <label htmlFor="ux-notes" className="block text-[10px] font-bold text-slate-500 mb-1">{isRtl ? 'ملاحظات' : 'Notes'}</label>
+            <input id="ux-notes" type="text" value={notes} onChange={e => setNotes(e.target.value)}
               className="w-full h-9 px-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30 focus:outline-none" />
           </div>
         </div>

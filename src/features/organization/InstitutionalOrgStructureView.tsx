@@ -227,13 +227,13 @@ export default function InstitutionalOrgStructureView({
         <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 20px;">
           <thead>
             <tr style="background: #0f172a; color: #fbbf24;">
-              <th style="border: 1px solid #334155; padding: 6px; width: 12%;">الكود التنظيمي</th>
-              <th style="border: 1px solid #334155; padding: 6px;">اسم الإدارة / الوحدة</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 14%;">المدير المسؤول</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 14%;">مركز التكلفة المربوط</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 8%; text-align: center;">الملاك / الفعلي</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 16%; text-align: left;">الموازنة المعتمدة</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 14%; text-align: left;">سقف الصلاحية</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 12%;">الكود التنظيمي</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px;">اسم الإدارة / الوحدة</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 14%;">المدير المسؤول</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 14%;">مركز التكلفة المربوط</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 8%; text-align: center;">الملاك / الفعلي</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 16%; text-align: left;">الموازنة المعتمدة</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 14%; text-align: left;">سقف الصلاحية</th>
             </tr>
           </thead>
           <tbody>
@@ -700,14 +700,14 @@ export default function InstitutionalOrgStructureView({
             <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
               <thead>
                 <tr className="bg-slate-900 text-amber-400 font-black text-[10px] uppercase border-b border-slate-800">
-                  <th className="p-3 w-28">{isRtl ? 'كود المنصب' : 'Code'}</th>
-                  <th className="p-3">{isRtl ? 'المسمى الوظيفي المعتمد' : 'Job Title'}</th>
-                  <th className="p-3 w-40">{isRtl ? 'الإدارة التابع لها' : 'Department'}</th>
-                  <th className="p-3 w-28 text-center">{isRtl ? 'المستوى' : 'Grade'}</th>
-                  <th className="p-3 w-24 text-center">{isRtl ? 'المعتمد / الفعلي' : 'Count'}</th>
-                  <th className="p-3 text-left w-40">{isRtl ? 'سقف الصلاحية المالية' : 'Authority Limit'}</th>
-                  <th className="p-3 text-left w-44">{isRtl ? 'نطاق الراتب التقديري' : 'Salary Range'}</th>
-                  <th className="p-3 text-center w-24">{isRtl ? 'الأهمية' : 'Critical'}</th>
+                  <th scope="col" className="p-3 w-28">{isRtl ? 'كود المنصب' : 'Code'}</th>
+                  <th scope="col" className="p-3">{isRtl ? 'المسمى الوظيفي المعتمد' : 'Job Title'}</th>
+                  <th scope="col" className="p-3 w-40">{isRtl ? 'الإدارة التابع لها' : 'Department'}</th>
+                  <th scope="col" className="p-3 w-28 text-center">{isRtl ? 'المستوى' : 'Grade'}</th>
+                  <th scope="col" className="p-3 w-24 text-center">{isRtl ? 'المعتمد / الفعلي' : 'Count'}</th>
+                  <th scope="col" className="p-3 text-left w-40">{isRtl ? 'سقف الصلاحية المالية' : 'Authority Limit'}</th>
+                  <th scope="col" className="p-3 text-left w-44">{isRtl ? 'نطاق الراتب التقديري' : 'Salary Range'}</th>
+                  <th scope="col" className="p-3 text-center w-24">{isRtl ? 'الأهمية' : 'Critical'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300">
@@ -878,8 +878,8 @@ export default function InstitutionalOrgStructureView({
             <form onSubmit={handleSaveNewUnit} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'الكود التنظيمي (مثل DEP-LOG)' : 'Code'}</label>
-                  <input
+                  <label htmlFor="ux-dep-log" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'الكود التنظيمي (مثل DEP-LOG)' : 'Code'}</label>
+                  <input id="ux-dep-log"
                     type="text"
                     required
                     value={newUnitForm.code}
@@ -889,8 +889,8 @@ export default function InstitutionalOrgStructureView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'نوع الوحدة' : 'Unit Type'}</label>
-                  <select
+                  <label htmlFor="ux-unit-type" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'نوع الوحدة' : 'Unit Type'}</label>
+                  <select id="ux-unit-type"
                     value={newUnitForm.type}
                     onChange={e => setNewUnitForm(p => ({ ...p, type: e.target.value as any }))}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl font-bold"
@@ -904,8 +904,8 @@ export default function InstitutionalOrgStructureView({
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'اسم الوحدة بالعربية' : 'Name (Arabic)'}</label>
-                <input
+                <label htmlFor="ux-name-arabic" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'اسم الوحدة بالعربية' : 'Name (Arabic)'}</label>
+                <input id="ux-name-arabic"
                   type="text"
                   required
                   value={newUnitForm.name_ar}
@@ -916,8 +916,8 @@ export default function InstitutionalOrgStructureView({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'المدير المسؤول' : 'Lead'}</label>
-                  <input
+                  <label htmlFor="ux-lead" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'المدير المسؤول' : 'Lead'}</label>
+                  <input id="ux-lead"
                     type="text"
                     required
                     value={newUnitForm.manager_name}
@@ -927,8 +927,8 @@ export default function InstitutionalOrgStructureView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'مركز التكلفة المربوط' : 'Linked Cost Center'}</label>
-                  <input
+                  <label htmlFor="ux-linked-cost-center" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'مركز التكلفة المربوط' : 'Linked Cost Center'}</label>
+                  <input id="ux-linked-cost-center"
                     type="text"
                     required
                     value={newUnitForm.linked_cost_center_code}
@@ -940,8 +940,8 @@ export default function InstitutionalOrgStructureView({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'الموازنة التقديرية (ر.ي)' : 'Budget (YER)'}</label>
-                  <input
+                  <label htmlFor="ux-budget-yer" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'الموازنة التقديرية (ر.ي)' : 'Budget (YER)'}</label>
+                  <input id="ux-budget-yer"
                     type="number"
                     value={newUnitForm.annual_budget_yer}
                     onChange={e => setNewUnitForm(p => ({ ...p, annual_budget_yer: Number(e.target.value) }))}
@@ -950,8 +950,8 @@ export default function InstitutionalOrgStructureView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'سقف الصلاحية المالية (ر.ي)' : 'Authority Limit'}</label>
-                  <input
+                  <label htmlFor="ux-authority-limit" className="font-bold text-slate-600 dark:text-zinc-400">{isRtl ? 'سقف الصلاحية المالية (ر.ي)' : 'Authority Limit'}</label>
+                  <input id="ux-authority-limit"
                     type="number"
                     value={newUnitForm.governance_delegation_limit_yer}
                     onChange={e => setNewUnitForm(p => ({ ...p, governance_delegation_limit_yer: Number(e.target.value) }))}

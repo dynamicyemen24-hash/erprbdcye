@@ -90,7 +90,7 @@ export const EnvironmentModeSettingsSection: React.FC<EnvironmentModeSettingsSec
     const colors = colorMap[step.color] || colorMap.amber;
 
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="fixed inset-0 z-dialog flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div
           className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-zinc-700 p-8 max-w-lg w-full mx-4 animate-in zoom-in-95 duration-200"
           dir={isRtl ? 'rtl' : 'ltr'}

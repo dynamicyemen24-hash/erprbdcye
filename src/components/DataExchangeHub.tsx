@@ -874,12 +874,12 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
           <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
             <thead>
               <tr className="bg-zinc-900 text-emerald-400 font-extrabold text-[10px] uppercase border-b border-zinc-800">
-                <th className="p-3 w-12 text-center">#</th>
+                <th scope="col" className="p-3 w-12 text-center">#</th>
                 {selectedTemplate.headers.map(h => (
-                  <th key={h} className="p-3 font-mono">{h}</th>
+                  <th scope="col" key={h} className="p-3 font-mono">{h}</th>
                 ))}
-                <th className="p-3 text-center">{isRtl ? 'حالة السجل' : 'Status'}</th>
-                <th className="p-3 text-center">{isRtl ? 'إجراء' : 'Action'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'حالة السجل' : 'Status'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'إجراء' : 'Action'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold">
@@ -954,10 +954,10 @@ export default function DataExchangeHub({ lang, onRefreshAll }: DataExchangeHubP
             </div>
 
             <div className="space-y-3">
-              <label className="block text-[10px] font-black uppercase text-slate-500">
+              <label htmlFor="ux-certified-share-payload" className="block text-[10px] font-black uppercase text-slate-500">
                 {isRtl ? 'ملخص الرسالة المعتمدة للمشاركة:' : 'Certified Share Payload:'}
               </label>
-              <textarea
+              <textarea id="ux-certified-share-payload"
                 rows={6}
                 value={shareTextSummary}
                 onChange={e => setShareTextSummary(e.target.value)}

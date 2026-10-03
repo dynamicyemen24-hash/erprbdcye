@@ -48,7 +48,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
   ];
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-command bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div 
         className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-6 relative max-h-[85vh] overflow-y-auto custom-scrollbar"
         dir={isRtl ? 'rtl' : 'ltr'}

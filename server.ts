@@ -1520,6 +1520,18 @@ async function startServer() {
   // shadowed by index.html (previously unreachable in production builds).
   healthRoutes(app);
 
+  // Unmatched API routes MUST terminate as JSON before any static/SPA handler
+  // runs. Without this, `GET /api/typo` fell through to `app.get('*')` and was
+  // answered with the SPA shell (index.html, 200, text/html) — so a client that
+  // expected JSON got HTML, and the 404 was silently lost.
+  app.use('/api', (req, res) => {
+    res.status(404).json({
+      error: 'Not Found',
+      message: `No API route matches ${req.method} ${req.originalUrl}`,
+      path: req.originalUrl,
+    });
+  });
+
   if (process.env.NODE_ENV !== "production") {
     // Development mode: Integrate Vite into Express middleware
     const vite = await createViteServer({

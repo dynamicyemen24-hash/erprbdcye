@@ -658,15 +658,15 @@ export default function BudgetVarianceTab({
           <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
             <thead>
               <tr className="bg-zinc-950 text-amber-400 font-extrabold text-[10px] uppercase tracking-wider border-b border-zinc-900">
-                <th className="p-4">{lang === 'ar' ? 'نوع الإيراد' : 'Project Code'}</th>
-                <th className="p-4">{lang === 'ar' ? 'نسب الإنجاز الميداني' : 'Project Title'}</th>
-                <th className="p-4 text-center">{lang === 'ar' ? 'مستخدمين معتمدين' : 'Original Budget'}</th>
-                <th className="p-4 text-right">{lang === 'ar' ? `الموازنة (${displayCurrency})` : `Budget (${displayCurrency})`}</th>
-                <th className="p-4 text-right">{lang === 'ar' ? `المنصرف (${displayCurrency})` : `Spent (${displayCurrency})`}</th>
-                <th className="p-4 text-right">{lang === 'ar' ? 'جميع الأقسام' : 'Variance'}</th>
-                <th className="p-4 text-right">{lang === 'ar' ? 'مادة إغاثية' : 'FX Difference'}</th>
-                <th className="p-4">{lang === 'ar' ? 'مدير المشروع الميداني' : 'Budget Absorption'}</th>
-                <th className="p-4 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+                <th scope="col" className="p-4">{lang === 'ar' ? 'نوع الإيراد' : 'Project Code'}</th>
+                <th scope="col" className="p-4">{lang === 'ar' ? 'نسب الإنجاز الميداني' : 'Project Title'}</th>
+                <th scope="col" className="p-4 text-center">{lang === 'ar' ? 'مستخدمين معتمدين' : 'Original Budget'}</th>
+                <th scope="col" className="p-4 text-right">{lang === 'ar' ? `الموازنة (${displayCurrency})` : `Budget (${displayCurrency})`}</th>
+                <th scope="col" className="p-4 text-right">{lang === 'ar' ? `المنصرف (${displayCurrency})` : `Spent (${displayCurrency})`}</th>
+                <th scope="col" className="p-4 text-right">{lang === 'ar' ? 'جميع الأقسام' : 'Variance'}</th>
+                <th scope="col" className="p-4 text-right">{lang === 'ar' ? 'مادة إغاثية' : 'FX Difference'}</th>
+                <th scope="col" className="p-4">{lang === 'ar' ? 'مدير المشروع الميداني' : 'Budget Absorption'}</th>
+                <th scope="col" className="p-4 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300">
@@ -817,11 +817,11 @@ export default function BudgetVarianceTab({
                   <table className="w-full text-xs text-right border-collapse" style={{ textAlign: lang === 'en' ? 'left' : 'right' }}>
                     <thead>
                       <tr className="bg-slate-100 dark:bg-zinc-950 text-slate-500 font-bold border-b border-slate-200 dark:border-zinc-800 text-[9px] uppercase tracking-wider">
-                        <th className="p-3 w-28">{lang === 'ar' ? 'كود الحساب' : 'Account Code'}</th>
-                        <th className="p-3">{lang === 'ar' ? 'اسم الحساب في الدليل' : 'Account Title'}</th>
-                        <th className="p-3">{lang === 'ar' ? 'الشرح التفصيلي للسطر' : 'Line Description'}</th>
-                        <th className="p-3 text-right w-24">{lang === 'ar' ? 'التاجر المعتمد' : 'Orig Value'}</th>
-                        <th className="p-3 text-right w-28">{lang === 'ar' ? `الأرشيف (${displayCurrency})` : `Equiv (${displayCurrency})`}</th>
+                        <th scope="col" className="p-3 w-28">{lang === 'ar' ? 'كود الحساب' : 'Account Code'}</th>
+                        <th scope="col" className="p-3">{lang === 'ar' ? 'اسم الحساب في الدليل' : 'Account Title'}</th>
+                        <th scope="col" className="p-3">{lang === 'ar' ? 'الشرح التفصيلي للسطر' : 'Line Description'}</th>
+                        <th scope="col" className="p-3 text-right w-24">{lang === 'ar' ? 'التاجر المعتمد' : 'Orig Value'}</th>
+                        <th scope="col" className="p-3 text-right w-28">{lang === 'ar' ? `الأرشيف (${displayCurrency})` : `Equiv (${displayCurrency})`}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60 text-slate-600 dark:text-zinc-300">

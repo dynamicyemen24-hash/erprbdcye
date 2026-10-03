@@ -162,16 +162,16 @@ export const UserProfilePopover: React.FC<UserProfilePopoverProps> = ({
             </div>
             <div className="space-y-2">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase">{isRtl ? 'الاسم الكامل' : 'Full Name'}</label>
-                <input type="text" readOnly value={currentUser?.name || ''} className="w-full px-3 py-2 bg-slate-100 dark:bg-zinc-800 rounded-xl font-medium text-xs mt-1 border border-slate-200 dark:border-zinc-700" />
+                <label htmlFor="ux-full-name" className="text-[10px] font-bold text-slate-400 uppercase">{isRtl ? 'الاسم الكامل' : 'Full Name'}</label>
+                <input id="ux-full-name" type="text" readOnly value={currentUser?.name || ''} className="w-full px-3 py-2 bg-slate-100 dark:bg-zinc-800 rounded-xl font-medium text-xs mt-1 border border-slate-200 dark:border-zinc-700" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase">{isRtl ? 'البريد الإلكتروني' : 'Email'}</label>
-                <input type="text" readOnly value={currentUser?.email || ''} className="w-full px-3 py-2 bg-slate-100 dark:bg-zinc-800 rounded-xl font-medium text-xs mt-1 border border-slate-200 dark:border-zinc-700" />
+                <label htmlFor="ux-email" className="text-[10px] font-bold text-slate-400 uppercase">{isRtl ? 'البريد الإلكتروني' : 'Email'}</label>
+                <input id="ux-email" type="text" readOnly value={currentUser?.email || ''} className="w-full px-3 py-2 bg-slate-100 dark:bg-zinc-800 rounded-xl font-medium text-xs mt-1 border border-slate-200 dark:border-zinc-700" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase">{isRtl ? 'المسمى الوظيفي والصلاحية' : 'Role'}</label>
-                <input type="text" readOnly value={currentUser?.role || ''} className="w-full px-3 py-2 bg-slate-100 dark:bg-zinc-800 rounded-xl font-medium text-xs mt-1 border border-slate-200 dark:border-zinc-700" />
+                <label htmlFor="ux-role" className="text-[10px] font-bold text-slate-400 uppercase">{isRtl ? 'المسمى الوظيفي والصلاحية' : 'Role'}</label>
+                <input id="ux-role" type="text" readOnly value={currentUser?.role || ''} className="w-full px-3 py-2 bg-slate-100 dark:bg-zinc-800 rounded-xl font-medium text-xs mt-1 border border-slate-200 dark:border-zinc-700" />
               </div>
             </div>
           </div>

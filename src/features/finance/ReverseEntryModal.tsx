@@ -78,10 +78,10 @@ export default function ReverseEntryModal({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-ref-number" className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
                   {isRtl ? 'رقم القيد أو السند المراد عكسه (Ref Number):' : 'Original Voucher Reference Number:'}
                 </label>
-                <input
+                <input id="ux-ref-number"
                   type="text"
                   required
                   value={refNumber}
@@ -92,10 +92,10 @@ export default function ReverseEntryModal({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
+                <label htmlFor="ux-reversal-rationale-audit-note" className="text-xs font-bold text-slate-700 dark:text-zinc-300 block">
                   {isRtl ? 'مبرر وأسباب العكس والتصحيح:' : 'Reversal Rationale & Audit Note:'}
                 </label>
-                <textarea
+                <textarea id="ux-reversal-rationale-audit-note"
                   required
                   rows={3}
                   value={reason}

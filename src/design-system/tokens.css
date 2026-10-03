@@ -94,15 +94,24 @@
   --ux-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ux-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-  /* ─── Z-Index Scale ──────────────────────────────────────────────────────────────── */
-  --ux-z-base: 0;
-  --ux-z-dropdown: 100;
-  --ux-z-sticky: 200;
-  --ux-z-overlay: 300;
-  --ux-z-modal: 400;
-  --ux-z-toast: 500;
-  --ux-z-tooltip: 600;
-  --ux-z-max: 9999;
+  /* ─── Z-Index Scale ────────────────────────────────────────────────────────────────
+     These are ALIASES, not values. The canonical, ordered scale lives in
+     src/index.css as --z-* and is mirrored into Tailwind's @theme there, which
+     is what makes z-dialog / z-toast real tree-shakeable utilities.
+
+     This block previously declared a second, unrelated scale (dropdown=100,
+     modal=400, toast=500, max=9999). Two scales meant Design System components
+     and the application shell computed different stacking — a Toast at
+     z-[200] could render *beneath* a modal at z-[60], silently, and only on
+     some screens. Both vocabularies now resolve to the one ordered scale. */
+  --ux-z-base: var(--z-base);
+  --ux-z-sticky: var(--z-sticky);
+  --ux-z-dropdown: var(--z-dropdown);
+  --ux-z-overlay: var(--z-dialog);
+  --ux-z-modal: var(--z-dialog);
+  --ux-z-tooltip: var(--z-tooltip);
+  --ux-z-toast: var(--z-toast);
+  --ux-z-max: var(--z-skip-link);
 
   /* ─── Focus Ring ─────────────────────────────────────────────────────────────────── */
   --ux-focus-ring: 0 0 0 2px var(--ux-bg-primary), 0 0 0 4px var(--ux-primary);

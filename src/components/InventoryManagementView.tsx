@@ -819,8 +819,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                     <table class="w-full text-[11px] border-collapse">
                       <thead>
                         <tr class="bg-emerald-800 text-white font-bold text-[9.5px]">
-                          <th class="p-1 text-right">المادة</th>
-                          <th class="p-1 text-center">الكمية المصرحة</th>
+                          <th scope="col" class="p-1 text-right">المادة</th>
+                          <th scope="col" class="p-1 text-center">الكمية المصرحة</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1089,10 +1089,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             <table class="w-full text-xs text-right border-collapse border border-slate-300">
               <thead>
                 <tr class="bg-slate-100 font-extrabold text-slate-700">
-                  <th class="p-2 border border-slate-300">رمز الصنف (SKU)</th>
-                  <th class="p-2 border border-slate-300">اسم المادة / الوجبة الإغاثية</th>
-                  <th class="p-2 border border-slate-300">الوحدة</th>
-                  <th class="p-2 border border-slate-300">إجمالي الكمية المصروفة</th>
+                  <th scope="col" class="p-2 border border-slate-300">رمز الصنف (SKU)</th>
+                  <th scope="col" class="p-2 border border-slate-300">اسم المادة / الوجبة الإغاثية</th>
+                  <th scope="col" class="p-2 border border-slate-300">الوحدة</th>
+                  <th scope="col" class="p-2 border border-slate-300">إجمالي الكمية المصروفة</th>
                 </tr>
               </thead>
               <tbody>
@@ -1117,13 +1117,13 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             <table class="w-full text-xs text-right border-collapse border border-slate-300">
               <thead>
                 <tr class="bg-slate-800 text-white font-black text-[11px]">
-                  <th class="p-2 border border-slate-400">#</th>
-                  <th class="p-2 border border-slate-400">كود المستفيد</th>
-                  <th class="p-2 border border-slate-400">اسم المستفيد الكامل</th>
-                  <th class="p-2 border border-slate-400">المحافظة / المديرية</th>
-                  <th class="p-2 border border-slate-400">حجم الأسرة</th>
-                  ${selectedItemsList.map(i => `<th class="p-2 border border-slate-400 text-center">${i.name_ar}</th>`).join('')}
-                  <th class="p-2 border border-slate-400 text-center w-36">التوقيع / البصمة</th>
+                  <th scope="col" class="p-2 border border-slate-400">#</th>
+                  <th scope="col" class="p-2 border border-slate-400">كود المستفيد</th>
+                  <th scope="col" class="p-2 border border-slate-400">اسم المستفيد الكامل</th>
+                  <th scope="col" class="p-2 border border-slate-400">المحافظة / المديرية</th>
+                  <th scope="col" class="p-2 border border-slate-400">حجم الأسرة</th>
+                  ${selectedItemsList.map(i => `<th scope="col" class="p-2 border border-slate-400 text-center">${i.name_ar}</th>`).join('')}
+                  <th scope="col" class="p-2 border border-slate-400 text-center w-36">التوقيع / البصمة</th>
                 </tr>
               </thead>
               <tbody>
@@ -3496,14 +3496,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                 <thead>
                   <tr className="bg-slate-900 text-amber-400 font-black text-[10px] uppercase border-b border-zinc-800">
-                    <th className="p-3.5 rounded-s">{isRtl ? 'رمز SKU والاسم الإغاثي' : 'SKU & Relief Item'}</th>
-                    <th className="p-3.5">{isRtl ? 'المستودع والفرع' : 'Warehouse & Branch'}</th>
-                    <th className="p-3.5 text-center">{isRtl ? 'الرصيد المتاح' : 'Available Stock'}</th>
-                    <th className="p-3.5 text-center">{isRtl ? 'معدل الاستهلاك الشهري' : 'Monthly Rate'}</th>
-                    <th className="p-3.5 text-center">{isRtl ? 'الطلب المتوقع (AI Forecast)' : 'Projected Demand'}</th>
-                    <th className="p-3.5 text-center">{isRtl ? 'أيام التغطية المتبقية' : 'Days of Supply'}</th>
-                    <th className="p-3.5 text-center">{isRtl ? 'كمية إعادة الطلب المقترحة' : 'Suggested Reorder'}</th>
-                    <th className="p-3.5 text-center rounded-e">{isRtl ? 'إجراء تلقائي' : 'Action'}</th>
+                    <th scope="col" className="p-3.5 rounded-s">{isRtl ? 'رمز SKU والاسم الإغاثي' : 'SKU & Relief Item'}</th>
+                    <th scope="col" className="p-3.5">{isRtl ? 'المستودع والفرع' : 'Warehouse & Branch'}</th>
+                    <th scope="col" className="p-3.5 text-center">{isRtl ? 'الرصيد المتاح' : 'Available Stock'}</th>
+                    <th scope="col" className="p-3.5 text-center">{isRtl ? 'معدل الاستهلاك الشهري' : 'Monthly Rate'}</th>
+                    <th scope="col" className="p-3.5 text-center">{isRtl ? 'الطلب المتوقع (AI Forecast)' : 'Projected Demand'}</th>
+                    <th scope="col" className="p-3.5 text-center">{isRtl ? 'أيام التغطية المتبقية' : 'Days of Supply'}</th>
+                    <th scope="col" className="p-3.5 text-center">{isRtl ? 'كمية إعادة الطلب المقترحة' : 'Suggested Reorder'}</th>
+                    <th scope="col" className="p-3.5 text-center rounded-e">{isRtl ? 'إجراء تلقائي' : 'Action'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold">
@@ -3805,13 +3805,13 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                     <thead>
                       <tr className="bg-slate-900 text-amber-400 font-black text-[10px] uppercase border-b border-zinc-800">
-                        <th className="p-3.5">{isRtl ? 'كود واسم الأصل' : 'Asset Code & Name'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'الحالة والضمان' : 'Condition & Warranty'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'تاريخ الشراء والتكلفة' : 'Purchase & Cost'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'صافي القيمة الدفترية' : 'Net Book Value'}</th>
-                        <th className="p-3.5">{isRtl ? 'المشروع المرتبط' : 'Project Mapping'}</th>
-                        <th className="p-3.5">{isRtl ? 'الموقع وأمين العهدة' : 'Custodian & Location'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'كود واسم الأصل' : 'Asset Code & Name'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'الحالة والضمان' : 'Condition & Warranty'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'تاريخ الشراء والتكلفة' : 'Purchase & Cost'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'صافي القيمة الدفترية' : 'Net Book Value'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'المشروع المرتبط' : 'Project Mapping'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'الموقع وأمين العهدة' : 'Custodian & Location'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold">
@@ -4022,11 +4022,11 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                     <thead>
                       <tr className="bg-slate-900 text-amber-400 font-black text-[10px] uppercase border-b border-zinc-800">
-                        <th className="p-3.5">{isRtl ? 'كود واسم الأصل' : 'Asset Code & Name'}</th>
-                        <th className="p-3.5">{isRtl ? 'المشروع والنشاط الميداني' : 'Project & Activity'}</th>
-                        <th className="p-3.5">{isRtl ? 'أمين العهدة الميدانية (HR)' : 'Field Custodian'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'التكلفة التاريخية' : 'Acquisition Cost'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'إعادة للمستودع' : 'Transfer/Return'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'كود واسم الأصل' : 'Asset Code & Name'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'المشروع والنشاط الميداني' : 'Project & Activity'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'أمين العهدة الميدانية (HR)' : 'Field Custodian'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'التكلفة التاريخية' : 'Acquisition Cost'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'إعادة للمستودع' : 'Transfer/Return'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-semibold">
@@ -4109,13 +4109,13 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                     <thead>
                       <tr className="bg-slate-900 text-amber-400 font-black text-[10px] uppercase border-b border-zinc-800">
-                        <th className="p-3.5">{isRtl ? 'الأصل والعمر الإنتاجي' : 'Asset & Useful Life'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'تاريخ الشراء' : 'Purchase Date'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'تكلفة الشراء (YER)' : 'Historical Cost'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'الإهلاك الشهري' : 'Monthly Expense'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'مجمع الإهلاك المتراكم' : 'Accumulated Depr.'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'صافي القيمة الدفترية (YER)' : 'Net Book Value'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'القيمة التخريدية' : 'Salvage Value'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'الأصل والعمر الإنتاجي' : 'Asset & Useful Life'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'تاريخ الشراء' : 'Purchase Date'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'تكلفة الشراء (YER)' : 'Historical Cost'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'الإهلاك الشهري' : 'Monthly Expense'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'مجمع الإهلاك المتراكم' : 'Accumulated Depr.'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'صافي القيمة الدفترية (YER)' : 'Net Book Value'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'القيمة التخريدية' : 'Salvage Value'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-mono text-xs">
@@ -4191,11 +4191,11 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
                     <thead>
                       <tr className="bg-slate-900 text-amber-400 font-black text-[10px] uppercase border-b border-zinc-800">
-                        <th className="p-3.5">{isRtl ? 'الأصل' : 'Asset'}</th>
-                        <th className="p-3.5">{isRtl ? 'المورد المعتمد والتواصل' : 'Supplier & Contact'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'تاريخ انتهاء الضمان' : 'Warranty Expiry'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'حالة الضمان' : 'Warranty Status'}</th>
-                        <th className="p-3.5 text-center">{isRtl ? 'إجراء مطالبة' : 'Action'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'الأصل' : 'Asset'}</th>
+                        <th scope="col" className="p-3.5">{isRtl ? 'المورد المعتمد والتواصل' : 'Supplier & Contact'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'تاريخ انتهاء الضمان' : 'Warranty Expiry'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'حالة الضمان' : 'Warranty Status'}</th>
+                        <th scope="col" className="p-3.5 text-center">{isRtl ? 'إجراء مطالبة' : 'Action'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-semibold">
@@ -4623,13 +4623,13 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
             <thead>
               <tr className="bg-slate-900 text-amber-400 font-black text-[10px] uppercase border-b border-zinc-800">
-                <th className="p-3.5 rounded-s">{isRtl ? 'رمز المادة SKU والاسم' : 'SKU & Item Name'}</th>
-                <th className="p-3.5">{isRtl ? 'الفرع والمستودع' : 'Branch & Warehouse'}</th>
-                <th className="p-3.5 text-center">{isRtl ? 'الدفعة والصلاحية' : 'Batch & Expiry'}</th>
-                <th className="p-3.5 text-center">{isRtl ? 'الرصيد المتاح' : 'Available Qty'}</th>
-                <th className="p-3.5 text-center">{isRtl ? 'حد إعادة الطلب' : 'Reorder Level'}</th>
-                <th className="p-3.5 text-right">{isRtl ? 'القيمة الإجمالية' : 'Total Valuation'}</th>
-                <th className="p-3.5 text-center rounded-e">{isRtl ? 'تحويل / حركة' : 'Transfer / Move'}</th>
+                <th scope="col" className="p-3.5 rounded-s">{isRtl ? 'رمز المادة SKU والاسم' : 'SKU & Item Name'}</th>
+                <th scope="col" className="p-3.5">{isRtl ? 'الفرع والمستودع' : 'Branch & Warehouse'}</th>
+                <th scope="col" className="p-3.5 text-center">{isRtl ? 'الدفعة والصلاحية' : 'Batch & Expiry'}</th>
+                <th scope="col" className="p-3.5 text-center">{isRtl ? 'الرصيد المتاح' : 'Available Qty'}</th>
+                <th scope="col" className="p-3.5 text-center">{isRtl ? 'حد إعادة الطلب' : 'Reorder Level'}</th>
+                <th scope="col" className="p-3.5 text-right">{isRtl ? 'القيمة الإجمالية' : 'Total Valuation'}</th>
+                <th scope="col" className="p-3.5 text-center rounded-e">{isRtl ? 'تحويل / حركة' : 'Transfer / Move'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-300 font-semibold">
@@ -4851,13 +4851,13 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
             <thead>
               <tr className="bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-black text-[10px] uppercase border-b border-slate-200 dark:border-zinc-700">
-                <th className="p-3 rounded-s">{isRtl ? 'رقم السند والتاريخ' : 'Ref No & Date'}</th>
-                <th className="p-3">{isRtl ? 'المادة الإغاثية' : 'Relief Item'}</th>
-                <th className="p-3 text-center">{isRtl ? 'نوع الحركة' : 'Type'}</th>
-                <th className="p-3 text-center">{isRtl ? 'الكمية' : 'Qty'}</th>
-                <th className="p-3">{isRtl ? 'مسار الحركة / المستودعات' : 'Movement Route / Warehouses'}</th>
-                <th className="p-3">{isRtl ? 'تفاصيل النقل والجهة' : 'Transport & Entity'}</th>
-                <th className="p-3 rounded-e">{isRtl ? 'الاعتماد والملاحظات' : 'Authorization'}</th>
+                <th scope="col" className="p-3 rounded-s">{isRtl ? 'رقم السند والتاريخ' : 'Ref No & Date'}</th>
+                <th scope="col" className="p-3">{isRtl ? 'المادة الإغاثية' : 'Relief Item'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'نوع الحركة' : 'Type'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'الكمية' : 'Qty'}</th>
+                <th scope="col" className="p-3">{isRtl ? 'مسار الحركة / المستودعات' : 'Movement Route / Warehouses'}</th>
+                <th scope="col" className="p-3">{isRtl ? 'تفاصيل النقل والجهة' : 'Transport & Entity'}</th>
+                <th scope="col" className="p-3 rounded-e">{isRtl ? 'الاعتماد والملاحظات' : 'Authorization'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-600 dark:text-zinc-300 font-medium">
@@ -5075,14 +5075,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               <table className="w-full text-right text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 font-bold bg-slate-50/50 dark:bg-zinc-800/50">
-                    <th className="p-3">{isRtl ? 'المادة الإغاثية / SKU' : 'Item / SKU'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'المستودع' : 'Depot'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'الرصيد الحالي' : 'Stock'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'حد الطلب' : 'Reorder Pt'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'الكمية المقترحة' : 'Suggested Qty'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'التكلفة التقديرية' : 'Est. Total'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'حالة سير الشراء' : 'PO Workflow Status'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'الإجراء' : 'Action'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'المادة الإغاثية / SKU' : 'Item / SKU'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'المستودع' : 'Depot'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'الرصيد الحالي' : 'Stock'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'حد الطلب' : 'Reorder Pt'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'الكمية المقترحة' : 'Suggested Qty'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'التكلفة التقديرية' : 'Est. Total'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'حالة سير الشراء' : 'PO Workflow Status'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'الإجراء' : 'Action'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -5194,14 +5194,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               <table className="w-full text-right text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 font-bold bg-slate-50/50 dark:bg-zinc-800/50">
-                    <th className="p-3">{isRtl ? 'رمز الطلب / التاريخ' : 'Request Code / Date'}</th>
-                    <th className="p-3">{isRtl ? 'المشروع المستهدف' : 'Project'}</th>
-                    <th className="p-3">{isRtl ? 'نشاط المشروع التنفيذي' : 'Project Activity'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'المادة والكمية' : 'Item & Quantity'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'التكلفة الإجمالية' : 'Total Cost'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'فحص الميزانية' : 'Budget Audit'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'حالة الاعتماد' : 'Status'}</th>
-                    <th className="p-3 text-center">{isRtl ? 'الإجراء' : 'Action'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'رمز الطلب / التاريخ' : 'Request Code / Date'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'المشروع المستهدف' : 'Project'}</th>
+                    <th scope="col" className="p-3">{isRtl ? 'نشاط المشروع التنفيذي' : 'Project Activity'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'المادة والكمية' : 'Item & Quantity'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'التكلفة الإجمالية' : 'Total Cost'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'فحص الميزانية' : 'Budget Audit'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'حالة الاعتماد' : 'Status'}</th>
+                    <th scope="col" className="p-3 text-center">{isRtl ? 'الإجراء' : 'Action'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -5414,10 +5414,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {movementForm.type === 'TRANSFER' ? (
                 <div className="grid grid-cols-2 gap-3 bg-purple-500/5 p-3 rounded-xl border border-purple-500/20">
                   <div>
-                    <label className="block text-[10px] font-black uppercase mb-1 text-purple-700 dark:text-purple-300">
+                    <label htmlFor="ux-source-warehouse-from" className="block text-[10px] font-black uppercase mb-1 text-purple-700 dark:text-purple-300">
                       {isRtl ? 'المستودع المصدر (من)' : 'Source Warehouse (From)'}
                     </label>
-                    <select
+                    <select id="ux-source-warehouse-from"
                       required
                       value={movementForm.sourceWarehouseId}
                       onChange={(e) => setMovementForm(prev => ({ ...prev, sourceWarehouseId: e.target.value }))}
@@ -5430,10 +5430,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black uppercase mb-1 text-purple-700 dark:text-purple-300">
+                    <label htmlFor="ux-target-warehouse-to" className="block text-[10px] font-black uppercase mb-1 text-purple-700 dark:text-purple-300">
                       {isRtl ? 'المستودع المستهدف (إلى)' : 'Target Warehouse (To)'}
                     </label>
-                    <select
+                    <select id="ux-target-warehouse-to"
                       required
                       value={movementForm.targetWarehouseId}
                       onChange={(e) => setMovementForm(prev => ({ ...prev, targetWarehouseId: e.target.value }))}
@@ -5448,8 +5448,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
               ) : (
                 <div>
-                  <label className="block text-[10px] font-black uppercase mb-1 text-slate-500">{isRtl ? 'المستودع المعني' : 'Warehouse'}</label>
-                  <select
+                  <label htmlFor="ux-warehouse" className="block text-[10px] font-black uppercase mb-1 text-slate-500">{isRtl ? 'المستودع المعني' : 'Warehouse'}</label>
+                  <select id="ux-warehouse"
                     required
                     value={movementForm.sourceWarehouseId}
                     onChange={(e) => setMovementForm(prev => ({ ...prev, sourceWarehouseId: e.target.value }))}
@@ -5465,8 +5465,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Quantity & Reference */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase mb-1 text-slate-500">{isRtl ? 'الكمية المحولة / المطلوبة' : 'Quantity'}</label>
-                  <input
+                  <label htmlFor="ux-quantity" className="block text-[10px] font-black uppercase mb-1 text-slate-500">{isRtl ? 'الكمية المحولة / المطلوبة' : 'Quantity'}</label>
+                  <input id="ux-quantity"
                     type="number"
                     required
                     min="1"
@@ -5476,8 +5476,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase mb-1 text-slate-500">{isRtl ? 'رقم السند / الأمر' : 'Ref / Order No'}</label>
-                  <input
+                  <label htmlFor="ux-ref-order-no" className="block text-[10px] font-black uppercase mb-1 text-slate-500">{isRtl ? 'رقم السند / الأمر' : 'Ref / Order No'}</label>
+                  <input id="ux-ref-order-no"
                     type="text"
                     placeholder="مثال: TRF-2026-088"
                     value={movementForm.refNo}
@@ -5491,8 +5491,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {movementForm.type === 'TRANSFER' && (
                 <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-zinc-950 p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
                   <div>
-                    <label className="block text-[9px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'رقم بوليصة النقل' : 'Waybill No'}</label>
-                    <input
+                    <label htmlFor="ux-waybill-no" className="block text-[9px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'رقم بوليصة النقل' : 'Waybill No'}</label>
+                    <input id="ux-waybill-no"
                       type="text"
                       placeholder="TR-WAY-09"
                       value={movementForm.waybillNo}
@@ -5501,8 +5501,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم السائق / الناقل' : 'Driver Name'}</label>
-                    <input
+                    <label htmlFor="ux-driver-name" className="block text-[9px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم السائق / الناقل' : 'Driver Name'}</label>
+                    <input id="ux-driver-name"
                       type="text"
                       placeholder="منصور العولقي"
                       value={movementForm.driverName}
@@ -5511,8 +5511,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'لوحة الشاحنة' : 'Vehicle Plate'}</label>
-                    <input
+                    <label htmlFor="ux-vehicle-plate" className="block text-[9px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'لوحة الشاحنة' : 'Vehicle Plate'}</label>
+                    <input id="ux-vehicle-plate"
                       type="text"
                       placeholder="55214-ص"
                       value={movementForm.vehiclePlate}
@@ -5525,14 +5525,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               {/* Entity / Beneficiary / Donor */}
               <div>
-                <label className="block text-[10px] font-black uppercase mb-1 text-slate-500">
+                <label htmlFor="ux-transfer" className="block text-[10px] font-black uppercase mb-1 text-slate-500">
                   {movementForm.type === 'TRANSFER' 
                     ? (isRtl ? 'الجهة المستلمة / الفرع' : 'Receiving Entity / Branch')
                     : movementForm.type === 'RECEIVE' 
                     ? (isRtl ? 'الجهة الموردة / المانح' : 'Donor / Supplier') 
                     : (isRtl ? 'الجهة المستلمة / موقع التوزيع' : 'Recipient / Field Location')}
                 </label>
-                <input
+                <input id="ux-transfer"
                   type="text"
                   placeholder={isRtl ? 'مثال: فرع الساحل الغربي / مخيم الخوخة للنازحين' : 'e.g. West Coast Branch / Khawkhah IDP Camp'}
                   value={movementForm.recipientOrDonor}
@@ -5543,8 +5543,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               {/* Notes */}
               <div>
-                <label className="block text-[10px] font-black uppercase mb-1 text-slate-500">{isRtl ? 'الملاحظات وبيان الحركة' : 'Notes & Remarks'}</label>
-                <textarea
+                <label htmlFor="ux-notes-remarks" className="block text-[10px] font-black uppercase mb-1 text-slate-500">{isRtl ? 'الملاحظات وبيان الحركة' : 'Notes & Remarks'}</label>
+                <textarea id="ux-notes-remarks"
                   rows={2}
                   placeholder={isRtl ? 'أدخل تفاصيل التوجيه أو سياق عملية النقل والتحويل...' : 'Enter transfer authorization context or project details...'}
                   value={movementForm.notes}
@@ -5590,8 +5590,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             <form onSubmit={handleNewItemSubmit} className="p-6 space-y-3.5 text-xs font-bold text-slate-700 dark:text-zinc-300">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'رمز SKU (اختياري)' : 'SKU Code'}</label>
-                  <input
+                  <label htmlFor="ux-sku" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'رمز SKU (اختياري)' : 'SKU Code'}</label>
+                  <input id="ux-sku"
                     type="text"
                     placeholder="SKU-FOOD-2026"
                     value={newItemForm.sku}
@@ -5600,8 +5600,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'القطاع الإغاثي' : 'Category Sector'}</label>
-                  <select
+                  <label htmlFor="ux-category-sector" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'القطاع الإغاثي' : 'Category Sector'}</label>
+                  <select id="ux-category-sector"
                     value={newItemForm.category}
                     onChange={(e) => setNewItemForm(prev => ({ ...prev, category: e.target.value as any }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 font-bold text-slate-900 dark:text-white"
@@ -5617,8 +5617,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم المادة العينية (عربي)' : 'Item Name (Arabic)'}</label>
-                <input
+                <label htmlFor="ux-item-name-arabic" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم المادة العينية (عربي)' : 'Item Name (Arabic)'}</label>
+                <input id="ux-item-name-arabic"
                   type="text"
                   required
                   placeholder="مثال: تمر فاخر مغلف - كرتون 10كجم"
@@ -5630,8 +5630,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'الكمية الافتتاحية' : 'Initial Qty'}</label>
-                  <input
+                  <label htmlFor="ux-initial-qty" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'الكمية الافتتاحية' : 'Initial Qty'}</label>
+                  <input id="ux-initial-qty"
                     type="number"
                     required
                     min="1"
@@ -5641,8 +5641,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'وحدة القياس' : 'Unit'}</label>
-                  <input
+                  <label htmlFor="ux-unit" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'وحدة القياس' : 'Unit'}</label>
+                  <input id="ux-unit"
                     type="text"
                     required
                     placeholder="سلة / كرتون"
@@ -5652,8 +5652,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'حد إعادة الطلب' : 'Reorder Level'}</label>
-                  <input
+                  <label htmlFor="ux-reorder-level" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'حد إعادة الطلب' : 'Reorder Level'}</label>
+                  <input id="ux-reorder-level"
                     type="number"
                     required
                     value={newItemForm.reorderLevel}
@@ -5665,8 +5665,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'مستودع التخزين' : 'Warehouse Location'}</label>
-                  <select
+                  <label htmlFor="ux-warehouse-location" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'مستودع التخزين' : 'Warehouse Location'}</label>
+                  <select id="ux-warehouse-location"
                     value={newItemForm.warehouseId}
                     onChange={(e) => setNewItemForm(prev => ({ ...prev, warehouseId: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 text-slate-900 dark:text-white"
@@ -5677,8 +5677,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'قيمة الوحدة (YER)' : 'Unit Price (YER)'}</label>
-                  <input
+                  <label htmlFor="ux-yer" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'قيمة الوحدة (YER)' : 'Unit Price (YER)'}</label>
+                  <input id="ux-yer"
                     type="number"
                     required
                     value={newItemForm.unitValueYer}
@@ -5720,8 +5720,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
             <form onSubmit={handleNewWarehouseSubmit} className="p-6 space-y-3.5 text-xs font-bold text-slate-700 dark:text-zinc-300">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'الفرع التابع له المستودع' : 'Parent Branch'}</label>
-                <select
+                <label htmlFor="ux-parent-branch" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'الفرع التابع له المستودع' : 'Parent Branch'}</label>
+                <select id="ux-parent-branch"
                   value={newWarehouseForm.branchId}
                   onChange={(e) => setNewWarehouseForm(prev => ({ ...prev, branchId: e.target.value }))}
                   className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 text-slate-900 dark:text-white"
@@ -5733,8 +5733,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم المستودع (عربي)' : 'Warehouse Name (Arabic)'}</label>
-                <input
+                <label htmlFor="ux-warehouse-name-arabic" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم المستودع (عربي)' : 'Warehouse Name (Arabic)'}</label>
+                <input id="ux-warehouse-name-arabic"
                   type="text"
                   required
                   placeholder="مثال: مستودع الجوف اللوجستي الإغاثي"
@@ -5745,8 +5745,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'الموقع والمحافظة' : 'Location'}</label>
-                <input
+                <label htmlFor="ux-location" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'الموقع والمحافظة' : 'Location'}</label>
+                <input id="ux-location"
                   type="text"
                   required
                   placeholder="مثال: الجوف - مدينة الحزم"
@@ -5758,8 +5758,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم أمين المستودع' : 'Depot Keeper'}</label>
-                  <input
+                  <label htmlFor="ux-depot-keeper" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم أمين المستودع' : 'Depot Keeper'}</label>
+                  <input id="ux-depot-keeper"
                     type="text"
                     required
                     placeholder="أ. حسن الشميري"
@@ -5769,8 +5769,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'السعة اللوجستية (m³)' : 'Capacity'}</label>
-                  <input
+                  <label htmlFor="ux-capacity" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'السعة اللوجستية (m³)' : 'Capacity'}</label>
+                  <input id="ux-capacity"
                     type="text"
                     required
                     value={newWarehouseForm.capacity}
@@ -5811,8 +5811,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             <form onSubmit={handleNewBranchSubmit} className="p-6 space-y-3.5 text-xs font-bold text-slate-700 dark:text-zinc-300">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'رمز الفرع' : 'Branch Code'}</label>
-                  <input
+                  <label htmlFor="ux-branch-code" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'رمز الفرع' : 'Branch Code'}</label>
+                  <input id="ux-branch-code"
                     type="text"
                     required
                     value={newBranchForm.code}
@@ -5821,8 +5821,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'الإقليم / المنطقة' : 'Region'}</label>
-                  <input
+                  <label htmlFor="ux-region" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'الإقليم / المنطقة' : 'Region'}</label>
+                  <input id="ux-region"
                     type="text"
                     required
                     placeholder="إقليم شبوة"
@@ -5834,8 +5834,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم الفرع (عربي)' : 'Branch Name (Arabic)'}</label>
-                <input
+                <label htmlFor="ux-branch-name-arabic" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'اسم الفرع (عربي)' : 'Branch Name (Arabic)'}</label>
+                <input id="ux-branch-name-arabic"
                   type="text"
                   required
                   placeholder="فرع شبوة وعتق"
@@ -5846,8 +5846,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'مدير الفرع' : 'Branch Manager'}</label>
-                <input
+                <label htmlFor="ux-branch-manager" className="block text-[10px] font-black uppercase text-slate-500 mb-1">{isRtl ? 'مدير الفرع' : 'Branch Manager'}</label>
+                <input id="ux-branch-manager"
                   type="text"
                   required
                   placeholder="أ. منصور العولقي"
@@ -5894,10 +5894,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Select Project & WBS Activity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-target-project" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     {isRtl ? 'المشروع المستهدف' : 'Target Project'}
                   </label>
-                  <select
+                  <select id="ux-target-project"
                     value={materialIssueForm.projectId}
                     onChange={(e) => {
                       const projId = e.target.value;
@@ -5919,10 +5919,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
+                  <label htmlFor="ux-project-activity" className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
                     ⚡ {isRtl ? 'نشاط المشروع التنفيذي' : 'Project Activity'}
                   </label>
-                  <select
+                  <select id="ux-project-activity"
                     value={materialIssueForm.wbsActivityId}
                     onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, wbsActivityId: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 font-bold text-amber-600 dark:text-amber-400 focus:outline-none focus:border-emerald-500"
@@ -5939,10 +5939,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Source Warehouse & Relief Item */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-source-depot" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     🏬 {isRtl ? 'المستودع المصدر' : 'Source Depot'}
                   </label>
-                  <select
+                  <select id="ux-source-depot"
                     value={materialIssueForm.warehouseId}
                     onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, warehouseId: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -5956,10 +5956,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-relief-item" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     📦 {isRtl ? 'المادة المطلوبة للصرف' : 'Relief Item'}
                   </label>
-                  <select
+                  <select id="ux-relief-item"
                     value={materialIssueForm.itemId}
                     onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, itemId: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -5976,10 +5976,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Quantity & Requester Role */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-requested-quantity" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     🔢 {isRtl ? 'الكمية المطلوبة' : 'Requested Quantity'}
                   </label>
-                  <input
+                  <input id="ux-requested-quantity"
                     type="number"
                     min="1"
                     value={materialIssueForm.requestedQty}
@@ -5989,10 +5989,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-requester-role" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     👤 {isRtl ? 'صفة مقدم الطلب' : 'Requester Role'}
                   </label>
-                  <select
+                  <select id="ux-requester-role"
                     value={materialIssueForm.requesterRole}
                     onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, requesterRole: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -6007,10 +6007,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               {/* Justification & Notes */}
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                <label htmlFor="ux-justification-notes" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                   📝 {isRtl ? 'مبررات الصرف وملاحظات التنفيذ الميداني' : 'Justification & Notes'}
                 </label>
-                <textarea
+                <textarea id="ux-justification-notes"
                   rows={2}
                   value={materialIssueForm.notes}
                   onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, notes: e.target.value }))}
@@ -6061,10 +6061,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Asset Condition & Serial No */}
               <div className="grid grid-cols-2 gap-3 bg-slate-50 dark:bg-zinc-950 p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
+                  <label htmlFor="ux-operational-condition" className="block text-[10px] font-black uppercase text-slate-500 mb-1">
                     {isRtl ? 'الحالة الفنية التشغيلية للأصل' : 'Operational Condition'}
                   </label>
-                  <select
+                  <select id="ux-operational-condition"
                     value={maintenanceForm.condition}
                     onChange={(e) => setMaintenanceForm(prev => ({ ...prev, condition: e.target.value as any }))}
                     className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-2 font-bold text-slate-900 dark:text-white"
@@ -6078,10 +6078,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
+                  <label htmlFor="ux-serial-no-vin" className="block text-[10px] font-black uppercase text-slate-500 mb-1">
                     {isRtl ? 'الرقم التسلسلي (Serial No / VIN)' : 'Serial Number / VIN'}
                   </label>
-                  <input
+                  <input id="ux-serial-no-vin"
                     type="text"
                     placeholder="SN-VOLT-2026-991"
                     value={maintenanceForm.serialNo}
@@ -6094,10 +6094,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Maintenance Schedule Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">
+                  <label htmlFor="ux-last-maintenance-date" className="block text-[10px] font-black uppercase text-slate-500 mb-1">
                     {isRtl ? 'تاريخ الصيانة الأخيرة' : 'Last Maintenance Date'}
                   </label>
-                  <input
+                  <input id="ux-last-maintenance-date"
                     type="date"
                     required
                     value={maintenanceForm.lastMaintenanceDate}
@@ -6107,10 +6107,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
+                  <label htmlFor="ux-next-scheduled-maintenance" className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
                     {isRtl ? 'تاريخ الصيانة القادمة المجدولة' : 'Next Scheduled Maintenance'}
                   </label>
-                  <input
+                  <input id="ux-next-scheduled-maintenance"
                     type="date"
                     required
                     value={maintenanceForm.nextMaintenanceDate}
@@ -6123,10 +6123,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Enterprise Integration Links: HR Custody & Accounting IPSAS */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-sky-600 dark:text-sky-400 mb-1">
+                  <label htmlFor="ux-hr-custodian-officer" className="block text-[10px] font-black uppercase text-sky-600 dark:text-sky-400 mb-1">
                     👤 {isRtl ? 'الموارد البشرية - أمين العهدة' : 'HR Custodian Officer'}
                   </label>
-                  <input
+                  <input id="ux-hr-custodian-officer"
                     type="text"
                     placeholder="أ. عادل ثابت - مسؤول العهدة"
                     value={maintenanceForm.assignedCustodianHr}
@@ -6136,10 +6136,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-1">
+                  <label htmlFor="ux-ipsas-ledger-code" className="block text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-1">
                     💰 {isRtl ? 'الحسابات - رمز دفتر الأستاذ العام' : 'IPSAS Ledger Code'}
                   </label>
-                  <input
+                  <input id="ux-ipsas-ledger-code"
                     type="text"
                     placeholder="ACC-FIXED-ASSETS-1204"
                     value={maintenanceForm.accountingLedgerCode}
@@ -6152,10 +6152,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Project & Procurement PO Links */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-purple-600 dark:text-purple-400 mb-1">
+                  <label htmlFor="ux-project-activity-41" className="block text-[10px] font-black uppercase text-purple-600 dark:text-purple-400 mb-1">
                     {isRtl ? 'نشاط المشروع المرتبط' : 'Project Activity'}
                   </label>
-                  <input
+                  <input id="ux-project-activity-41"
                     type="text"
                     placeholder="PROJ-2026-SHELTER-03"
                     value={maintenanceForm.projectActivityId}
@@ -6165,10 +6165,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
+                  <label htmlFor="ux-procurement-po-ref" className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
                     📜 {isRtl ? 'أمر الشراء / الضمان PO' : 'Procurement PO Ref'}
                   </label>
-                  <input
+                  <input id="ux-procurement-po-ref"
                     type="text"
                     placeholder="PO-2026-EQUIP-884"
                     value={maintenanceForm.procurementPoRef}
@@ -6180,10 +6180,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               {/* Maintenance Notes */}
               <div>
-                <label className="block text-[10px] font-black uppercase mb-1 text-slate-500">
+                <label htmlFor="ux-maintenance-audit-notes-findings" className="block text-[10px] font-black uppercase mb-1 text-slate-500">
                   {isRtl ? 'تقرير الفحص وبيان أعمال الصيانة المنفذة' : 'Maintenance Audit Notes & Findings'}
                 </label>
-                <textarea
+                <textarea id="ux-maintenance-audit-notes-findings"
                   rows={2}
                   placeholder={isRtl ? 'أدخل تفاصيل تغيير قطع الغيار أو الزيوت أو تقرير الفحص الفني...' : 'Enter technical inspection findings or spare parts replaced...'}
                   value={maintenanceForm.notes}
@@ -6231,10 +6231,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Select Project & WBS Activity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-target-project-44" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     {isRtl ? 'المشروع المستهدف' : 'Target Project'}
                   </label>
-                  <select
+                  <select id="ux-target-project-44"
                     value={materialIssueForm.projectId}
                     onChange={(e) => {
                       const projId = e.target.value;
@@ -6256,10 +6256,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
+                  <label htmlFor="ux-project-activity-45" className="block text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1">
                     ⚡ {isRtl ? 'نشاط المشروع التنفيذي' : 'Project Activity'}
                   </label>
-                  <select
+                  <select id="ux-project-activity-45"
                     value={materialIssueForm.wbsActivityId}
                     onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, wbsActivityId: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 font-bold text-amber-600 dark:text-amber-400 focus:outline-none focus:border-emerald-500"
@@ -6276,10 +6276,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Source Warehouse & Relief Item */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-source-depot-46" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     🏬 {isRtl ? 'المستودع المصدر' : 'Source Depot'}
                   </label>
-                  <select
+                  <select id="ux-source-depot-46"
                     value={materialIssueForm.warehouseId}
                     onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, warehouseId: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -6293,10 +6293,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-relief-item-47" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     📦 {isRtl ? 'المادة المطلوبة للصرف' : 'Relief Item'}
                   </label>
-                  <select
+                  <select id="ux-relief-item-47"
                     value={materialIssueForm.itemId}
                     onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, itemId: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -6313,10 +6313,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
               {/* Quantity & Requester Role */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-requested-quantity-48" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     🔢 {isRtl ? 'الكمية المطلوبة' : 'Requested Quantity'}
                   </label>
-                  <input
+                  <input id="ux-requested-quantity-48"
                     type="number"
                     min="1"
                     value={materialIssueForm.requestedQty}
@@ -6326,10 +6326,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                  <label htmlFor="ux-requester-role-49" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                     👤 {isRtl ? 'صفة مقدم الطلب' : 'Requester Role'}
                   </label>
-                  <select
+                  <select id="ux-requester-role-49"
                     value={materialIssueForm.requesterRole}
                     onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, requesterRole: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-2.5 font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -6344,10 +6344,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
 
               {/* Justification & Notes */}
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
+                <label htmlFor="ux-justification-notes-50" className="block text-[10px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1">
                   📝 {isRtl ? 'مبررات الصرف وملاحظات التنفيذ الميداني' : 'Justification & Notes'}
                 </label>
-                <textarea
+                <textarea id="ux-justification-notes-50"
                   rows={2}
                   value={materialIssueForm.notes}
                   onChange={(e) => setMaterialIssueForm(prev => ({ ...prev, notes: e.target.value }))}
@@ -6491,10 +6491,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                   {/* Warehouse & Project Scope Header */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-zinc-950 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800">
                     <div>
-                      <label className="block text-[11px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1.5">
+                      <label htmlFor="ux-source-warehouse" className="block text-[11px] font-black uppercase text-slate-500 dark:text-zinc-400 mb-1.5">
                         🏬 {isRtl ? 'المستودع المصدر للصرف' : 'Source Warehouse'}
                       </label>
-                      <select
+                      <select id="ux-source-warehouse"
                         value={multiWarehouseId}
                         onChange={(e) => setMultiWarehouseId(e.target.value)}
                         className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-xl p-2.5 font-bold text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -6508,10 +6508,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1.5">
+                      <label htmlFor="ux-wbs-project-activity" className="block text-[11px] font-black uppercase text-amber-600 dark:text-amber-400 mb-1.5">
                         {isRtl ? 'المشروع والنشاط الميداني المعتمد' : 'WBS Project Activity'}
                       </label>
-                      <select
+                      <select id="ux-wbs-project-activity"
                         value={multiProjectActivity}
                         onChange={(e) => setMultiProjectActivity(e.target.value)}
                         className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-xl p-2.5 font-bold text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -6524,10 +6524,10 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-1.5">
+                      <label htmlFor="ux-donor-ref" className="block text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-1.5">
                         💳 {isRtl ? 'رمز تمويل المانح (Donor Ref)' : 'Donor Funding Reference'}
                       </label>
-                      <select
+                      <select id="ux-donor-ref"
                         value={donorFundingRef}
                         onChange={(e) => setDonorFundingRef(e.target.value)}
                         className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-xl p-2.5 font-bold text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
@@ -6989,13 +6989,13 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
                         <table className="w-full text-xs text-right border-collapse">
                           <thead>
                             <tr className="bg-slate-100 dark:bg-zinc-950 font-black text-slate-700 dark:text-zinc-300 border-b border-slate-200 dark:border-zinc-800">
-                              <th className="p-3">#</th>
-                              <th className="p-3">اسم المستفيد والكود</th>
-                              <th className="p-3">أفراد الأسرة</th>
+                              <th scope="col" className="p-3">#</th>
+                              <th scope="col" className="p-3">اسم المستفيد والكود</th>
+                              <th scope="col" className="p-3">أفراد الأسرة</th>
                               {selectedItemIds.map(itemId => {
                                 const item = items.find(i => i.id === itemId);
                                 return (
-                                  <th key={itemId} className="p-3 text-center">
+                                  <th scope="col" key={itemId} className="p-3 text-center">
                                     <span className="block text-slate-900 dark:text-white">{item?.name_ar}</span>
                                     <span className="text-[9px] text-slate-400 font-mono font-normal">({item?.unit_ar})</span>
                                   </th>

@@ -248,10 +248,10 @@ export default function CrossEntityLineageView({
         <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 20px;">
           <thead>
             <tr style="background: #0f172a; color: #fbbf24;">
-              <th style="border: 1px solid #334155; padding: 6px; width: 6%; text-align: center;">المستوى</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 22%;">الطبقة المؤسسية</th>
-              <th style="border: 1px solid #334155; padding: 6px; width: 20%;">الكود / المرجع المعتمد</th>
-              <th style="border: 1px solid #334155; padding: 6px;">البيان التفصيلي وحالة الارتباط والتحقق</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 6%; text-align: center;">المستوى</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 22%;">الطبقة المؤسسية</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px; width: 20%;">الكود / المرجع المعتمد</th>
+              <th scope="col" style="border: 1px solid #334155; padding: 6px;">البيان التفصيلي وحالة الارتباط والتحقق</th>
             </tr>
           </thead>
           <tbody>

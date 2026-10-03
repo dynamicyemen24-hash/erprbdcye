@@ -176,12 +176,12 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
               <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
                 <thead className="bg-slate-50/50 border-b border-slate-200 text-zinc-400 font-bold uppercase text-[9px]">
                   <tr>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'الرمز (ISO)' : 'Code'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'اسم العملة' : 'Name'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'العلامة (Symbol)' : 'Symbol'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'الكسور العشرية' : 'Decimals'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
-                    <th className="px-6 py-3 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الرمز (ISO)' : 'Code'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'اسم العملة' : 'Name'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'العلامة (Symbol)' : 'Symbol'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الكسور العشرية' : 'Decimals'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
+                    <th scope="col" className="px-6 py-3 text-center">{lang === 'ar' ? 'الإجراءات' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
@@ -323,8 +323,8 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
 
               {/* Code */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'كود العملة الدولي (ISO Code)' : 'Currency Code (e.g. USD)'}</label>
-                <input 
+                <label htmlFor="ux-iso-code" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'كود العملة الدولي (ISO Code)' : 'Currency Code (e.g. USD)'}</label>
+                <input id="ux-iso-code" 
                   type="text" 
                   required 
                   maxLength={3}
@@ -338,8 +338,8 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
               {/* Names */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالعربية' : 'Arabic Name'}</label>
-                  <input 
+                  <label htmlFor="ux-arabic-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالعربية' : 'Arabic Name'}</label>
+                  <input id="ux-arabic-name" 
                     type="text" 
                     required 
                     value={nameAr}
@@ -349,8 +349,8 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية' : 'English Name'}</label>
-                  <input 
+                  <label htmlFor="ux-english-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية' : 'English Name'}</label>
+                  <input id="ux-english-name" 
                     type="text" 
                     required 
                     value={nameEn}
@@ -364,8 +364,8 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
               {/* Symbol & Decimals */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رمز/علامة العملة' : 'Symbol'}</label>
-                  <input 
+                  <label htmlFor="ux-symbol" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رمز/علامة العملة' : 'Symbol'}</label>
+                  <input id="ux-symbol" 
                     type="text" 
                     required 
                     value={symbol}
@@ -375,8 +375,8 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الكسور العشرية' : 'Decimal Places'}</label>
-                  <input 
+                  <label htmlFor="ux-decimal-places" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الكسور العشرية' : 'Decimal Places'}</label>
+                  <input id="ux-decimal-places" 
                     type="number" 
                     required 
                     min={0}

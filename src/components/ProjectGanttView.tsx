@@ -1414,10 +1414,10 @@ export default function ProjectGanttView({
               {/* Form Body */}
               <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                  <label htmlFor="ux-phase-name-arabic" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                     {isRtl ? 'اسم المرحلة بالعربية *' : 'Phase Name (Arabic) *'}
                   </label>
-                  <input
+                  <input id="ux-phase-name-arabic"
                     type="text"
                     required
                     value={editingPhase.nameAr}
@@ -1427,10 +1427,10 @@ export default function ProjectGanttView({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                  <label htmlFor="ux-phase-name-english" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                     {isRtl ? 'اسم المرحلة بالإنجليزية *' : 'Phase Name (English) *'}
                   </label>
-                  <input
+                  <input id="ux-phase-name-english"
                     type="text"
                     required
                     value={editingPhase.nameEn}
@@ -1441,10 +1441,10 @@ export default function ProjectGanttView({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                    <label htmlFor="ux-start-date" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                       {isRtl ? 'تاريخ البدء *' : 'Start Date *'}
                     </label>
-                    <input
+                    <input id="ux-start-date"
                       type="date"
                       required
                       value={editingPhase.startDate}
@@ -1453,10 +1453,10 @@ export default function ProjectGanttView({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                    <label htmlFor="ux-end-date" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                       {isRtl ? 'تاريخ الانتهاء *' : 'End Date *'}
                     </label>
-                    <input
+                    <input id="ux-end-date"
                       type="date"
                       required
                       value={editingPhase.endDate}
@@ -1487,10 +1487,10 @@ export default function ProjectGanttView({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                  <label htmlFor="ux-stage-baseline-status" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                     {isRtl ? 'حالة المرحلة الحالية' : 'Stage Baseline Status'}
                   </label>
-                  <select
+                  <select id="ux-stage-baseline-status"
                     value={editingPhase.statusCode}
                     onChange={(e) => setEditingPhase({ ...editingPhase, statusCode: e.target.value as any })}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs outline-none focus:ring-1 focus:ring-emerald-500 font-bold"
@@ -1503,10 +1503,10 @@ export default function ProjectGanttView({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                  <label htmlFor="ux-depends-on-predecessor" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                     {isRtl ? 'الاعتمادية والارتباط التسلسلي (Depends On Predecessor)' : 'Sequential Predecessor Relationship'}
                   </label>
-                  <select
+                  <select id="ux-depends-on-predecessor"
                     value={editingPhase.dependsOnPhaseId || ''}
                     onChange={(e) => setEditingPhase({ ...editingPhase, dependsOnPhaseId: e.target.value || undefined })}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs outline-none focus:ring-1 focus:ring-emerald-500 font-bold text-emerald-600 dark:text-emerald-400"
@@ -1596,10 +1596,10 @@ export default function ProjectGanttView({
                 
                 {/* Resource Name (Arabic) */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                  <label htmlFor="ux-resource-name-arabic" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                     {isRtl ? 'اسم المورد بالكامل (العربية) *' : 'Resource Name (Arabic) *'}
                   </label>
-                  <input
+                  <input id="ux-resource-name-arabic"
                     type="text"
                     required
                     value={editingAllocation.resourceNameAr}
@@ -1610,10 +1610,10 @@ export default function ProjectGanttView({
 
                 {/* Resource Name (English) */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                  <label htmlFor="ux-resource-name-english" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                     {isRtl ? 'اسم المورد بالكامل (الإنجليزية) *' : 'Resource Name (English) *'}
                   </label>
-                  <input
+                  <input id="ux-resource-name-english"
                     type="text"
                     required
                     value={editingAllocation.resourceNameEn}
@@ -1625,10 +1625,10 @@ export default function ProjectGanttView({
                 {/* Resource Type & Project Map */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                    <label htmlFor="ux-resource-type" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                       {isRtl ? 'نوع المورد الميداني *' : 'Resource Type *'}
                     </label>
-                    <select
+                    <select id="ux-resource-type"
                       value={editingAllocation.resourceType}
                       onChange={(e) => setEditingAllocation({ ...editingAllocation, resourceType: e.target.value as any })}
                       className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs outline-none focus:ring-1 focus:ring-emerald-500 font-bold"
@@ -1641,10 +1641,10 @@ export default function ProjectGanttView({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                    <label htmlFor="ux-assigned-project" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                       {isRtl ? 'المشروع المرتبط به *' : 'Assigned Project *'}
                     </label>
-                    <select
+                    <select id="ux-assigned-project"
                       value={editingAllocation.projectId}
                       onChange={(e) => setEditingAllocation({ ...editingAllocation, projectId: e.target.value })}
                       className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs outline-none focus:ring-1 focus:ring-emerald-500 font-bold"
@@ -1661,10 +1661,10 @@ export default function ProjectGanttView({
                 {/* Dates selection */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                    <label htmlFor="ux-allocation-start" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                       {isRtl ? 'تاريخ بدء الإسناد *' : 'Allocation Start *'}
                     </label>
-                    <input
+                    <input id="ux-allocation-start"
                       type="date"
                       required
                       value={editingAllocation.startDate}
@@ -1673,10 +1673,10 @@ export default function ProjectGanttView({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                    <label htmlFor="ux-allocation-end" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                       {isRtl ? 'تاريخ انتهاء الإسناد *' : 'Allocation End *'}
                     </label>
-                    <input
+                    <input id="ux-allocation-end"
                       type="date"
                       required
                       value={editingAllocation.endDate}
@@ -1714,10 +1714,10 @@ export default function ProjectGanttView({
 
                 {/* Role / Duty (Arabic) */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                  <label htmlFor="ux-assigned-role-duties-arabic" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                     {isRtl ? 'الدور المسند والواجب الميداني بالعربية' : 'Assigned Role & Duties (Arabic)'}
                   </label>
-                  <input
+                  <input id="ux-assigned-role-duties-arabic"
                     type="text"
                     value={editingAllocation.assignedRoleAr}
                     onChange={(e) => setEditingAllocation({ ...editingAllocation, assignedRoleAr: e.target.value })}
@@ -1727,10 +1727,10 @@ export default function ProjectGanttView({
 
                 {/* Role / Duty (English) */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
+                  <label htmlFor="ux-assigned-role-duties-english" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">
                     {isRtl ? 'الدور المسند والواجب الميداني بالإنجليزية' : 'Assigned Role & Duties (English)'}
                   </label>
-                  <input
+                  <input id="ux-assigned-role-duties-english"
                     type="text"
                     value={editingAllocation.assignedRoleEn}
                     onChange={(e) => setEditingAllocation({ ...editingAllocation, assignedRoleEn: e.target.value })}

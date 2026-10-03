@@ -1154,8 +1154,8 @@ This draft shows your prompt only. It will be replaced with real analysis once t
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'اسم رب الأسرة المستفيدة' : 'Head of Household Name'}</label>
-                  <input
+                  <label htmlFor="ux-head-of-household-name" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'اسم رب الأسرة المستفيدة' : 'Head of Household Name'}</label>
+                  <input id="ux-head-of-household-name"
                     type="text"
                     value={selectedSurveyChecklist.headOfHousehold}
                     onChange={(e) => setSelectedSurveyChecklist(prev => ({ ...prev, headOfHousehold: e.target.value }))}
@@ -1165,8 +1165,8 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'المحافظة / النطاق الجغرافي' : 'Governorate / Target Sector'}</label>
-                  <select
+                  <label htmlFor="ux-governorate-target-sector" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'المحافظة / النطاق الجغرافي' : 'Governorate / Target Sector'}</label>
+                  <select id="ux-governorate-target-sector"
                     value={selectedSurveyChecklist.governorate}
                     onChange={(e) => setSelectedSurveyChecklist(prev => ({ ...prev, governorate: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 p-2.5 text-xs font-bold rounded-xl focus:outline-none"
@@ -1217,8 +1217,8 @@ This draft shows your prompt only. It will be replaced with real analysis once t
 
               <div className="space-y-3 flex flex-col justify-between">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'الملاحظات والتقييم الاجتماعي الميداني' : 'Field Social Assessment Notes'}</label>
-                  <textarea
+                  <label htmlFor="ux-field-social-assessment-notes" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'الملاحظات والتقييم الاجتماعي الميداني' : 'Field Social Assessment Notes'}</label>
+                  <textarea id="ux-field-social-assessment-notes"
                     value={selectedSurveyChecklist.notes}
                     onChange={(e) => setSelectedSurveyChecklist(prev => ({ ...prev, notes: e.target.value }))}
                     placeholder={isRtl ? 'أدخل تفاصيل الحالة وتقرير مستوى الضعف...' : 'Enter case details & vulnerability assessment notes...'}
@@ -1330,8 +1330,8 @@ This draft shows your prompt only. It will be replaced with real analysis once t
 
               {/* Textarea Input */}
               <div className="space-y-1">
-                <label className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'موجه يوماكس إي آي للتحليل والاستشراف المؤسسي:' : 'UAMEX AI Prompt & Context Input:'}</label>
-                <textarea
+                <label htmlFor="ux-uamex-ai-prompt-context-input" className="text-[10px] font-extrabold text-slate-500 dark:text-zinc-400 block">{isRtl ? 'موجه يوماكس إي آي للتحليل والاستشراف المؤسسي:' : 'UAMEX AI Prompt & Context Input:'}</label>
+                <textarea id="ux-uamex-ai-prompt-context-input"
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   placeholder={isRtl ? 'اكتب موجه التحليل والتقرير هنا...' : 'Write report context here...'}
@@ -1452,11 +1452,11 @@ This draft shows your prompt only. It will be replaced with real analysis once t
                   <table className="w-full text-left rtl:text-right text-xs">
                     <thead className="bg-slate-50 dark:bg-zinc-950 font-black text-slate-700 dark:text-zinc-400">
                       <tr>
-                        <th className="p-3">{isRtl ? 'الدور الوظيفي' : 'Role'}</th>
-                        <th className="p-3 text-center">{isRtl ? 'قراءة' : 'Read'}</th>
-                        <th className="p-3 text-center">{isRtl ? 'كتابة' : 'Write'}</th>
-                        <th className="p-3 text-center">{isRtl ? 'اعتماد' : 'Approve'}</th>
-                        <th className="p-3 text-center">{isRtl ? 'تدقيق' : 'Audit'}</th>
+                        <th scope="col" className="p-3">{isRtl ? 'الدور الوظيفي' : 'Role'}</th>
+                        <th scope="col" className="p-3 text-center">{isRtl ? 'قراءة' : 'Read'}</th>
+                        <th scope="col" className="p-3 text-center">{isRtl ? 'كتابة' : 'Write'}</th>
+                        <th scope="col" className="p-3 text-center">{isRtl ? 'اعتماد' : 'Approve'}</th>
+                        <th scope="col" className="p-3 text-center">{isRtl ? 'تدقيق' : 'Audit'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold">

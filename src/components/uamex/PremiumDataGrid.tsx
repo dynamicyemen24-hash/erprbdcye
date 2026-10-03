@@ -952,7 +952,7 @@ export function PremiumDataGrid<T = Record<string, any>>(props: PremiumDataGridP
             {pinnedColsList.length > 0 && (
               <tr className="bg-slate-100 dark:bg-zinc-800/80 border-b border-slate-200 dark:border-zinc-700">
                 {selectable && (
-                  <th className={`${densityConfig.padding} text-start w-10`}>
+                  <th scope="col" className={`${densityConfig.padding} text-start w-10`}>
                     <input
                       type="checkbox"
                       checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
@@ -962,7 +962,7 @@ export function PremiumDataGrid<T = Record<string, any>>(props: PremiumDataGridP
                     />
                   </th>
                 )}
-                {expandable && <th className="w-10" />}
+                {expandable && <th scope="col" className="w-10" />}
                 {pinnedColsList.map((col) => (
                   <ColumnHeader
                     key={col.id}
@@ -988,7 +988,7 @@ export function PremiumDataGrid<T = Record<string, any>>(props: PremiumDataGridP
             {/* Regular Columns */}
             <tr className="bg-slate-50 dark:bg-zinc-900/80 border-b border-slate-200 dark:border-zinc-800">
               {selectable && pinnedColsList.length === 0 && (
-                <th className={`${densityConfig.padding} text-start w-10`}>
+                <th scope="col" className={`${densityConfig.padding} text-start w-10`}>
                   <input
                     type="checkbox"
                     checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
@@ -998,7 +998,7 @@ export function PremiumDataGrid<T = Record<string, any>>(props: PremiumDataGridP
                   />
                 </th>
               )}
-              {expandable && pinnedColsList.length === 0 && <th className="w-10" />}
+              {expandable && pinnedColsList.length === 0 && <th scope="col" className="w-10" />}
               {regularColsList.map((col) => (
                 <ColumnHeader
                   key={col.id}

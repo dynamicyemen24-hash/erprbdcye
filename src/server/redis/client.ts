@@ -15,7 +15,7 @@ interface RedisClientConfig {
   db: number;
   keyPrefix: string;
   maxRetriesPerRequest: number;
-  retryStrategy(times: number): number;
+  retryStrategy(times: number): number | null;
   enableReadyCheck: boolean;
   lazyConnect: boolean;
 }
@@ -53,8 +53,13 @@ function buildConfig(): RedisClientConfig {
     db,
     keyPrefix: process.env.REDIS_KEY_PREFIX || 'nexora:',
     maxRetriesPerRequest: 3,
-    retryStrategy(times: number): number {
-      if (times > 10) return -1; // stop retrying
+    // ioredis reads a negative return as a *delay*, not as "stop": Node coerces
+    // it to 1 ms, so `return -1` produced a 1 ms hot reconnect loop plus a
+    // `TimeoutNegativeWarning` on every attempt. `null` is the documented
+    // "stand the client down" signal — it stops reconnection cleanly and lets
+    // `lazyConnect` + the caller's fallback keep the app serving.
+    retryStrategy(times: number): number | null {
+      if (times > 10) return null; // stop retrying
       const delay = Math.min(times * 200, 3000);
       return delay;
     },

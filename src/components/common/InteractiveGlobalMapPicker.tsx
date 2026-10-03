@@ -161,7 +161,7 @@ export default function InteractiveGlobalMapPicker({
   return (
     <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 shadow-sm bg-slate-100 dark:bg-zinc-950">
       {/* 1. Map Toolbar (Layer switcher, locate me, external links) */}
-      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80 shadow-md">
+      <div className="absolute top-3 right-3 z-popover flex items-center gap-1.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80 shadow-md">
         {/* Layer Toggle */}
         <button
           type="button"

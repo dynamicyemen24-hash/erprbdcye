@@ -630,15 +630,15 @@ export default function PerformanceMetricsView({ lang, projects = [], onRefresh,
           <table className="w-full text-xs text-right border-collapse" style={{ textAlign: isRtl ? 'right' : 'left' }}>
             <thead>
               <tr className="bg-slate-900 text-amber-400 font-black text-[9px] uppercase border-b border-zinc-800">
-                <th className="p-3 text-amber-400 font-extrabold">{isRtl ? 'اسم القطاع والمكتب الإقليمي' : 'Regional Department & Sector'}</th>
-                <th className="p-3">{isRtl ? 'المقر / المحافظة' : 'Territory / Gov'}</th>
-                <th className="p-3 text-center">{isRtl ? 'كفاءة التنفيذ' : 'Efficiency'}</th>
-                <th className="p-3 text-center">{isRtl ? 'الامتثال للـ SLA' : 'SLA Compliance'}</th>
-                <th className="p-3 text-center">{isRtl ? 'استغلال الموازنة' : 'Budget Absorption'}</th>
-                <th className="p-3 text-center">{isRtl ? 'مستوى رضا المستفيدين' : 'Satisfaction Rate'}</th>
-                <th className="p-3 text-center">{isRtl ? 'المشاريع الجارية' : 'Projects'}</th>
-                <th className="p-3 text-center">{isRtl ? 'مخصص الموازنة (ر.ي)' : 'Budget Target'}</th>
-                <th className="p-3 text-center">{isRtl ? 'العوائق' : 'Logistics Bottlenecks'}</th>
+                <th scope="col" className="p-3 text-amber-400 font-extrabold">{isRtl ? 'اسم القطاع والمكتب الإقليمي' : 'Regional Department & Sector'}</th>
+                <th scope="col" className="p-3">{isRtl ? 'المقر / المحافظة' : 'Territory / Gov'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'كفاءة التنفيذ' : 'Efficiency'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'الامتثال للـ SLA' : 'SLA Compliance'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'استغلال الموازنة' : 'Budget Absorption'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'مستوى رضا المستفيدين' : 'Satisfaction Rate'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'المشاريع الجارية' : 'Projects'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'مخصص الموازنة (ر.ي)' : 'Budget Target'}</th>
+                <th scope="col" className="p-3 text-center">{isRtl ? 'العوائق' : 'Logistics Bottlenecks'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-900 font-semibold text-slate-700 dark:text-zinc-300">

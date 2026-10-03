@@ -125,7 +125,7 @@ export default function PWAUpdatePrompt({ lang }: PWAUpdatePromptProps) {
 
   return (
     <div
-      className="fixed bottom-4 inset-x-4 sm:inset-x-auto sm:bottom-6 sm:end-6 z-[90] max-w-sm"
+      className="fixed bottom-4 inset-x-4 sm:inset-x-auto sm:bottom-6 sm:end-6 z-toast max-w-sm"
       role="status"
       aria-live="polite"
     >

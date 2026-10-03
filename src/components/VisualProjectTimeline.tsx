@@ -1188,8 +1188,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-zinc-400 font-bold mb-1">{isRtl ? 'اسم المعلم بالعربية' : 'Milestone Title (Arabic)'}</label>
-                <input
+                <label htmlFor="ux-milestone-title-arabic" className="block text-zinc-400 font-bold mb-1">{isRtl ? 'اسم المعلم بالعربية' : 'Milestone Title (Arabic)'}</label>
+                <input id="ux-milestone-title-arabic"
                   type="text"
                   value={editingMilestone.titleAr}
                   onChange={e => setEditingMilestone({ ...editingMilestone, titleAr: e.target.value })}
@@ -1198,8 +1198,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-bold mb-1">{isRtl ? 'التاريخ المتوقع' : 'Target Date'}</label>
-                <input
+                <label htmlFor="ux-target-date" className="block text-zinc-400 font-bold mb-1">{isRtl ? 'التاريخ المتوقع' : 'Target Date'}</label>
+                <input id="ux-target-date"
                   type="date"
                   value={editingMilestone.date}
                   onChange={e => setEditingMilestone({ ...editingMilestone, date: e.target.value })}
@@ -1208,8 +1208,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-bold mb-1">{isRtl ? 'حالة الإنجاز' : 'Status'}</label>
-                <select
+                <label htmlFor="ux-status" className="block text-zinc-400 font-bold mb-1">{isRtl ? 'حالة الإنجاز' : 'Status'}</label>
+                <select id="ux-status"
                   value={editingMilestone.status}
                   onChange={e => setEditingMilestone({ ...editingMilestone, status: e.target.value as any })}
                   className="w-full p-2 bg-slate-50 dark:bg-zinc-800 border rounded-lg font-bold text-slate-800 dark:text-white"
@@ -1261,8 +1261,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-zinc-400 font-bold mb-1">{isRtl ? 'عنوان المعلم (عربي)' : 'Milestone Title (Arabic)'} *</label>
-                <input
+                <label htmlFor="ux-milestone-title-arabic-4" className="block text-zinc-400 font-bold mb-1">{isRtl ? 'عنوان المعلم (عربي)' : 'Milestone Title (Arabic)'} *</label>
+                <input id="ux-milestone-title-arabic-4"
                   type="text"
                   required
                   value={newTitleAr}
@@ -1273,8 +1273,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-bold mb-1">{isRtl ? 'التاريخ الميداني' : 'Target Date'} *</label>
-                <input
+                <label htmlFor="ux-target-date-5" className="block text-zinc-400 font-bold mb-1">{isRtl ? 'التاريخ الميداني' : 'Target Date'} *</label>
+                <input id="ux-target-date-5"
                   type="date"
                   required
                   value={newDate}
@@ -1284,8 +1284,8 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-bold mb-1">{isRtl ? 'الحالة' : 'Status'}</label>
-                <select
+                <label htmlFor="ux-status-6" className="block text-zinc-400 font-bold mb-1">{isRtl ? 'الحالة' : 'Status'}</label>
+                <select id="ux-status-6"
                   value={newStatus}
                   onChange={e => setNewStatus(e.target.value as any)}
                   className="w-full p-2 bg-slate-50 dark:bg-zinc-800 border rounded-lg font-bold text-slate-800 dark:text-white"

@@ -1231,8 +1231,8 @@ export default function SettingsView({
               {/* Grid 1: Names */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'اسم المؤسسة الرسمي (بالعربية)' : 'Arabic Organization Name'}</label>
-                  <input 
+                  <label htmlFor="ux-arabic-organization-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'اسم المؤسسة الرسمي (بالعربية)' : 'Arabic Organization Name'}</label>
+                  <input id="ux-arabic-organization-name" 
                     type="text" 
                     required
                     value={orgNameAr}
@@ -1241,8 +1241,8 @@ export default function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية' : 'English Organization Name'}</label>
-                  <input 
+                  <label htmlFor="ux-english-organization-name" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الاسم بالإنجليزية' : 'English Organization Name'}</label>
+                  <input id="ux-english-organization-name" 
                     type="text" 
                     required
                     value={orgNameEn}
@@ -1255,8 +1255,8 @@ export default function SettingsView({
               {/* Grid 2: Contacts */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'البريد الإلكتروني الرسمي' : 'Official Email'}</label>
-                  <input 
+                  <label htmlFor="ux-official-email" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'البريد الإلكتروني الرسمي' : 'Official Email'}</label>
+                  <input id="ux-official-email" 
                     type="email" 
                     value={orgEmail}
                     onChange={(e) => setOrgEmail(e.target.value)}
@@ -1264,8 +1264,8 @@ export default function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رقم الهاتف' : 'Contact Phone'}</label>
-                  <input 
+                  <label htmlFor="ux-contact-phone" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رقم الهاتف' : 'Contact Phone'}</label>
+                  <input id="ux-contact-phone" 
                     type="text" 
                     value={orgPhone}
                     onChange={(e) => setOrgPhone(e.target.value)}
@@ -1273,8 +1273,8 @@ export default function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الموقع الإلكتروني' : 'Official Website'}</label>
-                  <input 
+                  <label htmlFor="ux-official-website" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الموقع الإلكتروني' : 'Official Website'}</label>
+                  <input id="ux-official-website" 
                     type="text" 
                     value={orgWebsite}
                     onChange={(e) => setOrgWebsite(e.target.value)}
@@ -1287,8 +1287,8 @@ export default function SettingsView({
               {/* Grid 3: Registrations */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رقم الترخيص الرسمي' : 'License Number'}</label>
-                  <input 
+                  <label htmlFor="ux-license-number" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رقم الترخيص الرسمي' : 'License Number'}</label>
+                  <input id="ux-license-number" 
                     type="text" 
                     value={licenseNum}
                     onChange={(e) => setLicenseNum(e.target.value)}
@@ -1296,8 +1296,8 @@ export default function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رقم السجل التجاري/الخيري' : 'Registration Certificate'}</label>
-                  <input 
+                  <label htmlFor="ux-registration-certificate" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'رقم السجل التجاري/الخيري' : 'Registration Certificate'}</label>
+                  <input id="ux-registration-certificate" 
                     type="text" 
                     value={regNum}
                     onChange={(e) => setRegNum(e.target.value)}
@@ -1305,8 +1305,8 @@ export default function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المدينة' : 'City'}</label>
-                  <input 
+                  <label htmlFor="ux-city" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'المدينة' : 'City'}</label>
+                  <input id="ux-city" 
                     type="text" 
                     value={orgCity}
                     onChange={(e) => setOrgCity(e.target.value)}
@@ -1314,8 +1314,8 @@ export default function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الدولة' : 'Country'}</label>
-                  <input 
+                  <label htmlFor="ux-country" className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">{lang === 'ar' ? 'الدولة' : 'Country'}</label>
+                  <input id="ux-country" 
                     type="text" 
                     value={orgCountry}
                     onChange={(e) => setOrgCountry(e.target.value)}
@@ -1326,8 +1326,8 @@ export default function SettingsView({
 
               {/* Address */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'العنوان التفصيلي' : 'Detailed Address'}</label>
-                <input 
+                <label htmlFor="ux-detailed-address" className="block text-xs font-bold text-slate-500 uppercase">{lang === 'ar' ? 'العنوان التفصيلي' : 'Detailed Address'}</label>
+                <input id="ux-detailed-address" 
                   type="text" 
                   value={orgAddress}
                   onChange={(e) => setOrgAddress(e.target.value)}
@@ -1429,8 +1429,8 @@ export default function SettingsView({
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'الاسم بالترويسة (عربي)' : 'Arabic Title'}</label>
-                          <input 
+                          <label htmlFor="ux-arabic-title" className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'الاسم بالترويسة (عربي)' : 'Arabic Title'}</label>
+                          <input id="ux-arabic-title" 
                             type="text" 
                             value={reportHeaderTitleAr}
                             onChange={(e) => setReportHeaderTitleAr(e.target.value)}
@@ -1439,8 +1439,8 @@ export default function SettingsView({
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'الاسم بالترويسة (إنجليزي)' : 'English Title'}</label>
-                          <input 
+                          <label htmlFor="ux-english-title" className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'الاسم بالترويسة (إنجليزي)' : 'English Title'}</label>
+                          <input id="ux-english-title" 
                             type="text" 
                             value={reportHeaderTitleEn}
                             onChange={(e) => setReportHeaderTitleEn(e.target.value)}
@@ -1452,8 +1452,8 @@ export default function SettingsView({
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'العنوان الفرعي (عربي)' : 'Arabic Subtitle'}</label>
-                          <input 
+                          <label htmlFor="ux-arabic-subtitle" className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'العنوان الفرعي (عربي)' : 'Arabic Subtitle'}</label>
+                          <input id="ux-arabic-subtitle" 
                             type="text" 
                             value={reportHeaderSubtitleAr}
                             onChange={(e) => setReportHeaderSubtitleAr(e.target.value)}
@@ -1461,8 +1461,8 @@ export default function SettingsView({
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'العنوان الفرعي (إنجليزي)' : 'English Subtitle'}</label>
-                          <input 
+                          <label htmlFor="ux-english-subtitle" className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'العنوان الفرعي (إنجليزي)' : 'English Subtitle'}</label>
+                          <input id="ux-english-subtitle" 
                             type="text" 
                             value={reportHeaderSubtitleEn}
                             onChange={(e) => setReportHeaderSubtitleEn(e.target.value)}
@@ -1480,8 +1480,8 @@ export default function SettingsView({
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'تذييل التقارير (عربي)' : 'Arabic Footer'}</label>
-                          <textarea
+                          <label htmlFor="ux-arabic-footer" className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'تذييل التقارير (عربي)' : 'Arabic Footer'}</label>
+                          <textarea id="ux-arabic-footer"
                             rows={2}
                             value={reportFooterTextAr}
                             onChange={(e) => setReportFooterTextAr(e.target.value)}
@@ -1489,8 +1489,8 @@ export default function SettingsView({
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'تذييل التقارير (إنجليزي)' : 'English Footer'}</label>
-                          <textarea
+                          <label htmlFor="ux-english-footer" className="block text-[10px] font-bold text-slate-400 mb-1">{lang === 'ar' ? 'تذييل التقارير (إنجليزي)' : 'English Footer'}</label>
+                          <textarea id="ux-english-footer"
                             rows={2}
                             value={reportFooterTextEn}
                             onChange={(e) => setReportFooterTextEn(e.target.value)}
@@ -1995,8 +1995,8 @@ export default function SettingsView({
 
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Publishable Key</label>
-                    <input
+                    <label htmlFor="ux-publishable-key" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Publishable Key</label>
+                    <input id="ux-publishable-key"
                       type="text"
                       value={stripeApiKey}
                       onChange={(e) => setStripeApiKey(e.target.value)}
@@ -2005,8 +2005,8 @@ export default function SettingsView({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Secret Key</label>
-                    <input
+                    <label htmlFor="ux-secret-key" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Secret Key</label>
+                    <input id="ux-secret-key"
                       type="password"
                       value={stripeSecretKey}
                       onChange={(e) => setStripeSecretKey(e.target.value)}
@@ -2043,8 +2043,8 @@ export default function SettingsView({
 
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Merchant Account ID</label>
-                    <input 
+                    <label htmlFor="ux-merchant-account-id" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Merchant Account ID</label>
+                    <input id="ux-merchant-account-id" 
                       type="text" 
                       value={kuraimiMerchantId}
                       onChange={(e) => setKuraimiMerchantId(e.target.value)}
@@ -2052,8 +2052,8 @@ export default function SettingsView({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">API Secret Key</label>
-                    <input 
+                    <label htmlFor="ux-api-secret-key" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">API Secret Key</label>
+                    <input id="ux-api-secret-key" 
                       type="password" 
                       value={kuraimiApiKey}
                       onChange={(e) => setKuraimiApiKey(e.target.value)}
@@ -2085,8 +2085,8 @@ export default function SettingsView({
 
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{lang === 'ar' ? 'تفاصيل الحسابات البنكية المعتمدة' : 'Bank Accounts & IBANs'}</label>
-                    <textarea 
+                    <label htmlFor="ux-bank-accounts-ibans" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{lang === 'ar' ? 'تفاصيل الحسابات البنكية المعتمدة' : 'Bank Accounts & IBANs'}</label>
+                    <textarea id="ux-bank-accounts-ibans" 
                       rows={4}
                       value={bankWireDetails}
                       onChange={(e) => setBankWireDetails(e.target.value)}
@@ -2124,12 +2124,12 @@ export default function SettingsView({
               <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
                 <thead className="bg-slate-50/50 border-b border-slate-200 text-zinc-400 font-bold uppercase text-[9px]">
                   <tr>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'رقم الفاتورة' : 'Invoice ID'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'تاريخ الإصدار' : 'Date'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'الباقة المشمولة' : 'Plan'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'المبلغ' : 'Amount'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'طريقة الدفع' : 'Payment Method'}</th>
-                    <th className="px-6 py-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'رقم الفاتورة' : 'Invoice ID'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'تاريخ الإصدار' : 'Date'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الباقة المشمولة' : 'Plan'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'المبلغ' : 'Amount'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'طريقة الدفع' : 'Payment Method'}</th>
+                    <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
@@ -2239,10 +2239,10 @@ export default function SettingsView({
             <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
               <thead className="bg-slate-50/50 border-b border-slate-200 text-zinc-400 font-bold uppercase text-[9px]">
                 <tr>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'مفتاح التكوين (Key)' : 'Setting Key'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'القيمة المحفوظة (Value)' : 'Saved Value'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'البيان والوظيفة' : 'Description'}</th>
-                  <th className="px-6 py-3 text-center">{lang === 'ar' ? 'خيارات' : 'Action'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'مفتاح التكوين (Key)' : 'Setting Key'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'القيمة المحفوظة (Value)' : 'Saved Value'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'البيان والوظيفة' : 'Description'}</th>
+                  <th scope="col" className="px-6 py-3 text-center">{lang === 'ar' ? 'خيارات' : 'Action'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200">
@@ -2325,10 +2325,10 @@ export default function SettingsView({
             <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
               <thead className="bg-slate-50/50 border-b border-slate-200 text-zinc-400 font-bold uppercase text-[9px]">
                 <tr>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'مفتاح التكوين (Key)' : 'Setting Key'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'القيمة المحفوظة (Value)' : 'Saved Value'}</th>
-                  <th className="px-6 py-3">{lang === 'ar' ? 'البيان والوظيفة' : 'Description'}</th>
-                  <th className="px-6 py-3 text-center">{lang === 'ar' ? 'خيارات' : 'Action'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'مفتاح التكوين (Key)' : 'Setting Key'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'القيمة المحفوظة (Value)' : 'Saved Value'}</th>
+                  <th scope="col" className="px-6 py-3">{lang === 'ar' ? 'البيان والوظيفة' : 'Description'}</th>
+                  <th scope="col" className="px-6 py-3 text-center">{lang === 'ar' ? 'خيارات' : 'Action'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200">
@@ -2423,8 +2423,8 @@ export default function SettingsView({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-700">{lang === 'ar' ? 'نموذج الذكاء الاصطناعي النشط' : 'Active AI Model'}</label>
-                <select
+                <label htmlFor="ux-active-ai-model" className="block text-xs font-bold text-slate-700">{lang === 'ar' ? 'نموذج الذكاء الاصطناعي النشط' : 'Active AI Model'}</label>
+                <select id="ux-active-ai-model"
                   value={aiSettingsModel}
                   onChange={(e) => setAiSettingsModel(e.target.value)}
                   className="w-full bg-slate-50 border border-zinc-200 rounded-lg py-2 px-3 text-xs text-slate-800 font-mono focus:border-amber-500 outline-none"
@@ -2437,8 +2437,8 @@ export default function SettingsView({
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-700">{lang === 'ar' ? 'مفتاح API الخاص بـ Gemini (اختياري)' : 'Gemini API Key (Optional)'}</label>
-                <input
+                <label htmlFor="ux-api-gemini" className="block text-xs font-bold text-slate-700">{lang === 'ar' ? 'مفتاح API الخاص بـ Gemini (اختياري)' : 'Gemini API Key (Optional)'}</label>
+                <input id="ux-api-gemini"
                   type="password"
                   placeholder={aiSettingsKey ? '••••••••••••••••••••••••' : 'AIzaSy...'}
                   value={aiSettingsKey}
@@ -2520,8 +2520,8 @@ export default function SettingsView({
                 <div className="space-y-3 text-xs">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'مزود الخدمة المعتمد' : 'SMS Provider'}</label>
-                      <select
+                      <label htmlFor="ux-sms-provider" className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'مزود الخدمة المعتمد' : 'SMS Provider'}</label>
+                      <select id="ux-sms-provider"
                         value={smsProvider}
                         onChange={(e) => setSmsProvider(e.target.value)}
                         className="w-full bg-slate-50 border border-zinc-200 rounded-lg py-1.5 px-2.5 text-xs text-slate-800 focus:border-amber-500 outline-none"
@@ -2534,8 +2534,8 @@ export default function SettingsView({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'معرف المرسل النشط' : 'Sender Identifier'}</label>
-                      <input
+                      <label htmlFor="ux-sender-identifier" className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'معرف المرسل النشط' : 'Sender Identifier'}</label>
+                      <input id="ux-sender-identifier"
                         type="text"
                         value={smsSenderId}
                         onChange={(e) => setSmsSenderId(e.target.value)}
@@ -2545,8 +2545,8 @@ export default function SettingsView({
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'مفتاح الربط البرمجي (API Auth Token)' : 'API Secret/Token'}</label>
-                    <input
+                    <label htmlFor="ux-api-auth-token" className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'مفتاح الربط البرمجي (API Auth Token)' : 'API Secret/Token'}</label>
+                    <input id="ux-api-auth-token"
                       type="password"
                       value={smsApiKey}
                       onChange={(e) => setSmsApiKey(e.target.value)}
@@ -2560,8 +2560,8 @@ export default function SettingsView({
                     
                     <div className="grid grid-cols-2 gap-2 text-[10px]">
                       <div>
-                        <label className="block text-zinc-400 mb-0.5">{lang === 'ar' ? 'رقم الهاتف للتجربة' : 'Recipient Phone'}</label>
-                        <input
+                        <label htmlFor="ux-recipient-phone" className="block text-zinc-400 mb-0.5">{lang === 'ar' ? 'رقم الهاتف للتجربة' : 'Recipient Phone'}</label>
+                        <input id="ux-recipient-phone"
                           type="text"
                           value={smsTestPhone}
                           onChange={(e) => setSmsTestPhone(e.target.value)}
@@ -2569,8 +2569,8 @@ export default function SettingsView({
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-400 mb-0.5">{lang === 'ar' ? 'محتوى الرسالة' : 'SMS Message Body'}</label>
-                        <input
+                        <label htmlFor="ux-sms-message-body" className="block text-zinc-400 mb-0.5">{lang === 'ar' ? 'محتوى الرسالة' : 'SMS Message Body'}</label>
+                        <input id="ux-sms-message-body"
                           type="text"
                           value={smsTestMessage}
                           onChange={(e) => setSmsTestMessage(e.target.value)}
@@ -2622,8 +2622,8 @@ export default function SettingsView({
                 <div className="space-y-3 text-xs">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'عنوان خادم SMTP' : 'SMTP Server Host'}</label>
-                      <input
+                      <label htmlFor="ux-smtp" className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'عنوان خادم SMTP' : 'SMTP Server Host'}</label>
+                      <input id="ux-smtp"
                         type="text"
                         value={emailSmtpHost}
                         onChange={(e) => setEmailSmtpHost(e.target.value)}
@@ -2632,8 +2632,8 @@ export default function SettingsView({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'منفذ الاتصال (Port)' : 'Port'}</label>
-                      <input
+                      <label htmlFor="ux-port" className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'منفذ الاتصال (Port)' : 'Port'}</label>
+                      <input id="ux-port"
                         type="text"
                         value={emailSmtpPort}
                         onChange={(e) => setEmailSmtpPort(e.target.value)}
@@ -2644,8 +2644,8 @@ export default function SettingsView({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'اسم المستخدم (User)' : 'Username'}</label>
-                      <input
+                      <label htmlFor="ux-user" className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'اسم المستخدم (User)' : 'Username'}</label>
+                      <input id="ux-user"
                         type="text"
                         value={emailSmtpUser}
                         onChange={(e) => setEmailSmtpUser(e.target.value)}
@@ -2654,8 +2654,8 @@ export default function SettingsView({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'كلمة المرور / مفتاح SMTP' : 'Password/Token'}</label>
-                      <input
+                      <label htmlFor="ux-smtp-32" className="block text-[10px] font-bold text-zinc-400 mb-1">{lang === 'ar' ? 'كلمة المرور / مفتاح SMTP' : 'Password/Token'}</label>
+                      <input id="ux-smtp-32"
                         type="password"
                         value={emailSmtpPass}
                         onChange={(e) => setEmailSmtpPass(e.target.value)}
@@ -2670,8 +2670,8 @@ export default function SettingsView({
                     
                     <div className="grid grid-cols-2 gap-2 text-[10px]">
                       <div>
-                        <label className="block text-zinc-400 mb-0.5">{lang === 'ar' ? 'البريد الإلكتروني للتجربة' : 'Recipient Email'}</label>
-                        <input
+                        <label htmlFor="ux-recipient-email" className="block text-zinc-400 mb-0.5">{lang === 'ar' ? 'البريد الإلكتروني للتجربة' : 'Recipient Email'}</label>
+                        <input id="ux-recipient-email"
                           type="email"
                           value={emailTestRecipient}
                           onChange={(e) => setEmailTestRecipient(e.target.value)}
@@ -2679,8 +2679,8 @@ export default function SettingsView({
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-400 mb-0.5">{lang === 'ar' ? 'عنوان الموضوع' : 'Subject'}</label>
-                        <input
+                        <label htmlFor="ux-subject" className="block text-zinc-400 mb-0.5">{lang === 'ar' ? 'عنوان الموضوع' : 'Subject'}</label>
+                        <input id="ux-subject"
                           type="text"
                           value={emailTestSubject}
                           onChange={(e) => setEmailTestSubject(e.target.value)}
@@ -2736,8 +2736,8 @@ export default function SettingsView({
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-700">{lang === 'ar' ? 'الأصول النقدية والذهبية (YER)' : 'Zakat Base Assets (YER)'}</label>
-                <input
+                <label htmlFor="ux-yer" className="block font-bold text-slate-700">{lang === 'ar' ? 'الأصول النقدية والذهبية (YER)' : 'Zakat Base Assets (YER)'}</label>
+                <input id="ux-yer"
                   type="number"
                   value={zakatAssets}
                   onChange={(e) => setZakatAssets(e.target.value)}
@@ -2746,8 +2746,8 @@ export default function SettingsView({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-700">{lang === 'ar' ? 'طريقة حساب وعاء الزكاة' : 'Zakat Rate Type'}</label>
-                <select
+                <label htmlFor="ux-zakat-rate-type" className="block font-bold text-slate-700">{lang === 'ar' ? 'طريقة حساب وعاء الزكاة' : 'Zakat Rate Type'}</label>
+                <select id="ux-zakat-rate-type"
                   value={zakatRateType}
                   onChange={(e) => setZakatRateType(e.target.value as 'lunar' | 'solar')}
                   className="w-full bg-slate-50 border border-zinc-200 rounded-lg py-2 px-3 text-xs text-slate-800 focus:border-amber-500 outline-none"
@@ -2758,8 +2758,8 @@ export default function SettingsView({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-700">{lang === 'ar' ? 'إجمالي المشتريات/المبيعات الخاضعة للضريبة' : 'VAT-Eligible Amount (YER)'}</label>
-                <input
+                <label htmlFor="ux-vat-eligible-amount-yer" className="block font-bold text-slate-700">{lang === 'ar' ? 'إجمالي المشتريات/المبيعات الخاضعة للضريبة' : 'VAT-Eligible Amount (YER)'}</label>
+                <input id="ux-vat-eligible-amount-yer"
                   type="number"
                   value={zakatVatBase}
                   onChange={(e) => setZakatVatBase(e.target.value)}
@@ -2768,8 +2768,8 @@ export default function SettingsView({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-700">{lang === 'ar' ? 'نسبة ضريبة القيمة المضافة (%)' : 'VAT Rate Percentage (%)'}</label>
-                <input
+                <label htmlFor="ux-vat-rate-percentage" className="block font-bold text-slate-700">{lang === 'ar' ? 'نسبة ضريبة القيمة المضافة (%)' : 'VAT Rate Percentage (%)'}</label>
+                <input id="ux-vat-rate-percentage"
                   type="number"
                   value={customVatPct}
                   onChange={(e) => setCustomVatPct(parseFloat(e.target.value) || 0)}
@@ -3043,11 +3043,11 @@ export default function SettingsView({
                   <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
                     <thead className="bg-slate-50/50 border-b border-slate-200 text-zinc-400 font-bold uppercase text-[9px]">
                       <tr>
-                        <th className="px-4 py-2.5">{lang === 'ar' ? 'الرمز الكودي' : 'Code'}</th>
-                        <th className="px-4 py-2.5">{lang === 'ar' ? 'اسم المكتب / الفرع' : 'Branch / Office Name'}</th>
-                        <th className="px-4 py-2.5">{lang === 'ar' ? 'مدير المكتب' : 'Representative Manager'}</th>
-                        <th className="px-4 py-2.5">{lang === 'ar' ? 'الحالة التشغيلية' : 'Status'}</th>
-                        <th className="px-4 py-2.5 text-center">{lang === 'ar' ? 'التسليم' : 'Actions'}</th>
+                        <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'الرمز الكودي' : 'Code'}</th>
+                        <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'اسم المكتب / الفرع' : 'Branch / Office Name'}</th>
+                        <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'مدير المكتب' : 'Representative Manager'}</th>
+                        <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'الحالة التشغيلية' : 'Status'}</th>
+                        <th scope="col" className="px-4 py-2.5 text-center">{lang === 'ar' ? 'التسليم' : 'Actions'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200">
@@ -3101,10 +3101,10 @@ export default function SettingsView({
                 </h4>
                 <form onSubmit={handleAddBranch} className="space-y-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                    <label htmlFor="ux-br-ibb" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                       {lang === 'ar' ? 'الرمز الكودي الموحد (مثال: BR-IBB)' : 'Unique Branch Code (e.g. BR-IBB)'}
                     </label>
-                    <input
+                    <input id="ux-br-ibb"
                       type="text"
                       required
                       placeholder="e.g. BR-MAREB"
@@ -3114,10 +3114,10 @@ export default function SettingsView({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                    <label htmlFor="ux-branch-name-arabic" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                       {lang === 'ar' ? 'اسم المكتب باللغة العربية' : 'Branch Name (Arabic)'}
                     </label>
-                    <input
+                    <input id="ux-branch-name-arabic"
                       type="text"
                       required
                       placeholder="فرع محافظة مأرب"
@@ -3127,10 +3127,10 @@ export default function SettingsView({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                    <label htmlFor="ux-branch-name-english" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                       {lang === 'ar' ? 'اسم المكتب باللغة الإنجليزية' : 'Branch Name (English)'}
                     </label>
-                    <input
+                    <input id="ux-branch-name-english"
                       type="text"
                       required
                       placeholder="Marib Governorate Branch"
@@ -3140,10 +3140,10 @@ export default function SettingsView({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                    <label htmlFor="ux-representative-manager" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                       {lang === 'ar' ? 'الممثل الميداني المسؤول / المدير' : 'Representative Manager'}
                     </label>
-                    <input
+                    <input id="ux-representative-manager"
                       type="text"
                       placeholder="أ.د. عبدالملك الصنعاني"
                       value={newBranchManager}
@@ -3250,10 +3250,10 @@ export default function SettingsView({
                       <form onSubmit={handleAddDbCategory} className="space-y-3">
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                            <label htmlFor="ux-blood-type" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                               {lang === 'ar' ? 'الكود الموحد (مثال: BLOOD_TYPE)' : 'Code Key (e.g. BLOOD)'}
                             </label>
-                            <input
+                            <input id="ux-blood-type"
                               type="text"
                               required
                               placeholder="e.g. GENDER"
@@ -3263,10 +3263,10 @@ export default function SettingsView({
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                            <label htmlFor="ux-arabic-name" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                               {lang === 'ar' ? 'البيان العربي' : 'Arabic Name'}
                             </label>
-                            <input
+                            <input id="ux-arabic-name"
                               type="text"
                               required
                               placeholder="فصيلة الدم"
@@ -3277,10 +3277,10 @@ export default function SettingsView({
                           </div>
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                          <label htmlFor="ux-english-name" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                             {lang === 'ar' ? 'الاسم الإنجليزي' : 'English Name'}
                           </label>
-                          <input
+                          <input id="ux-english-name"
                             type="text"
                             required
                             placeholder="Blood Group"
@@ -3290,10 +3290,10 @@ export default function SettingsView({
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                          <label htmlFor="ux-detailed-description" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                             {lang === 'ar' ? 'الوصف والتفاصيل' : 'Detailed Description'}
                           </label>
-                          <input
+                          <input id="ux-detailed-description"
                             type="text"
                             placeholder="توصيف الحقول المعتمدة للفصائل الطبية"
                             value={newDbCatDesc}
@@ -3339,11 +3339,11 @@ export default function SettingsView({
                                 <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
                                   <thead className="bg-slate-50/50 border-b border-slate-200 text-zinc-400 font-bold uppercase text-[9px]">
                                     <tr>
-                                      <th className="px-4 py-2">{lang === 'ar' ? 'رمز الكود' : 'Item Code'}</th>
-                                      <th className="px-4 py-2">{lang === 'ar' ? 'البيان العربي' : 'Arabic Name'}</th>
-                                      <th className="px-4 py-2">{lang === 'ar' ? 'English Name' : 'English Name'}</th>
-                                      <th className="px-4 py-2">{lang === 'ar' ? 'الوزن/القيمة الرقمية' : 'Value'}</th>
-                                      <th className="px-4 py-2 text-center">{lang === 'ar' ? 'إجراء' : 'Action'}</th>
+                                      <th scope="col" className="px-4 py-2">{lang === 'ar' ? 'رمز الكود' : 'Item Code'}</th>
+                                      <th scope="col" className="px-4 py-2">{lang === 'ar' ? 'البيان العربي' : 'Arabic Name'}</th>
+                                      <th scope="col" className="px-4 py-2">{lang === 'ar' ? 'English Name' : 'English Name'}</th>
+                                      <th scope="col" className="px-4 py-2">{lang === 'ar' ? 'الوزن/القيمة الرقمية' : 'Value'}</th>
+                                      <th scope="col" className="px-4 py-2 text-center">{lang === 'ar' ? 'إجراء' : 'Action'}</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-zinc-200">
@@ -3387,10 +3387,10 @@ export default function SettingsView({
                               </h4>
                               <form onSubmit={handleAddDbItem} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                                 <div>
-                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                                  <label htmlFor="ux-code-key" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                                     {lang === 'ar' ? 'رمز العنصر الكودي' : 'Code Key'}
                                   </label>
-                                  <input
+                                  <input id="ux-code-key"
                                     type="text"
                                     required
                                     placeholder="e.g. MALE / O_POS"
@@ -3400,10 +3400,10 @@ export default function SettingsView({
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                                  <label htmlFor="ux-arabic-name-48" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                                     {lang === 'ar' ? 'الاسم بالذكر العربي' : 'Arabic Name'}
                                   </label>
-                                  <input
+                                  <input id="ux-arabic-name-48"
                                     type="text"
                                     required
                                     placeholder="ذكر / موجب"
@@ -3413,10 +3413,10 @@ export default function SettingsView({
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                                  <label htmlFor="ux-english-name-49" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                                     {lang === 'ar' ? 'English Name' : 'English Name'}
                                   </label>
-                                  <input
+                                  <input id="ux-english-name-49"
                                     type="text"
                                     required
                                     placeholder="Male / O positive"
@@ -3481,10 +3481,10 @@ export default function SettingsView({
                     </h4>
                     <form onSubmit={handleAddCodingSystem} className="space-y-3">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                        <label htmlFor="ux-category-code-e-g-project-type" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                           {lang === 'ar' ? 'رمز الفئة (Category Code - e.g. PROJECT_TYPE)' : 'Category Code'}
                         </label>
-                        <input
+                        <input id="ux-category-code-e-g-project-type"
                           type="text"
                           required
                           placeholder="e.g. PROJECT_STAGE"
@@ -3494,10 +3494,10 @@ export default function SettingsView({
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                        <label htmlFor="ux-item-code-e-g-planning" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                           {lang === 'ar' ? 'رمز الكود الذاتي (Item Code - e.g. PLANNING)' : 'Item Code'}
                         </label>
-                        <input
+                        <input id="ux-item-code-e-g-planning"
                           type="text"
                           required
                           placeholder="e.g. SETUP"
@@ -3507,10 +3507,10 @@ export default function SettingsView({
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                        <label htmlFor="ux-arabic-name-52" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                           {lang === 'ar' ? 'الاسم بالذكر العربي' : 'Arabic Name'}
                         </label>
-                        <input
+                        <input id="ux-arabic-name-52"
                           type="text"
                           required
                           placeholder="مرحلة التجهيز والتحضير"
@@ -3520,10 +3520,10 @@ export default function SettingsView({
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                        <label htmlFor="ux-english-name-optional" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                           {lang === 'ar' ? 'الاسم بالذكر الإنجليزي (اختياري)' : 'English Name (Optional)'}
                         </label>
-                        <input
+                        <input id="ux-english-name-optional"
                           type="text"
                           placeholder="Setup Phase"
                           value={newCodeSysNameEn}
@@ -3533,10 +3533,10 @@ export default function SettingsView({
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                          <label htmlFor="ux-parent-code" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                             {lang === 'ar' ? 'رمز الأب (الموروث)' : 'Parent Code'}
                           </label>
-                          <input
+                          <input id="ux-parent-code"
                             type="text"
                             placeholder="e.g. INITIATION"
                             value={newCodeSysParentCode}
@@ -3545,10 +3545,10 @@ export default function SettingsView({
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                          <label htmlFor="ux-level" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                             {lang === 'ar' ? 'المستوى (Level)' : 'Level Depth'}
                           </label>
-                          <input
+                          <input id="ux-level"
                             type="number"
                             min="1"
                             value={newCodeSysLevel}
@@ -3586,12 +3586,12 @@ export default function SettingsView({
                       <table className="w-full text-xs text-right" style={lang === 'en' ? { textAlign: 'left' } : {}}>
                         <thead className="bg-slate-50/50 border-b border-slate-200 text-zinc-400 font-bold uppercase text-[9px]">
                           <tr>
-                            <th className="px-4 py-2.5">{lang === 'ar' ? 'تصنيف الترميز' : 'Category'}</th>
-                            <th className="px-4 py-2.5">{lang === 'ar' ? 'كود الكود' : 'Item Code'}</th>
-                            <th className="px-4 py-2.5">{lang === 'ar' ? 'الاسم بالذكر' : 'Name'}</th>
-                            <th className="px-4 py-2.5">{lang === 'ar' ? 'الأب الكودي' : 'Parent'}</th>
-                            <th className="px-4 py-2.5">{lang === 'ar' ? 'المستوى' : 'Lvl'}</th>
-                            <th className="px-4 py-2.5 text-center">{lang === 'ar' ? 'إجراء' : 'Action'}</th>
+                            <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'تصنيف الترميز' : 'Category'}</th>
+                            <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'كود الكود' : 'Item Code'}</th>
+                            <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'الاسم بالذكر' : 'Name'}</th>
+                            <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'الأب الكودي' : 'Parent'}</th>
+                            <th scope="col" className="px-4 py-2.5">{lang === 'ar' ? 'المستوى' : 'Lvl'}</th>
+                            <th scope="col" className="px-4 py-2.5 text-center">{lang === 'ar' ? 'إجراء' : 'Action'}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-200">

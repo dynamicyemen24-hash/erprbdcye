@@ -332,10 +332,10 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
         <table>
           <thead>
             <tr>
-              <th style="width: 25%;">محور بطاقة الأداء المتوازن</th>
-              <th style="width: 15%;">نسبة الإنجاز</th>
-              <th style="width: 20%;">الموازنة التقديرية المعتمدة</th>
-              <th style="width: 40%;">المؤشرات القياسية والتنفيذ الفعلي</th>
+              <th scope="col" style="width: 25%;">محور بطاقة الأداء المتوازن</th>
+              <th scope="col" style="width: 15%;">نسبة الإنجاز</th>
+              <th scope="col" style="width: 20%;">الموازنة التقديرية المعتمدة</th>
+              <th scope="col" style="width: 40%;">المؤشرات القياسية والتنفيذ الفعلي</th>
             </tr>
           </thead>
           <tbody>
@@ -347,11 +347,11 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
         <table>
           <thead>
             <tr>
-              <th style="width: 12%;">الرمز</th>
-              <th style="width: 44%;">الهدف الاستراتيجي المعتمد</th>
-              <th style="width: 16%;">الموازنة المخصصة</th>
-              <th style="width: 12%;">الإنجاز</th>
-              <th style="width: 16%;">المسؤول المباشر</th>
+              <th scope="col" style="width: 12%;">الرمز</th>
+              <th scope="col" style="width: 44%;">الهدف الاستراتيجي المعتمد</th>
+              <th scope="col" style="width: 16%;">الموازنة المخصصة</th>
+              <th scope="col" style="width: 12%;">الإنجاز</th>
+              <th scope="col" style="width: 16%;">المسؤول المباشر</th>
             </tr>
           </thead>
           <tbody>
@@ -415,8 +415,8 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              ${headers.map(h => `<th>${h}</th>`).join('')}
+              <th scope="col">#</th>
+              ${headers.map(h => `<th scope="col">${h}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
@@ -807,11 +807,11 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               <table className="w-full text-xs text-right border-collapse">
                 <thead>
                   <tr className="bg-slate-100 dark:bg-zinc-950 font-bold border-b border-slate-200 dark:border-zinc-800">
-                    <th className="p-2.5">الرمز</th>
-                    <th className="p-2.5">الهدف الاستراتيجي المعتمد</th>
-                    <th className="p-2.5">الموازنة المرصودة</th>
-                    <th className="p-2.5">نسبة الإنجاز</th>
-                    <th className="p-2.5">المسؤول المباشر</th>
+                    <th scope="col" className="p-2.5">الرمز</th>
+                    <th scope="col" className="p-2.5">الهدف الاستراتيجي المعتمد</th>
+                    <th scope="col" className="p-2.5">الموازنة المرصودة</th>
+                    <th scope="col" className="p-2.5">نسبة الإنجاز</th>
+                    <th scope="col" className="p-2.5">المسؤول المباشر</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -927,13 +927,13 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               <table className="w-full text-xs text-right border-collapse">
                 <thead>
                   <tr className="bg-slate-100 dark:bg-zinc-950 text-slate-700 dark:text-zinc-300 font-bold border-b border-slate-200 dark:border-zinc-800">
-                    <th className="p-2.5">الكود</th>
-                    <th className="p-2.5">الاسم</th>
-                    <th className="p-2.5">الموازنة</th>
-                    <th className="p-2.5">الإنجاز</th>
-                    <th className="p-2.5">المستفيدون</th>
-                    <th className="p-2.5">الحالة</th>
-                    <th className="p-2.5 text-center">إجراء</th>
+                    <th scope="col" className="p-2.5">الكود</th>
+                    <th scope="col" className="p-2.5">الاسم</th>
+                    <th scope="col" className="p-2.5">الموازنة</th>
+                    <th scope="col" className="p-2.5">الإنجاز</th>
+                    <th scope="col" className="p-2.5">المستفيدون</th>
+                    <th scope="col" className="p-2.5">الحالة</th>
+                    <th scope="col" className="p-2.5 text-center">إجراء</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
@@ -994,12 +994,12 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             <table className="w-full text-xs text-right border-collapse">
               <thead>
                 <tr className="bg-slate-100 dark:bg-zinc-950 font-bold border-b border-slate-200 dark:border-zinc-800">
-                  <th className="p-2.5">كود النشاط</th>
-                  <th className="p-2.5">اسم النشاط</th>
-                  <th className="p-2.5">الموقع</th>
-                  <th className="p-2.5">المستفيدين</th>
-                  <th className="p-2.5">الإنجاز</th>
-                  <th className="p-2.5">الحالة</th>
+                  <th scope="col" className="p-2.5">كود النشاط</th>
+                  <th scope="col" className="p-2.5">اسم النشاط</th>
+                  <th scope="col" className="p-2.5">الموقع</th>
+                  <th scope="col" className="p-2.5">المستفيدين</th>
+                  <th scope="col" className="p-2.5">الإنجاز</th>
+                  <th scope="col" className="p-2.5">الحالة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -1103,11 +1103,11 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             <table className="w-full text-xs text-right border-collapse">
               <thead>
                 <tr className="bg-slate-100 dark:bg-zinc-950 font-bold border-b border-slate-200 dark:border-zinc-800">
-                  <th className="p-2.5">الرقم التعريفي</th>
-                  <th className="p-2.5">الاسم / الكافل</th>
-                  <th className="p-2.5">المبلغ الشهري</th>
-                  <th className="p-2.5">النوع</th>
-                  <th className="p-2.5">الحالة</th>
+                  <th scope="col" className="p-2.5">الرقم التعريفي</th>
+                  <th scope="col" className="p-2.5">الاسم / الكافل</th>
+                  <th scope="col" className="p-2.5">المبلغ الشهري</th>
+                  <th scope="col" className="p-2.5">النوع</th>
+                  <th scope="col" className="p-2.5">الحالة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -1157,11 +1157,11 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             <table className="w-full text-xs text-right border-collapse">
               <thead>
                 <tr className="bg-slate-100 dark:bg-zinc-950 font-bold border-b border-slate-200 dark:border-zinc-800">
-                  <th className="p-2.5">رقم الحساب</th>
-                  <th className="p-2.5">اسم الحساب</th>
-                  <th className="p-2.5">النوع</th>
-                  <th className="p-2.5">الرصيد الفعلي</th>
-                  <th className="p-2.5">العملة</th>
+                  <th scope="col" className="p-2.5">رقم الحساب</th>
+                  <th scope="col" className="p-2.5">اسم الحساب</th>
+                  <th scope="col" className="p-2.5">النوع</th>
+                  <th scope="col" className="p-2.5">الرصيد الفعلي</th>
+                  <th scope="col" className="p-2.5">العملة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">

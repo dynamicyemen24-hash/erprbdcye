@@ -66,12 +66,12 @@ export default function HREmployee360View({
         <table className="w-full text-xs text-right rtl:text-right ltr:text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 dark:bg-zinc-950/60 text-slate-500 dark:text-zinc-400 border-b border-slate-200 dark:border-zinc-800">
-              <th className="p-3 font-bold">{isRtl ? 'الموظف / المتطوع' : 'Employee / Volunteer'}</th>
-              <th className="p-3 font-bold">{isRtl ? 'الإدارة والمنصب' : 'Department & Position'}</th>
-              <th className="p-3 font-bold">{isRtl ? 'تصنيف الفئة' : 'Category Tier'}</th>
-              <th className="p-3 font-bold">{isRtl ? 'الدرجة الوظيفية' : 'Grade'}</th>
-              <th className="p-3 font-bold">{isRtl ? 'الحالة' : 'Status'}</th>
-              <th className="p-3 font-bold text-center">{isRtl ? 'العقود والوثائق' : 'Contracts & Actions'}</th>
+              <th scope="col" className="p-3 font-bold">{isRtl ? 'الموظف / المتطوع' : 'Employee / Volunteer'}</th>
+              <th scope="col" className="p-3 font-bold">{isRtl ? 'الإدارة والمنصب' : 'Department & Position'}</th>
+              <th scope="col" className="p-3 font-bold">{isRtl ? 'تصنيف الفئة' : 'Category Tier'}</th>
+              <th scope="col" className="p-3 font-bold">{isRtl ? 'الدرجة الوظيفية' : 'Grade'}</th>
+              <th scope="col" className="p-3 font-bold">{isRtl ? 'الحالة' : 'Status'}</th>
+              <th scope="col" className="p-3 font-bold text-center">{isRtl ? 'العقود والوثائق' : 'Contracts & Actions'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">

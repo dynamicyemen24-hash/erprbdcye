@@ -421,6 +421,61 @@
   animation: glow-amber 2s ease-in-out infinite;
 }
 
+/* ─── Utilities That Were In Use But Never Defined ───────────────────────────
+   These five classes were applied in 11 places across the view layer while
+   having no rule anywhere in the project. The markup was correct, TypeScript
+   was satisfied, the build passed and every test was green — the elements just
+   never moved. That is the failure mode this block exists to close: a motion
+   class is a *runtime* claim about behaviour, and nothing but a stylesheet can
+   honour it.
+
+   Durations and easings match the surrounding vocabulary so the added motion
+   reads as part of the same system rather than as five new one-offs. */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+@keyframes pulse-slower {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+.animate-pulse-slower {
+  animation: pulse-slower 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes scale-up {
+  from { transform: scale(0.96); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.animate-scale-up {
+  animation: scale-up 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.animate-slide-down {
+  animation: slide-down 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slide-left {
+  from { transform: translateX(16px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.animate-slide-left {
+  animation: slide-left 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* ─── Reduced Motion Override ────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

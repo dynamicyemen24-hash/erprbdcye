@@ -9,6 +9,8 @@ import {
   Printer, Clock, Calculator, BarChart3,
 } from 'lucide-react';
 import { useEnterprise } from '../core/context/EnterpriseContext';
+import { usePermissions } from '../shared/permissions/usePermissions';
+import type { PermissionKey } from '../shared/permissions/permission-map';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { instantPrint } from '../core/export';
 
@@ -40,6 +42,8 @@ export interface SidebarDomainGroup {
     icon: any;
     badgeAr?: string;
     badgeEn?: string;
+    /** Shared permission matrix key — hidden when the session lacks it. */
+    perm?: PermissionKey;
   }[];
 }
 
@@ -58,6 +62,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
 }) => {
   const isRtl = lang === 'ar';
   const { activeRolePerspective, setActiveRolePerspective } = useEnterprise();
+  const { perms } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Key Operational Modules Organized in 6 Clean Suites
@@ -69,8 +74,8 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       items: [
         { tab: 'dashboard', domainCode: '', titleAr: 'لوحة القيادة الاستراتيجية', titleEn: 'Strategy Dashboard', icon: LayoutDashboard },
         { tab: 'workspaces', domainCode: '', titleAr: 'مساحات عمل الوحدات التشغيلية', titleEn: 'Institutional Workspaces', icon: Briefcase, badgeAr: 'أدوار', badgeEn: 'Roles' },
-        { tab: 'strategic_planning', domainCode: '', titleAr: 'التخطيط الاستراتيجي والأداء', titleEn: 'Strategic Planning', icon: Activity, badgeAr: 'خطة', badgeEn: 'Plan' },
-        { tab: 'investments', domainCode: '', titleAr: 'المشاريع الاستثمارية والأوقاف', titleEn: 'Investment & Endowments', icon: TrendingUp },
+        { tab: 'strategic_planning', domainCode: '', titleAr: 'التخطيط الاستراتيجي والأداء', titleEn: 'Strategic Planning', icon: Activity, badgeAr: 'خطة', badgeEn: 'Plan', perm: 'strategy:read' },
+        { tab: 'investments', domainCode: '', titleAr: 'المشاريع الاستثمارية والأوقاف', titleEn: 'Investment & Endowments', icon: TrendingUp, perm: 'finance:read' },
         { tab: 'business_intelligence', domainCode: 'NEB-13', titleAr: 'ذكاء الأعمال والتحليلات', titleEn: 'Business Intelligence', icon: BarChart3, badgeAr: 'BI', badgeEn: 'BI' },
       ]
     },
@@ -101,10 +106,10 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       titleAr: 'المالية والحسابات',
       titleEn: 'Finance & Accounts',
       items: [
-        { tab: 'finance', domainCode: '', titleAr: 'النظام المالي والقيود المحاسبية', titleEn: 'Financial Ledger', icon: Coins },
-        { tab: 'sales', domainCode: '', titleAr: 'المبيعات والإيرادات والتبرعات', titleEn: 'Sales & Revenue', icon: Receipt },
-        { tab: 'approvals', domainCode: '', titleAr: 'الموافقات والاعتمادات', titleEn: 'Approval Requests', icon: ShieldCheck },
-        { tab: 'currencies', domainCode: '', titleAr: 'أسعار وصرف العملات', titleEn: 'Currencies & FX', icon: Coins },
+        { tab: 'finance', domainCode: '', titleAr: 'النظام المالي والقيود المحاسبية', titleEn: 'Financial Ledger', icon: Coins, perm: 'finance:read' },
+        { tab: 'sales', domainCode: '', titleAr: 'المبيعات والإيرادات والتبرعات', titleEn: 'Sales & Revenue', icon: Receipt, perm: 'finance:read' },
+        { tab: 'approvals', domainCode: '', titleAr: 'الموافقات والاعتمادات', titleEn: 'Approval Requests', icon: ShieldCheck, perm: 'approvals:read' },
+        { tab: 'currencies', domainCode: '', titleAr: 'أسعار وصرف العملات', titleEn: 'Currencies & FX', icon: Coins, perm: 'master:read' },
       ]
     },
     {
@@ -112,12 +117,12 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       titleAr: 'الموارد والمشتريات',
       titleEn: 'Resources & Procurement',
       items: [
-        { tab: 'procurement', domainCode: '', titleAr: 'المشتريات والمناقصات (P2P)', titleEn: 'Procurement & Tenders', icon: ShoppingCart, badgeAr: 'P2P', badgeEn: 'P2P' },
-        { tab: 'inventory', domainCode: '', titleAr: 'إدارة المخازن والمواد', titleEn: 'Inventory Management', icon: Box },
-        { tab: 'contracts', domainCode: '', titleAr: 'عقود الموردين والمشتريات', titleEn: 'Vendor Contracts', icon: FileCheck },
-        { tab: 'allocations', domainCode: '', titleAr: 'تخطيط وتوزيع الكادر', titleEn: 'Resource Allocation', icon: Calendar },
-        { tab: 'hr_dashboard', domainCode: '', titleAr: 'الموارد البشرية والكادر', titleEn: 'HR Management', icon: User },
-        { tab: 'third-party-network', domainCode: '', titleAr: 'شبكة الشركاء والتجار', titleEn: 'Third-Party Network', icon: ShieldCheck }
+        { tab: 'procurement', domainCode: '', titleAr: 'المشتريات والمناقصات (P2P)', titleEn: 'Procurement & Tenders', icon: ShoppingCart, badgeAr: 'P2P', badgeEn: 'P2P', perm: 'procurement:read' },
+        { tab: 'inventory', domainCode: '', titleAr: 'إدارة المخازن والمواد', titleEn: 'Inventory Management', icon: Box, perm: 'inventory:read' },
+        { tab: 'contracts', domainCode: '', titleAr: 'عقود الموردين والمشتريات', titleEn: 'Vendor Contracts', icon: FileCheck, perm: 'procurement:read' },
+        { tab: 'allocations', domainCode: '', titleAr: 'تخطيط وتوزيع الكادر', titleEn: 'Resource Allocation', icon: Calendar, perm: 'hr:read' },
+        { tab: 'hr_dashboard', domainCode: '', titleAr: 'الموارد البشرية والكادر', titleEn: 'HR Management', icon: User, perm: 'hr:read' },
+        { tab: 'third-party-network', domainCode: '', titleAr: 'شبكة الشركاء والتجار', titleEn: 'Third-Party Network', icon: ShieldCheck, perm: 'procurement:read' }
       ]
     },
     {
@@ -125,13 +130,13 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       titleAr: 'الإدارة والنظام',
       titleEn: 'Admin & System',
       items: [
-        { tab: 'users', domainCode: '', titleAr: 'المستخدمون والصلاحيات', titleEn: 'User Management', icon: Users },
-        { tab: 'reports', domainCode: '', titleAr: 'التقارير والمؤشرات المعتمدة', titleEn: 'Certified Reports', icon: TrendingUp },
-        { tab: 'communications', domainCode: 'NEB-11', titleAr: 'الاتصال الإداري الذكي', titleEn: 'Intelligent Communications', icon: FileText, badgeAr: '12', badgeEn: 'Comms' },
-        { tab: 'control_panel', domainCode: '', titleAr: 'لوحة التحكم والعمليات', titleEn: 'Control Console', icon: Sliders },
-        { tab: 'settings', domainCode: '', titleAr: 'إعدادات المؤسسة', titleEn: 'System Settings', icon: Settings },
-        { tab: 'backup', domainCode: '', titleAr: 'النسخ الاحتياطي والأرشفة', titleEn: 'Backup & Recovery', icon: Database },
-        { tab: 'audit', domainCode: '', titleAr: 'سجل التدقيق الداخلي', titleEn: 'Audit Logs', icon: Database },
+        { tab: 'users', domainCode: '', titleAr: 'المستخدمون والصلاحيات', titleEn: 'User Management', icon: Users, perm: 'users:read' },
+        { tab: 'reports', domainCode: '', titleAr: 'التقارير والمؤشرات المعتمدة', titleEn: 'Certified Reports', icon: TrendingUp, perm: 'reports:read' },
+        { tab: 'communications', domainCode: 'NEB-11', titleAr: 'الاتصال الإداري الذكي', titleEn: 'Intelligent Communications', icon: FileText, badgeAr: '12', badgeEn: 'Comms', perm: 'communications:read' },
+        { tab: 'control_panel', domainCode: '', titleAr: 'لوحة التحكم والعمليات', titleEn: 'Control Console', icon: Sliders, perm: 'settings:read' },
+        { tab: 'settings', domainCode: '', titleAr: 'إعدادات المؤسسة', titleEn: 'System Settings', icon: Settings, perm: 'settings:read' },
+        { tab: 'backup', domainCode: '', titleAr: 'النسخ الاحتياطي والأرشفة', titleEn: 'Backup & Recovery', icon: Database, perm: 'settings:read' },
+        { tab: 'audit', domainCode: '', titleAr: 'سجل التدقيق الداخلي', titleEn: 'Audit Logs', icon: Database, perm: 'audit:read' },
         { tab: 'docs', domainCode: '', titleAr: 'دليل النظام والسياسات', titleEn: 'Knowledge & Policies', icon: BookOpen },
       ]
     }
@@ -153,6 +158,9 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
         // Apply RBAC filtering if allowed list exists
         if (allowed && !allowed.includes(item.tab)) return false;
 
+        // Real permission matrix (role + clearance) — hides screens the API would 403
+        if (item.perm && !perms.has(item.perm)) return false;
+
         // Apply Search query filtering
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
@@ -160,7 +168,7 @@ export const UnifiedLeftSidebar: React.FC<UnifiedLeftSidebarProps> = ({
       });
       return { ...group, items: matchedItems };
     }).filter(group => group.items.length > 0);
-  }, [domainGroups, searchQuery, activeRolePerspective]);
+  }, [domainGroups, searchQuery, activeRolePerspective, perms]);
 
   return (
     <aside 

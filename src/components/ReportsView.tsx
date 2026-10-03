@@ -6,6 +6,15 @@ import {
   DollarSign, Users, Target, Activity, Layers, Globe
 } from 'lucide-react';
 import { EnterpriseButton } from './common/EnterpriseButton';
+import InstitutionalReportHeader, { type InstitutionalHeaderData } from './InstitutionalReportHeader';
+import { InstitutionalReportViewer } from './InstitutionalReportViewer';
+import {
+  useConsolidatedKpis,
+  useExecutiveBrief,
+  mapConsolidatedToKpiCards,
+  buildLiveReportCards,
+  type DataSource,
+} from '../shared/hooks/useInstitutionalReports';
 
 type ReportLang = 'ar' | 'en';
 
@@ -70,12 +79,50 @@ const generateKPIs = (lang: ReportLang): KPICard[] => [
   { label_ar: 'معدل الالتزام', label_en: 'Compliance Rate', value: '98%', change: 0.5, icon: CheckCircle2, color: 'text-cyan-500', bgColor: 'bg-cyan-500/10' },
 ];
 
-export function ReportsView({ lang = 'en' }: { lang?: ReportLang }) {
+export interface ReportsViewProps {
+  lang?: ReportLang;
+  programs?: unknown[];
+  projects?: Array<{ progress_percent?: number; status_code?: string }>;
+  beneficiaries?: unknown[];
+  sponsorships?: unknown[];
+  currencies?: unknown[];
+  activities?: unknown[];
+  organizations?: unknown[];
+  onNavigate?: (tab: string) => void;
+}
+
+export function ReportsView({ lang = 'en', projects = [], beneficiaries = [] }: ReportsViewProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
+  const liveKpis = useConsolidatedKpis();
+  const brief = useExecutiveBrief();
 
-  const reports = useMemo(() => generateMockReports(), []);
-  const kpis = useMemo(() => generateKPIs(lang), [lang]);
+  const reports = useMemo(() => {
+    if (liveKpis.data || brief.data) return buildLiveReportCards(brief.data);
+    return generateMockReports();
+  }, [liveKpis.data, brief.data]);
+
+  const kpis = useMemo(() => {
+    if (liveKpis.data) return mapConsolidatedToKpiCards(liveKpis.data);
+    const fallback = generateKPIs(lang);
+    if (projects.length > 0) {
+      const active = projects.filter((p) => p?.status_code === 'ACTIVE').length;
+      fallback[2] = { ...fallback[2], value: String(active || projects.length) };
+    }
+    if (beneficiaries.length > 0) {
+      fallback[1] = { ...fallback[1], value: String(beneficiaries.length) };
+    }
+    return fallback;
+  }, [lang, liveKpis.data, projects, beneficiaries]);
+
+  const dataSource: DataSource = liveKpis.data || brief.data ? 'live' : 'fallback';
+  const liveLoading = liveKpis.loading || brief.loading;
+  const liveError = liveKpis.error ?? brief.error;
+  const retryLive = () => {
+    liveKpis.retry();
+    brief.retry();
+  };
 
   const filteredReports = useMemo(() => {
     let result = reports;
@@ -98,6 +145,18 @@ export function ReportsView({ lang = 'en' }: { lang?: ReportLang }) {
               {t('التقارير والتحليلات', 'Reports & Analytics', lang)}
             </h1>
             <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">{t(`${filteredReports.length} تقرير متاح`, `${filteredReports.length} reports available`, lang)}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${dataSource === 'live' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${dataSource === 'live' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                {dataSource === 'live' ? t('بيانات مباشرة', 'Live data', lang) : t('وضع محلي', 'Local mode', lang)}
+              </span>
+              {liveLoading && <span className="text-[10px] text-slate-400">{t('جارٍ المزامنة...', 'Syncing...', lang)}</span>}
+              {liveError && !liveLoading && (
+                <button onClick={retryLive} className="text-[10px] font-bold text-blue-500 hover:underline">
+                  {t('إعادة المحاولة', 'Retry', lang)}
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <EnterpriseButton variant="ghost" size="sm" icon={<RefreshCw className="w-4 h-4" />}>{t('تحديث', 'Refresh', lang)}</EnterpriseButton>
@@ -105,6 +164,16 @@ export function ReportsView({ lang = 'en' }: { lang?: ReportLang }) {
             <EnterpriseButton variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>{t('تقرير جديد', 'New Report', lang)}</EnterpriseButton>
           </div>
         </div>
+
+        {/* Institutional letterhead — live tenant header when the API is reachable */}
+        {brief.data?.header ? (
+          <InstitutionalReportHeader
+            title={t('التقارير والتحليلات', 'Reports & Analytics', lang)}
+            lang={lang}
+            dir={lang === 'ar' ? 'rtl' : 'ltr'}
+            header={brief.data.header as InstitutionalHeaderData}
+          />
+        ) : null}
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -191,7 +260,12 @@ export function ReportsView({ lang = 'en' }: { lang?: ReportLang }) {
                   <span>{report.frequency}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-3">
-                  <EnterpriseButton variant="ghost" size="sm" icon={<Eye className="w-4 h-4" />} className="flex-1">{t('عرض', 'View', lang)}</EnterpriseButton>
+                  <EnterpriseButton
+                    variant="ghost" size="sm" icon={<Eye className="w-4 h-4" />} className="flex-1"
+                    onClick={() => {
+                      if ('endpoint' in report && typeof report.endpoint === 'string') setSelectedEndpoint(report.endpoint);
+                    }}
+                  >{t('عرض', 'View', lang)}</EnterpriseButton>
                   <EnterpriseButton variant="primary" size="sm" icon={<Download className="w-4 h-4" />} className="flex-1">{t('تحميل', 'Download', lang)}</EnterpriseButton>
                 </div>
               </div>
@@ -199,6 +273,9 @@ export function ReportsView({ lang = 'en' }: { lang?: ReportLang }) {
           })}
         </div>
       </div>
+      {selectedEndpoint && (
+        <InstitutionalReportViewer endpoint={selectedEndpoint} lang={lang} onClose={() => setSelectedEndpoint(null)} />
+      )}
     </div>
   );
 }

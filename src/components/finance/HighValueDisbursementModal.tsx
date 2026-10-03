@@ -60,7 +60,7 @@ export const HighValueDisbursementModal: React.FC<HighValueDisbursementModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-dialog flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
       <div 
         className="w-full max-w-xl bg-white dark:bg-zinc-900 border border-amber-500/40 dark:border-amber-500/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
         dir={isRtl ? 'rtl' : 'ltr'}
@@ -145,10 +145,10 @@ export const HighValueDisbursementModal: React.FC<HighValueDisbursementModalProp
           {/* Authorization Input Fields */}
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
+              <label htmlFor="ux-executive-sign-off-justification" className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1">
                 {isRtl ? 'مبرر الصرف الاستثنائي ومحضر الاعتماد' : 'Executive Sign-off Justification'}
               </label>
-              <textarea 
+              <textarea id="ux-executive-sign-off-justification" 
                 rows={2}
                 value={authReason}
                 onChange={(e) => setAuthReason(e.target.value)}

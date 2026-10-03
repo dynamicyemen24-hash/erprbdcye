@@ -303,11 +303,11 @@ export default function NotificationCenter({
       {isOpen && (
         <>
           <div 
-            className="fixed inset-0 z-[999] cursor-default" 
+            className="fixed inset-0 z-popover cursor-default" 
             onClick={() => setIsOpen(false)}
           />
           
-          <div className="absolute top-12 left-0 rtl:left-auto rtl:right-0 w-80 sm:w-96 bg-white dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-2xl z-[1000] overflow-hidden font-sans">
+          <div className="absolute top-12 left-0 rtl:left-auto rtl:right-0 w-80 sm:w-96 bg-white dark:bg-zinc-950 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-2xl z-popover overflow-hidden font-sans">
             
             {/* Header */}
             <div className="px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white flex items-center justify-between">

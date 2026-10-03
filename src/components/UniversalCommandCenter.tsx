@@ -792,7 +792,7 @@ export const UniversalCommandCenter: React.FC<UniversalCommandCenterProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md flex items-start justify-center pt-12 sm:pt-20 p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-command bg-slate-950/80 backdrop-blur-md flex items-start justify-center pt-12 sm:pt-20 p-4 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div 

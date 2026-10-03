@@ -82,7 +82,19 @@ export { ProgressRing, type ProgressRingProps, type ProgressRingSize, type Progr
 export { Skeleton, SkeletonCard, SkeletonTable, SkeletonKPI, SkeletonChart, type SkeletonProps, type SkeletonVariant, type SkeletonShape } from './components/Skeleton';
 
 // ─── Enterprise Display ─────────────────────────────────────
-export { EnterpriseCard, EnterpriseStat, type EnterpriseCardProps, type CardVariant, type CardPadding, type EnterpriseStatProps } from './components/EnterpriseCard';
+export {
+  EnterpriseCard,
+  EnterpriseStat,
+  type EnterpriseCardProps,
+  // Aliased: both this component and the canonical `Card` define a
+  // CardVariant/CardPadding pair. Exporting them under the same name would be
+  // a duplicate identifier. No consumer outside the design system imports
+  // either name, so the alias documents which type belongs to which card
+  // without breaking any call site.
+  type CardVariant as EnterpriseCardVariant,
+  type CardPadding as EnterpriseCardPadding,
+  type EnterpriseStatProps,
+} from './components/EnterpriseCard';
 export { EnterpriseTabs, TabPanel, type EnterpriseTabsProps, type Tab, type TabPanelProps } from './components/EnterpriseTabs';
 export { EnterpriseAlert, type EnterpriseAlertProps, type AlertType } from './components/EnterpriseAlert';
 
@@ -92,6 +104,32 @@ export { MobileLayout, type MobileLayoutProps, type MobileTab } from './componen
 export { PrintLayout, type PrintLayoutProps } from './components/PrintLayout';
 
 // ─── Form Primitives ───────────────────────────────────────
+// ─── Actions ────────────────────────────────────────────────
+export {
+  Button,
+  type ButtonProps,
+  type ButtonVariant,
+  type ButtonSize,
+} from './components/Button';
+
+// ─── Status & Messaging ──────────────────────────────────────
+export { Badge, type BadgeProps, type BadgeVariant, type BadgeSize } from './components/Badge';
+export { Alert, type AlertProps, type AlertVariant } from './components/Alert';
+export {
+  VisuallyHidden,
+  SkipLink,
+  type VisuallyHiddenProps,
+} from './components/VisuallyHidden';
+
+export {
+  Card,
+  CardTitle,
+  CardDivider,
+  type CardProps,
+  type CardVariant,
+  type CardPadding,
+} from './components/Card';
+
 export { FormField, type FormFieldProps } from './components/form/FormField';
 export { Input, PasswordInput, type InputProps, type InputSize, type InputVariant, type PasswordInputProps } from './components/form/Input';
 export { Textarea, type TextareaProps, type TextareaSize } from './components/form/Textarea';
