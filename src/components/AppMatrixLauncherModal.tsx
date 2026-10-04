@@ -283,7 +283,7 @@ export default function AppMatrixLauncherModal({
       subtitle_ar: 'سلسلة الاعتماد والطلبات المعلقة',
       subtitle_en: 'Pending approvals & sign-off queue',
       tab: 'approvals' as TabId,
-      stat: `${counts?.pendingApprovals || 2} ${lang === 'ar' ? 'طلبات' : 'Pending'}`
+      stat: `${counts?.pendingApprovals ?? '—'} ${lang === 'ar' ? 'طلبات' : 'Pending'}`
     },
     {
       code: 'CONTROL_PANEL',

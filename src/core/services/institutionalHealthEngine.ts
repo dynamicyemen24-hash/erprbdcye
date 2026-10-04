@@ -196,7 +196,7 @@ export class InstitutionalHealthEngine {
     });
 
     // 4. Beneficiary & Sphere Standard Reach Health
-    const benCount = beneficiaries.length || stats?.beneficiariesCount || 418;
+    const benCount = beneficiaries.length || stats?.beneficiariesCount || 0;
     const targetBen = 500;
     const benReachPercent = Math.min(100, Math.round((benCount / targetBen) * 100));
 

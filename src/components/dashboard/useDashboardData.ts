@@ -106,44 +106,42 @@ export function useDashboardData({
     const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthNamesAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
-    const totalBeneficiaries = beneficiaries.length || parseInt(stats?.counts?.beneficiaries || stats?.executive?.total_beneficiaries || '418', 10);
-    
-    // Group existing beneficiaries by month
-    const countsByMonth: { [key: number]: number } = {};
-    for (let m = 0; m < 12; m++) countsByMonth[m] = 0;
+    const totalBeneficiaries = beneficiaries.length || parseInt(stats?.counts?.beneficiaries ?? stats?.executive?.total_beneficiaries ?? '0', 10);
+
+    // Real registrations grouped by year-month — never synthesized.
+    const countsByKey: { [key: string]: number } = {};
+    const keyOf = (d: Date) => `${d.getFullYear()}-${d.getMonth()}`;
 
     beneficiaries.forEach(b => {
       if (b.created_at) {
         const d = new Date(b.created_at);
         if (!isNaN(d.getTime())) {
-          countsByMonth[d.getMonth()] = (countsByMonth[d.getMonth()] || 0) + 1;
+          countsByKey[keyOf(d)] = (countsByKey[keyOf(d)] || 0) + 1;
         }
       }
     });
 
     // Build rolling 12 months sequence ending at current month
-    const currentMonthIdx = new Date().getMonth();
-    const sequence: { monthIndex: number; monthEn: string; monthAr: string }[] = [];
+    const now = new Date();
+    const sequence: { key: string; monthEn: string; monthAr: string }[] = [];
     for (let i = 11; i >= 0; i--) {
-      const idx = (currentMonthIdx - i + 12) % 12;
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const idx = d.getMonth();
       sequence.push({
-        monthIndex: idx,
+        key: `${d.getFullYear()}-${idx}`,
         monthEn: monthNamesEn[idx],
         monthAr: monthNamesAr[idx]
       });
     }
 
-    // Cumulative progression leading up to totalBeneficiaries
-    let cumulative = Math.max(10, Math.round(totalBeneficiaries * 0.35));
-    const step = Math.max(1, Math.round((totalBeneficiaries - cumulative) / 12));
+    // Cumulative starts from records created before the window, then adds the
+    // actual per-month registrations — no fabricated growth steps.
+    const windowCount = sequence.reduce((sum, item) => sum + (countsByKey[item.key] || 0), 0);
+    let cumulative = Math.max(0, totalBeneficiaries - windowCount);
 
-    return sequence.map((item, idx) => {
-      const realAdded = countsByMonth[item.monthIndex] || 0;
-      const added = realAdded > 0 ? realAdded : Math.round(step * (0.7 + (idx * 0.05)));
+    return sequence.map((item) => {
+      const added = countsByKey[item.key] || 0;
       cumulative += added;
-      if (idx === sequence.length - 1) {
-        cumulative = Math.max(cumulative, totalBeneficiaries);
-      }
       return {
         month: lang === 'ar' ? item.monthAr : item.monthEn,
         cases: cumulative,
@@ -161,19 +159,14 @@ export function useDashboardData({
     ];
 
     if (!programs || programs.length === 0) {
-      return [
-        { name: lang === 'ar' ? 'كفالة الأيتام' : 'Orphan Sponsorship', value: 8000000, color: '#059669', code: 'ORPHAN' },
-        { name: lang === 'ar' ? 'الإغاثة الإنسانية' : 'Humanitarian Relief', value: 7500000, color: '#d97706', code: 'PROG-HUMANITARIAN' },
-        { name: lang === 'ar' ? 'الأمن الغذائي' : 'Food Security', value: 6000000, color: '#0d9488', code: 'FOOD' },
-        { name: lang === 'ar' ? 'السقيا والمياه' : 'WASH & Wells', value: 3500000, color: '#10b981', code: 'WATER' }
-      ];
+      return [];
     }
 
     return programs.map((prog, index) => {
       const budgetVal = parseFloat(prog.budget || '0');
       return {
         name: lang === 'ar' ? (prog.name_ar || prog.name_en || prog.code) : (prog.name_en || prog.name_ar || prog.code),
-        value: budgetVal > 0 ? budgetVal : 3000000,
+        value: budgetVal > 0 ? budgetVal : 0,
         color: brandPalette[index % brandPalette.length],
         code: prog.code
       };
@@ -187,13 +180,9 @@ export function useDashboardData({
     return programs.slice(0, 8).map(prog => {
       const progBudget = parseFloat(prog.budget || '0');
       const linkedProjects = (projects || []).filter(proj => proj.program_id === prog.id);
-      let projectsBudgetSum = linkedProjects.reduce((sum, proj) => sum + parseFloat(proj.budget || '0'), 0);
+      const projectsBudgetSum = linkedProjects.reduce((sum, proj) => sum + parseFloat(proj.budget || '0'), 0);
 
-      if (projectsBudgetSum === 0) {
-        projectsBudgetSum = Math.round(progBudget * 0.75);
-      }
-
-      const rawName = lang === 'ar' ? (prog.name_ar || prog.code) : (prog.name_en || prog.code);
+      const rawName = (lang === 'ar' ? (prog.name_ar || prog.code) : (prog.name_en || prog.code)) || '—';
       const displayName = rawName.length > 22 ? rawName.substring(0, 20) + '...' : rawName;
 
       return {
@@ -206,7 +195,7 @@ export function useDashboardData({
 
   // --- REAL-TIME KPI COMPUTATIONS ---
   const activeProgramsCount = React.useMemo(() => {
-    return (programs || []).filter((p: any) => p.status_code === 'active' || p.status === 'active' || !p.status_code).length || (programs || []).length || 10;
+    return (programs || []).filter((p: any) => p.status_code === 'active' || p.status === 'active' || !p.status_code).length;
   }, [programs]);
 
   const pendingApprovalsList = React.useMemo(() => {
@@ -223,7 +212,7 @@ export function useDashboardData({
   }, [pendingApprovalsList]);
 
   const monthlyBeneficiaryReach = React.useMemo(() => {
-    return beneficiaries.length || parseInt(stats?.counts?.beneficiaries || stats?.executive?.total_beneficiaries || '418', 10);
+    return beneficiaries.length || parseInt(stats?.counts?.beneficiaries ?? stats?.executive?.total_beneficiaries ?? '0', 10);
   }, [stats, beneficiaries]);
 
   const budgetUtilization = React.useMemo(() => {
@@ -232,16 +221,20 @@ export function useDashboardData({
     if (totalProgBudget > 0 && totalActualBudget > 0) {
       return Math.min(100, Math.round((totalActualBudget / totalProgBudget) * 100));
     }
-    return 76.8;
+    // No verifiable budget data — report unknown instead of a made-up ratio.
+    return null;
   }, [programs]);
 
   const totalProjBudget = React.useMemo(() => {
     const sumProj = (projects || []).reduce((sum: number, p: any) => sum + parseFloat(p.budget || '0'), 0);
     const sumProg = (programs || []).reduce((sum: number, p: any) => sum + parseFloat(p.budget || '0'), 0);
-    return sumProj > 0 ? sumProj : (sumProg > 0 ? sumProg : (stats?.financials?.totalProgramBudget || 45000000));
+    return sumProj > 0 ? sumProj : (sumProg > 0 ? sumProg : (Number(stats?.financials?.totalProgramBudget) || 0));
   }, [projects, programs, stats]);
 
   // --- REAL-TIME DYNAMIC ENTERPRISE HEALTH METRICS ---
+  // Every score is computed only from live records. When the underlying
+  // records are missing the score is null ("no verified data") — never a
+  // flattering hardcoded number.
   const healthMetrics = React.useMemo(() => {
     const progCount = (programs || []).length;
     const projCount = (projects || []).length;
@@ -251,60 +244,65 @@ export function useDashboardData({
     // 1. Strategic Progress: Average progress across live programs & projects
     const avgProgProgress = progCount > 0
       ? Math.round(programs.reduce((sum, p) => sum + parseFloat(p.progress_percent || '0'), 0) / progCount)
-      : 80;
+      : null;
     const avgProjectProgress = projCount > 0
       ? Math.round(projects.reduce((sum, p) => sum + parseFloat(p.progress_percent || '0'), 0) / projCount)
-      : 75;
-    const strategicScore = Math.round((avgProgProgress * 0.6) + (avgProjectProgress * 0.4));
+      : null;
+    const strategicScore = avgProgProgress !== null && avgProjectProgress !== null
+      ? Math.round((avgProgProgress * 0.6) + (avgProjectProgress * 0.4))
+      : null;
 
     // 2. Operational Health: Ratio of active and progressing projects
-    const activeProjects = projCount > 0
-      ? projects.filter(p => (parseFloat(p.progress_percent || '0') >= 20) || p.status_code === 'active' || p.status_code === 'ACTIVE').length
-      : 1;
-    const operationalScore = projCount > 0 ? Math.min(100, Math.max(65, Math.round((activeProjects / projCount) * 100))) : 88;
+    const operationalScore = projCount > 0
+      ? Math.min(100, Math.max(65, Math.round((projects.filter(p => (parseFloat(p.progress_percent || '0') >= 20) || p.status_code === 'active' || p.status_code === 'ACTIVE').length / projCount) * 100)))
+      : null;
 
     // 3. Financial Efficiency: Derived from budget balance and utilization
-    const financialScore = Math.min(100, Math.max(70, Math.round(100 - Math.abs(budgetUtilization - 80) * 0.8)));
+    const financialScore = budgetUtilization !== null
+      ? Math.min(100, Math.max(70, Math.round(100 - Math.abs(budgetUtilization - 80) * 0.8)))
+      : null;
 
     // 4. Risk & Readiness: Low risk projects proportion
-    const lowRiskProjects = projCount > 0
-      ? projects.filter(p => p.risk_level !== 'HIGH' && p.risk_level !== 'CRITICAL').length
-      : 1;
-    const riskScore = projCount > 0 ? Math.min(100, Math.max(60, Math.round((lowRiskProjects / projCount) * 100))) : 88;
+    const riskScore = projCount > 0
+      ? Math.min(100, Math.max(60, Math.round((projects.filter(p => p.risk_level !== 'HIGH' && p.risk_level !== 'CRITICAL').length / projCount) * 100)))
+      : null;
 
     // 5. Compliance & Approvals
-    const resolvedApprovals = apprCount > 0
-      ? approvalRequests.filter(r => r.status === 'approved').length
-      : 1;
-    const complianceScore = apprCount > 0 ? Math.min(100, Math.max(75, Math.round((resolvedApprovals / apprCount) * 100))) : 95;
+    const complianceScore = apprCount > 0
+      ? Math.min(100, Math.max(75, Math.round((approvalRequests.filter(r => r.status === 'approved').length / apprCount) * 100)))
+      : null;
 
-    // 6. Impact Index
-    const impactScore = benCount > 0 ? Math.min(100, Math.max(70, Math.round((benCount / 400) * 100))) : 89;
+    // 6. Impact Index (400 = institutional reach target, a KPI goal not a fact)
+    const impactScore = benCount > 0 ? Math.min(100, Math.max(70, Math.round((benCount / 400) * 100))) : null;
 
-    // 7. Data Quality & Trust: Sourced from Neon DB Live Tables
-    const dataScore = 98;
+    // 7. Data Quality & Trust: no verified source in this dataset yet
+    const dataScore = null;
 
-    // Weighted Overall Score
-    const overallScore = Math.round(
-      (strategicScore * 0.20) +
-      (operationalScore * 0.15) +
-      (financialScore * 0.20) +
-      (riskScore * 0.15) +
-      (complianceScore * 0.10) +
-      (impactScore * 0.10) +
-      (dataScore * 0.10)
-    );
+    const parts = [strategicScore, operationalScore, financialScore, riskScore, complianceScore, impactScore, dataScore];
+    const overallScore = parts.every(v => v !== null)
+      ? Math.min(100, Math.max(50, Math.round(
+          (strategicScore as number * 0.20) +
+          (operationalScore as number * 0.15) +
+          (financialScore as number * 0.20) +
+          (riskScore as number * 0.15) +
+          (complianceScore as number * 0.10) +
+          (impactScore as number * 0.10) +
+          (dataScore as number * 0.10)
+        )))
+      : null;
 
     return {
-      overallScore: Math.min(100, Math.max(50, overallScore)),
-      strategic: Math.min(100, Math.max(50, strategicScore)),
+      overallScore,
+      strategic: strategicScore !== null ? Math.min(100, Math.max(50, strategicScore)) : null,
       operational: operationalScore,
       financial: financialScore,
       risk: riskScore,
       compliance: complianceScore,
       impact: impactScore,
       data: dataScore,
-      strategicAlignment: Math.min(100, Math.max(60, Math.round((strategicScore + operationalScore) / 2))),
+      strategicAlignment: strategicScore !== null && operationalScore !== null
+        ? Math.min(100, Math.max(60, Math.round((strategicScore + operationalScore) / 2)))
+        : null,
       dataConfidence: dataScore
     };
   }, [programs, projects, beneficiaries, approvalRequests, budgetUtilization]);

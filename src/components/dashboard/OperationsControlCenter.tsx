@@ -10,6 +10,7 @@ interface OperationsControlCenterProps {
   counts?: {
     programs?: number;
     projects?: number;
+    activities?: number;
     beneficiaries?: number;
     sponsorships?: number;
   };
@@ -22,16 +23,16 @@ export function OperationsControlCenter({ lang, onNavigate, counts }: Operations
       domains: [
         { label: lang === 'ar' ? 'الأهداف والمؤشرات' : 'Goals & KPIs', icon: Target, tab: 'strategic_planning' },
         { label: lang === 'ar' ? 'المشاريع الاستثمارية' : 'Endowments', icon: LayoutDashboard, tab: 'investments' },
-        { label: lang === 'ar' ? 'البرامج التنموية' : 'Development Programs', icon: BarChart3, tab: 'programs', badge: counts?.programs || 10 },
-        { label: lang === 'ar' ? 'المشاريع الميدانية' : 'Field Projects', icon: Briefcase, tab: 'projects', badge: counts?.projects || 18 },
+        { label: lang === 'ar' ? 'البرامج التنموية' : 'Development Programs', icon: BarChart3, tab: 'programs', badge: counts?.programs },
+        { label: lang === 'ar' ? 'المشاريع الميدانية' : 'Field Projects', icon: Briefcase, tab: 'projects', badge: counts?.projects },
       ]
     },
     {
       title: lang === 'ar' ? 'الخدمات والميدان' : 'Services & Field Operations',
       domains: [
-        { label: lang === 'ar' ? 'الأنشطة الميدانية' : 'Field Activities', icon: ClipboardList, tab: 'activities', badge: 269 },
-        { label: lang === 'ar' ? 'سجل المستفيدين' : 'Beneficiaries Registry', icon: HandHeart, tab: 'beneficiaries', badge: counts?.beneficiaries || 418 },
-        { label: lang === 'ar' ? 'الكفالات والرعاية' : 'Sponsorships & Care', icon: Users, tab: 'sponsorships', badge: counts?.sponsorships || 418 },
+        { label: lang === 'ar' ? 'الأنشطة الميدانية' : 'Field Activities', icon: ClipboardList, tab: 'activities', badge: counts?.activities },
+        { label: lang === 'ar' ? 'سجل المستفيدين' : 'Beneficiaries Registry', icon: HandHeart, tab: 'beneficiaries', badge: counts?.beneficiaries },
+        { label: lang === 'ar' ? 'الكفالات والرعاية' : 'Sponsorships & Care', icon: Users, tab: 'sponsorships', badge: counts?.sponsorships },
         { label: lang === 'ar' ? 'الشراكات والمانحون' : 'Partnerships & Donors', icon: Handshake, tab: 'contracts' },
       ]
     },

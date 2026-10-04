@@ -157,38 +157,62 @@ export class MasterOperationalOrchestratorService {
     const pool = getDatabasePool();
     const [benRes, projRes, voucherRes, approvalRes] = await Promise.all([
       pool.query('SELECT COUNT(*) as count FROM beneficiaries'),
-      pool.query('SELECT COUNT(*) as total, AVG(COALESCE(progress_percent, 0)) as avg_progress FROM projects'),
+      pool.query('SELECT COUNT(*) as total, AVG(COALESCE(progress_percent, 0)) AS avg_progress FROM projects'),
       pool.query('SELECT COUNT(*) as total_vouchers FROM journal_vouchers'),
-      pool.query("SELECT COUNT(*) as total_approvals, COUNT(*) FILTER (WHERE status = 'approved') as approved FROM approval_requests").catch(() => ({ rows: [{ total_approvals: '10', approved: '9' }] }))
+      pool.query("SELECT COUNT(*) as total_approvals, COUNT(*) FILTER (WHERE status = 'approved') AS approved FROM approval_requests").catch(() => ({ rows: [{ total_approvals: '0', approved: '0' }] }))
     ]);
 
-    const benCount = parseInt(benRes.rows[0]?.count || '0', 10) || 418;
-    const avgProgress = Math.round(parseFloat(projRes.rows[0]?.avg_progress || '0')) || 68;
-    const approvalRatio = (parseInt(approvalRes.rows[0]?.approved || '0', 10) / Math.max(1, parseInt(approvalRes.rows[0]?.total_approvals || '0', 10)));
-    const timelyScore = Math.min(98, Math.max(88, Math.round(avgProgress * 0.4 + approvalRatio * 55)));
+    const benCount = parseInt(benRes.rows[0]?.count || '0', 10);
+    const projectCount = parseInt(projRes.rows[0]?.total || '0', 10);
+    const voucherCount = parseInt(voucherRes.rows[0]?.total_vouchers || '0', 10);
+    const avgProgress = Math.round(parseFloat(projRes.rows[0]?.avg_progress || '0'));
+    const approvalTotal = parseInt(approvalRes.rows[0]?.total_approvals || '0', 10);
+    const approvalRatio = approvalTotal > 0
+      ? parseInt(approvalRes.rows[0]?.approved || '0', 10) / approvalTotal
+      : 0;
+    // CHS 2 derives from live records (project progress + approval timeliness).
+    // Commitments without a verified data source are reported as not assessed
+    // instead of being assigned flattering hardcoded scores.
+    const timelyScore = Math.min(100, Math.max(0, Math.round(avgProgress * 0.4 + approvalRatio * 55)));
 
     const chsScores = [
-      { commitment: 'CHS 1: Appropriate and relevant response', scorePct: Math.min(98, 90 + (benCount > 100 ? 6 : 2)) },
-      { commitment: 'CHS 2: Effective and timely response', scorePct: timelyScore },
-      { commitment: 'CHS 3: Strengthens local capacities', scorePct: 94 },
-      { commitment: 'CHS 4: Communication and participation', scorePct: Math.min(96, 88 + Math.round(avgProgress * 0.1)) },
-      { commitment: 'CHS 5: Complaints addressed transparently', scorePct: 95 },
-      { commitment: 'CHS 6: Coordinated and complementary', scorePct: 98 },
-      { commitment: 'CHS 7: Continuous learning and improvement', scorePct: 92 },
-      { commitment: 'CHS 8: Staff supported effectively', scorePct: 93 },
-      { commitment: 'CHS 9: Resources managed responsibly (IPSAS)', scorePct: 99 }
+      { commitment: 'CHS 1: Appropriate and relevant response', scorePct: null, assessed: false },
+      { commitment: 'CHS 2: Effective and timely response', scorePct: timelyScore, assessed: avgProgress > 0 || approvalTotal > 0 },
+      { commitment: 'CHS 3: Strengthens local capacities', scorePct: null, assessed: false },
+      { commitment: 'CHS 4: Communication and participation', scorePct: null, assessed: false },
+      { commitment: 'CHS 5: Complaints addressed transparently', scorePct: null, assessed: false },
+      { commitment: 'CHS 6: Coordinated and complementary', scorePct: null, assessed: false },
+      { commitment: 'CHS 7: Continuous learning and improvement', scorePct: null, assessed: false },
+      { commitment: 'CHS 8: Staff supported effectively', scorePct: null, assessed: false },
+      { commitment: 'CHS 9: Resources managed responsibly (IPSAS)', scorePct: null, assessed: false }
     ];
-    const overallChsScore = Math.round(chsScores.reduce((s, c) => s + c.scorePct, 0) / chsScores.length);
+    // Overall score and certification grade only when every commitment has a
+    // verified source — partial data never earns a headline grade.
+    const fullyAssessed = chsScores.every(c => c.assessed);
+    const assessedValues = chsScores.filter((c): c is { commitment: string; scorePct: number; assessed: boolean } =>
+      c.scorePct !== null);
+    const overallChsScore = fullyAssessed && assessedValues.length > 0
+      ? Math.round(assessedValues.reduce((s, c) => s + c.scorePct, 0) / assessedValues.length)
+      : null;
     return {
       status: 'success', 
       standard: 'Sphere Handbook & Core Humanitarian Standard (CHS)', 
       evaluationDate: new Date().toISOString(),
+      observedRecords: {
+        beneficiaries: benCount,
+        projects: projectCount,
+        journalVouchers: voucherCount,
+        approvalRequests: approvalTotal
+      },
       sphereMetrics: {
-        waterAndSanitation: { standardRequirement: '15 L/person/day', actualDelivered: '22 L/person/day', compliant: true },
-        foodSecurityAndNutrition: { standardRequirement: '2,100 kcal/person/day', actualDelivered: '2,250 kcal/person/day', compliant: true }
+        // Delivery measurements are not tracked in this dataset yet.
+        waterAndSanitation: { standardRequirement: '15 L/person/day', actualDelivered: null, compliant: null },
+        foodSecurityAndNutrition: { standardRequirement: '2,100 kcal/person/day', actualDelivered: null, compliant: null }
       },
       chsOverallComplianceScore: overallChsScore,
-      chsCertificationGrade: overallChsScore >= 90 ? 'AAA_GOLD_STANDARD' : 'AA_COMPLIANT',
+      chsCertificationGrade: overallChsScore !== null
+        ? (overallChsScore >= 90 ? 'AAA_GOLD_STANDARD' : 'AA_COMPLIANT')
+        : null,
       chsCommitments: chsScores
     };
   }

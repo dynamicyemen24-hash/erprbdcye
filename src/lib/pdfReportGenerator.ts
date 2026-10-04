@@ -1833,7 +1833,7 @@ export function buildStrategyReportPDFHTML(options: {
                 <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
                   <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace; font-weight: 700;">${g.goal_code}</td>
                   <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: 600;">${isRtl ? g.title_ar : g.title_en}</td>
-                  <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace;">${g.weight_pct || 10}%</td>
+                  <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace;">${g.weight_pct ?? '—'}${g.weight_pct != null ? '%' : ''}</td>
                   <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; font-family: monospace; font-weight: 800; color: #059669;">${g.progress_pct || 0}%</td>
                 </tr>
               `).join('')}

@@ -58,15 +58,15 @@ export const MasterUnifiedExecutiveReport: React.FC<MasterUnifiedExecutiveReport
   const [reportMode, setReportMode] = useState<'summary' | 'detailed' | 'evaluation'>('summary');
   const isRtl = lang === 'ar';
 
-  // الحسابات المالية والإحصائية المؤسسية الدقيقة
+  // الحسابات المالية والإحصائية المؤسسية الدقيقة — من السجلات الحيّة فقط
   const activeProjects = projects.filter(p => p.status_code !== 'COMPLETED' && p.status !== 'completed');
-  const totalProjectsBudget = projects.reduce((sum, p) => sum + (Number(p.budget_yer || p.budget) || 0), 0) || 45000000;
-  const totalProjectsSpent = Math.round(totalProjectsBudget * 0.65);
+  const totalProjectsBudget = projects.reduce((sum, p) => sum + (Number(p.budget_yer || p.budget) || 0), 0);
+  const totalProjectsSpent = projects.reduce((sum, p) => sum + (Number(p.spent_amount || p.spent_amount_base) || 0), 0);
   const remainingBudget = totalProjectsBudget - totalProjectsSpent;
-  const totalBeneficiaries = beneficiaries.length || 418;
-  const activeSponsorships = sponsorships.length || 142;
-  const totalStaff = users.length || 14;
-  const pendingApprovals = approvalRequests.filter(a => a.status === 'PENDING').length || 4;
+  const totalBeneficiaries = beneficiaries.length;
+  const activeSponsorships = sponsorships.length;
+  const totalStaff = users.length;
+  const pendingApprovals = approvalRequests.filter(a => String(a.status).toLowerCase() === 'pending').length;
 
   const handlePrintReport = () => {
     window.print();

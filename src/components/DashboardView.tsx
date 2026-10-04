@@ -142,7 +142,9 @@ export default function DashboardView({
       pendingApprovalsCount: data.pendingApprovalsCount,
       pendingApprovalsAmount: data.pendingApprovalsAmount,
       monthlyBeneficiaryReach: data.monthlyBeneficiaryReach,
-      budgetUtilization: `${(data.budgetUtilization * 100).toFixed(1)}%`,
+      budgetUtilization: data.budgetUtilization !== null && data.budgetUtilization !== undefined
+        ? `${data.budgetUtilization.toFixed(1)}%`
+        : 'unknown',
       totalProgramBudget: stats?.financials?.totalProgramBudget || 0,
       totalProjectsCount: (projects || []).length,
       totalBeneficiariesCount: (beneficiaries || []).length,
@@ -166,76 +168,20 @@ export default function DashboardView({
       if (resData.status === 'ok' && resData.summary) {
         state.setSummaryOutput(resData.summary);
       } else {
-        // High-level fallback structured report for Executive Leadership
-        const fallbackText = lang === 'ar'
-          ? `# التقرير التنفيذي الشامل للقيادة العليا
-**المؤسسة:** جمعية رُحماء بينهم للعمل الإنساني والتنمية
-**التاريخ:** ${new Date().toLocaleDateString('ar-YE')}
-
-### 📌 1. الخلاصة التنفيذية والإنجازات الاستراتيجية
-- **البرامج والمشاريع:** يبلغ عدد البرامج التنموية النشطة حالياً **${data.activeProgramsCount}** برامج برؤية استراتيجية واضحة، ويصل عدد المشاريع الكلية المعتمدة إلى **${(projects || []).length}** مشروعاً.
-- **التغطية المجتمعية:** بلغت التغطية الشهرية للمستفيدين **${data.monthlyBeneficiaryReach}** مستفيداً، مع إجمالي ثبت مسجل قدره **${(beneficiaries || []).length}** حالة معتمدة.
-- **كفالات الأيتام والرعاية:** إجمالي الكفالات المسجلة والمستمرة **${(sponsorships || []).length}** كفالة جارية.
-
-### 💰 2. التقييم المالي والسيولة النقدية
-- **نسبة استهلاك الموازنة:** **${(data.budgetUtilization * 100).toFixed(1)}%** من الموازنة التجميعية للبرامج.
-- **توازن القيود المزدوجة:** لا تُعلن المطابقة إلا عند توفر دليل دفتر الأستاذ المعتمد.
-- **الاعتمادات المالية:** بلغ عدد الاعتمادات المعلقة **${data.pendingApprovalsCount}** بقيمة **${data.pendingApprovalsAmount.toLocaleString()}** USD.
-
-### 💼 3. التقييم الإداري والكفاءة الوظيفية
-- **الكادر والموارد البشرية:** استقرار كامل للقوى العاملة الموزعة بين الكادر الدائم والفرق الميدانية والمتطوعين مع متابعة دوام ومسير الرواتب المزدوج.
-
-### 🏗️ 4. تقييم المشاريع والتشغيل الميداني
-- **الأداء والالتزام التنفيذي:** الالتزام التام بالجداول الزمنية للمشاريع وتفعيل محرك المعالجة دون اتصال (Offline Sync Engine) لحظر أي فقدان للبيانات الميدانية.
-
-### 🛡️ 5. التقييم النهائي الشامل للأشهر
-- **التقييم المالي:** يتطلب دليل دفتر الأستاذ الفعلي.
-- **التقييم الإداري:** يتطلب سجلات الموارد البشرية والاعتمادات.
-- **تقييم المشاريع:** يتطلب بيانات التنفيذ الفعلية.
-- **المعدل العام المركب للمؤسسة:** لا يُحتسب دون بيانات مصدر موثقة.`
-          : `# Executive Summary & Strategic Performance Report
-**Organization:** Rohamā'a Baynahum Charity Foundation
-**Date:** ${new Date().toLocaleDateString('en-US')}
-
-### 📌 1. Executive Overview & Strategic Highlights
-- **Active Programs:** Currently operating **${data.activeProgramsCount}** active development programs across **${(projects || []).length}** approved projects.
-- **Community Reach:** Monthly beneficiary reach stands at **${data.monthlyBeneficiaryReach}** individuals out of **${(beneficiaries || []).length}** registered beneficiaries.
-
-### 💰 2. Financial & Liquidity Evaluation
-- **Budget Utilization:** **${(data.budgetUtilization * 100).toFixed(1)}%** of allocated program budget.
-- **Ledger Integrity:** Reported only when certified ledger evidence is available.
-
-### 🛡️ 3. Final Monthly Evaluation Matrix
-- **Financial Evaluation:** Requires certified ledger evidence.
-- **Administrative Evaluation:** Requires HR and approval records.
-- **Projects Evaluation:** Requires recorded execution data.
-- **Composite Enterprise Score:** Not calculated without verified source data.`;
-
-        state.setSummaryOutput(fallbackText);
+        // Never fabricate a narrative report when the summary service is
+        // unavailable — surface an explicit failure the user can retry.
+        state.setSummaryError(
+          lang === 'ar'
+            ? 'تعذّر إنشاء الملخص التنفيذي من خدمة التقارير. أعد المحاولة أو تحقق من الاتصال.'
+            : 'The executive summary service is unavailable. Retry or check your connection.'
+        );
       }
     } catch {
-      const fallbackText = lang === 'ar'
-        ? `# التقرير التنفيذي الشامل للقيادة العليا
-**المؤسسة:** جمعية رُحماء بينهم للعمل الإنساني والتنمية
-
-### 📌 1. الخلاصة التنفيذية
-- حالة المنظومة ومتابعة النطاقات تُعرض وفق السجلات المتاحة لحظة إنشاء التقرير.
-
-### 🛡️ 2. التقييم النهائي الشامل للأشهر
-- **التقييم المالي:** يتطلب أدلة دفتر الأستاذ المعتمدة.
-- **التقييم الإداري:** يتطلب سجلات الموارد البشرية والاعتمادات.
-- **تقييم المشاريع:** يتطلب بيانات التنفيذ الفعلية.
-- **المعدل العام المركب:** لا يُحتسب دون بيانات مصدر موثقة.`
-        : `# Executive Summary Report
-**Organization:** Rohamā'a Baynahum Charity Foundation
-
-### 🛡️ Final Monthly Evaluation Matrix
-- **Financial Score:** Requires certified ledger evidence.
-- **Administrative Score:** Requires HR and approval records.
-- **Projects Score:** Requires recorded execution data.
-- **Composite Score:** Not calculated without verified source data.`;
-
-      state.setSummaryOutput(fallbackText);
+      state.setSummaryError(
+        lang === 'ar'
+          ? 'تعذّر إنشاء الملخص التنفيذي من خدمة التقارير. أعد المحاولة أو تحقق من الاتصال.'
+          : 'The executive summary service is unavailable. Retry or check your connection.'
+      );
     } finally {
       state.setIsSummaryLoading(false);
     }

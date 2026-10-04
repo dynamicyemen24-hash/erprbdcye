@@ -61,7 +61,7 @@ interface DashboardOverviewTabProps {
   pendingApprovalsCount: number;
   pendingApprovalsAmount: number;
   monthlyBeneficiaryReach: number;
-  budgetUtilization: number;
+  budgetUtilization: number | null;
   totalProjBudget: number;
   beneficiaryGrowthData: any[];
   budgetDistributionData: any[];
@@ -223,7 +223,7 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
               } else {
                 kpiDetails = {
                   label: lang === 'ar' ? 'نسبة استهلاك الموازنة' : 'Budget Utilization %', 
-                  value: `${budgetUtilization.toFixed(1)}%`, 
+                  value: budgetUtilization !== null && budgetUtilization !== undefined ? `${budgetUtilization.toFixed(1)}%` : '—', 
                   icon: Target, 
                   color: 'text-blue-600 dark:text-blue-400', 
                   bg: 'bg-blue-50 dark:bg-blue-950/40',
