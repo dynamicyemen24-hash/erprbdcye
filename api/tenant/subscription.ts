@@ -1,5 +1,5 @@
 import { applyBaseSecurity, authContext, fail, getPool } from '../_shared/core.js';
-import { canManageTenantSettings, resolveSubscriptionPlan } from '../../../src/server/tenant/tenantSettings.shared.js';
+import { canManageTenantSettings, resolveSubscriptionPlan } from '../../src/server/tenant/tenantSettings.shared.js';
 
 /**
  * GET  /api/tenant/subscription -> current plan + quota limits

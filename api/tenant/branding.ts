@@ -3,7 +3,7 @@ import {
   BRAND_THEME_KEYS,
   canManageTenantSettings,
   validateBrandThemeBody,
-} from '../../../src/server/tenant/tenantSettings.shared.js';
+} from '../../src/server/tenant/tenantSettings.shared.js';
 
 /**
  * GET  /api/tenant/branding  -> current tenant brand theme colors
