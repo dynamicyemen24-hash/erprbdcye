@@ -399,7 +399,7 @@ router.post('/register', authRateLimiter, validateBody(registerSchema), async (r
     admin_name,
     admin_password,
     type_code = 'charity',
-    subscription_plan = 'enterprise',
+    subscription_plan = 'enterprise_pro',
     phone = '+967-770000000',
     city = 'صنعاء',
     country = 'اليمن'

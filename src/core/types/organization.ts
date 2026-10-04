@@ -24,6 +24,7 @@ export interface Organization {
   subscription_plan?: string | null;
   max_users?: number | null;
   max_storage_gb?: number | null;
+  settings?: string | Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }

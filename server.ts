@@ -1371,9 +1371,11 @@ app.get('/api/health', async (req, res) => {
 // ─── V2 Modular Routes — backup & tables routes ──────────
 import backupRoutes from './src/server/routes/v2/backup.routes';
 import tablesRoutes, { schemaRouter } from './src/server/routes/v2/tables.routes';
+import tenantRoutes from './src/server/routes/v2/tenant.routes';
 app.use('/api/backups', backupRoutes);
 app.use('/api/tables', tablesRoutes);
 app.use('/api/schema', schemaRouter);
+app.use('/api/tenant', tenantRoutes);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HONEYPOT & TRAP ENDPOINTS — Decoy resources for attacker detection

@@ -60,6 +60,7 @@ import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
+import { readAuthToken } from '../shared/hooks/useApi';
 
 interface SettingsViewProps {
   organizations: Organization[];
@@ -130,6 +131,24 @@ export default function SettingsView({
   const [kuraimiApiKey, setKuraimiApiKey] = useState('KRM-JEBB-SEC-991823');
   const [bankWireDetails, setBankWireDetails] = useState('بنك الكريمي الإسلامي - حساب رقم: 30018827372 | بنك التضامن الإسلامي - حساب: 010099281');
   const [gatewayTestStatus, setGatewayTestStatus] = useState<string | null>(null);
+
+  // Tenant platform theme — persisted per organization via PUT /api/tenant/branding
+  const readThemeFromOrg = (org?: Organization) => {
+    const raw: any = (org as any)?.settings;
+    let parsed: any = {};
+    if (typeof raw === 'string') {
+      try { parsed = JSON.parse(raw) || {}; } catch { parsed = {}; }
+    } else if (raw && typeof raw === 'object') {
+      parsed = raw;
+    }
+    return {
+      primary_color: typeof parsed.primary_color === 'string' ? parsed.primary_color : '#059669',
+      accent_color: typeof parsed.accent_color === 'string' ? parsed.accent_color : '#d97706',
+      dark_bg: typeof parsed.dark_bg === 'string' ? parsed.dark_bg : '#090d16',
+      light_bg: typeof parsed.light_bg === 'string' ? parsed.light_bg : '#f8fafc'
+    };
+  };
+  const [themeColors, setThemeColors] = useState(() => readThemeFromOrg(mainOrg));
   const [orgNameAr, setOrgNameAr] = useState(mainOrg?.name_ar || '');
   const [orgNameEn, setOrgNameEn] = useState(mainOrg?.name_en || '');
   const [orgEmail, setOrgEmail] = useState(mainOrg?.email || '');
@@ -612,6 +631,7 @@ export default function SettingsView({
   // Synchronize state when organizations are loaded
   React.useEffect(() => {
     if (mainOrg) {
+      setThemeColors(readThemeFromOrg(mainOrg));
       setOrgNameAr(mainOrg.name_ar || '');
       setOrgNameEn(mainOrg.name_en || '');
       setOrgEmail(mainOrg.email || '');
@@ -770,6 +790,75 @@ export default function SettingsView({
       setErrorMsg(error.message);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  // Tenant platform theme save — PUT /api/tenant/branding (serverless + Express twin)
+  const saveTenantTheme = async () => {
+    if (!mainOrg?.id) {
+      setErrorMsg(lang === 'ar' ? 'تعذر تحديد المؤسسة النشطة.' : 'Active organization could not be determined.');
+      return;
+    }
+    setUpdating(true);
+    setErrorMsg(null);
+    try {
+      const token = readAuthToken();
+      const response = await fetch('/api/tenant/branding', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(themeColors)
+      });
+      const data = await response.json().catch(() => ({} as any));
+      if (!response.ok || data?.success === false) {
+        throw new Error(data?.error || (lang === 'ar' ? 'تعذر حفظ ألوان الهوية.' : 'Theme colors could not be saved.'));
+      }
+      setSuccessMsg(lang === 'ar'
+        ? 'تم حفظ ألوان هوية المنصة وتطبيقها على كامل واجهة النظام.'
+        : 'Platform brand colors saved and applied across the whole UI.');
+      onRefresh();
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // Plan switch — server resolves quota limits from its own catalog,
+  // the client only submits the plan key (no self-assigned limits).
+  const switchSubscriptionPlan = async (planKey: string) => {
+    if (!mainOrg?.id) {
+      setErrorMsg(lang === 'ar' ? 'تعذر تحديد المؤسسة النشطة.' : 'Active organization could not be determined.');
+      return;
+    }
+    setIsChangingPlan(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      const token = readAuthToken();
+      const response = await fetch('/api/tenant/subscription', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ plan: planKey })
+      });
+      const data = await response.json().catch(() => ({} as any));
+      if (!response.ok || data?.success === false) {
+        throw new Error(data?.error || (lang === 'ar' ? 'تعذر تغيير باقة الاشتراك.' : 'Subscription plan could not be changed.'));
+      }
+      setSelectedPlan(planKey);
+      setSuccessMsg(lang === 'ar'
+        ? `تم تفعيل الباقة (${planKey}) بنجاح مع تحديث حدود المستخدمين والتخزين.`
+        : `Plan (${planKey}) activated with updated user and storage limits.`);
+      onRefresh();
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setIsChangingPlan(false);
     }
   };
 
@@ -1567,6 +1656,65 @@ export default function SettingsView({
                       </div>
                     </div>
 
+                    {/* Sub-Card 4b: Tenant platform theme colors */}
+                    <div className="space-y-3 p-3 rounded-lg border border-slate-200 bg-white">
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-slate-600">
+                        <Palette className="w-3.5 h-3.5 text-amber-600" />
+                        <span>{lang === 'ar' ? 'ألوان منصة المشترك (تُطبَّق على كامل الواجهة):' : 'Platform Theme Colors (applied across the whole UI):'}</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {([
+                          { key: 'primary_color', ar: 'اللون الأساسي', en: 'Primary' },
+                          { key: 'accent_color', ar: 'اللون المميز', en: 'Accent' },
+                          { key: 'dark_bg', ar: 'خلفية داكنة', en: 'Dark BG' },
+                          { key: 'light_bg', ar: 'خلفية فاتحة', en: 'Light BG' }
+                        ] as const).map((field) => (
+                          <div key={field.key} className="space-y-1">
+                            <label className="block text-[9px] font-bold text-slate-400">{lang === 'ar' ? field.ar : field.en}</label>
+                            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-md px-2 py-1">
+                              <input
+                                type="color"
+                                value={themeColors[field.key]}
+                                onChange={(e) => setThemeColors((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                                className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent p-0"
+                              />
+                              <span className="text-[9px] font-mono uppercase text-slate-500 font-bold">{themeColors[field.key]}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[9px] font-bold text-slate-400">{lang === 'ar' ? 'قوالب جاهزة:' : 'Presets:'}</span>
+                        {[
+                          { id: 'emerald', label: 'UAMEX Emerald', colors: { primary_color: '#059669', accent_color: '#d97706', dark_bg: '#090d16', light_bg: '#f8fafc' } },
+                          { id: 'ocean', label: 'Ocean Blue', colors: { primary_color: '#1d4ed8', accent_color: '#0ea5e9', dark_bg: '#0b1220', light_bg: '#f8fafc' } },
+                          { id: 'royal', label: 'Royal Purple', colors: { primary_color: '#7c3aed', accent_color: '#c026d3', dark_bg: '#0d0a14', light_bg: '#faf8ff' } },
+                          { id: 'crimson', label: 'Crimson', colors: { primary_color: '#be123c', accent_color: '#f59e0b', dark_bg: '#12060a', light_bg: '#fff7f7' } }
+                        ].map((preset) => (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => setThemeColors(preset.colors)}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded border text-[9px] font-bold cursor-pointer transition-all bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                          >
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: preset.colors.primary_color }} />
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={saveTenantTheme}
+                          disabled={updating}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-[10px] font-black cursor-pointer transition-all"
+                        >
+                          <Save className="w-3 h-3" />
+                          {updating ? (lang === 'ar' ? 'جارٍ الحفظ...' : 'Saving...') : (lang === 'ar' ? 'حفظ ألوان المنصة' : 'Save Theme Colors')}
+                        </button>
+                      </div>
+                    </div>
+
                     {/* Sub-Card 5: Extras & Signatures Toggles */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-white border border-slate-100 rounded-lg">
                       <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -1828,18 +1976,7 @@ export default function SettingsView({
                 </div>
               </div>
               <button 
-                onClick={async () => {
-                  setSelectedPlan('starter');
-                  try {
-                    await fetch(`/api/tables/organizations/${mainOrg.id}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ subscription_plan: 'starter', max_users: 10, max_storage_gb: 10 })
-                    });
-                    setSuccessMsg(lang === 'ar' ? 'تم تحويل اشتراك المؤسسة إلى الباقة الأساسية بنجاح' : 'Switched to Starter plan.');
-                    onRefresh();
-                  } catch (e) { console.error('[Settings] Failed to switch to Starter plan:', e); }
-                }}
+                onClick={() => switchSubscriptionPlan('starter')}
                 className={`w-full py-2 rounded-xl text-xs font-extrabold cursor-pointer transition-all ${selectedPlan === 'starter' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
                 {selectedPlan === 'starter' ? (lang === 'ar' ? 'الباقة المفعلة حالياً ✓' : 'Current Active Plan') : (lang === 'ar' ? 'الحالة والصرف' : 'Select Plan')}
@@ -1868,18 +2005,7 @@ export default function SettingsView({
                 </div>
               </div>
               <button 
-                onClick={async () => {
-                  setSelectedPlan('enterprise_pro');
-                  try {
-                    await fetch(`/api/tables/organizations/${mainOrg.id}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ subscription_plan: 'enterprise_pro', max_users: 50, max_storage_gb: 100 })
-                    });
-                    setSuccessMsg(lang === 'ar' ? 'تم ترقية الاشتراك للباقة المؤسسية المتقدمة بنجاح' : 'Upgraded to Enterprise Pro.');
-                    onRefresh();
-                  } catch (e) { console.error('[Settings] Failed to upgrade to Enterprise Pro plan:', e); }
-                }}
+                onClick={() => switchSubscriptionPlan('enterprise_pro')}
                 className={`w-full py-2 rounded-xl text-xs font-extrabold cursor-pointer transition-all ${selectedPlan === 'enterprise_pro' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
                 {selectedPlan === 'enterprise_pro' ? (lang === 'ar' ? 'الباقة المفعلة حالياً ✓' : 'Current Active Plan') : (lang === 'ar' ? 'الحالة والصرف' : 'Select & Upgrade')}
@@ -1904,18 +2030,7 @@ export default function SettingsView({
                 </div>
               </div>
               <button 
-                onClick={async () => {
-                  setSelectedPlan('humanitarian');
-                  try {
-                    await fetch(`/api/tables/organizations/${mainOrg.id}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ subscription_plan: 'humanitarian', max_users: 100, max_storage_gb: 200 })
-                    });
-                    setSuccessMsg(lang === 'ar' ? 'تم اختيار باقة المنظمات الإنسانية بنجاح' : 'Switched to Humanitarian tier.');
-                    onRefresh();
-                  } catch (e) { console.error('[Settings] Failed to switch to Humanitarian plan:', e); }
-                }}
+                onClick={() => switchSubscriptionPlan('humanitarian')}
                 className={`w-full py-2 rounded-xl text-xs font-extrabold cursor-pointer transition-all ${selectedPlan === 'humanitarian' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
                 {selectedPlan === 'humanitarian' ? (lang === 'ar' ? 'الباقة المفعلة حالياً ✓' : 'Current Active Plan') : (lang === 'ar' ? 'الحالة والصرف' : 'Select Plan')}
@@ -1940,18 +2055,7 @@ export default function SettingsView({
                 </div>
               </div>
               <button 
-                onClick={async () => {
-                  setSelectedPlan('sovereign');
-                  try {
-                    await fetch(`/api/tables/organizations/${mainOrg.id}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ subscription_plan: 'sovereign', max_users: 999, max_storage_gb: 1000 })
-                    });
-                    setSuccessMsg(lang === 'ar' ? 'تم اختيار الباقة السيادية الشاملة بنجاح' : 'Switched to Sovereign Core tier.');
-                    onRefresh();
-                  } catch (e) { console.error('[Settings] Failed to switch to Sovereign plan:', e); }
-                }}
+                onClick={() => switchSubscriptionPlan('sovereign')}
                 className={`w-full py-2 rounded-xl text-xs font-extrabold cursor-pointer transition-all ${selectedPlan === 'sovereign' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
                 {selectedPlan === 'sovereign' ? (lang === 'ar' ? 'الباقة المفعلة حالياً ✓' : 'Current Active Plan') : (lang === 'ar' ? 'اختيار الباقة' : 'Select Plan')}

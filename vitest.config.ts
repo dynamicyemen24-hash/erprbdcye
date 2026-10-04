@@ -51,6 +51,7 @@ export default defineConfig({
             'src/server/redis/**/*.test.ts',
             'src/server/services/**/*.test.ts',
             'src/server/governance/**/*.test.ts',
+            'src/server/tenant/**/*.test.ts',
             'src/server/validators/**/*.test.ts',
             'src/lib/**/*.test.ts',
             'src/core/**/*.test.ts',
