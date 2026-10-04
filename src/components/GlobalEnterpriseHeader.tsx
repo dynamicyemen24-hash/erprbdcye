@@ -12,7 +12,6 @@ import {
   PlayCircle
 } from "lucide-react";
 import { EnterpriseLogo } from './EnterpriseLogo';
-import NexoraOSLogo from './NexoraOSLogo';
 import ERPSearchBar from './ERPSearchBar';
 import NotificationCenter from './NotificationCenter';
 import AutoDarkModeManager from './AutoDarkModeManager';
@@ -70,6 +69,14 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
   onOpenCopilot, onOpenSystemMap
 }) => {
   const isRtl = lang === 'ar';
+  // Persisted UI theme from localStorage (light | dark | system)
+  useEffect(() => {
+    const stored = localStorage.getItem('ui_theme');
+    if (stored && ['light', 'dark', 'system'].includes(stored)) {
+      setTheme(stored as any);
+    }
+  }, [setTheme]);
+
   const { tenantContext, availableOrganizations, switchOrganization } = useTenantContext();
   const { isTrainingMode, currentConfig, toggleEnvironmentMode, trainingSessionDuration } = useEnvironmentMode();
   const [showUserProfilePopover, setShowUserProfilePopover] = useState(false);
@@ -122,7 +129,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
               className="flex items-center gap-1.5 hover:opacity-90 transition-opacity cursor-pointer"
               title={isRtl ? 'نظرة عامة وهوية النظام' : 'System Overview'}
             >
-              <NexoraOSLogo lang={lang} size="sm" />
+              <EnterpriseLogo lang={lang} size="sm" />
             </button>
 
             <div className="h-4 w-px bg-zinc-800 hidden sm:block"></div>

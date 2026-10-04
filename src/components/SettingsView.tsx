@@ -42,6 +42,7 @@ import {
   UploadCloud,
   Palette,
   LayoutTemplate
+, Sun
 } from 'lucide-react';
 import { Organization, OrganizationSetting, SystemSetting } from '../types';
 import { BiometricSecuritySettingsView, TOTPSecuritySettingsView, TrustedDevicesView } from '../features/administration';
@@ -1713,6 +1714,36 @@ export default function SettingsView({
                           {updating ? (lang === 'ar' ? 'جارٍ الحفظ...' : 'Saving...') : (lang === 'ar' ? 'حفظ ألوان المنصة' : 'Save Theme Colors')}
                         </button>
                       </div>
+                    </div>
+
+                    {/* Sub-Card 4c: Display Theme */}
+                    <div className="space-y-3 p-3 rounded-lg border border-slate-200 bg-white" id="display-theme-settings">
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-slate-600">
+                        <Sun className="w-3.5 h-3.5 text-amber-600" />
+                        <span>{lang === 'ar' ? 'نمط العرض (Light/Dark/System)' : 'Display Theme (Light/Dark/System)'}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[ 'light', 'dark', 'system' ].map((t) => (
+                          <div
+                            key={t}
+                            onClick={() => {
+                              localStorage.setItem('ui_theme', t);
+                              // Notify parent header if setTheme prop exists
+                              if (typeof setTheme === 'function') setTheme(t as any);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1 rounded-md cursor-pointer transition-all ${
+                              localStorage.getItem('ui_theme') === t
+                                ? 'bg-emerald-100 text-emerald-600 font-bold border-emerald-400'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-400'
+                            }"
+                          >
+                            <span>{t === 'system' ? (lang === 'ar' ? 'نظام' : 'System') : t}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[9px] text-slate-500 mt-2">
+                        {lang === 'ar' ? 'يتم حفظ التفضيل محلياً' : 'Preference saved locally'}
+                      </p>
                     </div>
 
                     {/* Sub-Card 5: Extras & Signatures Toggles */}

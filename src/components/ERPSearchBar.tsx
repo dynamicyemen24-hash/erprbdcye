@@ -407,7 +407,7 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
       <div className="relative w-full max-w-[240px] md:max-w-xs hidden sm:block" id="erp-header-search">
         <div
           onClick={() => setIsOpen(true)}
-          className="w-full flex items-center justify-between px-3 py-1.5 bg-zinc-900/60 hover:bg-zinc-900 border border-emerald-800/60 hover:border-emerald-500/50 rounded-xl text-zinc-400 text-xs transition-all shadow-inner group text-right cursor-pointer select-none"
+          className="w-full flex items-center justify-between px-3 py-1.5 bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-600/50 hover:border-emerald-500/50 rounded-xl text-zinc-400 text-xs transition-all shadow-inner group text-right cursor-pointer select-none"
           title={lang === 'ar' ? 'بحث موحد ومتطور عبر كافة مجالات وبيانات UAMEX ERP™ المؤسسية (Ctrl+K)' : 'Advanced Unified Search across all UAMEX ERP™ Enterprise Domains (Ctrl+K)'}
         >
           <div className="flex items-center gap-2">

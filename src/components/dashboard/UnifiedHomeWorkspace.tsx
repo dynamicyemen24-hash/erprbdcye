@@ -13,6 +13,8 @@ import { EmptyState, MetricTile, PageHeader, cn, type MetricFreshness } from '..
 import { User } from '../../core/types/users';
 import { readAuthToken } from '../../shared/hooks/useApi';
 import { formatCurrency } from '../../shared/utils/formatters';
+import { CashFlowReport } from '../../reports/CashFlowReport';
+import { ProfitabilityReport } from '../../reports/ProfitabilityReport';
 
 /**
  * UnifiedHomeWorkspace — the single default home experience.
@@ -406,6 +408,13 @@ export function UnifiedHomeWorkspace({
         />
       </div>
 
+      {/* Finanz‑Reports‑Sektor */}
+<div className="p-6 rounded-lg border border-slate-200 bg-white/30">
+      <h3 className="text-sm font-bold text-slate-600 mb-4">{lang === 'ar' ? 'Finanz‑Reports' : 'Financial Reports'}</h3>
+      <CashFlowReport periods={[]} />
+      <ProfitabilityReport revenue={null} expenses={null} netMargin={null} />
+      </div>
+
       {/* Decision queue + programs */}
       <div className="grid lg:grid-cols-3 gap-5 items-start">
         <SectionCard
@@ -645,9 +654,28 @@ export function UnifiedHomeWorkspace({
             </ul>
           )}
         </SectionCard>
+</div>
+    </div>
+    {/* Status Bar — user name + icon, scroll to top on click */}
+    <div
+      className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-950 text-sm p-3 flex items-center justify-between"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      aria-label="Scroll to top and view profile"
+    >
+      <div className="flex items-center gap-2">
+        <Users className="w-3.5 h-3.5 text-emerald-400" />
+        <span className="font-medium text-zinc-200">
+          {currentUser?.name || (isRtl ? 'ضيف' : 'Guest')}
+        </span>
       </div>
+      <svg
+        className="w-3.5 h-3.5 ml-2 text-emerald-400 cursor-pointer"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+      </svg>
     </div>
   );
 }
-
 export default UnifiedHomeWorkspace;

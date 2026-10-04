@@ -1,0 +1,10 @@
+﻿
+> nexoraos@4.0.0 lint
+> eslint src/ --quiet
+
+
+D:\Projects26\NexoraOS\src\components\dashboard\UnifiedHomeWorkspace.tsx
+  659:4  error  Parsing error: ')' expected
+
+Γ£û 1 problem (1 error, 0 warnings)
+
