@@ -19,10 +19,10 @@ export const CashFlowReport: React.FC<CashFlowReportProps> = ({ periods }) => {
       <table className="min-w-full divide-y divide-slate-200">
         <thead>
           <tr>
-            <th className="p-3">Period</th>
-            <th className="p-3">Income</th>
-            <th className="p-3">Expenses</th>
-            <th className="p-3">Balance</th>
+            <th scope="col" className="p-3">Period</th>
+            <th scope="col" className="p-3">Income</th>
+            <th scope="col" className="p-3">Expenses</th>
+            <th scope="col" className="p-3">Balance</th>
           </tr>
         </thead>
         <tbody>

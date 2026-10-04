@@ -656,26 +656,6 @@ export function UnifiedHomeWorkspace({
         </SectionCard>
 </div>
     </div>
-    {/* Status Bar — user name + icon, scroll to top on click */}
-    <div
-      className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-950 text-sm p-3 flex items-center justify-between"
-      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      aria-label="Scroll to top and view profile"
-    >
-      <div className="flex items-center gap-2">
-        <Users className="w-3.5 h-3.5 text-emerald-400" />
-        <span className="font-medium text-zinc-200">
-          {currentUser?.name || (isRtl ? 'ضيف' : 'Guest')}
-        </span>
-      </div>
-      <svg
-        className="w-3.5 h-3.5 ml-2 text-emerald-400 cursor-pointer"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
-        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
-      </svg>
-    </div>
   );
 }
 export default UnifiedHomeWorkspace;

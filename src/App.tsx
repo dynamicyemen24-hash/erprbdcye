@@ -55,6 +55,7 @@ import {
 } from 'lucide-react';
 import { BINexusSymbol } from './components/bi/BIIcons';
 import { Spinner } from './design-system/components/Spinner';
+import { UpdateBanner } from './components/UpdateBanner';
 
 // Enterprise Domain Features & Shared Component Imports
 import LoginView from './components/LoginView';
@@ -785,6 +786,9 @@ export default function App() {
         onOpenCopilot={() => setShowCopilotDrawer(true)}
         onOpenSystemMap={() => setShowSystemMapModal(true)}
       />
+
+      {/* UPDATE AVAILABILITY BANNER */}
+      <UpdateBanner autoCheck={true} onDismiss={() => {}} />
 
       {/* LAYER 2: CONTEXT BREADCRUMB & UNIFIED RIBBON */}
       <UnifiedContextRibbon
