@@ -1,11 +1,15 @@
 // ============================================================
-// Rohamā'a Baynahum — UAMEX ERP™
-// Intelligent Humanitarian & Development Enterprise System
+// UAMEX ERP™ — Intelligent Humanitarian & Development Enterprise System
+// Platform identity (multi-subscriber). Default subscriber profile:
+// Rohamā'a Baynahum Charity Foundation (see ORGANIZATION_CONFIG below).
 // ============================================================
 
 export const ORGANIZATION_CONFIG = {
   // ==========================================================
-  // ORGANIZATION
+  // DEFAULT SUBSCRIBER PROFILE (current tenant seed).
+  // Rohamā'a Baynahum is one subscriber; further subscribers are
+  // onboarded through the multi-tenancy model below — the platform
+  // identity (UAMEX ERP™) stays subscriber-neutral.
   // ==========================================================
   nameAr: 'جمعية رُحماء بينهم للعمل الإنساني والتنمية',
   nameEn: "Rohamā'a Baynahum Charity Foundation",
@@ -37,9 +41,9 @@ export const ORGANIZATION_CONFIG = {
   systemIdentity: {
     systemCode: 'UAMEX-ERP-2026',
     systemName: 'UAMEX ERP™',
-    version: 'v2.6.0-Enterprise',
+    version: 'v4.0.0-Enterprise',
     edition: 'Global Enterprise & Humanitarian Operating Suite',
-    releaseDate: '2026-08-01',
+    releaseDate: '2026-10-09',
     taglineAr: 'منصة واحدة • مؤسسة واحدة • رؤية موحدة',
     taglineEn: 'One Platform. One Organization. One Vision.',
     architecture: 'Micro-Frontend Enterprise Multi-Tenant Architecture',
@@ -80,8 +84,10 @@ export const ORGANIZATION_CONFIG = {
   // ==========================================================
   // CORE SYSTEMS (Nexora Enterprise Domains™)
   //
-  // 13 Integrated Domains (NEB-01 to NEB-13) as defined in the
-  // Rohamaab NexoraOS™ Constitution (AGENTS.md).
+  // Base catalog: 15 integrated domains (NEB-01 to NEB-15).
+  // The catalog is extensible — new domains plug in per subscriber
+  // needs (see server/governance/neb-registry.ts). Never hard-cap
+  // the platform to a fixed domain count.
   // ==========================================================
   coreSystems: [
     {
