@@ -51,6 +51,18 @@ summary.txt
 ?[0-9].txt
 ?[0-9]e.txt
 
+# Removed scratch artifacts (2026-10-09 cleanup) — do not re-commit
+%LOCALAPPDATA%/
+*.err
+CI_BUILD_LOG.md
+build_out.txt
+test-final.txt
+typecheck_out.txt
+tc3.txt
+batch16.sql
+bun.lock
+load-test.js
+
 # Playwright
 /test-results/
 /playwright-report/

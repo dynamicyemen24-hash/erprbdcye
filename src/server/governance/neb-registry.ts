@@ -1,10 +1,12 @@
 /**
- * NexoraOS™ — NEB Governance Registry (consultants track)
- * Single source of truth for the 15 institutional domains (NEB-01..15):
- * Arabic/English names, owning engine, route mount, anchor tables.
- * Curated statically and guarded by an integrity test so future
- * drift (renames, splits, orphan domains) fails the build instead
- * of silently fragmenting governance.
+ * UAMEX ERP™ — NEB Governance Registry (consultants track)
+ * Single source of truth for the base catalog of 15 institutional
+ * domains (NEB-01..15): Arabic/English names, owning engine, route
+ * mount, anchor tables. Curated statically and guarded by an
+ * integrity test so future drift (renames, splits, orphan domains)
+ * fails the build instead of silently fragmenting governance.
+ * Subscriber-specific systems extend the catalog at runtime via
+ * registerNebDomain() — see the extensions contract below.
  */
 
 export interface NebDomain {
@@ -42,4 +44,51 @@ export interface NebCoverageAudit {
 
 export function auditNebCoverage(): NebCoverageAudit {
   return { total: NEB_DOMAINS.length, domains: NEB_DOMAINS, generatedAt: new Date().toISOString() };
+}
+
+// ============================================================
+// SUBSCRIBER DOMAIN EXTENSIONS (extensibility contract)
+//
+// The base catalog above (NEB-01..NEB-15) is frozen for governance
+// and guarded by the integrity test. New systems required by
+// clients/subscribers plug in at runtime via registerNebDomain() —
+// the platform is never hard-capped to a fixed domain count.
+// Extension domains satisfy the same integrity rules (unique NEB
+// code, owning engine, /api/v2/ route mount, anchor tables).
+// ============================================================
+
+const EXTENDED_NEB_DOMAINS: NebDomain[] = [];
+
+const NEB_CODE_PATTERN = /^NEB-(0[1-9]|[1-9][0-9])$/;
+
+export function registerNebDomain(domain: NebDomain): NebDomain {
+  if (!domain || !NEB_CODE_PATTERN.test(domain.code)) {
+    throw new Error(`registerNebDomain: code must match NEB-NN (got '${domain?.code}')`);
+  }
+  if (!domain.nameAr || !domain.nameEn) {
+    throw new Error(`registerNebDomain: ${domain.code} requires nameAr and nameEn`);
+  }
+  if (!/\.engine$/.test(domain.engine)) {
+    throw new Error(`registerNebDomain: ${domain.code} engine must end with .engine`);
+  }
+  if (!/^\/api\/v2\//.test(domain.routes)) {
+    throw new Error(`registerNebDomain: ${domain.code} routes must mount under /api/v2/`);
+  }
+  if (!domain.keyTables || domain.keyTables.length === 0) {
+    throw new Error(`registerNebDomain: ${domain.code} requires at least one anchor table`);
+  }
+  const taken = new Set([...NEB_DOMAINS, ...EXTENDED_NEB_DOMAINS].map((d) => d.code));
+  if (taken.has(domain.code)) {
+    throw new Error(`registerNebDomain: ${domain.code} is already registered`);
+  }
+  EXTENDED_NEB_DOMAINS.push(domain);
+  return domain;
+}
+
+export function getExtendedNebDomains(): NebDomain[] {
+  return [...EXTENDED_NEB_DOMAINS];
+}
+
+export function getAllNebDomains(): NebDomain[] {
+  return [...NEB_DOMAINS, ...EXTENDED_NEB_DOMAINS];
 }

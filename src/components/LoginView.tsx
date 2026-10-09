@@ -1773,7 +1773,7 @@ export default function LoginView({
           </span>
         </div>
         <div className="flex items-center gap-3 font-medium text-[11px] text-emerald-600 dark:text-emerald-400 font-extrabold">
-          <span>UAMEX ERP™ v2.6.0-Enterprise</span>
+          <span>UAMEX ERP™ v4.0.0-Enterprise</span>
         </div>
       </footer>
     </div>

@@ -31,6 +31,10 @@
     "migration:run": "tsx scripts/migrate.ts",
     "migration:dry-run": "tsx scripts/migrate.ts --dry-run",
     "migration:validate": "npm run migration:list",
+    "db:diagnostics": "node scripts/neon-diagnostics.cjs",
+    "db:inspect-coa": "node scripts/inspect_coa_cols.cjs",
+    "toolkit:verify": "node ops/nexora-toolkit/final_verification.js",
+    "smart:check": "node scripts/smart-check.cjs",
     "security:check": "node -e \"try{require('helmet');console.log('Security middleware: OK')}catch(e){console.log('helmet not installed:',e.message)};const fs=require('fs');try{const p=fs.readFileSync('src/server/middleware/policy.middleware.ts','utf8');console.log('Policy middleware loaded:',p.length>0)}catch(e){console.log('Policy file missing:',e.message)}\""
   },
   "dependencies": {
