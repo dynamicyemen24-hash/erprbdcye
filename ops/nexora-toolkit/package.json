@@ -1,0 +1,30 @@
+{
+  "name": "nexoraops",
+  "private": true,
+  "version": "1.0.0",
+  "description": "NexoraOS ops toolkit - DB verification and production readiness checks (env-based, no hardcoded secrets)",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js && npm run security:scan",
+    "db:check": "node test_connection.js",
+    "db:critical": "node check_critical_tables.js",
+    "db:indexes": "node check_indexes.js",
+    "schema:compare": "node compare_schema.js",
+    "verify:quick": "node verify.js",
+    "verify:production": "node production_report.js",
+    "verify:final": "node final_verification.js",
+    "verify:detailed": "node detailed_verification.js",
+    "health:live": "node health-live.js",
+    "security:scan": "node security-scan.js",
+    "security:audit": "npm audit --audit-level=high",
+    "ops": "node ops-dashboard.js",
+    "ci": "npm run security:scan && npm run security:audit && npm run verify:final"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "pg": "^8.23.0"
+  }
+}
