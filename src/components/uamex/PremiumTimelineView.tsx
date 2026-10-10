@@ -14,7 +14,6 @@
  *  • Bilingual (AR/EN) with RTL support
  *  • Dark/Light theme aware
  */
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Calendar,
@@ -37,6 +36,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
+import { logger } from '../../lib/logger';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Types
@@ -558,7 +558,7 @@ export function PremiumTimelineViewDemo({ lang }: { lang: 'ar' | 'en' }) {
         showCriticalPath
         showProgress
         height={500}
-        onEventClick={(e) => console.log('Click:', e)}
+        onEventClick={(e) => logger.log('Click:', e)}
       />
     </div>
   );

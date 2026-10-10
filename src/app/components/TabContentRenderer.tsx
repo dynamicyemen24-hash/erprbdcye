@@ -19,6 +19,8 @@ const ActivitiesView = lazyWithRetry(() => import('../../components/ActivitiesVi
 const OperationalScenariosView = lazyWithRetry(() => import('../../components/OperationalScenariosView'), 'OperationalScenariosView');
 const ResourceAllocationView = lazyWithRetry(() => import('../../components/ResourceAllocationView'), 'ResourceAllocationView');
 const PortfolioIntelligenceView = lazyWithRetry(() => import('../../components/PortfolioIntelligenceView'), 'PortfolioIntelligenceView');
+const FieldTasksDispatchView = lazyWithRetry(() => import('../../components/FieldTasksDispatchView'), 'FieldTasksDispatchView');
+const UnifiedSearchEngineTab = lazyWithRetry(() => import('../../components/search/UnifiedSearchEngineTab'), 'UnifiedSearchEngineTab');
 
 const BeneficiariesView = lazyWithRetry(() => import('../../components/BeneficiariesView'), 'BeneficiariesView');
 const SponsorshipsView = lazyWithRetry(() => import('../../components/SponsorshipsView'), 'SponsorshipsView');
@@ -53,14 +55,15 @@ const AdminControlCenterView = lazyWithRetry(() => import('../../components/admi
 import { BINexusSymbol } from '../../components/bi/BIIcons';
 
 // Lucide Icons for Premium Window Chrome
-import { 
+import {
   ShoppingCart,
   Maximize2, Minimize2, Save, Pause, Play, ExternalLink, X, Layout, 
   ShieldAlert, CheckCircle2, Lock, Unlock, Database, Eye, RefreshCw,
   Columns, ChevronDown, Clock, ArrowRightLeft, Sparkles, BookOpen, 
   Sliders, Compass, Briefcase, Layers, Activity, Users, Heart, Coins, 
-  ShieldCheck, TrendingUp, User, Box, FileCheck, FileText, PlayCircle, Calendar, Globe, Settings, Handshake, Server
+  ShieldCheck, TrendingUp, User, Box, FileCheck, FileText, PlayCircle, Calendar, Globe, Settings, Handshake, Server, Search
 } from 'lucide-react';
+import { logger } from '../../lib/logger';
 
 export interface TabContentRendererProps {
   activeTab: ActiveTab;
@@ -156,7 +159,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
       if (stored) {
         setDraftsList(JSON.parse(stored));
       }
-    } catch (e) { console.error('[Drafts] Failed to load drafts from localStorage:', e); }
+    } catch (e) { logger.error('[Drafts] Failed to load drafts from localStorage:', e); }
   }, []);
 
   const handleSaveDraft = (targetTab: ActiveTab) => {
@@ -174,7 +177,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     setDraftsList(updated);
     try {
       localStorage.setItem('nexora_drafts', JSON.stringify(updated));
-    } catch (e) { console.error('[Drafts] Failed to save drafts to localStorage:', e); }
+    } catch (e) { logger.error('[Drafts] Failed to save drafts to localStorage:', e); }
 
     setDraftToast(isRtl ? `تم حفظ مسودة مؤقتة لـ [${tabLabel}] بنجاح في تمام الساعة ${timestamp}` : `Temporary draft for [${tabLabel}] saved successfully at ${timestamp}`);
     setTimeout(() => {
@@ -230,6 +233,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     'third-party-network': { icon: ShieldCheck, title_ar: 'شبكة الأطراف ومطالبات التجار', title_en: 'Third-Party Network & Claims', domainCode: 'NEB-14', desc_ar: 'إدارة أطراف العملية، مطابقة القسائم الرقمية، ومطالبات وتسويات التجار والشركاء.', desc_en: 'Third-party merchants, digital voucher fulfillment, claims processing, and settlements.' },
     sales: { icon: Coins, title_ar: 'نظام المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', domainCode: 'NEB-15', desc_ar: 'إدارة حملات التبرع، الاشتراكات والمنتجات الوقفية، الفواتير، ونمو الإيرادات المستدامة.', desc_en: 'Fundraising campaigns, endowment products, invoices, and sustainable revenue generation.' },
     business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', domainCode: 'NEB-13', desc_ar: 'ذكاء الأثر ومصفوفة الارتباط التكاملي الموزع على الوحدات التشغيلية وفق معايير CHS وإسفير وSROI.', desc_en: 'Cross-domain impact intelligence matrix distributed across operational units based on CHS, Sphere & SROI standards.' },
+    search: { icon: Search, title_ar: 'مركز البحث المؤسسي الشامل', title_en: 'Enterprise Search Center', domainCode: 'NEB-12', desc_ar: 'بحث موحد عبر كل النطاقات الخمسة عشر مع المحفوظات والرائج والتوصيات.', desc_en: 'Unified search across all 15 domains with saved, trending and recommendations.' },
     communications: { icon: FileText, title_ar: 'نظام الاتصال الإداري الذكي', title_en: 'Intelligent Communications OS', domainCode: 'NEB-11', desc_ar: 'المذكرات والتعاميم والتوجيهات الرسمية بوحدة اعتماد وتوزيع وسجل توثيق مترابط مع الوحدات.', desc_en: 'Official memoranda, circulars and directives with approval, distribution registry and cross-unit linkage.' },
     commitments_obligations: { icon: Handshake, title_ar: 'نظام التعهدات والالتزامات الدورية', title_en: 'Commitments & Periodic Obligations OS', domainCode: 'NEB-08/NEB-10', desc_ar: 'إدارة التعهدات المالية والالتزامات الدورية مع التقارير والتحليليات والمستندات.', desc_en: 'Manage financial commitments and periodic obligations with reports, analytics, and documents.' },
     admin_control_center: { icon: Server, title_ar: 'مركز التحكم', title_en: 'Admin Control Center', domainCode: 'NEB-12', desc_ar: 'مراقبة النظام والإعدادات: الحالة، الطابور، ويب هوك، والإيميل.', desc_en: 'System health, queue metrics, webhooks, email status & admin controls.' }
@@ -345,13 +349,10 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         );
       case 'field_tasks':
         return (
-          <ActivitiesView
+          <FieldTasksDispatchView
             lang={lang}
             programs={programs}
             projects={projects}
-            beneficiaries={beneficiaries}
-            loading={loading}
-            onRefresh={onRefreshData}
             onNavigate={safeNavigate}
           />
         );
@@ -391,6 +392,8 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             onNavigate={safeNavigate}
           />
         );
+      case 'search':
+        return <UnifiedSearchEngineTab lang={lang} />;
       case 'communications':
         return (
           <CommunicationsView
@@ -429,7 +432,7 @@ export const TabContentRenderer: React.FC<TabContentRendererProps> = ({
       case 'currencies':
         return <CurrenciesView currencies={currencies} loading={loading} onRefresh={onRefreshData} lang={lang} />;
       case 'settings':
-        return <SettingsView organizations={organizations} orgSettings={orgSettings} sysSettings={sysSettings} loading={loading} onRefresh={onRefreshData} lang={lang} />;
+        return <SettingsView organizations={organizations} orgSettings={orgSettings} sysSettings={sysSettings} loading={loading} onRefresh={onRefreshData} lang={lang} currentUser={currentUser} />;
       case 'audit':
         return <AuditLogsView lang={lang} />;
       case 'backup':

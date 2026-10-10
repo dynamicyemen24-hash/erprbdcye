@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Briefcase,
   FolderKanban,
@@ -13,7 +13,7 @@ import { EmptyState, MetricTile, PageHeader, cn, type MetricFreshness } from '..
 import { User } from '../../core/types/users';
 import { readAuthToken } from '../../shared/hooks/useApi';
 import { formatCurrency } from '../../shared/utils/formatters';
-import { CashFlowReport } from '../../reports/CashFlowReport';
+import { CashFlowReport, type CashFlowPeriod } from '../../reports/CashFlowReport';
 import { ProfitabilityReport } from '../../reports/ProfitabilityReport';
 
 /**
@@ -28,6 +28,9 @@ import { ProfitabilityReport } from '../../reports/ProfitabilityReport';
  */
 
 type HomeLang = 'ar' | 'en';
+
+/** Currency codes the ledger supports (ISO 4217 subset used by this product). */
+type ReportCurrency = 'YER' | 'SAR' | 'USD';
 
 interface HomeStatsLike {
   counts?: Record<string, unknown>;
@@ -209,13 +212,29 @@ export function UnifiedHomeWorkspace({
   onRefresh
 }: UnifiedHomeWorkspaceProps) {
   const isRtl = lang === 'ar';
-  const locale = isRtl ? 'ar-YE' : 'en-US';
+  const locale = isRtl ? 'ar-YE' : 'en-GB';
 
   const counts = (stats && typeof stats === 'object' && stats.counts) || {};
   const financials = (stats && typeof stats === 'object' && stats.financials) || {};
+
+  /**
+   * Currency for every amount on this screen.
+   *
+   * It used to be the literal `'YER'` in two places while the report components
+   * printed `€`. The ledger supports YER / SAR / USD (see AGENTS.md), so the
+   * reporting currency is resolved from the organisation settings when present,
+   * and falls back to YER — the documented base currency — otherwise.
+   */
+  const tenantCurrency = useMemo<ReportCurrency>(() => {
+    const raw = financials.currency ?? financials.reportingCurrency ?? financials.baseCurrency;
+    const code = typeof raw === 'string' ? raw.trim().toUpperCase() : '';
+    return code === 'SAR' || code === 'USD' ? code : 'YER';
+  }, [financials]);
+
   const statsFreshness: MetricFreshness = stats ? 'live' : 'error';
 
   const pendingApprovals = (approvalRequests || []).filter((r) => r && r.status === 'pending');
+  const isApprover = currentUser?.role === 'ADMIN' || currentUser?.can_approve === true;
   const recentPrograms = (programs || []).slice(0, 6);
   const recentProjects = (projects || []).slice(0, 6);
 
@@ -227,6 +246,60 @@ export function UnifiedHomeWorkspace({
     rows: null,
     error: null
   });
+
+  const [periods, setPeriods] = useState<unknown[]>([]);
+  const [periodsLoading, setPeriodsLoading] = useState(true);
+
+  /**
+   * Period totals for the profitability summary.
+   *
+   * Derived from the SAME live `periods` payload that feeds the cash-flow table,
+   * never from a separate call and never from constants. `ProfitabilityReport`
+   * used to be mounted with `revenue={null} expenses={null} netMargin={null}`,
+   * which made it return `null` unconditionally — the section title promised a
+   * profitability report that could never render.
+   *
+   * Net margin is `(income - expenses) / income`, and is reported as `null` when
+   * there is no income, because a margin against a zero base is undefined, not 0%.
+   */
+  const totals = useMemo(() => {
+    let income = 0;
+    let expenses = 0;
+    for (const raw of periods) {
+      if (!raw || typeof raw !== 'object') continue;
+      const row = raw as Partial<CashFlowPeriod>;
+      income += toFiniteNumber(row.income) ?? 0;
+      expenses += toFiniteNumber(row.expenses) ?? 0;
+    }
+    const netMargin = income > 0 ? ((income - expenses) / income) * 100 : null;
+    return { income, expenses, netMargin };
+  }, [periods]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    (async () => {
+      try {
+        const token = readAuthToken();
+        const response = await fetch('/api/stats/financial', {
+          signal: controller.signal,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const p = (data && data.periods) ? (data.periods as unknown[]) : [];
+        if (active) setPeriods(p);
+        setPeriodsLoading(false);
+      } catch (e) {
+        if (controller.signal.aborted || !active) return;
+        setPeriodsLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -287,7 +360,7 @@ export function UnifiedHomeWorkspace({
   const budgetValue = (): string => {
     if (loading) return DASH;
     const budget = toFiniteNumber(financials.totalProgramBudget);
-    return budget !== null ? formatCurrency(budget, 'YER', locale) : DASH;
+    return budget !== null ? formatCurrency(budget, tenantCurrency, locale) : DASH;
   };
 
   const budgetFreshness: MetricFreshness = loading || stats ? statsFreshness : 'error';
@@ -347,7 +420,7 @@ export function UnifiedHomeWorkspace({
             )}
           </div>
         }
-      />
+/>
 
       {/* KPI strip — every value is live or explicitly unavailable. */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -408,12 +481,47 @@ export function UnifiedHomeWorkspace({
         />
       </div>
 
-      {/* Finanz‑Reports‑Sektor */}
-<div className="p-6 rounded-lg border border-slate-200 bg-white/30">
-      <h3 className="text-sm font-bold text-slate-600 mb-4">{lang === 'ar' ? 'Finanz‑Reports' : 'Financial Reports'}</h3>
-      <CashFlowReport periods={[]} />
-      <ProfitabilityReport revenue={null} expenses={null} netMargin={null} />
-      </div>
+      {/* Financial trend block.
+          The section previously carried a German heading ("Finanz‑Reports"),
+          hardcoded `bg-white/30` with no `dark:` variant, a hardcoded `€` from
+          the report components, and a `ProfitabilityReport` wired to three
+          `null` props that made it return `null` forever — a title promising a
+          profitability report that could never appear.
+
+          It now derives every figure from the same live `periods` payload that
+          feeds the cash-flow table, so the two sections cannot disagree, and the
+          currency comes from the tenant settings rather than a literal. */}
+      <SectionCard title={isRtl ? 'التقارير المالية' : 'Financial Reports'}>
+        {periodsLoading ? (
+          <ListSkeleton rows={3} />
+        ) : periods.length === 0 ? (
+          <EmptyState
+            lang={lang}
+            variant="empty"
+            title={isRtl ? 'لا توجد بيانات مالية' : 'No financial data'}
+            description={
+              isRtl
+                ? 'لن تعرض التقارير المالية حتى تتوفر بيانات حقيقية من النظام'
+                : 'Financial reports appear here once real ledger data is available'
+            }
+          />
+        ) : (
+          <div className="flex flex-col gap-6">
+            <CashFlowReport
+              periods={periods as unknown as CashFlowPeriod[]}
+              currency={tenantCurrency}
+              lang={lang}
+            />
+            <ProfitabilityReport
+              revenue={totals.income}
+              expenses={totals.expenses}
+              netMargin={totals.netMargin}
+              currency={tenantCurrency}
+              lang={lang}
+            />
+          </div>
+        )}
+      </SectionCard>
 
       {/* Decision queue + programs */}
       <div className="grid lg:grid-cols-3 gap-5 items-start">
@@ -594,7 +702,7 @@ export function UnifiedHomeWorkspace({
                       </div>
                       <div className="text-end shrink-0">
                         <div className="text-sm font-black tabular-nums text-zinc-700 dark:text-zinc-200">
-                          {amount !== null && amount !== 0 ? formatCurrency(amount, 'YER', locale) : DASH}
+                          {amount !== null && amount !== 0 ? formatCurrency(amount, tenantCurrency, locale) : DASH}
                         </div>
                         <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 justify-end">
                           {tx.transaction_date && <span>{tx.transaction_date}</span>}

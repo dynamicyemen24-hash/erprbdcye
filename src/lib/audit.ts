@@ -1,5 +1,6 @@
 import { AuditLogItem, ActionType } from '../components/AuditLogsView';
 
+import { logger } from './logger';
 export async function logAuditEvent(
   email: string,
   name: string,
@@ -35,6 +36,6 @@ export async function logAuditEvent(
       body: JSON.stringify(payload)
     });
   } catch (err) {
-    console.error('Failed to log audit event:', err);
+    logger.error('Failed to log audit event:', err);
   }
 }

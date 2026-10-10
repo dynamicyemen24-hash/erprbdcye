@@ -1,10 +1,15 @@
 /**
  * NexoraOS™ Offline-First Transaction Engine & Sync State Machine
  * Implements strict: Local -> Queue -> Sync -> Verify -> Commit protocol with Idempotency Keys.
+ *
+ * Canonical TRANSACTIONAL channel (see `syncService.ts` header for the full
+ * two-owner map). Domain writes enqueue HERE (`enqueueTransaction`) — never
+ * in a second ad-hoc queue.
  */
 
 import { persistenceService } from './persistence';
 
+import { logger } from '../../lib/logger';
 export type SyncTransactionStatus = 
   | 'saved_locally' 
   | 'syncing' 
@@ -50,7 +55,7 @@ class NexoraOfflineSyncMachine {
         this.notify();
       }
     } catch (e) {
-      console.warn('[OfflineSync] Failed to load queue:', e);
+      logger.warn('[OfflineSync] Failed to load queue:', e);
     }
   }
 
@@ -59,7 +64,7 @@ class NexoraOfflineSyncMachine {
       await persistenceService.set(QUEUE_STORE, QUEUE_KEY, this.queue);
       this.notify();
     } catch (e) {
-      console.warn('[OfflineSync] Failed to persist queue:', e);
+      logger.warn('[OfflineSync] Failed to persist queue:', e);
     }
   }
 

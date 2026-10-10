@@ -86,6 +86,7 @@ import { enterpriseBus } from '../lib/enterpriseNotificationBus';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { generateId, generateShortId, generateRefCode, generateNumericCode } from '../lib/idGenerator';
 import { EnterpriseButton } from './common/EnterpriseButton';
+import { resolveTenantId } from '../shared/tenant/resolveTenantId';
 import { Spinner } from '../design-system/components/Spinner';
 import { EmptyState } from '../design-system/components/EmptyState';
 import { ErrorState } from '../design-system/components/ErrorState';
@@ -94,7 +95,8 @@ import { Pagination } from '../design-system/components/Pagination';
 import { EnterpriseSkeletonTable } from './common/EnterpriseSkeletonTable';
 import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 import CSVImportWizard, { type ImportResult } from './common/CSVImportWizard';
-
+
+import { logger } from '../lib/logger';
 // Helper: Calculate Straight-Line Depreciation per IPSAS-17
 export function calculateDepreciation(
   assetOrCost: any,
@@ -486,7 +488,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         );
       }
     } catch (e) {
-      console.error('Permission request failed:', e);
+      logger.error('Permission request failed:', e);
     }
   };
 
@@ -524,7 +526,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           requireInteraction: type === 'critical'
         });
       } catch (e) {
-        console.warn('Browser sandbox blocked push dispatch, relying on in-app channels.', e);
+        logger.warn('Browser sandbox blocked push dispatch, relying on in-app channels.', e);
       }
     }
 
@@ -641,7 +643,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     try {
       const saved = localStorage.getItem(`nexora_disbursement_plans_${userEmail}`);
       if (saved) return JSON.parse(saved);
-    } catch (e) { console.error('[Disbursement] Failed to load disbursement plans from localStorage:', e); }
+    } catch (e) { logger.error('[Disbursement] Failed to load disbursement plans from localStorage:', e); }
     return [
       {
         id: 'plan-1',
@@ -684,7 +686,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
     setSavedDisbursementPlans(updated);
     try {
       localStorage.setItem(`nexora_disbursement_plans_${userEmail}`, JSON.stringify(updated));
-    } catch (e) { console.error('[Disbursement] Failed to save disbursement plans to localStorage:', e); }
+    } catch (e) { logger.error('[Disbursement] Failed to save disbursement plans to localStorage:', e); }
     setPlanTemplateName('');
     triggerPushNotificationToast(
       isRtl ? 'تم حفظ خطة الصرف والتوزيع بنجاح 📋' : 'Disbursement Plan Saved!',
@@ -776,14 +778,14 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             return `
               <div class="voucher-card bg-white border-2 border-emerald-600 rounded-2xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between">
                 <div class="absolute -left-10 -bottom-10 opacity-5">
-                  <img src="/LogoRohamaab.png" class="w-40 h-40 object-contain" />
+                  <img src="/LogoRohamaab.png" alt="" aria-hidden="true" class="w-40 h-40 object-contain" />
                 </div>
 
                 <div>
                   <!-- Voucher Header -->
                   <div class="flex justify-between items-center border-b pb-2 mb-3 border-slate-200">
                     <div class="flex items-center gap-2">
-                      <img src="/LogoRohamaab.png" class="h-8 w-auto object-contain" />
+                      <img src="/LogoRohamaab.png" alt="Rohamaab organization emblem" class="h-8 w-auto object-contain" />
                       <div>
                         <h3 class="text-xs font-black text-emerald-800">رُحماء بينهم للعمل الإنساني</h3>
                         <p class="text-[9px] text-slate-400 font-bold">كارت كوبون استلام إغاثي رقمي</p>
@@ -1006,7 +1008,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           : `Disbursed items to ${selectedBenIds.length} beneficiaries under batch ${batchNo}.`
       );
     } catch (e) {
-      console.error('Multi disbursement failed:', e);
+      logger.error('Multi disbursement failed:', e);
     } finally {
       setMultiExecuting(false);
     }
@@ -1185,7 +1187,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         }
       }
     } catch (err) {
-      console.warn('Could not load procurement requests:', err);
+      logger.warn('Could not load procurement requests:', err);
     } finally {
       setLoadingProcurementRequests(false);
     }
@@ -1222,8 +1224,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       const requestId = crypto.randomUUID();
       const payload = {
         id: requestId,
-        organization_id: '00000000-0000-0000-0000-000000000001',
-        requester_id: currentUser?.id || '00000000-0000-0000-0000-000000000002',
+        organization_id: resolveTenantId(currentUser as any),
+        requester_id: currentUser?.id,
         approval_type: 'material_issue',
         entity_type: 'material_issue_request',
         entity_id: selectedItem.id,
@@ -1287,7 +1289,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         showToast({ type: 'error', title: isRtl ? 'طلب صرف المواد' : 'Material Issue', message: isRtl ? 'حدث خطأ أثناء تقديم طلب الصرف' : 'Error submitting material issue request' });
       }
     } catch (err: any) {
-      console.error('Error creating material issue request:', err);
+      logger.error('Error creating material issue request:', err);
       showToast({ type: 'error', title: isRtl ? 'طلب صرف المواد' : 'Material Issue', message: err.message || (isRtl ? 'فشل إنشاء الطلب' : 'Error creating request') });
     } finally {
       setMaterialIssueSubmitting(false);
@@ -1328,7 +1330,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: crypto.randomUUID(),
-            organization_id: '00000000-0000-0000-0000-000000000001',
+            organization_id: resolveTenantId(currentUser as any),
             type: 'DISBURSE',
             entity_id: itemId,
             quantity: requestedQty,
@@ -1345,7 +1347,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               id: crypto.randomUUID(),
-              organization_id: '00000000-0000-0000-0000-000000000001',
+              organization_id: resolveTenantId(currentUser as any),
               requester_id: currentUser?.id || 'admin',
               approval_type: 'procurement',
               entity_type: 'procurement_requisition',
@@ -1381,7 +1383,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       );
       await loadProcurementRequests();
     } catch (err: any) {
-      console.error("Error approving material issue request:", err);
+      logger.error("Error approving material issue request:", err);
       showToast({ type: "error", title: isRtl ? "اعتماد الصرف" : "Disbursement Approval", message: err.message || (isRtl ? "تعذر اعتماد طلب الصرف" : "Error approving request") });
     }
   };
@@ -1403,8 +1405,8 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       const requestId = crypto.randomUUID();
       const payload = {
         id: requestId,
-        organization_id: '00000000-0000-0000-0000-000000000001',
-        requester_id: currentUser?.id || '00000000-0000-0000-0000-000000000002',
+        organization_id: resolveTenantId(currentUser as any),
+        requester_id: currentUser?.id,
         approval_type: 'procurement',
         entity_type: 'procurement_requisition',
         entity_id: item.id,
@@ -1462,7 +1464,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         triggerPushAlert(title, body, 'info', item);
       }
     } catch (err) {
-      console.error('Procurement auto-draft creation failed:', err);
+      logger.error('Procurement auto-draft creation failed:', err);
     }
   };
 
@@ -1592,7 +1594,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
           }
         }
       } catch (err) {
-        console.warn('Failed to load assets/projects from database endpoint, relying on local storage state:', err);
+        logger.warn('Failed to load assets/projects from database endpoint, relying on local storage state:', err);
       }
     };
 
@@ -1648,7 +1650,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         body: JSON.stringify(newRecord)
       });
     } catch (err) {
-      console.warn('API sync failed, saving locally:', err);
+      logger.warn('API sync failed, saving locally:', err);
     }
 
     setFixedAssets(prev => [newRecord, ...prev]);
@@ -1710,7 +1712,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         body: JSON.stringify(updatedAsset)
       });
     } catch (err) {
-      console.warn('DB update failed, updating local state:', err);
+      logger.warn('DB update failed, updating local state:', err);
     }
 
     setFixedAssets(prev => prev.map(a => a.id === selectedAssetForProjectMap.id ? updatedAsset : a));
@@ -1752,7 +1754,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         body: JSON.stringify(updatedAsset)
       });
     } catch (err) {
-      console.warn('DB update failed, updating local state:', err);
+      logger.warn('DB update failed, updating local state:', err);
     }
 
     setFixedAssets(prev => prev.map(a => a.id === selectedAssetForDisposal.id ? updatedAsset : a));
@@ -2021,7 +2023,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newRecord)
-    }).catch(err => console.warn('[Movements] API sync failed:', err));
+    }).catch(err => logger.warn('[Movements] API sync failed:', err));
 
     setMovements(prev => [newRecord, ...prev]);
     setIsMovementModalOpen(false);
@@ -2074,7 +2076,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         body: JSON.stringify(newItem)
       });
     } catch (err) {
-      console.warn('[Inventory] API sync failed for new item:', err);
+      logger.warn('[Inventory] API sync failed for new item:', err);
     }
 
     setItems(prev => [newItem, ...prev]);
@@ -2126,7 +2128,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         body: JSON.stringify(newWh)
       });
     } catch (err) {
-      console.warn('[Warehouse] API sync failed:', err);
+      logger.warn('[Warehouse] API sync failed:', err);
     }
 
     setWarehouses(prev => [...prev, newWh]);
@@ -2156,7 +2158,7 @@ export function InventoryManagementView({ lang, currentUser, beneficiaries, onNa
         body: JSON.stringify(newBr)
       });
     } catch (err) {
-      console.warn('[Branch] API sync failed:', err);
+      logger.warn('[Branch] API sync failed:', err);
     }
 
     setBranches(prev => [...prev, newBr]);

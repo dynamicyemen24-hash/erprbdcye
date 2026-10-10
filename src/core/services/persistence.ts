@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger';
 /**
  * NexoraOS™ High-Concurrency Client-Side Persistence Service
  * Powered by high-speed native IndexedDB with transparent sandboxed fallback.
@@ -25,7 +26,7 @@ class NexoraPersistenceService {
     if (this.hasIndexedDBSupport) {
       this.initDB();
     } else {
-      console.warn('[Persistence] IndexedDB is not supported in this runtime environment. Falling back to memory storage.');
+      logger.warn('[Persistence] IndexedDB is not supported in this runtime environment. Falling back to memory storage.');
     }
   }
 
@@ -55,11 +56,11 @@ class NexoraPersistenceService {
         };
 
         request.onerror = (event) => {
-          console.error('[Persistence] Failed to open IndexedDB:', request.error);
+          logger.error('[Persistence] Failed to open IndexedDB:', request.error);
           reject(request.error || new Error('IndexedDB failed to initialize'));
         };
       } catch (err) {
-        console.error('[Persistence] Critical error opening database:', err);
+        logger.error('[Persistence] Critical error opening database:', err);
         reject(err);
       }
     });
@@ -99,7 +100,7 @@ class NexoraPersistenceService {
 
         request.onsuccess = () => resolve(true);
         request.onerror = () => {
-          console.warn(`[Persistence] Error writing to IndexedDB for key ${key}:`, request.error);
+          logger.warn(`[Persistence] Error writing to IndexedDB for key ${key}:`, request.error);
           // Fall back to memory on write failure (quota exceeded, sandbox, etc.)
           this.memoryFallback.set(`${storeName}:${key}`, entry);
           resolve(true);
@@ -139,7 +140,7 @@ class NexoraPersistenceService {
 
         request.onsuccess = () => resolve(request.result || null);
         request.onerror = () => {
-          console.warn(`[Persistence] Read failed for key ${key}, checking fallback`);
+          logger.warn(`[Persistence] Read failed for key ${key}, checking fallback`);
           resolve(null);
         };
       });

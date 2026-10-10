@@ -19,6 +19,7 @@ import { ANIMATION } from '../lib/constants';
 import { EnterpriseButton } from './common/EnterpriseButton';
 import { Spinner } from '../design-system/components/Spinner';
 
+import { logger } from '../lib/logger';
 interface BiometricSecurityGateProps {
   lang: 'ar' | 'en';
   targetModule: 'finance' | 'audit';
@@ -141,7 +142,7 @@ export default function BiometricSecurityGate({
         throw new Error("No credential returned.");
       }
     } catch (err: any) {
-      console.warn("WebAuthn creation failed/unsupported in sandbox environment. Switching to Nexora Unified Biometric Secure Hardware Simulator.", err);
+      logger.warn("WebAuthn creation failed/unsupported in sandbox environment. Switching to Nexora Unified Biometric Secure Hardware Simulator.", err);
       // Fallback gracefully to simulator
       setAuthMode('simulated');
       setStep('registering');
@@ -181,7 +182,7 @@ export default function BiometricSecurityGate({
         throw new Error("Biometric challenge rejected.");
       }
     } catch (err: any) {
-      console.warn("WebAuthn assertion failed/unsupported in sandbox. Activating hardware simulator.", err);
+      logger.warn("WebAuthn assertion failed/unsupported in sandbox. Activating hardware simulator.", err);
       // Fallback gracefully to simulator
       setAuthMode('simulated');
       setStep('authenticating');

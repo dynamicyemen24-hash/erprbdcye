@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { TenantContextState } from '../types/multiTenantCore';
 
+import { logger } from '../lib/logger';
 interface TenantContextType {
   tenantContext: TenantContextState;
   switchOrganization: (orgId: string, orgNameAr: string, orgNameEn: string) => void;
@@ -60,7 +61,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setAvailableOrganizations(data);
         }
       })
-      .catch(err => console.error('Failed to load organizations context:', err));
+      .catch(err => logger.error('Failed to load organizations context:', err));
   }, []);
 
   const switchOrganization = (orgId: string, orgNameAr: string, orgNameEn: string) => {
@@ -75,7 +76,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       localStorage.setItem('nexora_tenant_context', JSON.stringify(updated));
     } catch (e) {
-      console.warn('Failed to save tenant context to localStorage:', e);
+      logger.warn('Failed to save tenant context to localStorage:', e);
     }
   };
 
@@ -88,7 +89,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       localStorage.setItem('nexora_tenant_context', JSON.stringify(updated));
     } catch (e) {
-      console.warn('Failed to save tenant context to localStorage:', e);
+      logger.warn('Failed to save tenant context to localStorage:', e);
     }
   };
 

@@ -1,4 +1,5 @@
 import express from 'express';
+import logger, { toLogMeta } from '../core/logger';
 import { SalesRevenueService } from '../services/sales.service';
 import { recordAuditLog } from '../services/audit.service';
 import { requireFinancePolicy } from '../middleware/policy.middleware';
@@ -19,7 +20,7 @@ salesRouter.get('/invoices', async (req: any, res) => {
     const invoices = await SalesRevenueService.getSalesInvoices(orgId, status);
     res.json(invoices);
   } catch (err: any) {
-    console.error('Error fetching sales invoices:', err.message);
+    logger.error('Error fetching sales invoices:', { meta: toLogMeta(err.message) });
     res.status(500).json({ error: 'Failed to fetch sales invoices' });
   }
 });
@@ -43,7 +44,7 @@ salesRouter.post('/invoices', requireFinancePolicy('CREATE'), async (req: any, r
     });
     res.status(201).json({ status: 'success', data: invoice });
   } catch (err: any) {
-    console.error('Error creating sales invoice:', err.message);
+    logger.error('Error creating sales invoice:', { meta: toLogMeta(err.message) });
     res.status(400).json({ error: 'Failed to create sales invoice' });
   }
 });
@@ -57,7 +58,7 @@ salesRouter.post('/invoices/:id/pay', requireFinancePolicy('APPROVE'), async (re
     const result = await SalesRevenueService.paySalesInvoice(invoiceId, paymentGateway, orgId);
     res.json(result);
   } catch (err: any) {
-    console.error('Error paying sales invoice:', err.message);
+    logger.error('Error paying sales invoice:', { meta: toLogMeta(err.message) });
     res.status(400).json({ error: 'Failed to process payment' });
   }
 });
@@ -69,7 +70,7 @@ salesRouter.get('/summary', async (req: any, res) => {
     const summary = await SalesRevenueService.getSalesRevenueSummary(orgId);
     res.json(summary);
   } catch (err: any) {
-    console.error('Error fetching sales summary:', err.message);
+    logger.error('Error fetching sales summary:', { meta: toLogMeta(err.message) });
     res.status(500).json({ error: 'Failed to fetch sales summary' });
   }
 });
@@ -81,7 +82,7 @@ salesRouter.get('/service-points', async (req: any, res) => {
     const points = await SalesRevenueService.getServicePoints(orgId);
     res.json(points);
   } catch (err: any) {
-    console.error('Error fetching service points:', err.message);
+    logger.error('Error fetching service points:', { meta: toLogMeta(err.message) });
     res.status(500).json({ error: 'Failed to fetch service points' });
   }
 });

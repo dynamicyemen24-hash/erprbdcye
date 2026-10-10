@@ -60,8 +60,8 @@ CREATE INDEX IF NOT EXISTS idx_federation_tenants_region ON federation_tenants(r
 CREATE INDEX IF NOT EXISTS idx_federation_tenants_parent ON federation_tenants(parent_tenant_id)
 WHERE parent_tenant_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_federation_tenants_country ON federation_tenants(country_code);
-CREATE INDEX idx_federation_tenants_features ON federation_tenants USING GIN (feature_flags);
-CREATE INDEX idx_federation_tenants_search ON federation_tenants USING GIN (
+CREATE INDEX IF NOT EXISTS idx_federation_tenants_features ON federation_tenants USING GIN (feature_flags);
+CREATE INDEX IF NOT EXISTS idx_federation_tenants_search ON federation_tenants USING GIN (
     display_name gin_trgm_ops,
     legal_entity gin_trgm_ops
 );
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS tenant_usage_metrics (
     recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(tenant_id, period_start)
 );
-CREATE INDEX idx_tenant_usage_tenant ON tenant_usage_metrics(tenant_id, period_start DESC);
+CREATE INDEX IF NOT EXISTS idx_tenant_usage_tenant ON tenant_usage_metrics(tenant_id, period_start DESC);
 -- Tenant routing rules
 CREATE TABLE IF NOT EXISTS tenant_routing_rules (
     rule_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS tenant_routing_rules (
     active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_tenant_routing_active ON tenant_routing_rules(active, priority)
+CREATE INDEX IF NOT EXISTS idx_tenant_routing_active ON tenant_routing_rules(active, priority)
 WHERE active = true;
 -- Federation audit chain (Merkle-based)
 CREATE TABLE IF NOT EXISTS federation_audit_chain (
@@ -113,9 +113,9 @@ CREATE TABLE IF NOT EXISTS federation_audit_chain (
     timestamp TIMESTAMPTZ NOT NULL,
     recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_federation_audit_tenant ON federation_audit_chain(tenant_id, block_index);
-CREATE INDEX idx_federation_audit_timestamp ON federation_audit_chain(timestamp DESC);
-CREATE INDEX idx_federation_audit_action ON federation_audit_chain(action);
+CREATE INDEX IF NOT EXISTS idx_federation_audit_tenant ON federation_audit_chain(tenant_id, block_index);
+CREATE INDEX IF NOT EXISTS idx_federation_audit_timestamp ON federation_audit_chain(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_federation_audit_action ON federation_audit_chain(action);
 -- ═══════════════════════════════════════════════════════════════════
 -- 2. ESG & CARBON CREDIT TABLES
 -- ═══════════════════════════════════════════════════════════════════
@@ -139,8 +139,8 @@ CREATE TABLE IF NOT EXISTS carbon_footprints (
     evidence JSONB DEFAULT '[]'::jsonb,
     calculated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_carbon_footprints_tenant ON carbon_footprints(tenant_id, period_start DESC);
-CREATE INDEX idx_carbon_footprints_verification ON carbon_footprints(verification_status);
+CREATE INDEX IF NOT EXISTS idx_carbon_footprints_tenant ON carbon_footprints(tenant_id, period_start DESC);
+CREATE INDEX IF NOT EXISTS idx_carbon_footprints_verification ON carbon_footprints(verification_status);
 CREATE TABLE IF NOT EXISTS carbon_offset_projects (
     project_id VARCHAR(64) PRIMARY KEY,
     tenant_id VARCHAR(64) NOT NULL,
@@ -162,9 +162,9 @@ CREATE TABLE IF NOT EXISTS carbon_offset_projects (
     status VARCHAR(20) NOT NULL DEFAULT 'registered',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_carbon_projects_tenant ON carbon_offset_projects(tenant_id, status);
-CREATE INDEX idx_carbon_projects_type ON carbon_offset_projects(project_type);
-CREATE INDEX idx_carbon_projects_country ON carbon_offset_projects(country_code);
+CREATE INDEX IF NOT EXISTS idx_carbon_projects_tenant ON carbon_offset_projects(tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_carbon_projects_type ON carbon_offset_projects(project_type);
+CREATE INDEX IF NOT EXISTS idx_carbon_projects_country ON carbon_offset_projects(country_code);
 CREATE TABLE IF NOT EXISTS carbon_credit_transactions (
     transaction_id VARCHAR(64) PRIMARY KEY,
     buyer_tenant_id VARCHAR(64) NOT NULL,
@@ -183,9 +183,9 @@ CREATE TABLE IF NOT EXISTS carbon_credit_transactions (
     type VARCHAR(20) NOT NULL DEFAULT 'transfer',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_carbon_txn_buyer ON carbon_credit_transactions(buyer_tenant_id, transaction_date DESC);
-CREATE INDEX idx_carbon_txn_project ON carbon_credit_transactions(project_id);
-CREATE INDEX idx_carbon_txn_status ON carbon_credit_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_carbon_txn_buyer ON carbon_credit_transactions(buyer_tenant_id, transaction_date DESC);
+CREATE INDEX IF NOT EXISTS idx_carbon_txn_project ON carbon_credit_transactions(project_id);
+CREATE INDEX IF NOT EXISTS idx_carbon_txn_status ON carbon_credit_transactions(status);
 CREATE TABLE IF NOT EXISTS esg_metrics (
     metric_id VARCHAR(64) PRIMARY KEY,
     tenant_id VARCHAR(64) NOT NULL,
@@ -206,10 +206,10 @@ CREATE TABLE IF NOT EXISTS esg_metrics (
     sdg_goals JSONB DEFAULT '[]'::jsonb,
     recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_esg_metrics_tenant ON esg_metrics(tenant_id, reporting_period DESC);
-CREATE INDEX idx_esg_metrics_framework ON esg_metrics(framework);
-CREATE INDEX idx_esg_metrics_category ON esg_metrics(category);
-CREATE INDEX idx_esg_metrics_sdg ON esg_metrics USING GIN (sdg_goals);
+CREATE INDEX IF NOT EXISTS idx_esg_metrics_tenant ON esg_metrics(tenant_id, reporting_period DESC);
+CREATE INDEX IF NOT EXISTS idx_esg_metrics_framework ON esg_metrics(framework);
+CREATE INDEX IF NOT EXISTS idx_esg_metrics_category ON esg_metrics(category);
+CREATE INDEX IF NOT EXISTS idx_esg_metrics_sdg ON esg_metrics USING GIN (sdg_goals);
 CREATE TABLE IF NOT EXISTS sdg_impact_reports (
     report_id VARCHAR(64) PRIMARY KEY,
     tenant_id VARCHAR(64) NOT NULL,
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS sdg_impact_reports (
     limitations TEXT,
     generated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_sdg_reports_tenant ON sdg_impact_reports(tenant_id, period_start DESC);
+CREATE INDEX IF NOT EXISTS idx_sdg_reports_tenant ON sdg_impact_reports(tenant_id, period_start DESC);
 -- ═══════════════════════════════════════════════════════════════════
 -- 3. POST-QUANTUM CRYPTOGRAPHY TABLES
 -- ═══════════════════════════════════════════════════════════════════
@@ -242,10 +242,10 @@ CREATE TABLE IF NOT EXISTS pqc_key_pairs (
     tenant_id VARCHAR(64) NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_pqc_keys_tenant ON pqc_key_pairs(tenant_id, status);
-CREATE INDEX idx_pqc_keys_expiry ON pqc_key_pairs(expires_at)
+CREATE INDEX IF NOT EXISTS idx_pqc_keys_tenant ON pqc_key_pairs(tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_pqc_keys_expiry ON pqc_key_pairs(expires_at)
 WHERE status = 'active';
-CREATE INDEX idx_pqc_keys_algorithm ON pqc_key_pairs(algorithm);
+CREATE INDEX IF NOT EXISTS idx_pqc_keys_algorithm ON pqc_key_pairs(algorithm);
 CREATE TABLE IF NOT EXISTS quantum_safe_envelopes (
     envelope_id VARCHAR(80) PRIMARY KEY,
     algorithm VARCHAR(50) NOT NULL,
@@ -258,7 +258,7 @@ CREATE TABLE IF NOT EXISTS quantum_safe_envelopes (
     tenant_id VARCHAR(64) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_qse_tenant ON quantum_safe_envelopes(tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_qse_tenant ON quantum_safe_envelopes(tenant_id, created_at DESC);
 CREATE TABLE IF NOT EXISTS zero_trust_sessions (
     session_id VARCHAR(80) PRIMARY KEY,
     user_id VARCHAR(64) NOT NULL,
@@ -276,11 +276,11 @@ CREATE TABLE IF NOT EXISTS zero_trust_sessions (
     expires_at TIMESTAMPTZ NOT NULL,
     last_activity_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_zts_user ON zero_trust_sessions(user_id, expires_at);
-CREATE INDEX idx_zts_tenant ON zero_trust_sessions(tenant_id, last_activity_at DESC);
+CREATE INDEX IF NOT EXISTS idx_zts_user ON zero_trust_sessions(user_id, expires_at);
+CREATE INDEX IF NOT EXISTS idx_zts_tenant ON zero_trust_sessions(tenant_id, last_activity_at DESC);
 -- NOTE: predicate WHERE expires_at > NOW() removed — NOW() is STABLE, not
 -- IMMUTABLE, and Postgres rejects non-immutable functions in index predicates.
-CREATE INDEX idx_zts_active ON zero_trust_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_zts_active ON zero_trust_sessions(expires_at);
 CREATE TABLE IF NOT EXISTS security_events (
     event_id VARCHAR(80) PRIMARY KEY,
     tenant_id VARCHAR(64) NOT NULL,
@@ -356,11 +356,11 @@ CREATE TABLE IF NOT EXISTS spans (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (trace_id, span_id)
 );
-CREATE INDEX idx_spans_service ON spans(service_name, start_time_unix_nano DESC);
-CREATE INDEX idx_spans_tenant ON spans(tenant_id, created_at DESC);
-CREATE INDEX idx_spans_duration ON spans(duration_ms)
+CREATE INDEX IF NOT EXISTS idx_spans_service ON spans(service_name, start_time_unix_nano DESC);
+CREATE INDEX IF NOT EXISTS idx_spans_tenant ON spans(tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_spans_duration ON spans(duration_ms)
 WHERE duration_ms > 1000;
-CREATE INDEX idx_spans_trace ON spans(trace_id);
+CREATE INDEX IF NOT EXISTS idx_spans_trace ON spans(trace_id);
 CREATE TABLE IF NOT EXISTS metrics_points (
     metric_id BIGSERIAL PRIMARY KEY,
     metric_name VARCHAR(200) NOT NULL,
@@ -371,9 +371,9 @@ CREATE TABLE IF NOT EXISTS metrics_points (
     tags JSONB DEFAULT '{}'::jsonb,
     tenant_id VARCHAR(64) NOT NULL
 );
-CREATE INDEX idx_metrics_name_time ON metrics_points(metric_name, timestamp_unix_ms DESC);
-CREATE INDEX idx_metrics_service ON metrics_points(service_name, timestamp_unix_ms DESC);
-CREATE INDEX idx_metrics_tenant ON metrics_points(tenant_id, timestamp_unix_ms DESC);
+CREATE INDEX IF NOT EXISTS idx_metrics_name_time ON metrics_points(metric_name, timestamp_unix_ms DESC);
+CREATE INDEX IF NOT EXISTS idx_metrics_service ON metrics_points(service_name, timestamp_unix_ms DESC);
+CREATE INDEX IF NOT EXISTS idx_metrics_tenant ON metrics_points(tenant_id, timestamp_unix_ms DESC);
 -- Partition metrics_points by month for performance
 -- Note: Production should use proper partitioning. Here we use index for demo.
 CREATE TABLE IF NOT EXISTS structured_logs (
@@ -390,12 +390,12 @@ CREATE TABLE IF NOT EXISTS structured_logs (
     request_id VARCHAR(64),
     error JSONB
 );
-CREATE INDEX idx_logs_timestamp ON structured_logs(timestamp DESC);
-CREATE INDEX idx_logs_level ON structured_logs(level, timestamp DESC);
-CREATE INDEX idx_logs_trace ON structured_logs(trace_id)
+CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON structured_logs(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_logs_level ON structured_logs(level, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_logs_trace ON structured_logs(trace_id)
 WHERE trace_id IS NOT NULL;
-CREATE INDEX idx_logs_tenant ON structured_logs(tenant_id, timestamp DESC);
-CREATE INDEX idx_logs_message_search ON structured_logs USING GIN (to_tsvector('english', message));
+CREATE INDEX IF NOT EXISTS idx_logs_tenant ON structured_logs(tenant_id, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_logs_message_search ON structured_logs USING GIN (to_tsvector('english', message));
 CREATE TABLE IF NOT EXISTS slo_definitions (
     slo_id VARCHAR(80) PRIMARY KEY,
     service_name VARCHAR(100) NOT NULL,
@@ -411,9 +411,9 @@ CREATE TABLE IF NOT EXISTS slo_definitions (
     active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_slo_def_service ON slo_definitions(service_name, active)
+CREATE INDEX IF NOT EXISTS idx_slo_def_service ON slo_definitions(service_name, active)
 WHERE active = true;
-CREATE INDEX idx_slo_def_tenant ON slo_definitions(tenant_id, active);
+CREATE INDEX IF NOT EXISTS idx_slo_def_tenant ON slo_definitions(tenant_id, active);
 CREATE TABLE IF NOT EXISTS slo_status (
     slo_id VARCHAR(80) PRIMARY KEY REFERENCES slo_definitions(slo_id) ON DELETE CASCADE,
     current_sli DECIMAL(8, 6) NOT NULL,
@@ -422,8 +422,8 @@ CREATE TABLE IF NOT EXISTS slo_status (
     status VARCHAR(20) NOT NULL,
     calculated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_slo_status_calculated ON slo_status(calculated_at DESC);
-CREATE INDEX idx_slo_status_unhealthy ON slo_status(status)
+CREATE INDEX IF NOT EXISTS idx_slo_status_calculated ON slo_status(calculated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_slo_status_unhealthy ON slo_status(status)
 WHERE status IN ('warning', 'critical', 'exhausted');
 CREATE TABLE IF NOT EXISTS anomaly_detections (
     detection_id VARCHAR(80) PRIMARY KEY,
@@ -441,10 +441,10 @@ CREATE TABLE IF NOT EXISTS anomaly_detections (
     tenant_id VARCHAR(64) NOT NULL,
     acknowledged BOOLEAN NOT NULL DEFAULT false
 );
-CREATE INDEX idx_anomalies_tenant ON anomaly_detections(tenant_id, detected_at DESC);
-CREATE INDEX idx_anomalies_severity ON anomaly_detections(severity, detected_at DESC)
+CREATE INDEX IF NOT EXISTS idx_anomalies_tenant ON anomaly_detections(tenant_id, detected_at DESC);
+CREATE INDEX IF NOT EXISTS idx_anomalies_severity ON anomaly_detections(severity, detected_at DESC)
 WHERE severity IN ('high', 'critical');
-CREATE INDEX idx_anomalies_unack ON anomaly_detections(tenant_id, detected_at DESC)
+CREATE INDEX IF NOT EXISTS idx_anomalies_unack ON anomaly_detections(tenant_id, detected_at DESC)
 WHERE acknowledged = false;
 -- ═══════════════════════════════════════════════════════════════════
 -- 5. ROW-LEVEL SECURITY POLICIES

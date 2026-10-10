@@ -1,6 +1,8 @@
 import { Router } from 'express';
+import logger, { toLogMeta } from '../../core/logger';
 import { getPool } from '../../core/database';
 import { authenticateToken } from '../../middleware/auth.middleware';
+import { extractTenantId } from '../../core/helpers';
 
 const router = Router();
 
@@ -8,7 +10,7 @@ const router = Router();
 router.get('/strategic-plan', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const tenantId = extractTenantId(req);
     const planRes = await dbPool.query(`
       SELECT * FROM strategic_plans
       WHERE deleted_at IS NULL AND status = 'ACTIVE' AND organization_id = $1
@@ -85,7 +87,7 @@ router.get('/strategic-plan', authenticateToken, async (req: any, res) => {
       }
     });
   } catch (err: any) {
-    console.error("Error fetching strategic plan:", err.message);
+    logger.error("Error fetching strategic plan:", { meta: toLogMeta(err.message) });
     res.status(500).json({ status: 'error', message: "Internal Server Error" });
   }
 });
@@ -94,7 +96,7 @@ router.get('/strategic-plan', authenticateToken, async (req: any, res) => {
 router.get('/investment-summary', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const tenantId = extractTenantId(req);
     const [projectsRes, historyRes, contractsResult, activitiesResult] = await Promise.all([
       dbPool.query(`
         SELECT * FROM investment_projects
@@ -107,11 +109,11 @@ router.get('/investment-summary', authenticateToken, async (req: any, res) => {
         ORDER BY approval_date DESC
       `, [tenantId]),
       dbPool.query(`SELECT * FROM investment_contracts WHERE organization_id = $1 ORDER BY created_at DESC`, [tenantId]).catch((cErr: any) => {
-        console.warn("Could not query investment_contracts table:", cErr.message);
+        logger.warn("Could not query investment_contracts table:", { meta: toLogMeta(cErr.message) });
         return { rows: [] } as any;
       }),
       dbPool.query(`SELECT * FROM investment_activities WHERE organization_id = $1 ORDER BY planned_date DESC`, [tenantId]).catch((aErr: any) => {
-        console.warn("Could not query investment_activities table:", aErr.message);
+        logger.warn("Could not query investment_activities table:", { meta: toLogMeta(aErr.message) });
         return { rows: [] } as any;
       })
     ]);
@@ -170,7 +172,7 @@ router.get('/investment-summary', authenticateToken, async (req: any, res) => {
       }
     });
   } catch (err: any) {
-    console.error("Error in investment summary API:", err.message);
+    logger.error("Error in investment summary API:", { meta: toLogMeta(err.message) });
     res.status(500).json({ status: 'error', message: "Internal Server Error" });
   }
 });
@@ -179,7 +181,7 @@ router.get('/investment-summary', authenticateToken, async (req: any, res) => {
 router.post('/strategic-goals', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const tenantId = extractTenantId(req);
     const {
       plan_id, goal_code, pillar_code, title_ar, title_en, description_ar, description_en,
       weight_pct, progress_pct, kpi_target, kpi_current, kpi_unit_ar, kpi_unit_en,
@@ -225,7 +227,7 @@ router.post('/strategic-goals', authenticateToken, async (req: any, res) => {
 
     res.json({ status: 'ok', data: result.rows[0] });
   } catch (err: any) {
-    console.error("Error creating strategic goal:", err.message);
+    logger.error("Error creating strategic goal:", { meta: toLogMeta(err.message) });
     res.status(500).json({ status: 'error', message: "Internal Server Error" });
   }
 });
@@ -235,7 +237,7 @@ router.put('/strategic-goals/:id', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
     const { id } = req.params;
-    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const tenantId = extractTenantId(req);
     const { progress_pct, kpi_current, spent_budget_yer, status, title_ar, title_en } = req.body;
 
     const ownerCheck = await dbPool.query('SELECT organization_id FROM strategic_goals WHERE id = $1 AND deleted_at IS NULL', [id]);
@@ -266,7 +268,7 @@ router.put('/strategic-goals/:id', authenticateToken, async (req: any, res) => {
 
     res.json({ status: 'ok', data: result.rows[0] });
   } catch (err: any) {
-    console.error("Error updating strategic goal:", err.message);
+    logger.error("Error updating strategic goal:", { meta: toLogMeta(err.message) });
     res.status(500).json({ status: 'error', message: "Internal Server Error" });
   }
 });
@@ -275,7 +277,7 @@ router.put('/strategic-goals/:id', authenticateToken, async (req: any, res) => {
 router.post('/swot', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const tenantId = extractTenantId(req);
     const { plan_id, category, title_ar, title_en, impact_level, strategic_action_ar, strategic_action_en, linked_goal_code, owner_name } = req.body;
 
     if (!plan_id || typeof plan_id !== 'string') {
@@ -301,7 +303,7 @@ router.post('/swot', authenticateToken, async (req: any, res) => {
     const result = await dbPool.query(query, [plan_id, category, title_ar, title_en, impact_level || 'HIGH', strategic_action_ar || null, strategic_action_en || null, linked_goal_code || null, owner_name || null, tenantId]);
     res.json({ status: 'ok', data: result.rows[0] });
   } catch (err: any) {
-    console.error("Error adding SWOT item:", err.message);
+    logger.error("Error adding SWOT item:", { meta: toLogMeta(err.message) });
     res.status(500).json({ status: 'error', message: "Internal Server Error" });
   }
 });
@@ -310,7 +312,7 @@ router.post('/swot', authenticateToken, async (req: any, res) => {
 router.get('/strategic-alignment', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const tenantId = extractTenantId(req);
     const alignmentQuery = `
       SELECT
         g.goal_code,
@@ -330,7 +332,7 @@ router.get('/strategic-alignment', authenticateToken, async (req: any, res) => {
     const result = await dbPool.query(alignmentQuery, [tenantId]);
     res.json({ status: 'ok', source: 'Neon PostgreSQL Strategic Alignment Matrix', data: result.rows });
   } catch (err: any) {
-    console.error("Error fetching strategic alignment:", err.message);
+    logger.error("Error fetching strategic alignment:", { meta: toLogMeta(err.message) });
     res.status(500).json({ status: 'error', message: "Internal Server Error" });
   }
 });

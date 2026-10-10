@@ -1,4 +1,5 @@
 import * as http from 'http';
+import logger, { toLogMeta } from './logger';
 
 interface ShutdownConfig {
   timeout: number;
@@ -23,25 +24,25 @@ export class GracefulShutdown {
   async shutdown(signal: string, server: http.Server): Promise<void> {
     if (this.isShuttingDown) return;
     this.isShuttingDown = true;
-    console.log(`[SHUTDOWN] Received ${signal}, starting graceful shutdown...`);
+    logger.info(`[SHUTDOWN] Received ${signal}, starting graceful shutdown...`);
 
     this.shutdownTimer = setTimeout(() => {
-      console.error(`[SHUTDOWN] Timeout after ${this.config.timeout}ms, forcing exit`);
+      logger.error(`[SHUTDOWN] Timeout after ${this.config.timeout}ms, forcing exit`);
       process.exit(1);
     }, this.config.timeout);
 
     server.close(async () => {
-      console.log('[SHUTDOWN] HTTP server closed');
+      logger.info('[SHUTDOWN] HTTP server closed');
       if (this.config.onShutdown) {
-        try { await this.config.onShutdown(); } catch (e: any) { console.error('[SHUTDOWN] Cleanup error:', e.message); }
+        try { await this.config.onShutdown(); } catch (e: any) { logger.error('[SHUTDOWN] Cleanup error:', { meta: toLogMeta(e.message) }); }
       }
       if (this.shutdownTimer) clearTimeout(this.shutdownTimer);
-      console.log('[SHUTDOWN] Graceful shutdown complete');
+      logger.info('[SHUTDOWN] Graceful shutdown complete');
       process.exit(0);
     });
 
     if (this.activeResponses.size > 0) {
-      console.log(`[SHUTDOWN] Waiting for ${this.activeResponses.size} active response(s)...`);
+      logger.info(`[SHUTDOWN] Waiting for ${this.activeResponses.size} active response(s)...`);
     }
   }
 
@@ -56,12 +57,12 @@ export function setupGracefulShutdown(server: http.Server, cleanup?: () => Promi
   });
 
   process.on('uncaughtException', (error) => {
-    console.error('[SHUTDOWN] Uncaught exception:', error);
+    logger.error('[SHUTDOWN] Uncaught exception:', { meta: toLogMeta(error) });
     shutdown.shutdown('uncaughtException', server);
   });
 
   process.on('unhandledRejection', (reason) => {
-    console.error('[SHUTDOWN] Unhandled rejection:', reason);
+    logger.error('[SHUTDOWN] Unhandled rejection:', { meta: toLogMeta(reason) });
   });
 
   return shutdown;

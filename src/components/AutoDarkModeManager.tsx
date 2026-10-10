@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
+import {
   Sun, 
   Moon, 
   Clock, 
@@ -13,6 +13,7 @@ import {
   Info,
   ChevronDown
 } from 'lucide-react';
+import { logger } from '../lib/logger';
 
 // Simplified high-precision offline solar calculator
 export interface SunTimes {
@@ -234,7 +235,7 @@ export default function AutoDarkModeManager({
         setIsLocating(false);
       },
       (err) => {
-        console.warn('GPS failure:', err);
+        logger.warn('GPS failure:', err);
         setGpsError(lang === 'ar' ? 'تم رفض إذن تحديد الموقع أو فشل الإرسال.' : 'Permission denied or signal timeout.');
         setIsLocating(false);
       },

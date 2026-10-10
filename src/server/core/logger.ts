@@ -257,3 +257,9 @@ export function requestLogger(logger: Logger) {
 
 export const logger = new Logger();
 export default logger;
+
+export function toLogMeta(value: unknown): Record<string, any> {
+  if (value instanceof Error) return { error: { name: value.name, message: value.message } };
+  if (value !== null && typeof value === 'object') return { detail: value };
+  return { detail: value };
+}

@@ -15,6 +15,8 @@ import {
   buildLiveReportCards,
   type DataSource,
 } from '../shared/hooks/useInstitutionalReports';
+import { REPORT_WORKSPACE_REGISTRY } from '../config/reportWorkspaceRegistry';
+import { WORKSPACE_OPERATIONAL_MAP } from '../config/workspaceRegistry';
 
 type ReportLang = 'ar' | 'en';
 
@@ -61,23 +63,35 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string; label_ar: strin
   failed: { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-500/10', label_ar: 'فشل', label_en: 'Failed' },
 };
 
-const generateMockReports = (): ReportCard[] => [
-  { id: 'r1', title_ar: 'تقرير الميزانية الشهرية', title_en: 'Monthly Budget Report', description_ar: 'ملخص شامل للمصروفات والإيرادات الشهرية', description_en: 'Comprehensive summary of monthly expenses and revenue', category: 'financial', status: 'ready', last_generated: '2024-09-01', frequency: 'monthly', format: ['PDF', 'Excel'], size: '2.4 MB' },
-  { id: 'r2', title_ar: 'تقرير الأثر الميداني', title_en: 'Field Impact Report', description_ar: 'تقييم شامل لأثر المشاريع على المجتمعات المستهدفة', description_en: 'Comprehensive assessment of project impact on target communities', category: 'impact', status: 'ready', last_generated: '2024-08-15', frequency: 'quarterly', format: ['PDF', 'Word'], size: '5.1 MB' },
-  { id: 'r3', title_ar: 'تقرير الامتثال القانوني', title_en: 'Legal Compliance Report', description_ar: 'حالة الامتثال للأنظمة واللوائح الداخلية والخارجية', description_en: 'Compliance status with internal and external regulations', category: 'compliance', status: 'generating', last_generated: '2024-09-05', frequency: 'monthly', format: ['PDF'] },
-  { id: 'r4', title_ar: 'تقرير الموارد البشرية', title_en: 'HR Analytics Report', description_ar: 'تحليل شامل لأداء و….. الموارد البشرية', description_en: 'Comprehensive analysis of HR performance and metrics', category: 'hr', status: 'ready', last_generated: '2024-09-01', frequency: 'monthly', format: ['PDF', 'Excel'], size: '1.8 MB' },
-  { id: 'r5', title_ar: 'تقرير تقدم المشاريع', title_en: 'Project Progress Report', description_ar: 'حالة جميع المشاريع الجارية ومدى التقدم', description_en: 'Status of all ongoing projects and progress', category: 'project', status: 'scheduled', last_generated: '2024-08-30', frequency: 'weekly', format: ['PDF'] },
-  { id: 'r6', title_ar: 'تقرير الذكاء المالي', title_en: 'Financial BI Dashboard', description_ar: 'لوحات الذكاء المالي التفاعلية مع التحليلات التنبؤية', description_en: 'Interactive financial BI dashboards with predictive analytics', category: 'financial', status: 'ready', last_generated: '2024-09-07', frequency: 'daily', format: ['PDF', 'Excel', 'PowerBI'], size: '3.2 MB' },
-];
-
-const generateKPIs = (lang: ReportLang): KPICard[] => [
-  { label_ar: 'إجمالي الإيرادات', label_en: 'Total Revenue', value: '$2.4M', change: 12.5, icon: DollarSign, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10' },
-  { label_ar: 'المستفيدين', label_en: 'Beneficiaries', value: '14,523', change: 8.3, icon: Users, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
-  { label_ar: 'المشاريع النشطة', label_en: 'Active Projects', value: '47', change: 3, icon: Target, color: 'text-violet-500', bgColor: 'bg-violet-500/10' },
-  { label_ar: 'نسبة الإنجاز', label_en: 'Completion Rate', value: '87%', change: 5.2, icon: TrendingUp, color: 'text-amber-500', bgColor: 'bg-amber-500/10' },
-  { label_ar: 'الصحة المالية', label_en: 'Financial Health', value: '92%', change: 2.1, icon: Activity, color: 'text-rose-500', bgColor: 'bg-rose-500/10' },
-  { label_ar: 'معدل الالتزام', label_en: 'Compliance Rate', value: '98%', change: 0.5, icon: CheckCircle2, color: 'text-cyan-500', bgColor: 'bg-cyan-500/10' },
-];
+/**
+ * HONESTY (DEBT PAID): no fabricated ledgers.
+ * Empty DB stays empty — screens report unknown/zero instead of invented
+ * $2.4M / 14,523 / 47 fallbacks. Live institutional reports are the only source.
+ */
+function buildHonestKpis(
+  lang: ReportLang,
+  projects: Array<{ progress_percent?: number; status_code?: string }>,
+  beneficiaries: unknown[],
+): KPICard[] {
+  const base = (label_ar: string, label_en: string, icon: any, color: string, bgColor: string): KPICard => ({
+    label_ar, label_en, value: '—', change: 0, icon, color, bgColor,
+  });
+  const cards = [
+    base('إجمالي الإيرادات', 'Total Revenue', DollarSign, 'text-emerald-500', 'bg-emerald-500/10'),
+    base('المستفيدين', 'Beneficiaries', Users, 'text-blue-500', 'bg-blue-500/10'),
+    base('المشاريع النشطة', 'Active Projects', Target, 'text-violet-500', 'bg-violet-500/10'),
+    base('نسبة الإنجاز', 'Completion Rate', TrendingUp, 'text-amber-500', 'bg-amber-500/10'),
+    base('الصحة المالية', 'Financial Health', Activity, 'text-rose-500', 'bg-rose-500/10'),
+    base('معدل الالتزام', 'Compliance Rate', CheckCircle2, 'text-cyan-500', 'bg-cyan-500/10'),
+  ];
+  if (beneficiaries.length > 0) cards[1] = { ...cards[1], value: String(beneficiaries.length) };
+  if (projects.length > 0) {
+    const active = projects.filter((p) => p?.status_code === 'ACTIVE').length;
+    cards[2] = { ...cards[2], value: String(active) };
+  }
+  void lang;
+  return cards;
+}
 
 export interface ReportsViewProps {
   lang?: ReportLang;
@@ -91,7 +105,7 @@ export interface ReportsViewProps {
   onNavigate?: (tab: string) => void;
 }
 
-export function ReportsView({ lang = 'en', projects = [], beneficiaries = [] }: ReportsViewProps) {
+export function ReportsView({ lang = 'en', projects = [], beneficiaries = [], onNavigate }: ReportsViewProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
@@ -100,20 +114,12 @@ export function ReportsView({ lang = 'en', projects = [], beneficiaries = [] }: 
 
   const reports = useMemo(() => {
     if (liveKpis.data || brief.data) return buildLiveReportCards(brief.data);
-    return generateMockReports();
+    return [] as ReportCard[];
   }, [liveKpis.data, brief.data]);
 
   const kpis = useMemo(() => {
     if (liveKpis.data) return mapConsolidatedToKpiCards(liveKpis.data);
-    const fallback = generateKPIs(lang);
-    if (projects.length > 0) {
-      const active = projects.filter((p) => p?.status_code === 'ACTIVE').length;
-      fallback[2] = { ...fallback[2], value: String(active || projects.length) };
-    }
-    if (beneficiaries.length > 0) {
-      fallback[1] = { ...fallback[1], value: String(beneficiaries.length) };
-    }
-    return fallback;
+    return buildHonestKpis(lang, projects, beneficiaries);
   }, [lang, liveKpis.data, projects, beneficiaries]);
 
   const dataSource: DataSource = liveKpis.data || brief.data ? 'live' : 'fallback';
@@ -175,6 +181,40 @@ export function ReportsView({ lang = 'en', projects = [], beneficiaries = [] }: 
           />
         ) : null}
 
+        {/* NEB-01..15 coverage — every operational workspace has an official printable document (SAP-style) */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-black text-slate-900 dark:text-zinc-100 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-emerald-500" />
+              {t('تغطية النطاقات المؤسسية NEB-01..15', 'NEB-01..15 Domain Coverage', lang)}
+            </h2>
+            <span className="text-[10px] font-mono font-bold text-emerald-600">
+              {REPORT_WORKSPACE_REGISTRY.length}/18 {t('تقريراً رسمياً مرتبطاً', 'linked official reports', lang)}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            {REPORT_WORKSPACE_REGISTRY.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => {
+                  if (onNavigate && (WORKSPACE_OPERATIONAL_MAP as any)[r.id]) {
+                    const link = (WORKSPACE_OPERATIONAL_MAP as any)[r.id];
+                    if (link?.activeTab) onNavigate(link.activeTab);
+                  } else if (onNavigate) {
+                    onNavigate(r.workspaceTab);
+                  }
+                }}
+                className="p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/50 hover:border-emerald-500/40 text-right transition-all cursor-pointer group"
+                title={`${lang === 'ar' ? r.documentAr : r.documentEn} — ${r.nebCodes.join('/')}`}
+              >
+                <div className="text-[9px] font-mono font-black text-emerald-600">{r.nebCodes.join(' • ')}</div>
+                <div className="text-[11px] font-black text-slate-800 dark:text-zinc-100 truncate">{lang === 'ar' ? r.titleAr : r.titleEn}</div>
+                <div className="text-[9px] text-slate-400 truncate">{lang === 'ar' ? r.documentAr : r.documentEn}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* KPI Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {kpis.map((kpi, i) => {
@@ -228,7 +268,23 @@ export function ReportsView({ lang = 'en', projects = [], beneficiaries = [] }: 
           </div>
         </div>
 
-        {/* Reports Grid */}
+        {/* Reports Grid — honest empty state (no fabricated rows) */}
+        {filteredReports.length === 0 && !liveLoading && (
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-dashed border-slate-300 dark:border-zinc-700 p-8 text-center">
+            <FileText className="w-8 h-8 text-slate-300 dark:text-zinc-600 mx-auto mb-3" />
+            <p className="text-sm font-black text-slate-700 dark:text-zinc-200">
+              {t('لا توجد تقارير حية بعد', 'No live reports yet', lang)}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              {t('اربط قاعدة البيانات وسجل عمليات حقيقية لظهور التقارير هنا', 'Connect the database and record real operations for reports to appear', lang)}
+            </p>
+            {liveError && (
+              <button onClick={retryLive} className="mt-3 text-[11px] font-black text-emerald-600 hover:underline cursor-pointer">
+                {t('إعادة محاولة الاتصال', 'Retry connection', lang)}
+              </button>
+            )}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredReports.map(report => {
             const statusConfig = STATUS_CONFIG[report.status];

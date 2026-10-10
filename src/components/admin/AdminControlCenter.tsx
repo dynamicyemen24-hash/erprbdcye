@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
 
+import { logger } from '../../lib/logger';
 interface SystemInfo {
   version: string;
   environment: string;
@@ -49,7 +50,7 @@ export function AdminControlCenter({ lang = 'en' }: { lang?: 'ar' | 'en' }) {
       if (infoRes.status === 'fulfilled') setSystemInfo(infoRes.value);
       if (queueRes.status === 'fulfilled') setQueueMetrics(queueRes.value);
       if (healthRes.status === 'fulfilled') setHealth(healthRes.value);
-    } catch (e) { console.error('Failed to fetch admin data:', e); }
+    } catch (e) { logger.error('Failed to fetch admin data:', e); }
     setLoading(false);
   };
 

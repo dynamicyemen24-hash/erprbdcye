@@ -41,7 +41,7 @@ import {
   computeFinancialAnalytics,
   RATIO_STATUS_STYLES,
 } from '../../core/ledger/financialAnalytics';
-
+import { logger } from '../../lib/logger';
 interface FinancialBIAnalyticsTabProps {
   accounts: Account[];
   transactions: Transaction[];
@@ -193,7 +193,7 @@ export default function FinancialBIAnalyticsTab({
 
       XLSX.writeFile(wb, `Rohamaa_Financial_BI_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (err) {
-      console.error('Failed to export to Excel:', err);
+      logger.error('Failed to export to Excel:', err);
     }
   };
 

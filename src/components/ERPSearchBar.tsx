@@ -36,6 +36,7 @@ import {
 import { Project, User as UserType } from '../types';
 import { fuzzyMatchArabic, normalizeArabicText } from '../core/utils/arabicSearch';
 
+import { logger } from '../lib/logger';
 interface ERPSearchBarProps {
   lang: 'ar' | 'en';
   beneficiaries: any[];
@@ -149,7 +150,7 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
       };
 
       recognition.onerror = (event: any) => {
-        console.warn('Speech recognition error:', event.error);
+        logger.warn('Speech recognition error:', event.error);
         setIsListening(false);
         if (event.error === 'not-allowed') {
           setSpeechError(lang === 'ar' 
@@ -173,7 +174,7 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
       recognitionRef.current = recognition;
       recognition.start();
     } catch (err: any) {
-      console.error('Failed to start speech recognition', err);
+      logger.error('Failed to start speech recognition', err);
       setIsListening(false);
       setSpeechError(lang === 'ar' ? 'عذراً، تعذر تفعيل البحث الصوتي.' : 'Failed to initiate voice search.');
     }
@@ -534,7 +535,7 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
                     : 'bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 hover:border-amber-500'
                 }`}
               >
-                {lang === 'ar' ? 'جميع الأنظمة (13)' : 'All Domains (13)'}
+                {lang === 'ar' ? 'جميع الأنظمة (15)' : 'All Domains (15)'}
               </button>
 
               {domains.map(d => (
@@ -556,6 +557,13 @@ export default function ERPSearchBar({ lang, beneficiaries, projects, users, onN
                   <span className="truncate max-w-[120px]">{lang === 'ar' ? d.titleAr : d.titleEn}</span>
                 </button>
               ))}
+              <button
+                onClick={() => { onNavigate('search'); setIsOpen(false); }}
+                className="px-2.5 py-1 rounded-lg font-black text-[11px] whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 bg-emerald-600 text-white border-emerald-500 shadow-sm hover:bg-emerald-500"
+                title={lang === 'ar' ? 'مركز البحث المؤسسي الشامل (محفوظات ورائج وتوصيات)' : 'Full enterprise search center (saved, trending, recommendations)'}
+              >
+                <span>{lang === 'ar' ? 'البحث الشامل' : 'Full Search'}</span>
+              </button>
             </div>
 
             {/* Filter Pills & Prefix Examples Bar */}

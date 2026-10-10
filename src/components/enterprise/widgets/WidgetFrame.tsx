@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Spinner } from '../../../design-system/components/Spinner';
 
+import { logger } from '../../../lib/logger';
 interface WidgetFrameProps {
   id: string;
   title: ReactNode;
@@ -94,7 +95,7 @@ export function WidgetFrame({
     try {
       await onRefresh();
     } catch (e) {
-      console.error("Widget refresh failed:", e);
+      logger.error("Widget refresh failed:", e);
     } finally {
       setIsRefreshing(false);
     }

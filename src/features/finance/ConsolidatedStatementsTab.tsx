@@ -9,6 +9,9 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { Account } from '../../types';
+import { PermissionGate } from '../../components/PermissionGate';
+import { PERMISSIONS } from '../../shared/permissions/permission-map';
+import { useAuditPrint } from '../../shared/audit/useAuditPrint';
 
 interface ConsolidatedStatementsTabProps {
   lang: 'ar' | 'en';
@@ -17,6 +20,7 @@ interface ConsolidatedStatementsTabProps {
 
 export default function ConsolidatedStatementsTab({ lang, accounts = [] }: ConsolidatedStatementsTabProps) {
   const isRtl = lang === 'ar';
+  const auditPrint = useAuditPrint();
   const [selectedCurrency, setSelectedCurrency] = useState('YER');
   const [includeEliminations, setIncludeEliminations] = useState(true);
 
@@ -79,13 +83,15 @@ export default function ConsolidatedStatementsTab({ lang, accounts = [] }: Conso
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => window.print()}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <Printer className="w-4 h-4 text-blue-600" />
-            <span>{isRtl ? 'طباعة الميزانية الموحدة' : 'Print Consolidated Balance Sheet'}</span>
-          </button>
+          <PermissionGate perm={PERMISSIONS.FINANCE_READ} mode="disabled">
+            <button
+              onClick={() => auditPrint({ domain: 'finance-consolidated', title: 'Consolidated Balance Sheet', prefix: 'CON', meta: { accounts: accounts.length, currency: selectedCurrency } })}
+              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Printer className="w-4 h-4 text-blue-600" />
+              <span>{isRtl ? 'طباعة الميزانية الموحدة' : 'Print Consolidated Balance Sheet'}</span>
+            </button>
+          </PermissionGate>
         </div>
       </div>
 

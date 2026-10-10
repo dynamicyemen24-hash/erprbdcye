@@ -70,7 +70,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
-
+
+import { logger } from '../../lib/logger';
 export type CellValue = string | number | boolean | Date | null | undefined;
 export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select' | 'badge' | 'avatar' | 'actions';
 export type SortDirection = 'asc' | 'desc' | null;
@@ -1539,7 +1540,7 @@ export function PremiumDataGridDemo({ lang }: PremiumDataGridDemoProps) {
           </div>
         )}
         onCellEdit={(rowId, columnId, value) => {
-          console.log('Edit:', { rowId, columnId, value });
+          logger.log('Edit:', { rowId, columnId, value });
         }}
       />
     </div>

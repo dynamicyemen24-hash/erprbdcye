@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import crypto from 'crypto';
+import logger, { toLogMeta } from '../../core/logger';
 import { getPool } from '../../core/database';
 import { authenticateToken } from '../../middleware/auth.middleware';
+import { extractTenantId } from '../../core/helpers';
 import { enforceAllPolicies, type PolicyContext, type PolicyViolation } from '../../services/policyEngine';
 
 const router = Router();
@@ -100,14 +102,14 @@ router.post('/sync/offline-batch', async (req: any, res) => {
       return res.status(400).json({ error: 'Missing required sync item fields: id, domain, action' });
     }
 
-    console.log(`[OFFLINE-SYNC] Received batch item: id=${id}, domain=${domain}, action=${action}, status=${status || 'PENDING'}, retryCount=${retryCount || 0}`);
+    logger.info(`[OFFLINE-SYNC] Received batch item: id=${id}, domain=${domain}, action=${action}, status=${status || 'PENDING'}, retryCount=${retryCount || 0}`);
 
     const tableForDomain = SYNC_DOMAIN_TABLE_MAP[domain];
     if (tableForDomain && payload) {
       try {
         const policyPool = getPool();
         const ctx: PolicyContext = {
-          organizationId: req.user?.org_id || '00000000-0000-0000-0000-000000000001',
+          organizationId: extractTenantId(req),
           userId: req.user?.id || '',
           securityLevel: req.user?.security_level ?? 0,
           role: req.user?.role ?? '',
@@ -140,7 +142,7 @@ router.post('/sync/offline-batch', async (req: any, res) => {
               })
             ]);
           } catch (auditErr: any) {
-            console.warn("Could not insert audit log for policy violation:", auditErr.message);
+            logger.warn("Could not insert audit log for policy violation:", { meta: toLogMeta(auditErr.message) });
           }
 
           return res.status(403).json({
@@ -157,7 +159,7 @@ router.post('/sync/offline-batch', async (req: any, res) => {
           });
         }
       } catch (policyErr) {
-        console.error('[OFFLINE-SYNC] Policy enforcement error:', policyErr);
+        logger.error('[OFFLINE-SYNC] Policy enforcement error:', { meta: toLogMeta(policyErr) });
       }
     }
 
@@ -183,7 +185,7 @@ router.post('/sync/offline-batch', async (req: any, res) => {
         })
       ]);
     } catch (auditErr: any) {
-      console.warn("Could not insert audit log for offline-batch:", auditErr.message);
+      logger.warn("Could not insert audit log for offline-batch:", { meta: toLogMeta(auditErr.message) });
     }
 
     res.json({
@@ -193,7 +195,7 @@ router.post('/sync/offline-batch', async (req: any, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {
-    console.error('Offline batch sync failed:', error);
+    logger.error('Offline batch sync failed:', { meta: toLogMeta(error) });
     res.status(500).json({ error: 'Failed to process offline batch sync' });
   }
 });

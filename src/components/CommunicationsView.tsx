@@ -59,22 +59,6 @@ const TYPE_CONFIG: Record<string, { icon: any; color: string }> = {
   approval: { icon: CheckCircle2, color: 'text-emerald-500' },
 };
 
-const generateMockMessages = (): Message[] => [
-  { id: '1', subject_ar: 'طلب موافقة على المشتريات', subject_en: 'Purchase Approval Request', preview_ar: 'يوجد طلب موافقة على مشتريات بقيمة 50,000 يمني', preview_en: 'Purchase request pending approval for 50,000 YER', sender: 'أحمد محمد', timestamp: '2024-09-07T10:30:00', is_read: false, is_starred: true, priority: 'high', type: 'approval', category: 'inbox', attachments: 2 },
-  { id: '2', subject_ar: 'تقرير الأثر الشهري', subject_en: 'Monthly Impact Report', preview_ar: 'تم إنشاء تقرير الأثر الشهري لشهر أغسطس 2024', preview_en: 'Monthly impact report generated for August 2024', sender: 'نظام UAMEX', timestamp: '2024-09-07T09:15:00', is_read: false, is_starred: false, priority: 'normal', type: 'system', category: 'inbox' },
-  { id: '3', subject_ar: 'تنبيه: انتهاء صلاحية المستند', subject_en: 'Alert: Document Expiring', preview_ar: 'مستند السياسة المالية ينتهي صلاحيته خلال 7 أيام', preview_en: 'Financial policy document expires in 7 days', sender: 'نظام التنبيهات', timestamp: '2024-09-06T14:00:00', is_read: true, is_starred: false, priority: 'urgent', type: 'notification', category: 'inbox' },
-  { id: '4', subject_ar: 'دعوة لاجتماع مخطط', subject_en: 'Meeting Invitation Scheduled', preview_ar: 'تم جدولة اجتماع مراجعة المشاريع يوم الأحد القادم', preview_en: 'Project review meeting scheduled for next Sunday', sender: 'سارة العلي', timestamp: '2024-09-06T11:30:00', is_read: true, is_starred: true, priority: 'normal', type: 'email', category: 'inbox', attachments: 1 },
-  { id: '5', subject_ar: 'تحديث نظام الأمان', subject_en: 'Security System Update', preview_ar: 'تم تحديث إعدادات الأمان بنجاح. جميع الحمايات مفعلة.', preview_en: 'Security settings updated successfully. All protections active.', sender: 'فريق الأمان', timestamp: '2024-09-05T16:45:00', is_read: true, is_starred: false, priority: 'low', type: 'system', category: 'inbox' },
-  { id: '6', subject_ar: 'تقرير المبيعات الأسبوعي', subject_en: 'Weekly Sales Report', preview_ar: 'ملخص المبيعات والإيرادات لأسبوع 35', preview_en: 'Sales and revenue summary for week 35', sender: 'قسم المبيعات', timestamp: '2024-09-05T08:00:00', is_read: true, is_starred: false, priority: 'normal', type: 'email', category: 'inbox', attachments: 3 },
-];
-
-const generateMockNotifications = (): Notification[] => [
-  { id: 'n1', title_ar: 'مهمة جديدة', title_en: 'New Task Assigned', body_ar: 'تم تكليفك بمهمة مراجعة التقرير المالي', body_en: 'You have been assigned to review the financial report', type: 'info', timestamp: '2024-09-07T11:00:00', read: false },
-  { id: 'n2', title_ar: 'تم الموافقة', title_en: 'Approval Granted', body_ar: 'تمت الموافقة على طلب الشراء رقم PO-2024-089', body_en: 'Purchase order PO-2024-089 has been approved', type: 'success', timestamp: '2024-09-07T10:30:00', read: false },
-  { id: 'n3', title_ar: 'تنبيه أمني', title_en: 'Security Alert', body_ar: 'تم رصد محاولة دخول غير مصرح بها', body_en: 'Unauthorized access attempt detected', type: 'error', timestamp: '2024-09-07T09:00:00', read: true },
-  { id: 'n4', title_ar: 'تحديث الميزانية', title_en: 'Budget Update', body_ar: 'تم تحديث الميزانية للمشاريع النشطة', body_en: 'Budget updated for active projects', type: 'warning', timestamp: '2024-09-06T15:00:00', read: true },
-];
-
 /** Map an official_communications row (API) into the inbox UI shape. */
 function mapCommRow(r: any): Message {
   const status: string = String(r.status || '').toUpperCase();
@@ -169,8 +153,20 @@ export function CommunicationsView({ lang = 'en' }: { lang?: CommLang }) {
   const [source, setSource] = useState<'live' | 'local'>('local');
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(() => generateMockMessages());
-  const [notifications, setNotifications] = useState<Notification[]>(() => generateMockNotifications());
+  // Truth-first: start empty. Fabricated inbox content must never render,
+  // not even as a loading placeholder.
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  // Compose (POST /api/v2/communications) + detail (GET /:id) state.
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [composeSaving, setComposeSaving] = useState(false);
+  const [composeError, setComposeError] = useState<string | null>(null);
+  const [composeForm, setComposeForm] = useState({ docType: 'MEMO', subjectAr: '', subjectEn: '', bodyAr: '', priority: 'NORMAL', fromEntity: '', toEntity: '' });
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<any | null>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!permitted) {
@@ -180,6 +176,7 @@ export function CommunicationsView({ lang = 'en' }: { lang?: CommLang }) {
     let cancelled = false;
     (async () => {
       try {
+        setLoadError(null);
         const headers = authHeaders();
         const [listRes, overviewRes] = await Promise.all([
           fetch('/api/v2/communications?limit=50', { headers }),
@@ -201,13 +198,67 @@ export function CommunicationsView({ lang = 'en' }: { lang?: CommLang }) {
         }
         setSource('live');
       } catch {
-        if (!cancelled) setSource('local');
+        if (!cancelled) {
+          // No silent fallback to fabricated content: surface the failure.
+          setMessages([]);
+          setNotifications([]);
+          setSource('local');
+          setLoadError(t('تعذر تحميل الاتصالات من الخادم', 'Could not load communications from the server', lang));
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [permitted]);
+  }, [permitted, reloadKey]);
+
+  const openDetail = async (id: string) => {
+    setDetailId(id);
+    setDetail(null);
+    setDetailError(null);
+    try {
+      const res = await fetch(`/api/v2/communications/${encodeURIComponent(id)}`, { headers: authHeaders() });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error || json?.message || `HTTP ${res.status}`);
+      setDetail(json?.data ?? null);
+    } catch (err: any) {
+      setDetailError(err?.message || 'load failed');
+    }
+  };
+
+  const submitCompose = async () => {
+    const payload = {
+      docType: composeForm.docType,
+      subjectAr: composeForm.subjectAr.trim(),
+      subjectEn: composeForm.subjectEn.trim() || undefined,
+      bodyAr: composeForm.bodyAr.trim() || undefined,
+      priority: composeForm.priority,
+      fromEntity: composeForm.fromEntity.trim(),
+      toEntity: composeForm.toEntity.trim() || undefined,
+    };
+    if (!payload.subjectAr || !payload.fromEntity) {
+      setComposeError(t('الموضوع والجهة المرسلة حقلان مطلوبان', 'Subject and sender are required', lang));
+      return;
+    }
+    setComposeSaving(true);
+    setComposeError(null);
+    try {
+      const res = await fetch('/api/v2/communications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error || json?.message || `HTTP ${res.status}`);
+      setComposeOpen(false);
+      setComposeForm({ docType: 'MEMO', subjectAr: '', subjectEn: '', bodyAr: '', priority: 'NORMAL', fromEntity: '', toEntity: '' });
+      setReloadKey(k => k + 1);
+    } catch (err: any) {
+      setComposeError(err?.message || 'save failed');
+    } finally {
+      setComposeSaving(false);
+    }
+  };
 
   const unreadCount = messages.filter(m => !m.is_read).length;
   const unreadNotifications = notifications.filter(n => !n.read).length;
@@ -232,8 +283,20 @@ export function CommunicationsView({ lang = 'en' }: { lang?: CommLang }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/20 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/5" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {/* Header */}
+          {loadError && !loading && (
+            <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-500/10 text-sm">
+              <span className="text-red-700 dark:text-red-300 font-bold">{loadError}</span>
+              <button
+                type="button"
+                onClick={() => { setLoading(true); setReloadKey(k => k + 1); }}
+                className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-extrabold"
+              >
+                {t('إعادة المحاولة', 'Retry', lang)}
+              </button>
+            </div>
+          )}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-zinc-100 flex items-center gap-3">
               <div className="p-2 rounded-xl bg-emerald-500/10"><MessageSquare className="w-7 h-7 text-emerald-500" /></div>
@@ -253,7 +316,7 @@ export function CommunicationsView({ lang = 'en' }: { lang?: CommLang }) {
             </p>
           </div>
           <PermissionGate perm={PERMISSIONS.COMMUNICATIONS_WRITE} mode="disabled">
-            <EnterpriseButton variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>{t('رسالة جديدة', 'New Message', lang)}</EnterpriseButton>
+            <EnterpriseButton variant="primary" size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => { setComposeError(null); setComposeOpen(true); }}>{t('رسالة جديدة', 'New Message', lang)}</EnterpriseButton>
           </PermissionGate>
         </div>
 
@@ -336,7 +399,7 @@ export function CommunicationsView({ lang = 'en' }: { lang?: CommLang }) {
                   return (
                     <div
                       key={msg.id}
-                      onClick={() => setSelectedMessage(msg)}
+                      onClick={() => { setSelectedMessage(msg); void openDetail(msg.id); }}
                       className={`flex items-start gap-3 p-4 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer ${!msg.is_read ? 'bg-emerald-50/30 dark:bg-emerald-500/5' : ''}`}
                     >
                       <div className="relative">
@@ -405,6 +468,72 @@ export function CommunicationsView({ lang = 'en' }: { lang?: CommLang }) {
             </div>
           )}
         </div>
+
+        {/* Compose — creates a real DRAFT via POST /api/v2/communications */}
+        {composeOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+            <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-5 space-y-3">
+              <h2 className="text-lg font-black text-slate-900 dark:text-zinc-100">{t('رسالة رسمية جديدة', 'New Official Message', lang)}</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="text-xs font-bold text-slate-500">
+                  {t('نوع المستند', 'Doc type', lang)}
+                  <select value={composeForm.docType} onChange={e => setComposeForm(f => ({ ...f, docType: e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 px-2 py-2 text-sm text-slate-900 dark:text-zinc-100">
+                    {['MEMO', 'CIRCULAR', 'DIRECTIVE', 'ANNOUNCEMENT', 'REPLY'].map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </label>
+                <label className="text-xs font-bold text-slate-500">
+                  {t('الأولوية', 'Priority', lang)}
+                  <select value={composeForm.priority} onChange={e => setComposeForm(f => ({ ...f, priority: e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 px-2 py-2 text-sm text-slate-900 dark:text-zinc-100">
+                    {['LOW', 'NORMAL', 'HIGH', 'URGENT'].map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </label>
+              </div>
+              <input value={composeForm.subjectAr} onChange={e => setComposeForm(f => ({ ...f, subjectAr: e.target.value }))} placeholder={t('الموضوع (مطلوب) *', 'Subject (required) *', lang)} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 px-3 py-2 text-sm text-slate-900 dark:text-zinc-100" />
+              <input value={composeForm.subjectEn} onChange={e => setComposeForm(f => ({ ...f, subjectEn: e.target.value }))} placeholder={t('الموضوع بالإنجليزية', 'Subject (English)', lang)} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 px-3 py-2 text-sm text-slate-900 dark:text-zinc-100" />
+              <div className="grid grid-cols-2 gap-3">
+                <input value={composeForm.fromEntity} onChange={e => setComposeForm(f => ({ ...f, fromEntity: e.target.value }))} placeholder={t('الجهة المرسلة (مطلوبة) *', 'Sender (required) *', lang)} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 px-3 py-2 text-sm text-slate-900 dark:text-zinc-100" />
+                <input value={composeForm.toEntity} onChange={e => setComposeForm(f => ({ ...f, toEntity: e.target.value }))} placeholder={t('الجهة المستلمة', 'Recipient', lang)} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 px-3 py-2 text-sm text-slate-900 dark:text-zinc-100" />
+              </div>
+              <textarea value={composeForm.bodyAr} onChange={e => setComposeForm(f => ({ ...f, bodyAr: e.target.value }))} rows={4} placeholder={t('نص الرسالة', 'Message body', lang)} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 px-3 py-2 text-sm text-slate-900 dark:text-zinc-100" />
+              {composeError && <p className="text-xs font-bold text-red-600 dark:text-red-400">{composeError}</p>}
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setComposeOpen(false)} className="px-4 py-2 rounded-xl text-xs font-extrabold bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">{t('إلغاء', 'Cancel', lang)}</button>
+                <button type="button" disabled={composeSaving} onClick={() => void submitCompose()} className="px-4 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50">{composeSaving ? t('جاري الحفظ...', 'Saving...', lang) : t('حفظ كمسودة', 'Save as draft', lang)}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Detail — full record from GET /api/v2/communications/:id */}
+        {detailId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+            <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-5 space-y-3 max-h-[85vh] overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-black text-slate-900 dark:text-zinc-100">{t('تفاصيل المستند', 'Document Detail', lang)}</h2>
+                <button type="button" onClick={() => { setDetailId(null); setDetail(null); }} className="px-3 py-1.5 rounded-lg text-xs font-extrabold bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">{t('إغلاق', 'Close', lang)}</button>
+              </div>
+              {detailError && <p className="text-xs font-bold text-red-600 dark:text-red-400">{detailError}</p>}
+              {!detail && !detailError && <Spinner className="w-6 h-6" />}
+              {detail && (
+                <dl className="text-sm space-y-2 text-slate-700 dark:text-zinc-300">
+                  <div className="flex gap-2"><dt className="font-black w-28 shrink-0">{t('الرقم', 'Number', lang)}</dt><dd className="font-mono">{detail.doc_number || detail.id}</dd></div>
+                  <div className="flex gap-2"><dt className="font-black w-28 shrink-0">{t('الحالة', 'Status', lang)}</dt><dd>{detail.status}</dd></div>
+                  <div className="flex gap-2"><dt className="font-black w-28 shrink-0">{t('النوع', 'Type', lang)}</dt><dd>{detail.doc_type}</dd></div>
+                  <div className="flex gap-2"><dt className="font-black w-28 shrink-0">{t('الأولوية', 'Priority', lang)}</dt><dd>{detail.priority}</dd></div>
+                  <div className="flex gap-2"><dt className="font-black w-28 shrink-0">{t('الموضوع', 'Subject', lang)}</dt><dd>{lang === 'ar' ? (detail.subject_ar || detail.subject_en) : (detail.subject_en || detail.subject_ar)}</dd></div>
+                  {(detail.body_ar || detail.body_en) && <div><dt className="font-black">{t('النص', 'Body', lang)}</dt><dd className="mt-1 whitespace-pre-wrap text-xs">{lang === 'ar' ? (detail.body_ar || detail.body_en) : (detail.body_en || detail.body_ar)}</dd></div>}
+                  <div className="flex gap-2"><dt className="font-black w-28 shrink-0">{t('من', 'From', lang)}</dt><dd>{detail.from_entity || '—'}</dd></div>
+                  <div className="flex gap-2"><dt className="font-black w-28 shrink-0">{t('إلى', 'To', lang)}</dt><dd>{detail.to_entity || '—'}</dd></div>
+                  {Array.isArray(detail.recipients) && detail.recipients.length > 0 && (
+                    <div><dt className="font-black">{t('المستلمون', 'Recipients', lang)} ({detail.recipients.length})</dt>
+                      <dd className="mt-1 text-xs space-y-1">{detail.recipients.map((r: any, i: number) => <div key={i}>{r.recipient_entity || r.recipient_user_id || '—'} — {r.status || ''}</div>)}</dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

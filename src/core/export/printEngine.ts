@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger';
 // ═══════════════════════════════════════════════════════════════════════════════
 // NexoraOS™ Enterprise Print Engine
 // Advanced PDF generation, instant printing, multi-page support, watermarks,
@@ -396,7 +397,7 @@ export function instantPrint(html: string): boolean {
           iframe.contentWindow?.focus();
           iframe.contentWindow?.print();
         } catch (err) {
-          console.warn('[InstantPrint] Iframe print fallback:', err);
+          logger.warn('[InstantPrint] Iframe print fallback:', err);
           const w = window.open('', '_blank', 'width=1200,height=800');
           if (w) {
             w.document.write(html);
@@ -415,7 +416,7 @@ export function instantPrint(html: string): boolean {
       return true;
     }
   } catch (e) {
-    console.error('[InstantPrint] Failure:', e);
+    logger.error('[InstantPrint] Failure:', e);
   }
 
   // Fallback to direct window.open

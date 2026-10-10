@@ -11,7 +11,7 @@ import {
   ChevronRight, RefreshCw, ExternalLink, MessageSquare, BrainCircuit,
   Layers, Shield, Award, Cpu, Database, Globe, Sun, Moon
 } from 'lucide-react';
-import { Badge } from '../../shared/components';
+import { Badge } from '../../design-system/components/Badge';
 
 type Lang = 'ar' | 'en';
 type Theme = 'light' | 'dark';
@@ -346,8 +346,7 @@ const InsightCard: React.FC<{
               </h4>
               <Badge
                 variant={insight.type === 'risk' ? 'danger' : insight.type === 'opportunity' ? 'warning' : 'success'}
-                size="xs"
-                lang={lang}
+                size="sm"
               >
                 {lang === 'ar' ? cfg.labelAr : cfg.labelEn}
               </Badge>

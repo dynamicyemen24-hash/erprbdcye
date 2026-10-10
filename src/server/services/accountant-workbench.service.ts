@@ -56,7 +56,7 @@ export async function getAccountLedger(
 
   const opening = await pool
     .query(
-      `SELECT COALESCE(SUM(tl.debit - tl.credit), 0) as balance
+      `SELECT COALESCE(SUM(tl.debit_amount - tl.credit_amount), 0) as balance
          FROM transaction_lines tl
          JOIN transactions t ON t.id = tl.transaction_id
         WHERE tl.organization_id = $1 AND tl.account_id = $2 AND t.status = $3
@@ -73,7 +73,7 @@ export async function getAccountLedger(
     .query(
       `SELECT t.transaction_date as entry_date, t.transaction_number as voucher_number,
               COALESCE(tl.description, t.description) as description,
-              COALESCE(tl.debit, 0) as debit, COALESCE(tl.credit, 0) as credit,
+              COALESCE(tl.debit_amount, 0) as debit, COALESCE(tl.credit_amount, 0) as credit,
               COALESCE(tl.currency_code, '') as currency
          FROM transaction_lines tl
          JOIN transactions t ON t.id = tl.transaction_id

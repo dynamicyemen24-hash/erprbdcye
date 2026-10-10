@@ -67,7 +67,10 @@ router.post('/logout', async (req: any, res) => {
       message: 'تم تسجيل الخروج بنجاح',
     });
   } catch (err: any) {
-    logger.error(`[LOGOUT] Error: ${err.message}`, { context: 'auth' });
+    logger.error(`[LOGOUT] Error: ${err.message}`, {
+      context: 'auth',
+      error: { name: err?.name ?? 'Error', message: err?.message ?? String(err), stack: err?.stack },
+    });
     res.status(500).json({ error: 'Logout failed' });
   }
 });

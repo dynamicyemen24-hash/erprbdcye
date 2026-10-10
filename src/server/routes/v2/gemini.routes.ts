@@ -3,8 +3,14 @@ import { GoogleGenAI, Type } from '@google/genai';
 import crypto from 'crypto';
 import { getPool } from '../../core/database';
 import logger from '../../core/logger';
+import { authenticateToken } from '../../middleware/auth.middleware';
 
 const router = Router();
+
+// Defense in depth: every AI route spends metered model quota, so the whole
+// router requires authentication IN ADDITION to the global gate in
+// server.ts. No anonymous model calls — ever.
+router.use(authenticateToken);
 
 // ═══════════════════════════════════════════════════════════════════
 // NexoraOS™ Gemini AI Routes — Extracted from server.ts

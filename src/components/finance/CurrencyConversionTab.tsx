@@ -19,7 +19,9 @@ import {
 import { Currency } from '../../types';
 import { Spinner } from '../../design-system/components/Spinner';
 import { EnterpriseButton } from '../common/EnterpriseButton';
-
+import { resolveTenantId } from '../../shared/tenant/resolveTenantId';
+
+import { logger } from '../../lib/logger';
 interface ExchangeRateRecord {
   id: string;
   from_currency_id: string;
@@ -94,7 +96,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
         }
       }
     } catch (err) {
-      console.error('Failed to fetch live rates:', err);
+      logger.error('Failed to fetch live rates:', err);
     } finally {
       setFetchingLive(false);
     }
@@ -128,7 +130,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
         }
       }
     } catch (err) {
-      console.error('Failed to fetch db rates:', err);
+      logger.error('Failed to fetch db rates:', err);
     } finally {
       setLoadingDb(false);
     }
@@ -144,7 +146,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
         setSponsorships(data || []);
       }
     } catch (err) {
-      console.error('Failed to fetch sponsorships:', err);
+      logger.error('Failed to fetch sponsorships:', err);
     } finally {
       setLoadingSponsorships(false);
     }
@@ -237,7 +239,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            organization_id: '00000000-0000-0000-0000-000000000001',
+            organization_id: resolveTenantId(),
             from_currency_id: usdCurrency.id,
             to_currency_id: yerCurrency.id,
             rate: parseFloat(usdToYerManual),
@@ -260,7 +262,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            organization_id: '00000000-0000-0000-0000-000000000001',
+            organization_id: resolveTenantId(),
             from_currency_id: sarCurrency.id,
             to_currency_id: yerCurrency.id,
             rate: parseFloat(sarToYerManual),
@@ -283,7 +285,7 @@ export default function CurrencyConversionTab({ currencies, lang, onRefreshCurre
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            organization_id: '00000000-0000-0000-0000-000000000001',
+            organization_id: resolveTenantId(),
             from_currency_id: usdCurrency.id,
             to_currency_id: sarCurrency.id,
             rate: parseFloat(usdToSarManual),

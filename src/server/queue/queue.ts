@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import logger from '../core/logger';
 import { Job, JobHandler, JobOptions, JobPriority, JobStatus, QueueMetrics } from './types';
 
 export class JobQueue {
@@ -23,7 +24,7 @@ export class JobQueue {
       timeout: options.timeout ?? 30000,
     };
     this.jobs.push(job);
-    console.log(`[QUEUE] Job added: ${type} (${job.id})`);
+    logger.info(`[QUEUE] Job added: ${type} (${job.id})`);
     return job;
   }
 
@@ -31,7 +32,7 @@ export class JobQueue {
     if (this.processing) return;
     this.processing = true;
     this.poll();
-    console.log('[QUEUE] Processing started');
+    logger.info('[QUEUE] Processing started');
   }
 
   private async poll() {
@@ -61,17 +62,17 @@ export class JobQueue {
       const duration = job.completedAt.getTime() - job.startedAt.getTime();
       this.metrics.totalProcessed++;
       this.metrics.totalProcessingTime += duration;
-      console.log(`[QUEUE] Job completed: ${job.type} (${job.id}) in ${duration}ms`);
+      logger.info(`[QUEUE] Job completed: ${job.type} (${job.id}) in ${duration}ms`);
     } catch (error: any) {
       job.error = error.message;
       if (job.attempts < job.maxAttempts) {
         job.status = JobStatus.RETRYING;
         job.delay = Math.pow(2, job.attempts) * 1000;
-        console.log(`[QUEUE] Job retrying: ${job.type} (${job.id}) attempt ${job.attempts}/${job.maxAttempts}`);
+        logger.info(`[QUEUE] Job retrying: ${job.type} (${job.id}) attempt ${job.attempts}/${job.maxAttempts}`);
       } else {
         job.status = JobStatus.FAILED;
         job.failedAt = new Date();
-        console.error(`[QUEUE] Job failed: ${job.type} (${job.id}): ${error.message}`);
+        logger.error(`[QUEUE] Job failed: ${job.type} (${job.id}): ${error.message}`);
       }
     } finally { this.activeCount--; }
   }
@@ -107,7 +108,7 @@ export class JobQueue {
   async stop() {
     this.processing = false;
     if (this.pollTimer) clearTimeout(this.pollTimer);
-    console.log('[QUEUE] Processing stopped');
+    logger.info('[QUEUE] Processing stopped');
   }
 
   clean(maxAgeMs: number = 3600000): number {

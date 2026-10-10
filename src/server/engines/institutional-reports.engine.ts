@@ -46,7 +46,7 @@ export class InstitutionalReportsEngine {
     const lines = await queryMany(
       `SELECT bl.id, bl.allocated_budget, bl.spent_amount, bl.currency_code, bl.branch_code,
               coa.account_code, coa.name_ar as account_name,
-              fy.year_number as fiscal_year, p.name_ar as project_name, pr.name_ar as program_name
+              (EXTRACT(YEAR FROM fy.start_date))::int as fiscal_year, p.name_ar as project_name, pr.name_ar as program_name
          FROM budget_lines bl
          JOIN chart_of_accounts coa ON coa.id = bl.account_id
          JOIN fiscal_years fy ON fy.id = bl.fiscal_year_id
@@ -58,7 +58,7 @@ export class InstitutionalReportsEngine {
           AND ($4::uuid IS NULL OR pr.id = $4::uuid)
           AND ($5::text IS NULL OR bl.currency_code = $5)
           AND ($6::text IS NULL OR bl.branch_code = $6)
-        ORDER BY fy.year_number DESC, coa.account_code ASC`,
+        ORDER BY fy.start_date DESC, coa.account_code ASC`,
       [orgId, filters.fiscalYearId ?? null, filters.projectId ?? null, filters.programId ?? null, filters.currency ?? null, filters.branchCode ?? null]
     );
 
@@ -242,9 +242,9 @@ export class InstitutionalReportsEngine {
     });
     const accounts = await queryMany(
       `SELECT coa.id as account_id, coa.account_code, coa.name_ar, coa.name_en, coa.account_type,
-              COALESCE(SUM(tl.debit), 0) as total_debit,
-              COALESCE(SUM(tl.credit), 0) as total_credit,
-              (COALESCE(SUM(tl.debit), 0) - COALESCE(SUM(tl.credit), 0)) as net_balance
+              COALESCE(SUM(tl.debit_amount), 0) as total_debit,
+              COALESCE(SUM(tl.credit_amount), 0) as total_credit,
+              (COALESCE(SUM(tl.debit_amount), 0) - COALESCE(SUM(tl.credit_amount), 0)) as net_balance
          FROM chart_of_accounts coa
          LEFT JOIN transaction_lines tl
            ON tl.account_id = coa.id AND tl.organization_id = $1

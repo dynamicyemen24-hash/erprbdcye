@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { persistenceService } from '../services/persistence';
 
+import { logger } from '../../lib/logger';
 interface UseDraftVaultOptions<T> {
   formKey: string;
   initialValues: T;
@@ -34,7 +35,7 @@ export function useDraftVault<T extends Record<string, any>>({
           if (onRestore) onRestore(saved);
         }
       } catch (e) {
-        console.warn(`[DraftVault] Failed to load draft for ${formKey}:`, e);
+        logger.warn(`[DraftVault] Failed to load draft for ${formKey}:`, e);
       } finally {
         isInitialLoadRef.current = false;
       }
@@ -60,7 +61,7 @@ export function useDraftVault<T extends Record<string, any>>({
             setLastSavedTime(new Date());
             setHasDraft(true);
           } catch (err) {
-            console.warn(`[DraftVault] Save error for ${formKey}:`, err);
+            logger.warn(`[DraftVault] Save error for ${formKey}:`, err);
           } finally {
             setIsSaving(false);
           }

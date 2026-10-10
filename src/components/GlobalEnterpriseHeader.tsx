@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Menu, 
   Grid, 
@@ -22,7 +22,9 @@ import { EnvironmentModeHeaderButton } from './EnvironmentModeBanner';
 import { ActiveTab, User } from '../core/types';
 import { useTenantContext } from '../core/TenantContext';
 import { useEnvironmentMode, ENVIRONMENT_MODES } from '../core/context/EnvironmentModeContext';
+import { IS_APPLE_PLATFORM } from '../design-system/utils/rtl';
 
+import { logger } from '../lib/logger';
 export interface GlobalEnterpriseHeaderProps {
   lang: 'ar' | 'en';
   setLang: React.Dispatch<React.SetStateAction<'ar' | 'en'>>;
@@ -148,22 +150,40 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
           {/* Branch & fiscal year moved to Organization Settings for focus */}
         </div>
 
-        {/* CENTER: QUICK ACCESS SEARCH & SHORTCUT */}
+        {/* CENTER: QUICK ACCESS SEARCH & SHORTCUT
+          This was a `<div onClick>` with no `role`, no `tabIndex` and no key
+          handler — the single most common keyboard trap in an ERP header: the
+          application's primary search entry point was completely unreachable
+          without a mouse (WCAG 2.1.1 Keyboard, Level A).
+
+          It is now a real `<button>` with a bilingual accessible name. The
+          shortcut label also follows the platform: `⌘K` on macOS, `Ctrl+K`
+          elsewhere, because telling a macOS user to press Ctrl is the same
+          class of error as printing the wrong currency. */}
         <div className="flex-1 max-w-sm mx-auto hidden md:block">
-          <div 
+          <button
+            type="button"
             onClick={() => setIsCommandCenterOpen(true)}
-            className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-emerald-500/50 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer group shadow-inner"
+            aria-label={
+              isRtl
+                ? 'فتح مركز البحث والأوامر'
+                : 'Open search and command center'
+            }
+            className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-emerald-500/50 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer group shadow-inner text-start"
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <Search className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-400 transition-colors" />
-              <span className="text-xs truncate">
+            <span className="flex items-center gap-2 min-w-0">
+              <Search className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-400 transition-colors" aria-hidden="true" />
+              <span className="text-xs truncate" aria-hidden="true">
                 {isRtl ? 'بحث شامل في السجلات والأوامر...' : 'Search records & commands...'}
               </span>
-            </div>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono font-bold bg-zinc-800 text-zinc-400 rounded border border-zinc-700">
-              Ctrl + K
+            </span>
+            <kbd
+              aria-hidden="true"
+              className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono font-bold bg-zinc-800 text-zinc-400 rounded border border-zinc-700"
+            >
+              {IS_APPLE_PLATFORM ? '⌘K' : 'Ctrl+K'}
             </kbd>
-          </div>
+          </button>
         </div>
 
         {/* END: CONTROLS, ALERTS & USER PROFILE */}
@@ -364,7 +384,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
               currentUser={currentUser as any}
               onSwitchUser={(u) => {
                 setCurrentUser(u);
-                try { localStorage.setItem('rbd_user', JSON.stringify(u)); } catch (e) { console.error('[Header] Failed to save user to localStorage:', e); }
+                try { localStorage.setItem('rbd_user', JSON.stringify(u)); } catch (e) { logger.error('[Header] Failed to save user to localStorage:', e); }
               }}
               onLogout={() => {
                 setCurrentUser(null);
@@ -373,7 +393,7 @@ export const GlobalEnterpriseHeader: React.FC<GlobalEnterpriseHeaderProps> = ({
                   localStorage.removeItem('roh_user'); 
                   localStorage.removeItem('rbd_token');
                   localStorage.removeItem('rbd_refresh_token');
-                } catch (e) { console.error('[Header] Failed to clear user from localStorage:', e); }
+                } catch (e) { logger.error('[Header] Failed to clear user from localStorage:', e); }
               }}
             />
           </div>

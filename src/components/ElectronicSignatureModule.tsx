@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SignatureModal from './SignatureModal';
 import { verifySignature } from '../core/security/signature';
 
+import { logger } from '../lib/logger';
 interface ElectronicSignatureModuleProps {
   lang: 'ar' | 'en';
   currentUser: any;
@@ -25,7 +26,7 @@ export default function ElectronicSignatureModule({
       onVerifiedSign(signature);
       setShowModal(false);
     } else {
-      console.error('Signature verification failed');
+      logger.error('Signature verification failed');
       // Should ideally notify user
     }
   };

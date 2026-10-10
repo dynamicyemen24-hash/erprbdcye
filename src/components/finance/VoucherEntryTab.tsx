@@ -5,8 +5,10 @@ import { handleApiResponse, PolicyViolationError, type PolicyViolation } from '.
 import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
 import { STANDARD_COST_CENTERS } from '../../core/data/costCentersData';
 import { EnterpriseButton } from '../common/EnterpriseButton';
+import { resolveTenantId } from '../../shared/tenant/resolveTenantId';
 import { showToast } from '../enterprise/EnterpriseToastContainer';
-
+
+import { logger } from '../../lib/logger';
 interface AccountSearchSelectProps {
   accounts: Account[];
   value: string;
@@ -371,7 +373,7 @@ export default function VoucherEntryTab({
     payment_method: 'CASH',
     branch_code: 'HQ',
     security_level: 2,
-    organization_id: '00000000-0000-0000-0000-000000000001',
+    organization_id: organizations[0]?.id || resolveTenantId(),
     currency_id: '',
     exchange_rate: '1',
     mediator_agent: '',
@@ -459,7 +461,7 @@ export default function VoucherEntryTab({
           });
         }
       } catch (err: any) {
-        console.error("AI OCR error:", err);
+        logger.error("AI OCR error:", err);
         setEntryMessage({
           type: 'error',
           text: lang === 'ar' ? 'تعذر مسح المستند عبر الذكاء الاصطناعي.' : 'Failed to scan document via AI OCR.'
@@ -479,7 +481,7 @@ export default function VoucherEntryTab({
           setLiveRates(data.rates);
         }
       })
-      .catch(err => console.error("Error fetching live rates in VoucherEntryTab:", err));
+      .catch(err => logger.error("Error fetching live rates in VoucherEntryTab:", err));
   }, []);
 
   // Set default currency and organization

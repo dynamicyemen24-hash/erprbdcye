@@ -48,9 +48,11 @@ export async function paginatedQuery<T>(
 
   // If the base query already carries its own ORDER BY (e.g. qualified columns
   // in JOINed queries), do NOT append another one — appending would produce
-  // "ORDER BY ... ORDER BY ..." syntax errors.
+  // "ORDER BY ... ORDER BY ..." syntax errors. The appended clause MUST carry
+  // the ORDER BY keywords themselves: without them every engine list emitted
+  // `... WHERE ... created_at DESC LIMIT ...` (syntax error at "created_at").
   const hasOwnOrderBy = /\border\s+by\b/i.test(baseQuery);
-  const orderClause = hasOwnOrderBy ? '' : ` ${buildOrderBy(pagination.sortBy, pagination.sortOrder)}`;
+  const orderClause = hasOwnOrderBy ? '' : ` ORDER BY ${buildOrderBy(pagination.sortBy, pagination.sortOrder)}`;
 
   const [countResult, dataResult] = await Promise.all([
     queryOne<{ count: string }>(countQuery, params),

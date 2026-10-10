@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { X, RotateCcw, CheckCircle2, AlertTriangle, ShieldCheck, FileText } from 'lucide-react';
+import { X, RotateCcw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
+import { usePermissions } from '../../shared/permissions/usePermissions';
+import { PERMISSIONS } from '../../shared/permissions/permission-map';
+
+function authHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token');
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  } catch { /* ignore */ }
+  return headers;
+}
 
 interface ReverseEntryModalProps {
   isOpen: boolean;
@@ -20,23 +31,42 @@ export default function ReverseEntryModal({
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { can } = usePermissions();
+  const canReverse = can(PERMISSIONS.FINANCE_WRITE);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Productive reversal: POST /api/v2/finance/transactions/:id/reverse (LedgerEngine).
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!refNumber || !reason) return;
-
+    if (!refNumber || !reason || isSubmitting) return;
+    if (!canReverse) {
+      setSubmitError(isRtl ? 'لا تملك صلاحية عكس القيود (finance:write)' : 'Missing finance:write permission');
+      return;
+    }
     setIsSubmitting(true);
-    setTimeout(() => {
-      onExecuteReverse(refNumber, reason);
-      setIsSubmitting(false);
-      setSuccessMessage(isRtl ? `تم التوليد التلقائي للقيد العكسي بنجاح برقم REV-${refNumber}` : `Reverse entry REV-${refNumber} generated successfully!`);
+    setSubmitError(null);
+    try {
+      const res = await fetch(`/api/v2/finance/transactions/${encodeURIComponent(refNumber.trim())}/reverse`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.message || body?.error || (isRtl ? 'تعذر عكس القيد' : 'Reverse failed'));
+      const producedRef = String(body?.data?.reference ?? body?.reference ?? `REV-${refNumber.trim()}`);
+      onExecuteReverse(producedRef, reason.trim());
+      setSuccessMessage(isRtl ? `تم التوليد التلقائي للقيد العكسي بنجاح برقم ${producedRef}` : `Reverse entry ${producedRef} generated successfully!`);
       setTimeout(() => {
         setSuccessMessage('');
         onClose();
       }, 1800);
-    }, 1200);
+    } catch (err: any) {
+      setSubmitError(err?.message || (isRtl ? 'فشل العكس' : 'Reverse failed'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -105,6 +135,15 @@ export default function ReverseEntryModal({
                 />
               </div>
 
+              {submitError && (
+                <p role="alert" className="text-[11px] font-bold text-rose-600 dark:text-rose-400">{submitError}</p>
+              )}
+              {!canReverse && (
+                <p role="note" className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                  {isRtl ? 'العكس يتطلب صلاحية finance:write — الزر مغلق لغير المخولين' : 'Reversal requires finance:write'}
+                </p>
+              )}
+
               {/* FOOTER ACTIONS */}
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
                 <button
@@ -116,7 +155,7 @@ export default function ReverseEntryModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !canReverse}
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-black shadow-md cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {isSubmitting ? (

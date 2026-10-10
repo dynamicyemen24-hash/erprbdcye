@@ -44,10 +44,38 @@ const TONE_STROKE: Record<MetricTone, string> = {
   neutral: 'stroke-zinc-400',
 };
 
+/**
+ * Freshness is encoded by COLOUR, SHAPE and TEXT — never colour alone.
+ *
+ * WCAG 1.4.1 (Use of Colour, Level A): the previous implementation rendered a
+ * coloured dot plus a `title` attribute. `title` is not reliably announced by
+ * screen readers and is unreachable by keyboard, so a blind or keyboard-only
+ * user had no way to learn whether the figure on the tile was live, stale, or
+ * failed — the three states a user must know before acting on a number.
+ *
+ *   live   → filled circle, emerald
+ *   stale  → filled diamond, amber
+ *   error  → filled triangle, red
+ *
+ * The shape is decorative (`aria-hidden`), the meaning is spoken.
+ */
 const FRESHNESS_DOT: Record<MetricFreshness, string> = {
   live: 'bg-emerald-500 animate-pulse',
   stale: 'bg-amber-500',
   error: 'bg-red-500',
+};
+
+const FRESHNESS_SHAPE: Record<MetricFreshness, string> = {
+  live: 'rounded-full',
+  stale: 'rotate-45 rounded-[1px]',
+  error: 'rounded-[1px]',
+};
+
+/** Distinct silhouette per state so the tile is readable without colour. */
+const FRESHNESS_GLYPH: Record<MetricFreshness, string> = {
+  live: '●',
+  stale: '◆',
+  error: '▲',
 };
 
 const FRESHNESS_AR: Record<MetricFreshness, string> = {
@@ -180,7 +208,27 @@ export function MetricTile({
       'cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ux-primary)]',
     className
   );
-  const ariaLabel = [displayLabel, displayValue, unit].filter(Boolean).join(' ');
+  // NOTE: no `aria-label` here.
+  //
+  // The tile used to set `aria-label="<label> <value> <unit>"`, which REPLACED
+  // the element's own content for assistive technology. Everything rendered
+  // inside the tile — the delta chip, the caption, and above all the freshness
+  // state — was therefore invisible to a screen reader (WCAG 1.3.1). The label,
+  // value and unit are already visible text, so an accessible name built from
+  // them duplicated what the reader already had while discarding what it did
+  // not. The state now travels through `aria-describedby` instead.
+
+  const freshnessText = freshness
+    ? lang === 'ar'
+      ? FRESHNESS_AR[freshness]
+      : FRESHNESS_EN[freshness]
+    : null;
+
+  /**
+   * The accessible description carries the state the dot encodes visually.
+   * WCAG 1.3.1 + 1.4.1: the information exists for every user, announced once.
+   */
+  const describedBy = freshnessText ? `${titleId}-freshness` : undefined;
 
   const content = (
     <>
@@ -190,10 +238,26 @@ export function MetricTile({
         </span>
         <span className="flex items-center gap-1.5 shrink-0">
           {freshness && (
-            <span
-              className={cn('inline-block w-1.5 h-1.5 rounded-full', FRESHNESS_DOT[freshness])}
-              title={lang === 'ar' ? FRESHNESS_AR[freshness] : FRESHNESS_EN[freshness]}
-            />
+            <>
+              {/* Shape differs per state so the tile reads without colour. */}
+              <span
+                data-testid="metric-freshness"
+                data-freshness={freshness}
+                aria-hidden="true"
+                className={cn(
+                  'inline-block w-1.5 h-1.5 text-[8px] leading-none',
+                  FRESHNESS_SHAPE[freshness],
+                  FRESHNESS_DOT[freshness]
+                )}
+              >
+                {FRESHNESS_GLYPH[freshness]}
+              </span>
+              {/* The spoken equivalent of the dot — replaces the old `title`,
+                  which screen readers did not reliably announce. */}
+              <span id={describedBy} className="sr-only">
+                {freshnessText}
+              </span>
+            </>
           )}
           {icon && <span className="text-zinc-400 [&>svg]:w-4 [&>svg]:h-4">{icon}</span>}
         </span>
@@ -212,10 +276,10 @@ export function MetricTile({
       <div className="flex items-center justify-between gap-2 min-h-[20px]">
         {delta !== undefined && <DeltaChip delta={delta} goodDirection={goodDirection} lang={lang} />}
         {caption && (
-          <span className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate ms-auto">{caption}</span>
+          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate ms-auto">{caption}</span>
         )}
         {delta !== undefined && deltaLabel && !caption && (
-          <span className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate ms-auto">{deltaLabel}</span>
+          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate ms-auto">{deltaLabel}</span>
         )}
       </div>
     </>
@@ -223,14 +287,19 @@ export function MetricTile({
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} aria-label={ariaLabel} className={rootClass}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-describedby={describedBy}
+        className={rootClass}
+      >
         {content}
       </button>
     );
   }
 
   return (
-    <div role="group" aria-label={ariaLabel} className={rootClass}>
+    <div role="group" aria-describedby={describedBy} className={rootClass}>
       {content}
     </div>
   );

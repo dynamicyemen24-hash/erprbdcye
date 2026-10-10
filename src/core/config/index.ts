@@ -1,15 +1,21 @@
 // ============================================================
-// UAMEX ERP™ — Intelligent Humanitarian & Development Enterprise System
-// Platform identity (multi-subscriber). Default subscriber profile:
-// Rohamā'a Baynahum Charity Foundation (see ORGANIZATION_CONFIG below).
+// Rohamā'a Baynahum — UAMEX ERP™
+// Intelligent Humanitarian & Development Enterprise System
 // ============================================================
+
+// The application version is NOT repeated in this file.
+// It used to read `version: 'v2.6.0-Enterprise'` — a FOURTH hand-copied build
+// number, alongside 4.0.0 in package.json, 4.0.0 in core/updates.ts, and
+// 2.4.0-Enterprise in the global footer. Four numbers for one product is how a
+// user concludes the deployment is unmaintained.
+//
+// `APP_VERSION` is resolved at build time from package.json (core/version.ts),
+// so this label can no longer drift from the build that is actually running.
+import { APP_VERSION } from '../version';
 
 export const ORGANIZATION_CONFIG = {
   // ==========================================================
-  // DEFAULT SUBSCRIBER PROFILE (current tenant seed).
-  // Rohamā'a Baynahum is one subscriber; further subscribers are
-  // onboarded through the multi-tenancy model below — the platform
-  // identity (UAMEX ERP™) stays subscriber-neutral.
+  // ORGANIZATION
   // ==========================================================
   nameAr: 'جمعية رُحماء بينهم للعمل الإنساني والتنمية',
   nameEn: "Rohamā'a Baynahum Charity Foundation",
@@ -41,9 +47,9 @@ export const ORGANIZATION_CONFIG = {
   systemIdentity: {
     systemCode: 'UAMEX-ERP-2026',
     systemName: 'UAMEX ERP™',
-    version: 'v4.0.0-Enterprise',
+    version: APP_VERSION,
     edition: 'Global Enterprise & Humanitarian Operating Suite',
-    releaseDate: '2026-10-09',
+    releaseDate: '2026-08-01',
     taglineAr: 'منصة واحدة • مؤسسة واحدة • رؤية موحدة',
     taglineEn: 'One Platform. One Organization. One Vision.',
     architecture: 'Micro-Frontend Enterprise Multi-Tenant Architecture',
@@ -84,10 +90,8 @@ export const ORGANIZATION_CONFIG = {
   // ==========================================================
   // CORE SYSTEMS (Nexora Enterprise Domains™)
   //
-  // Base catalog: 15 integrated domains (NEB-01 to NEB-15).
-  // The catalog is extensible — new domains plug in per subscriber
-  // needs (see server/governance/neb-registry.ts). Never hard-cap
-  // the platform to a fixed domain count.
+  // 13 Integrated Domains (NEB-01 to NEB-13) as defined in the
+  // Rohamaab NexoraOS™ Constitution (AGENTS.md).
   // ==========================================================
   coreSystems: [
     {

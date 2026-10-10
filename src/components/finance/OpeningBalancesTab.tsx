@@ -19,7 +19,8 @@ import {
 import { Account } from './FinanceTypes';
 import { exportToExcel, exportToCSV } from '../../utils/exportHelpers';
 import { EnterpriseButton } from '../common/EnterpriseButton';
-
+
+import { logger } from '../../lib/logger';
 interface OpeningBalancesTabProps {
   accounts: Account[];
   lang: 'ar' | 'en';
@@ -105,7 +106,7 @@ export default function OpeningBalancesTab({ accounts, lang, onRefresh }: Openin
           opening_val: String(a.current_balance || 0)
         })));
       } catch (err) {
-        console.error('[OpeningBalances] Failed to load live data:', err);
+        logger.error('[OpeningBalances] Failed to load live data:', err);
         if (!cancelled) setInvError(isRtl ? 'تعذر تحميل بيانات الأرصدة الافتتاحية.' : 'Failed to load opening balance data.');
       } finally {
         if (!cancelled) setInvLoading(false);

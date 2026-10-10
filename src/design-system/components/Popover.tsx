@@ -76,9 +76,9 @@ export function PopoverContent({ children, align = 'start', side = 'bottom', cla
   if (!open) return null;
 
   const alignClasses = {
-    start: 'left-0',
-    center: 'left-1/2 -translate-x-1/2',
-    end: 'right-0',
+    start: 'start-0',
+    center: 'start-1/2 -translate-x-1/2 rtl:translate-x-1/2',
+    end: 'end-0',
   };
 
   const sideClasses = {
@@ -91,7 +91,7 @@ export function PopoverContent({ children, align = 'start', side = 'bottom', cla
       ref={ref}
       role="dialog"
       className={cn(
-        'absolute z-50 w-72 p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 animate-in fade-in zoom-in-95',
+        'absolute z-popover w-72 p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 animate-in fade-in zoom-in-95',
         sideClasses[side],
         alignClasses[align],
         className

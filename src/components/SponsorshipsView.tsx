@@ -184,9 +184,65 @@ export default function SponsorshipsView({
   const handleDisburseStipend = async (sponsorship: any) => {
     const benName = getBeneficiaryName(sponsorship.beneficiary_id);
     const amountNum = parseFloat(sponsorship.monthly_amount || '50000') || 50000;
+    const voucherNumber = `SPONS-PAY-${new Date().getFullYear()}-${generateNumericCode(1000, 9999)}`;
+
+    // PERSIST FIRST (DEBT PAID): a PAID stipend must exist in sponsorship_payments.
+    // Previously the voucher lived only as a toast + printout — money "disbursed"
+    // with no ledger row (the table itself did not even exist).
+    let persistedId: string | undefined;
+    try {
+      const disbToken = (() => { try { return localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token'); } catch { return null; } })();
+      let disbTenant = 'demo';
+      try { disbTenant = localStorage.getItem('uamex_tenant_id') || 'demo'; } catch { /* ignore */ }
+      // Dedicated engine endpoint (transactional + validated). Falls back to the
+      // generic tenant-bound tables API only if the engine route is unreachable.
+      const engineBody = {
+        paymentAmount: amountNum,
+        currencyCode: sponsorship.currency_code || 'YER',
+        paymentDate: new Date().toISOString().slice(0, 10),
+        disbursementVoucherNo: voucherNumber,
+        receiptConfirmedBy: sponsorship.receiver_name || benName,
+      };
+      const engineHeaders = {
+        'Content-Type': 'application/json',
+        ...(disbToken ? { Authorization: `Bearer ${disbToken}` } : {}),
+        'X-Tenant-Id': disbTenant,
+      };
+      let disbRes = await fetch(`/api/v2/services/sponsorships/${sponsorship.id}/payments`, {
+        method: 'POST', headers: engineHeaders, body: JSON.stringify(engineBody),
+      });
+      let disbJson = await disbRes.json().catch(() => null);
+      if (!disbRes.ok && disbRes.status === 404) {
+        disbRes = await fetch('/api/tables/sponsorship_payments', {
+          method: 'POST', headers: engineHeaders,
+          body: JSON.stringify({
+            sponsorship_id: sponsorship.id,
+            beneficiary_id: sponsorship.beneficiary_id || null,
+            payment_date: engineBody.paymentDate,
+            payment_amount: amountNum,
+            currency_code: engineBody.currencyCode,
+            disbursement_voucher_no: voucherNumber,
+            receipt_confirmed_by: engineBody.receiptConfirmedBy,
+            payment_method: 'CASH',
+            receiver_name: sponsorship.receiver_name || benName,
+            status: 'COMPLETED',
+          }),
+        });
+        disbJson = await disbRes.json().catch(() => null);
+      }
+      if (!disbRes.ok) throw new Error(disbJson?.error?.message || disbJson?.error || `HTTP ${disbRes.status}`);
+      persistedId = disbJson?.data?.id || disbJson?.id;
+    } catch (err: any) {
+      enterpriseBus.notifyToast({
+        type: 'error',
+        title: lang === 'ar' ? 'تعذر صرف الكفالة' : 'Disbursement failed',
+        message: err?.message || (lang === 'ar' ? 'تعذر حفظ مدفوع الكفالة' : 'Failed to record sponsorship payment'),
+      });
+      return;
+    }
 
     const voucherRecord = {
-      id: `SPONS-PAY-2026-${generateNumericCode(1000, 9999)}`,
+      id: persistedId || voucherNumber,
       sponsorshipId: sponsorship.id,
       beneficiaryId: sponsorship.beneficiary_id,
       beneficiaryName: benName,

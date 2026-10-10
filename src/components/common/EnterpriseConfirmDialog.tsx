@@ -11,8 +11,15 @@
 
 import React, { useEffect, useRef } from 'react';
 import { ShieldAlert, AlertTriangle, Info, CheckCircle2, X } from 'lucide-react';
-import { enterpriseTokens } from '../../core/theme/enterpriseDesignTokens';
 import { EnterpriseButton } from './EnterpriseButton';
+
+/**
+ * Specialty confirm dialog (DEBT PAID): kept for its `open` + explicit
+ * `onConfirm`/`onCancel` contract (the canonical `ConfirmDialog` closes
+ * through `onOpenChange`, different dismissal semantics). Palette is now a
+ * CLOSED LOCAL MAP — no third token vocabulary; surfaces match the Design
+ * System modal scale verbatim.
+ */
 
 export interface EnterpriseConfirmDialogProps {
   open: boolean;
@@ -28,10 +35,10 @@ export interface EnterpriseConfirmDialogProps {
 }
 
 const VARIANT_CONFIG = {
-  danger:  { Icon: ShieldAlert,  theme: enterpriseTokens.status.danger,  confirmVariant: 'danger' as const },
-  warning: { Icon: AlertTriangle,theme: enterpriseTokens.status.warning, confirmVariant: 'accent' as const },
-  info:    { Icon: Info,         theme: enterpriseTokens.status.info,    confirmVariant: 'primary' as const },
-  success: { Icon: CheckCircle2, theme: enterpriseTokens.status.success, confirmVariant: 'primary' as const },
+  danger:  { Icon: ShieldAlert,   chip: 'bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/80 text-rose-600 dark:text-rose-400',       confirmVariant: 'danger' as const },
+  warning: { Icon: AlertTriangle, chip: 'bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/80 text-amber-600 dark:text-amber-400', confirmVariant: 'accent' as const },
+  info:    { Icon: Info,          chip: 'bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-800/80 text-sky-600 dark:text-sky-400',             confirmVariant: 'primary' as const },
+  success: { Icon: CheckCircle2,  chip: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/80 text-emerald-600 dark:text-emerald-400', confirmVariant: 'primary' as const },
 };
 
 export const EnterpriseConfirmDialog: React.FC<EnterpriseConfirmDialogProps> = ({
@@ -48,7 +55,7 @@ export const EnterpriseConfirmDialog: React.FC<EnterpriseConfirmDialogProps> = (
 }) => {
   const isRtl = lang === 'ar';
   const dialogRef = useRef<HTMLDivElement>(null);
-  const { Icon, theme, confirmVariant } = VARIANT_CONFIG[variant];
+  const { Icon, chip, confirmVariant } = VARIANT_CONFIG[variant];
 
   const defaultConfirm = isRtl ? 'تأكيد' : 'Confirm';
   const defaultCancel  = isRtl ? 'إلغاء' : 'Cancel';
@@ -93,21 +100,23 @@ export const EnterpriseConfirmDialog: React.FC<EnterpriseConfirmDialogProps> = (
       {/* Dialog Panel */}
       <div
         ref={dialogRef}
-        className={`relative ${enterpriseTokens.surfaces.modal} w-full max-w-sm p-6 ${enterpriseTokens.animation.scaleIn} shadow-2xl`}
+        className="relative bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 animate-in zoom-in-95 fade-in duration-150"
       >
         {/* Close Button */}
-        <button
-          type="button"
+        <EnterpriseButton
+          variant="ghost"
+          size="sm"
+          iconOnly
+          label={isRtl ? 'إغلاق' : 'Close'}
           onClick={onCancel}
-          className={`absolute top-4 ${isRtl ? 'left-4' : 'right-4'} ${enterpriseTokens.buttons.iconOnly}`}
-          aria-label={isRtl ? 'إغلاق' : 'Close'}
+          className="absolute top-4 end-4"
         >
           <X className="w-4 h-4" />
-        </button>
+        </EnterpriseButton>
 
         {/* Icon Header */}
-        <div className={`inline-flex p-3 rounded-2xl ${theme.bg} ${theme.border} border mb-4`}>
-          <Icon className={`w-6 h-6 ${theme.iconClass}`} aria-hidden="true" />
+        <div className={`inline-flex p-3 rounded-2xl border mb-4 ${chip}`}>
+          <Icon className="w-6 h-6" aria-hidden="true" />
         </div>
 
         {/* Title */}
@@ -123,8 +132,8 @@ export const EnterpriseConfirmDialog: React.FC<EnterpriseConfirmDialogProps> = (
           {description}
         </div>
 
-        {/* Actions */}
-        <div className={`flex items-center gap-2.5 ${isRtl ? 'flex-row-reverse' : 'flex-row'} justify-end`}>
+        {/* Actions — order follows `dir` (no reverse hack) */}
+        <div className="flex items-center gap-2.5 flex-row justify-end">
           <EnterpriseButton
             variant="secondary"
             size="md"

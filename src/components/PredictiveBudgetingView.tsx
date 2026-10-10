@@ -3,6 +3,7 @@ import { TrendingDown, DollarSign } from 'lucide-react';
 import { getBudgetForecast, BudgetForecast } from '../core/services/predictiveBudgeting';
 import { Spinner } from '../design-system/components/Spinner';
 
+import { logger } from '../lib/logger';
 interface PredictiveBudgetingViewProps {
   ledgerEntries: any[];
   lang: 'ar' | 'en';
@@ -20,7 +21,7 @@ export default function PredictiveBudgetingView({ ledgerEntries, lang }: Predict
       const result = await getBudgetForecast(ledgerEntries, stakeholders);
       setForecast(result);
     } catch (error) {
-      console.error('Forecast failed', error);
+      logger.error('Forecast failed', error);
     } finally {
       setLoading(false);
     }

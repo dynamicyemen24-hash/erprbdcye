@@ -48,7 +48,9 @@ import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
-
+import { resolveTenantId } from '../shared/tenant/resolveTenantId';
+
+import { logger } from '../lib/logger';
 interface UsersViewProps {
   users: User[];
   roles: Role[];
@@ -129,7 +131,7 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
         }
       }
     } catch (err) {
-      console.error('Failed to load RBAC matrix:', err);
+      logger.error('Failed to load RBAC matrix:', err);
     } finally {
       setMatrixLoading(false);
     }
@@ -198,11 +200,20 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
     setIsResetPwdModalOpen(true);
   };
 
-  // Submit User Create / Edit
+  // Submit User Create / Edit — fail-closed tenant (never default org)
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormSubmitting(true);
     setFormError(null);
+
+    let tenantId: string;
+    try {
+      tenantId = organizationId || resolveTenantId({ organization_id: organizationId });
+    } catch (err: any) {
+      setFormError(lang === 'ar' ? 'تعذر تحديد المنظمة — سجل الدخول مجدداً' : 'Cannot resolve organization — please re-login');
+      setFormSubmitting(false);
+      return;
+    }
 
     const payload: any = {
       email: email.trim(),
@@ -216,7 +227,7 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
       position_code: positionCode,
       can_approve: canApprove,
       max_approval_amount: parseFloat(maxApprovalAmount) || 0,
-      organization_id: organizationId || '00000000-0000-0000-0000-000000000001',
+      organization_id: tenantId,
       ...(password ? { password: password.trim() } : (selectedUser ? {} : {}))
     };
 
@@ -315,7 +326,7 @@ export default function UsersView({ users, roles, loading, onRefresh, lang }: Us
         setTimeout(() => setMatrixSuccess(null), 3500);
       }
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
     } finally {
       setSavingMatrix(false);
     }

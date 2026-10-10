@@ -21,9 +21,11 @@ export interface SkeletonProps {
 }
 
 const VARIANT_CLASSES: Record<SkeletonVariant, string> = {
-  shimmer: 'animate-pulse bg-zinc-200 dark:bg-zinc-700',
+  // Single canonical shimmer: `animate-shimmer` (index.css) wins over legacy
+  // `animate-pulse` so all four Skeleton owners render one motion.
+  shimmer: 'animate-shimmer bg-zinc-200 dark:bg-zinc-700',
   pulse: 'animate-pulse bg-zinc-200 dark:bg-zinc-700',
-  wave: 'bg-zinc-200 dark:bg-zinc-700',
+  wave: 'animate-shimmer bg-zinc-200 dark:bg-zinc-700',
 };
 
 const SHAPE_CLASSES: Record<SkeletonShape, string> = {

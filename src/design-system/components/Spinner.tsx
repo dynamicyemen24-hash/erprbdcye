@@ -62,7 +62,7 @@ export function SpinnerOverlay({ visible = true, backdrop = false, size = 'lg', 
   if (!visible) return null;
   return (
     <div className={cn(
-      'absolute inset-0 z-40 flex items-center justify-center',
+      'absolute inset-0 z-base flex items-center justify-center',
       backdrop && 'bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm',
       !backdrop && 'pointer-events-none'
     )}>

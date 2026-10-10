@@ -1,5 +1,10 @@
-export { enterpriseTokens } from '../core/theme/enterpriseDesignTokens';
-
+/**
+ * Layout shorthand map (spacing/radius/type/surface literals).
+ * NOTE: the `enterpriseTokens` re-export that lived here is deleted — zero
+ * consumers remain; status/button/surface vocabularies are owned by the
+ * Design System closed maps (`Badge`/`Alert`/`Button`/…), not by a parallel
+ * token object.
+ */
 export const designTokens = {
   spacing: {
     xs: 'p-1',

@@ -10,8 +10,8 @@
  */
 
 import React from 'react';
-import { enterpriseTokens } from '../../core/theme/enterpriseDesignTokens';
 import { InboxIcon } from 'lucide-react';
+import { Button } from '../../design-system/components/Button';
 
 export interface EnterpriseEmptyStateProps {
   icon?: React.ReactNode;
@@ -73,27 +73,31 @@ export const EnterpriseEmptyState: React.FC<EnterpriseEmptyStateProps> = ({
         </ul>
       )}
 
-      {/* Actions */}
+      {/* Actions — Design System buttons (platform focus ring) */}
       {(primaryAction || secondaryAction) && (
         <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
           {primaryAction && (
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="sm"
               onClick={primaryAction.onClick}
-              className={`${enterpriseTokens.buttons.primary} text-xs`}
+              icon={primaryAction.icon}
+              label={primaryAction.label}
             >
-              {primaryAction.icon && <span className="shrink-0">{primaryAction.icon}</span>}
-              <span>{primaryAction.label}</span>
-            </button>
+              {primaryAction.label}
+            </Button>
           )}
           {secondaryAction && (
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={secondaryAction.onClick}
-              className={`${enterpriseTokens.buttons.secondary} text-xs`}
+              label={secondaryAction.label}
             >
               {secondaryAction.label}
-            </button>
+            </Button>
           )}
         </div>
       )}

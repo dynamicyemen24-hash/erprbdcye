@@ -11,6 +11,7 @@
 
 import { generateShortId } from './idGenerator';
 
+import { logger } from './logger';
 export interface ToastMessage {
   id: string;
   type: 'success' | 'info' | 'warning' | 'error';
@@ -113,7 +114,7 @@ export class EnterpriseNotificationBus {
         try {
           cb(data);
         } catch (err) {
-          console.error(`Error executing event listener for ${topic}:`, err);
+          logger.error(`Error executing event listener for ${topic}:`, err);
         }
       });
     }
@@ -158,7 +159,7 @@ export class EnterpriseNotificationBus {
       try {
         cb(fullToast);
       } catch (e) {
-        console.error('Error firing toast listener:', e);
+        logger.error('Error firing toast listener:', e);
       }
     });
   }
@@ -180,7 +181,7 @@ export class EnterpriseNotificationBus {
     try {
       localStorage.setItem(this.offlineQueueKey, JSON.stringify(queue));
     } catch (err) {
-      console.error('Failed to write to offline queue:', err);
+      logger.error('Failed to write to offline queue:', err);
     }
   }
 
@@ -229,7 +230,7 @@ export class EnterpriseNotificationBus {
     try {
       localStorage.setItem(this.offlineQueueKey, JSON.stringify(remaining));
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
 
     if (syncedCount > 0) {

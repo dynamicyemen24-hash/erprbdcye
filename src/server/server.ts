@@ -24,7 +24,8 @@ declare global {
 import { loadConfig } from './config/env';
 import { getPool } from './core/database';
 import { errorHandler, notFoundHandler, requestIdMiddleware } from './core/errors';
-import { requestLogger as structuredLogger, logger } from './core/logger';
+import { requestLogger as structuredLogger } from './core/errors';
+import logger from './core/logger';
 import { initHealthMonitor, requestMetrics } from './core/healthMonitor';
 import { cache } from './core/cache';
 import { seedDatabase } from './core/dbOptimization';
@@ -43,8 +44,14 @@ import { timeoutMiddleware } from './middleware/timeout';
 import { requestTracing as tracingMiddleware } from './middleware/tracing';
 import { smartCompression } from './middleware/compression';
 import { deduplicationMiddleware } from './middleware/dedup';
-
+import { tenantMiddleware, requireTenant, applyTenantToClient } from './core/tenantMiddleware';
+import { authenticateToken } from './middleware/auth.middleware';
+import { idormiddleware } from './core/idormiddleware';
 import { apiCache as advancedApiCache, queryCache, sessionCache } from './core/cacheManager';
+
+// ─── Third‑party modules ───────────────────────────────
+import rateLimit from 'express-rate-limit';
+import csrf from 'csurf';
 
 // ─── V2 Routes ─────────────────────────────────────────
 import v2Router from './routes/v2/index';
@@ -103,6 +110,34 @@ const aiLimiter = createLimiter(
   'ai'
 );
 
+// ─── Extra rate limiters using express-rate-limit ───────────────────────
+// Budgets are env-overridable (E2E/load); production defaults unchanged.
+// (Same pattern as `config.rateLimit` + the auth-inline budgets: hardcoded
+// per-route budgets made the platform trip its own guards under load.)
+// General API limiter (per IP, with tenant awareness)
+const generalApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: Number(process.env.RATE_LIMIT_GENERAL_API_MAX ?? process.env.RATE_LIMIT_API ?? 200), // limit each IP per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req) => {
+    const tenantId = (req as any).tenantId;
+    return tenantId ? `tenant:${tenantId}:ip:${req.ip}` : `ip:${req.ip}`;
+  },
+});
+
+// Stricter limiter for auth endpoints
+const authLimiterFromInstalled = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX ?? 5),
+  message: 'Too many authentication attempts. Please wait 15 minutes.',
+});
+
+// CSRF protection – stateless, reads token from `X-CSRF-Token` header.
+// We disable the cookie-based approach because this is a SPA / mobile‑first API.
+const csrfProtection = csrf({ cookie: false });
+
 // ─── Create Express App ────────────────────────────────
 
 const app = express();
@@ -124,6 +159,71 @@ app.use(tracingMiddleware);
 
 // IP blocklist check
 app.use(ipBlocklistMiddleware());
+
+// ── Tenant Isolation Middleware ────────────────────────
+// Extract X-Tenant-Id header, validate, and attach to request.
+// Enforces production requirement; in dev falls back to 'demo' tenant.
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  const raw = req.headers['x-tenant-id'];
+  if (process.env.NODE_ENV === 'production') {
+    if (!raw) {
+      logger.warn(`[tenant] Missing X-Tenant-Id on ${req.method} ${req.path}`, {
+        meta: { ip: req.ip, origin: req.get('origin') },
+      });
+      return res.status(403).json({
+        success: false,
+        error: { code: 'MISSING_TENANT', message: 'Tenant identifier is required' },
+        timestamp: new Date().toISOString(),
+      });
+    }
+    // Store in request for downstream handlers
+    (req as any).tenantId = String(raw).trim();
+    logger.info(`[tenant] Production request tenant=${(req as any).tenantId} ${req.method} ${req.path}`, {
+      meta: { ip: req.ip },
+    });
+  } else {
+    // Development: use provided header or fallback to demo tenant
+    if (raw) {
+      (req as any).tenantId = String(raw).trim();
+    } else {
+      (req as any).tenantId = 'demo';
+      logger.debug('[tenant] No header in dev; using fallback demo tenant', { meta: { path: req.path } });
+    }
+  }
+  next();
+});
+
+// ─── Rate limiting ──────────────────────────────────────
+// Apply general API limiter to all /api/* routes
+app.use('/api', generalApiLimiter);
+
+// Apply stricter auth limiter to auth routes
+app.use('/api/auth', authLimiterFromInstalled);
+
+// CSRF protection – stateless, reads token from `X-CSRF-Token` header.
+// We disable the cookie-based approach because this is a SPA / mobile‑first API.
+// We only enforce it for non‑GET methods.
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.method === 'GET' || req.method === 'OPTIONS') {
+    return next();
+  }
+  csrfProtection(req as any, res as any, next);
+});
+
+// ─── Global authentication (SaaS hardening) ──────────────────────────
+// Authenticate BEFORE deep inspection (sanitization/validation) so an
+// unauthenticated caller always gets 401 — never a validation oracle, and
+// metered routes (AI, exports) can never run anonymously. Mounted at ROOT
+// on purpose: the middleware matches on the FULL path (`/api/...`) and
+// skips public prefixes + non-API traffic itself. Per-route guards stay as
+// defense-in-depth.
+app.use(authenticateToken);
+
+// ─── IDOR protection ────────────────────────────────────
+// Protect resource‑specific endpoints so that any identifier in the URL belongs to the tenant.
+app.use('/api/projects/:projectId', idormiddleware());
+app.use('/api/approvals/:approvalId', idormiddleware());
+app.use('/api/funding/:fundingId', idormiddleware());
 
 // Security hardening (input sanitization, SQL injection detection, XSS prevention)
 app.use(securityMiddleware());

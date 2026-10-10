@@ -67,6 +67,7 @@ import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
 
+import { logger } from '../lib/logger';
 export type ActionType = 
   | 'all'
   | 'budget_update' 
@@ -227,7 +228,7 @@ export default function AuditLogsView({ lang }: AuditLogsViewProps) {
       const rows = data.data || data || [];
       setLogs((Array.isArray(rows) ? rows : []).map(mapRowToLog));
     } catch (err) {
-      console.error('[AuditLogs] Failed to load live audit trail:', err);
+      logger.error('[AuditLogs] Failed to load live audit trail:', err);
       setFetchError(lang === 'ar' ? 'تعذر الاتصال بسجل التدقيق المركزي.' : 'Failed to connect to the central audit trail.');
     } finally {
       setLoading(false);

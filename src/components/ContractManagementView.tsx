@@ -83,7 +83,8 @@ import { printElement } from '../lib/printUtils';
 import { escapeHtml } from '../lib/htmlSanitizer';
 import { generateId, generateShortId, generateNumericCode } from '../lib/idGenerator';
 import { PolicyButton } from '../core/security/PermissionGate';
-
+
+import { logger } from '../lib/logger';
 interface ContractManagementViewProps {
   lang?: 'ar' | 'en';
   projects?: Project[];
@@ -273,7 +274,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           setPartnerships(Array.isArray(data) ? data : []);
         }
       } catch (err) {
-        console.error('Error fetching contract management data:', err);
+        logger.error('Error fetching contract management data:', err);
       } finally {
         setLoading(false);
       }
@@ -357,7 +358,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
         setPartnerships(prev => [createdRecord, ...prev]);
       }
     } catch (err) {
-      console.error('Error creating partnership:', err);
+      logger.error('Error creating partnership:', err);
       setPartnerships(prev => [createdRecord, ...prev]);
     }
     setIsNewPartnershipModalOpen(false);
@@ -398,7 +399,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           body: JSON.stringify(updatedPartnership)
         });
       } catch (err) {
-        console.error('Error updating partnership tranche:', err);
+        logger.error('Error updating partnership tranche:', err);
       }
     }
   };
@@ -426,7 +427,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
           body: JSON.stringify(updatedPartnership)
         });
       } catch (err) {
-        console.error('Error updating PCA evaluation:', err);
+        logger.error('Error updating PCA evaluation:', err);
       }
     }
     setIsPcaEvaluatorModalOpen(false);
@@ -547,7 +548,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
         setPurchaseOrders(prev => [createdPo, ...prev]);
       }
     } catch (err) {
-      console.error('Error creating PO:', err);
+      logger.error('Error creating PO:', err);
       setPurchaseOrders(prev => [createdPo, ...prev]);
     }
 
@@ -601,7 +602,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
         setSalesInvoices(prev => [createdInv, ...prev]);
       }
     } catch (err) {
-      console.error('Error creating invoice:', err);
+      logger.error('Error creating invoice:', err);
       setSalesInvoices(prev => [createdInv, ...prev]);
     }
 
@@ -629,7 +630,7 @@ export const ContractManagementView: React.FC<ContractManagementViewProps> = ({
         body: JSON.stringify({ deliveryStatus: 'DELIVERED_FULL', paymentStatus: 'FULLY_PAID' })
       });
     } catch (err) {
-      console.error('Error updating PO delivery:', err);
+      logger.error('Error updating PO delivery:', err);
     }
     setPurchaseOrders(prev => prev.map(po => {
       if (po.id === poId) {

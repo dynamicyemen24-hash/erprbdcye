@@ -182,7 +182,7 @@ export class SystemSelfHealingEngine {
       const txRes = await client.query(
         `INSERT INTO transactions
          (organization_id, transaction_number, transaction_date, posting_date,
-          transaction_type, description, reference_no, total_debit, total_credit, status, created_by_id)
+          transaction_type, description, reference_number, total_debit, total_credit, status, created_by)
          VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE, 'ADJUSTMENT', $3, 'SELF-HEAL-001', $4, $4, 'POSTED', $5)
          RETURNING id`,
         [
@@ -198,26 +198,27 @@ export class SystemSelfHealingEngine {
 
       // Fetch Suspense / Adjustment Account (3901 or 5901)
       const adjAccount = await client.query(
-        "SELECT id FROM chart_of_accounts WHERE account_code LIKE '3%' OR account_code LIKE '5%' LIMIT 1"
+        "SELECT id, account_code FROM chart_of_accounts WHERE account_code LIKE '3%' OR account_code LIKE '5%' LIMIT 1"
       );
       const adjAccId = adjAccount.rows[0]?.id;
+      const adjAccCode = adjAccount.rows[0]?.account_code ?? null;
 
       if (adjAccId) {
         if (isDebitHigher) {
           // Credit side was lower, so credit adjustment account
           await client.query(
             `INSERT INTO transaction_lines
-             (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description)
-             VALUES ($1, $2, 1, $3, 0, $4, 'USD', 'Self-Healing Credit Balance Adjustment')`,
-            [txId, orgId, adjAccId, adjustmentAmount]
+             (transaction_id, organization_id, line_number, account_id, account_code, debit_amount, credit_amount, currency_code, description)
+             VALUES ($1, $2, 1, $3, $4, 0, $5, 'USD', 'Self-Healing Credit Balance Adjustment')`,
+            [txId, orgId, adjAccId, adjAccCode, adjustmentAmount]
           );
         } else {
           // Debit side was lower, so debit adjustment account
           await client.query(
             `INSERT INTO transaction_lines
-             (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description)
-             VALUES ($1, $2, 1, $3, $4, 0, 'USD', 'Self-Healing Debit Balance Adjustment')`,
-            [txId, orgId, adjAccId, adjustmentAmount]
+             (transaction_id, organization_id, line_number, account_id, account_code, debit_amount, credit_amount, currency_code, description)
+             VALUES ($1, $2, 1, $3, $4, $5, 0, 'USD', 'Self-Healing Debit Balance Adjustment')`,
+            [txId, orgId, adjAccId, adjAccCode, adjustmentAmount]
           );
         }
       }

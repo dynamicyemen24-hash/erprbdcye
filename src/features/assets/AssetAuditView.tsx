@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Camera, RefreshCw, ShieldCheck, MapPin, AlertTriangle } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
 
+import { logger } from '../../lib/logger';
 interface AssetAuditViewProps {
   lang: 'ar' | 'en';
 }
@@ -36,7 +37,7 @@ export default function AssetAuditView({ lang }: AssetAuditViewProps) {
       setScanning(true);
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (err) {
-      console.error('Camera error', err);
+      logger.error('Camera error', err);
       setScanning(false);
       setError(lang === 'ar' ? 'تعذر الوصول إلى الكاميرا. تحقق من الأذونات.' : 'Camera access failed. Check permissions.');
     }
@@ -78,7 +79,7 @@ export default function AssetAuditView({ lang }: AssetAuditViewProps) {
       setScanning(false);
       stopStream();
     } catch (err) {
-      console.error('[AssetAudit] Failed:', err);
+      logger.error('[AssetAudit] Failed:', err);
       setError(lang === 'ar' ? 'تعذر حفظ نتيجة التدقيق. حاول مجدداً.' : 'Could not save the audit result. Please retry.');
     } finally {
       setSaving(false);

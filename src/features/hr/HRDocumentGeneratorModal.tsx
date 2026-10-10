@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { X, Printer, Download, FileText, ShieldCheck, CheckCircle2, Building2, User, Globe } from 'lucide-react';
+import { X, Printer, FileText, Globe } from 'lucide-react';
 import { EnterpriseButton } from '../../components/common/EnterpriseButton';
+import { PermissionGate } from '../../components/PermissionGate';
+import { PERMISSIONS } from '../../shared/permissions/permission-map';
+import { useAuditPrint } from '../../shared/audit/useAuditPrint';
 
 interface HRDocumentGeneratorModalProps {
   isOpen: boolean;
@@ -19,6 +22,7 @@ export default function HRDocumentGeneratorModal({
   // controls rendering, never hook execution.
   const [docType, setDocType] = useState<'permanent' | 'volunteer' | 'consultant' | 'daily_wage' | 'coi' | 'clearance'>('volunteer');
   const [unSector, setUnSector] = useState<string>('FSC');
+  const auditPrint = useAuditPrint();
 
   if (!isOpen) return null;
   const isRtl = lang === 'ar';
@@ -28,7 +32,12 @@ export default function HRDocumentGeneratorModal({
   const deptName = employeeData?.department_name || (isRtl ? 'إدارة المشاريع والتدخلات الإغاثية' : 'Relief Projects Department');
 
   const handlePrint = () => {
-    window.print();
+    auditPrint({
+      domain: 'hr-document',
+      title: `HR ${docType} ${empCode}`,
+      prefix: 'HRD',
+      meta: { docType, unSector, employee: empCode },
+    });
   };
 
   const unSectors = [
@@ -60,15 +69,17 @@ export default function HRDocumentGeneratorModal({
           </div>
 
           <div className="flex items-center gap-2">
-            <EnterpriseButton
-              onClick={handlePrint}
-              variant="primary"
-              size="xs"
-              icon={<Printer className="w-3.5 h-3.5" />}
-              className="no-print"
-            >
-              {isRtl ? 'طباعة الوثيقة' : 'Print Document'}
-            </EnterpriseButton>
+            <PermissionGate perm={PERMISSIONS.HR_READ} mode="disabled">
+              <EnterpriseButton
+                onClick={handlePrint}
+                variant="primary"
+                size="xs"
+                icon={<Printer className="w-3.5 h-3.5" />}
+                className="no-print"
+              >
+                {isRtl ? 'طباعة الوثيقة' : 'Print Document'}
+              </EnterpriseButton>
+            </PermissionGate>
             <button
               onClick={onClose}
               className="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-lg text-slate-400 no-print"

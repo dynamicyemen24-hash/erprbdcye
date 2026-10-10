@@ -10,8 +10,10 @@ import {
 import { printHTML } from '../../lib/printUtils';
 import { generateShortId, generateNumericCode } from '../../lib/idGenerator';
 import { EnterpriseButton } from '../common/EnterpriseButton';
+import { resolveTenantId } from '../../shared/tenant/resolveTenantId';
 import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
-
+
+import { logger } from '../../lib/logger';
 interface Account {
   id: string;
   account_code: string;
@@ -542,14 +544,14 @@ export default function TransactionDocumentCycleTracker({
           total_credit: payAmount,
           total_debit_base: payAmount,
           total_credit_base: payAmount,
-          currency_id: '00000000-0000-0000-0000-000000000001', // Default Base
+          currency_id: currencies.find((c: any) => c?.is_base || c?.code === 'YER')?.id || currencies[0]?.id,
           exchange_rate: 1,
           description: isRtl ? narrationAr : narrationEn,
           payment_method: quickPayMethod,
           reference_number: quickPayRef || invoiceTx.transaction_number,
           branch_code: 'HQ',
           security_level: 2,
-          organization_id: '00000000-0000-0000-0000-000000000001',
+          organization_id: organizations[0]?.id || resolveTenantId(),
           is_posted: true
         })
       });
@@ -564,7 +566,7 @@ export default function TransactionDocumentCycleTracker({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transaction_id: newTxResult.id,
-          organization_id: '00000000-0000-0000-0000-000000000001',
+          organization_id: organizations[0]?.id || resolveTenantId(),
           line_number: 1,
           account_id: quickPayAccount,
           account_code: expAcc?.account_code || '2101',
@@ -582,7 +584,7 @@ export default function TransactionDocumentCycleTracker({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transaction_id: newTxResult.id,
-          organization_id: '00000000-0000-0000-0000-000000000001',
+          organization_id: organizations[0]?.id || resolveTenantId(),
           line_number: 2,
           account_id: quickPayCashAccount,
           account_code: cashAcc?.account_code || '1001',
@@ -652,7 +654,7 @@ export default function TransactionDocumentCycleTracker({
       setShowQuickPayForm(false);
       setQuickPayAmount('');
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       showFeedback(isRtl ? 'خطأ في معالجة القيد المحاسبي في خادم نكسورا' : 'Server error recording financial voucher ledger entry', 'error');
     } finally {
       setQuickPayIsSubmitting(false);

@@ -6,6 +6,7 @@
  */
 
 import { query, queryMany, queryOne, transaction } from '../core/database';
+import logger, { toLogMeta } from '../core/logger';
 
 export type CommDocType = 'MEMO' | 'CIRCULAR' | 'DIRECTIVE' | 'ANNOUNCEMENT' | 'REPLY';
 export type CommStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'ISSUED' | 'DISTRIBUTED' | 'CLOSED' | 'REJECTED' | 'VOIDED';
@@ -457,7 +458,7 @@ export class CommunicationsEngine {
         );
       }
     } catch (err: any) {
-      console.warn('[Communications] notifyChain failed:', err.message);
+      logger.warn('[Communications] notifyChain failed:', { meta: toLogMeta(err.message) });
     }
   }
 }

@@ -47,13 +47,13 @@ export function PrintLayout({
       <style>{`
         @media print {
           .print-layout { font-family: var(--ux-font-sans, system-ui, 'Segoe UI', Tahoma, sans-serif); color: #000; }
-          .print-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 2px solid #059669; margin-bottom: 24px; }
+          .print-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 2px solid var(--brand-primary, #059669); margin-bottom: 24px; }
           .print-logo { height: 48px; }
-          .print-title { font-size: 18px; font-weight: 800; color: #059669; }
-          .print-subtitle { font-size: 12px; color: #666; margin-top: 2px; }
-          .print-org { font-size: 10px; color: #999; text-align: ${isRtl ? 'left' : 'right'}; }
+          .print-title { font-size: 18px; font-weight: 800; color: var(--brand-primary, #059669); }
+          .print-subtitle { font-size: 12px; color: #475569; margin-top: 2px; }
+          .print-org { font-size: 10px; color: #475569; text-align: end; }
           .print-body { min-height: 400px; }
-          .print-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #e5e7eb; margin-top: 24px; font-size: 10px; color: #999; }
+          .print-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--ux-border, #e5e7eb); margin-top: 24px; font-size: 10px; color: #475569; }
           .print-page-num::after { content: counter(page); }
           .no-print { display: none !important; }
           @page { margin: 2cm; size: A4; }

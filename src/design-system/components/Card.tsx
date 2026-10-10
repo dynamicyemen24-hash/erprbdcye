@@ -22,20 +22,43 @@
 import React from 'react';
 import { cn } from '../utils/cn';
 
-export type CardVariant = 'default' | 'raised' | 'flush';
+/**
+ * Canonical container vocabulary (DEBT PAID).
+ * This union is the SUPERSET of both historic vocabularies (`Card`:
+ * default/raised/flush + `EnterpriseCard`: default/elevated/outlined/glass),
+ * so one variant name works on either component. `EnterpriseCard` re-exports
+ * these types instead of declaring its own pair — the duplicate
+ * `CardVariant`/`CardPadding` declaration (and the `as` cast in
+ * `design-system/index.ts`) is gone.
+ */
+export type CardVariant = 'default' | 'raised' | 'flush' | 'elevated' | 'outlined' | 'glass';
 export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
+export type CardStatus = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant;
   padding?: CardPadding;
   /** Opt-in hover elevation for interactive cards. */
   interactive?: boolean;
+  /** Optional semantic top-border, mirroring `EnterpriseCard status`. */
+  status?: CardStatus;
 }
 
 const VARIANT: Record<CardVariant, string> = {
   default: 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900',
   raised: 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-md',
   flush: 'border-transparent bg-white dark:bg-zinc-900',
+  elevated: 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-lg',
+  outlined: 'border-2 border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900',
+  glass: 'border-slate-200/50 dark:border-zinc-700/50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl',
+};
+
+const STATUS: Record<CardStatus, string> = {
+  success: 'border-t-emerald-500',
+  warning: 'border-t-amber-500',
+  danger: 'border-t-red-500',
+  info: 'border-t-sky-500',
+  neutral: '',
 };
 
 const PADDING: Record<CardPadding, string> = {
@@ -49,6 +72,7 @@ export function Card({
   variant = 'default',
   padding = 'md',
   interactive,
+  status,
   className,
   children,
   ...rest
@@ -59,6 +83,8 @@ export function Card({
         'rounded-2xl border transition-shadow duration-150',
         VARIANT[variant],
         PADDING[padding],
+        status && 'border-t-2',
+        status && STATUS[status],
         interactive && 'cursor-pointer hover:shadow-md',
       )}
       {...rest}

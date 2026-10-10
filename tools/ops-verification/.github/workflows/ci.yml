@@ -1,0 +1,30 @@
+# Offline-capable CI: security guard + syntax check of every script.
+# DB/live/schema checks need secrets and external files, so they run
+# locally via `npm run ci`, not here.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high || true
+      - run: for f in *.js; do node --check "$f" || exit 1; done
+      - run: node final_verification.js
+      - run: node check_indexes.js
+      - run: node detailed_verification.js
+      - run: node production_report.js
+      - run: node reports/test.js

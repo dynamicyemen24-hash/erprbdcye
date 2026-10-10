@@ -14,6 +14,7 @@ const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '';
 // Global end-to-end fetch instrumentation (always active, dev & prod)
 import { fetchProgress } from './fetchProgress';
 
+import { logger } from './logger';
 const originalFetch = window.fetch;
 window.fetch = function (this: typeof globalThis, input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : (input as Request).url;
@@ -42,7 +43,7 @@ if (API_BASE_URL) {
       return wrapped.call(this, input, init);
     };
   })(window.fetch);
-  console.log(`[API] Backend URL configured: ${API_BASE_URL}`);
+  logger.log(`[API] Backend URL configured: ${API_BASE_URL}`);
 }
 // Bulletproof Response.prototype.json to prevent "Unexpected token 'N', 'Not Found ' is not valid JSON"
 if (typeof Response !== 'undefined' && Response.prototype && !((Response.prototype as any).__safeJsonPatched)) {
@@ -57,7 +58,7 @@ if (typeof Response !== 'undefined' && Response.prototype && !((Response.prototy
       try {
         return JSON.parse(text);
       } catch {
-        console.warn(`[SafeJSON] Non-JSON payload received from endpoint (${this.status}):`, text.slice(0, 80));
+        logger.warn(`[SafeJSON] Non-JSON payload received from endpoint (${this.status}):`, text.slice(0, 80));
         // If it's a tables array endpoint, return an empty array instead of crashing
         if (this.url && this.url.includes('/api/tables/')) {
           return [];
@@ -70,4 +71,4 @@ if (typeof Response !== 'undefined' && Response.prototype && !((Response.prototy
   };
 }
 
-console.log('[API] Global fetch progress & safe JSON instrumentation active.');
+logger.log('[API] Global fetch progress & safe JSON instrumentation active.');

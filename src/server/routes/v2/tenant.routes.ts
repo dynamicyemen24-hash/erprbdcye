@@ -5,6 +5,7 @@
  */
 
 import { Router } from 'express';
+import logger, { toLogMeta } from '../../core/logger';
 import { getPool } from '../../core/database';
 import { authenticateToken } from '../../middleware/auth.middleware';
 import {
@@ -49,7 +50,7 @@ router.get('/branding', authenticateToken, async (req: any, res: any) => {
     }
     res.status(200).json({ success: true, data: { branding }, timestamp: new Date().toISOString() });
   } catch (error: any) {
-    console.error('[Tenant/Branding] GET error:', error?.message);
+    logger.error('[Tenant/Branding] GET error:', { meta: toLogMeta(error?.message) });
     reject(res, 500, 'Failed to read tenant branding');
   }
 });
@@ -78,7 +79,7 @@ router.put('/branding', authenticateToken, async (req: any, res: any) => {
     }
     res.status(200).json({ success: true, data: { settings: row.settings }, timestamp: new Date().toISOString() });
   } catch (error: any) {
-    console.error('[Tenant/Branding] PUT error:', error?.message);
+    logger.error('[Tenant/Branding] PUT error:', { meta: toLogMeta(error?.message) });
     reject(res, 500, 'Failed to update tenant branding');
   }
 });
@@ -102,7 +103,7 @@ router.get('/subscription', authenticateToken, async (req: any, res: any) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('[Tenant/Subscription] GET error:', error?.message);
+    logger.error('[Tenant/Subscription] GET error:', { meta: toLogMeta(error?.message) });
     reject(res, 500, 'Failed to read subscription');
   }
 });
@@ -137,7 +138,7 @@ router.put('/subscription', authenticateToken, async (req: any, res: any) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('[Tenant/Subscription] PUT error:', error?.message);
+    logger.error('[Tenant/Subscription] PUT error:', { meta: toLogMeta(error?.message) });
     reject(res, 500, 'Failed to update subscription');
   }
 });

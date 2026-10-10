@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { persistenceService } from './persistence';
 import { TabId } from '../../types';
 
+import { logger } from '../../lib/logger';
 export interface WorkspaceResumeState {
   lastActiveTab: TabId;
   lastActiveSubTab?: string;
@@ -42,7 +43,7 @@ class NexoraResumeIntelligence {
         this.notify();
       }
     } catch (e) {
-      console.warn('[ResumeIntelligence] Failed to load saved state:', e);
+      logger.warn('[ResumeIntelligence] Failed to load saved state:', e);
     }
   }
 
@@ -67,7 +68,7 @@ class NexoraResumeIntelligence {
     try {
       await persistenceService.set('user_preferences', RESUME_STORAGE_KEY, fullState, 1000 * 60 * 60 * 24 * 14); // 14 days
     } catch (e) {
-      console.warn('[ResumeIntelligence] Save error:', e);
+      logger.warn('[ResumeIntelligence] Save error:', e);
     }
   }
 

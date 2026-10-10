@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShoppingCart, Award, Zap } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
 
+import { logger } from '../../lib/logger';
 export default function VendorRecommendationEngineView({ lang }: { lang: 'ar' | 'en' }) {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ export default function VendorRecommendationEngineView({ lang }: { lang: 'ar' | 
       const data = await response.json();
       setRecommendations(data.recommendations);
     } catch (err) {
-      console.error('Recommendation failed', err);
+      logger.error('Recommendation failed', err);
     } finally {
       setLoading(false);
     }

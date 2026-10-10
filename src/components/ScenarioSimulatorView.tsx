@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Microscope, Play } from 'lucide-react';
 import { runSimulation } from '../core/services/scenarioSimulator';
 import { Spinner } from '../design-system/components/Spinner';
-
+
+import { logger } from '../lib/logger';
 interface ScenarioSimulatorViewProps {
   historicalData: any[];
   lang: 'ar' | 'en';
@@ -20,7 +21,7 @@ export default function ScenarioSimulatorView({ historicalData, lang }: Scenario
       const result = await runSimulation(historicalData, { fundingChange });
       setReport(result);
     } catch (error) {
-      console.error('Simulation failed', error);
+      logger.error('Simulation failed', error);
     } finally {
       setLoading(false);
     }

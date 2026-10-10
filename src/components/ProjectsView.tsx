@@ -49,7 +49,8 @@ import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
-
+
+import { logger } from '../lib/logger';
 interface ProjectsViewProps {
   projects: Project[];
   programs: Program[];
@@ -90,7 +91,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
           setActivities(data || []);
         }
       } catch (err) {
-        console.error('Error fetching activities:', err);
+        logger.error('Error fetching activities:', err);
       }
     };
     fetchActivities();
@@ -345,7 +346,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
         setTimeout(() => setSwipeToast(null), 3500);
       }
     } catch (err) {
-      console.error('Error completing project via swipe:', err);
+      logger.error('Error completing project via swipe:', err);
     }
   };
 
@@ -375,7 +376,7 @@ export default function ProjectsView({ projects, programs, loading, onRefresh, l
         setTimeout(() => setSwipeToast(null), 3500);
       }
     } catch (err) {
-      console.error('Error incrementing progress via swipe:', err);
+      logger.error('Error incrementing progress via swipe:', err);
     }
   };
 

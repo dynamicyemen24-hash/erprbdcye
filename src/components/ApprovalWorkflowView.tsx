@@ -191,7 +191,9 @@ import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
-
+import { resolveTenantId } from '../shared/tenant/resolveTenantId';
+
+import { logger } from '../lib/logger';
 interface UserProfile {
   id: string;
   email: string;
@@ -381,7 +383,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
           });
         }
       } catch (err) {
-        console.error(err);
+        logger.error(err);
       }
 
       setRequests(formattedRequests.length > 0 ? formattedRequests : DEFAULT_PENDING_REQUESTS);
@@ -403,7 +405,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
         }
       }
     } catch (err: any) {
-      console.error("Error loading approval workflow records:", err);
+      logger.error("Error loading approval workflow records:", err);
       setErrorMessage(lang === 'ar' ? 'فشل تحميل بيانات نظام الموافقات والاعتمادات.' : 'Failed to retrieve approval workflow data.');
     } finally {
       setLoading(false);
@@ -435,7 +437,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
     setSuccessMessage(null);
 
     try {
-      const organization_id = selectedRequest.organization_id || '00000000-0000-0000-0000-000000000001';
+      const organization_id = selectedRequest.organization_id || resolveTenantId(currentUser as any);
       
       // 1. Write Audit entry in approval_history (lowercase action)
       const historyPayload = {
@@ -534,7 +536,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   id: crypto.randomUUID(),
-                  organization_id: '00000000-0000-0000-0000-000000000001',
+                  organization_id: resolveTenantId(currentUser as any),
                   type: 'DISBURSE',
                   entity_id: itemId,
                   quantity: requestedQty,
@@ -552,7 +554,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     id: crypto.randomUUID(),
-                    organization_id: '00000000-0000-0000-0000-000000000001',
+                    organization_id: resolveTenantId(currentUser as any),
                     requester_id: currentUser.id,
                     approval_type: 'procurement',
                     entity_type: 'procurement_requisition',
@@ -581,7 +583,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
               }
             }
           } catch (e) {
-            console.error("Error executing material disburse update:", e);
+            logger.error("Error executing material disburse update:", e);
           }
         }
       }
@@ -596,7 +598,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       await loadData();
       onRefresh(); // Refresh parent stats
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       setErrorMessage(err.message || (lang === 'ar' ? 'خطأ أثناء تنفيذ المعاملة المالية.' : 'Error executing ledger governance workflow.'));
     } finally {
       setActionSubmitting(false);
@@ -616,7 +618,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
     setSuccessMessage(null);
 
     try {
-      const organization_id = '00000000-0000-0000-0000-000000000001';
+      const organization_id = resolveTenantId(currentUser as any);
       const requestId = crypto.randomUUID();
 
       // Determine Workflow Type
@@ -673,7 +675,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       await loadData();
       onRefresh();
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       setErrorMessage(err.message);
     } finally {
       setFormSubmitting(false);
@@ -698,7 +700,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
     try {
       const payload = {
-        organization_id: '00000000-0000-0000-0000-000000000001',
+                    organization_id: resolveTenantId(currentUser as any),
         delegator_id: currentUser.id,
         delegate_id: delegateId,
         entity_types: [delegationEntityTypes],
@@ -731,7 +733,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
 
       await loadData();
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       setErrorMessage(err.message);
     } finally {
       setFormSubmitting(false);
@@ -759,7 +761,7 @@ export default function ApprovalWorkflowView({ currentUser, lang, onRefresh, ini
       setSuccessMessage(lang === 'ar' ? 'تم إلغاء التفويض بنجاح وتجريد الموظف من الصلاحيات المؤقتة.' : 'Delegation successfully revoked and temporary authority stripped.');
       await loadData();
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       setErrorMessage(err.message);
     }
   };

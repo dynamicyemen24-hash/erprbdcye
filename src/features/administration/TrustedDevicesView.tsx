@@ -12,17 +12,23 @@ interface Device {
 }
 
 export default function TrustedDevicesView({ lang, currentUser }: { lang: 'ar' | 'en', currentUser: any }) {
-  const [devices, setDevices] = useState<Device[]>([
-    { id: 'd1', name: 'MacBook Pro 14"', type: 'laptop', lastLogin: '2026-08-10 04:00:00', ip: '192.168.1.10' },
-    { id: 'd2', name: 'iPhone 15 Pro', type: 'mobile', lastLogin: '2026-08-10 03:30:00', ip: '192.168.1.15' },
-    { id: 'd3', name: 'Office PC', type: 'laptop', lastLogin: '2026-08-09 17:00:00', ip: '10.0.0.5' },
-  ]);
+  // HONESTY + IDENTITY (DEBT PAID): no fabricated MacBook/iPhone rows, no crash on null session.
+  const [devices, setDevices] = useState<Device[]>([]);
 
   const revokeDevice = async (deviceId: string) => {
+    if (!currentUser?.email) return;
     setDevices(prev => prev.filter(d => d.id !== deviceId));
-    await logAuditEvent(currentUser.email, currentUser.name, currentUser.role, 'DELETE', 
+    await logAuditEvent(currentUser.email, currentUser.name, currentUser.role, 'DELETE',
       'إلغاء صلاحية جهاز موثوق', 'Revoked trusted device access', 'security', 'high', deviceId, 'success');
   };
+
+  if (!currentUser?.email) {
+    return (
+      <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 text-center">
+        <p className="text-sm font-bold text-slate-500">{lang === 'ar' ? 'سجل الدخول لعرض أجهزتك الموثوقة' : 'Sign in to view your trusted devices'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
@@ -31,6 +37,11 @@ export default function TrustedDevicesView({ lang, currentUser }: { lang: 'ar' |
         {lang === 'ar' ? 'إدارة الأجهزة الموثوقة' : 'Trusted Devices Management'}
       </h2>
 
+      {devices.length === 0 ? (
+        <p className="text-xs text-slate-400 text-center py-6">
+          {lang === 'ar' ? 'لا توجد أجهزة موثوقة مسجلة بعد — تُسجل الأجهزة عند تسجيل الدخول' : 'No trusted devices yet — devices register on sign-in'}
+        </p>
+      ) : (
       <div className="space-y-4">
         {devices.map(device => (
           <div key={device.id} className="flex items-center justify-between p-4 border border-slate-100 dark:border-zinc-700 rounded-xl">
@@ -50,6 +61,7 @@ export default function TrustedDevicesView({ lang, currentUser }: { lang: 'ar' |
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

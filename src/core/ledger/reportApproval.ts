@@ -2,6 +2,7 @@
 // NEB-10: Finance & Compliance OS - Financial Report Approval Service
 import { DigitalSignature } from '../security/signature';
 
+import { logger } from '../../lib/logger';
 export interface FinancialReport {
   id: string;
   type: 'annual' | 'quarterly' | 'monthly';
@@ -40,7 +41,7 @@ export async function approveFinancialReport(
       message: 'Report approval recorded in the audit ledger.'
     };
   } catch (err) {
-    console.error('[reportApproval] Failed to record approval:', err);
+    logger.error('[reportApproval] Failed to record approval:', err);
     return {
       success: false,
       message: 'Could not record the approval. Please retry.'

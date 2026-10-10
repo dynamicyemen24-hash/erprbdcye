@@ -101,7 +101,7 @@ export function AccordionTrigger({ children, className }: AccordionTriggerProps)
       onClick={() => toggle(value)}
       aria-expanded={isOpen}
       className={cn(
-        'flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-left',
+        'flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-start',
         'text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2',
         disabled && 'opacity-50 cursor-not-allowed',

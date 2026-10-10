@@ -7,6 +7,7 @@
 import { Request, Response } from 'express';
 import { register } from './metrics';
 import os from 'os';
+import logger, { toLogMeta } from '../core/logger';
 
 interface ComponentHealth {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -226,13 +227,13 @@ export function healthRoutes(app: any) {
 
   // ─── CSP Violation Reports ────────────────────────────────────
   app.post('/api/security/csp-report', (req: Request, res: Response) => {
-    console.error('[CSP VIOLATION]', JSON.stringify(req.body, null, 2));
+    logger.error('[CSP VIOLATION]', { meta: toLogMeta(JSON.stringify(req.body, null, 2)) });
     res.status(204).end();
   });
 
   // ─── HSTS Reports ─────────────────────────────────────────────
   app.post('/api/security/hsts-report', (req: Request, res: Response) => {
-    console.error('[HSTS VIOLATION]', JSON.stringify(req.body, null, 2));
+    logger.error('[HSTS VIOLATION]', { meta: toLogMeta(JSON.stringify(req.body, null, 2)) });
     res.status(204).end();
   });
 }

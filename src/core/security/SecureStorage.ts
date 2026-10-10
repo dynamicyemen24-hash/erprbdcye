@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger';
 const ENCRYPTION_KEY_NAME = 'nexora-secure-key';
 
 async function getOrCreateKey(): Promise<CryptoKey> {
@@ -39,7 +40,7 @@ export const SecureStorage = {
       const encrypted = await encrypt(jsonValue);
       localStorage.setItem(`nx_enc_${key}`, encrypted);
     } catch (error) {
-      console.error('SecureStorage: encryption failed', error);
+      logger.error('SecureStorage: encryption failed', error);
     }
   },
 
@@ -50,7 +51,7 @@ export const SecureStorage = {
       const jsonValue = await decrypt(ciphertext);
       return JSON.parse(jsonValue) as T;
     } catch (error) {
-      console.error('SecureStorage: decryption failed', error);
+      logger.error('SecureStorage: decryption failed', error);
       return null;
     }
   },
@@ -59,7 +60,7 @@ export const SecureStorage = {
     try {
       localStorage.removeItem(`nx_enc_${key}`);
     } catch (error) {
-      console.error('SecureStorage: remove failed', error);
+      logger.error('SecureStorage: remove failed', error);
     }
   },
 
@@ -74,7 +75,7 @@ export const SecureStorage = {
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
     } catch (error) {
-      console.error('SecureStorage: clear failed', error);
+      logger.error('SecureStorage: clear failed', error);
     }
   }
 };

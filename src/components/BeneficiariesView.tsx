@@ -26,7 +26,8 @@ import {
   Globe,
   Sparkles,
   AlertTriangle,
-  GitCommit
+  GitCommit,
+  Truck
 } from 'lucide-react';
 import ExportToolsModal from './ExportToolsModal';
 import PrintPDFTemplateModal from './reports/PrintPDFTemplateModal';
@@ -58,6 +59,13 @@ import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
 
+// NEB-06 linkage (additive, no new top-level tab): the Service Delivery
+// recording OS (deliveries → vouchered distributions → Sphere compliance)
+// previously had zero inbound navigation. It is lazily embedded here as a
+// collapsible section so the beneficiaries registry stays the single entry
+// point for NEB-06/CRM, per WORKSPACE_OPERATIONAL_MAP.beneficiaries.
+const ServiceDeliveryWorkspaceView = React.lazy(() => import('./ServiceDeliveryWorkspaceView'));
+
 interface BeneficiariesViewProps {
   beneficiaries: any[];
   loading: boolean;
@@ -77,6 +85,7 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
   const [filterStatus, setFilterStatus] = useState(initialStatusFilter || 'ALL');
   const [showFilters, setShowFilters] = useState(false);
   const [maskSensitivePII, setMaskSensitivePII] = useState(true);
+  const [showServiceDelivery, setShowServiceDelivery] = useState(false);
 
   const maskPhone = (phone?: string) => {
     if (!phone) return '—';
@@ -768,6 +777,37 @@ export default function BeneficiariesView({ beneficiaries, loading, onRefresh, l
           </div>
         </div>
       </div>
+
+      {/* NEB-06 linkage: Service Delivery & Field Distribution (additive) */}
+      <div className="bg-gradient-to-l from-teal-950 via-zinc-950 to-slate-900 border border-teal-500/30 rounded-2xl p-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-teal-500/20 text-teal-300 rounded-xl border border-teal-500/40">
+            <Truck className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="px-2 py-0.5 bg-teal-500/30 rounded text-[10px] font-black font-mono">NEB-06 • CRM</span>
+            <h3 className="text-sm font-black">{lang === 'ar' ? 'تسليم الخدمات والتوزيع الميداني' : 'Service Delivery & Field Distribution'}</h3>
+            <p className="text-[11px] text-zinc-400">{lang === 'ar' ? 'جلسة تسليم ← توزيع لكل مستفيد بسند ← امتثال Sphere — مربوط بسجل المستفيدين' : 'Delivery session → vouchered distribution → Sphere compliance — linked to this registry'}</p>
+          </div>
+        </div>
+        <EnterpriseButton
+          variant={showServiceDelivery ? 'secondary' : 'primary'}
+          size="sm"
+          onClick={() => setShowServiceDelivery((v) => !v)}
+          icon={<Truck className="w-4 h-4" />}
+        >
+          {showServiceDelivery
+            ? (lang === 'ar' ? 'إخفاء التسليم' : 'Hide delivery')
+            : (lang === 'ar' ? 'فتح تسليم الخدمات' : 'Open service delivery')}
+        </EnterpriseButton>
+      </div>
+      {showServiceDelivery && (
+        <React.Suspense fallback={<div className="p-8 flex justify-center"><Spinner size="lg" /></div>}>
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-xs">
+            <ServiceDeliveryWorkspaceView lang={lang} onNavigate={onNavigate} />
+          </div>
+        </React.Suspense>
+      )}
 
       {/* Filter and Search Card */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-xs space-y-4">

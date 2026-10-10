@@ -167,11 +167,16 @@ router.post('/trigger', authenticateToken, async (req: any, res) => {
     // Row-capped per table: an unbounded SELECT * + JSON.stringify can OOM
     // the process on large tenants. Truncation is recorded in the manifest;
     // full-fidelity dumps go through pg_dump (BackupService), not this route.
+    // Concurrency-capped (DEBT PAID): firing all tables at once saturated the
+    // 20-connection pool and every query queued behind the slowest table —
+    // the route timed out under its own fan-out. Chunks of N keep pool
+    // headroom for concurrent traffic (SaaS reliability).
     const BACKUP_ROW_LIMIT = parseInt(process.env.BACKUP_JSON_ROW_LIMIT || '50000', 10);
+    const BACKUP_CONCURRENCY = Math.max(1, parseInt(process.env.BACKUP_JSON_CONCURRENCY || '5', 10));
     const tenantId = req.user?.org_id;
     if (!tenantId) return res.status(401).json({ error: 'Organization ID required' });
     backupData.truncatedTables = [] as string[];
-    await Promise.all(TABLE_WHITELIST.map(async (table) => {
+    const exportOne = async (table: string): Promise<void> => {
       try {
         // Check if table has organization_id column for tenant isolation
         const colCheck = await dbPool.query(`
@@ -202,7 +207,10 @@ router.post('/trigger', authenticateToken, async (req: any, res) => {
         logger.warn(`Could not export table ${table}: ${err.message}`, { context: 'backup' });
         backupData.tables[table] = []; // fallback
       }
-    }));
+    };
+    for (let i = 0; i < TABLE_WHITELIST.length; i += BACKUP_CONCURRENCY) {
+      await Promise.all(TABLE_WHITELIST.slice(i, i + BACKUP_CONCURRENCY).map(exportOne));
+    }
 
     // Add integrity checksum for restore verification
     const payloadForChecksum = JSON.stringify(backupData.tables);

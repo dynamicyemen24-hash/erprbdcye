@@ -1,5 +1,6 @@
 import React, { ComponentType, lazy } from 'react';
 
+import { logger } from './logger';
 /**
  * Resilient Lazy Loader with Automatic Retry, Network Flakiness Recovery, 
  * Hash Mismatch Auto-Reload, and Graceful Offline Component Fallback.
@@ -25,7 +26,7 @@ export function lazyWithRetry<T extends ComponentType<any>>(
         return component;
       } catch (error: any) {
         retries++;
-        console.warn('[ResilientLazy] Retry attempt ' + retries + '/' + maxRetries + ' for [' + componentName + ']:', error);
+        logger.warn('[ResilientLazy] Retry attempt ' + retries + '/' + maxRetries + ' for [' + componentName + ']:', error);
 
         if (retries >= maxRetries) {
           const isChunkMismatch =
@@ -37,12 +38,12 @@ export function lazyWithRetry<T extends ComponentType<any>>(
 
           if (isChunkMismatch && !pageHasAlreadyBeenForceRefreshed && typeof window !== 'undefined') {
             window.sessionStorage.setItem(sessionKey, 'true');
-            console.log('[ResilientLazy] Stale chunk detected for [' + componentName + ']. Refreshing browser cache...');
+            logger.log('[ResilientLazy] Stale chunk detected for [' + componentName + ']. Refreshing browser cache...');
             window.location.reload();
             return new Promise(() => {});
           }
 
-          console.error('[ResilientLazy] Exhausted all retries for [' + componentName + ']:', error);
+          logger.error('[ResilientLazy] Exhausted all retries for [' + componentName + ']:', error);
           
           const FallbackOfflineWidget: any = () => (
             React.createElement('div', {

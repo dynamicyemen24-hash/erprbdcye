@@ -30,7 +30,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
-
+
+import { logger } from '../../lib/logger';
 // ═══════════════════════════════════════════════════════════════════════════════
 // Premium Empty State Component
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -333,7 +334,7 @@ export class PremiumErrorBoundary extends Component<PremiumErrorBoundaryProps, P
     this.props.onError?.(error, errorInfo);
     // Log to console in dev
     if (typeof window !== 'undefined' && (window as any).__UAMEX_ERROR_LOG__) {
-      console.error('[PremiumErrorBoundary]', error, errorInfo);
+      logger.error('[PremiumErrorBoundary]', error, errorInfo);
     }
   }
 

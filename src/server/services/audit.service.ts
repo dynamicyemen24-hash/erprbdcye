@@ -1,3 +1,4 @@
+import logger, { toLogMeta } from '../core/logger';
 import { getDatabasePool } from './db.service';
 import { serverConfig } from '../config/index';
 
@@ -34,6 +35,6 @@ export async function recordAuditLog(payload: AuditLogPayload): Promise<void> {
       JSON.stringify(payload.details || {})
     ]);
   } catch (err: any) {
-    console.warn('Audit log recording error:', err.message);
+    logger.warn('Audit log recording error:', { meta: toLogMeta(err.message) });
   }
 }

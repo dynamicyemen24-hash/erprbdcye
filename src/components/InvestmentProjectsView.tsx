@@ -221,16 +221,11 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
       if (data.status === 'ok' && data.summary) {
         setProjects(data.summary.projects || []);
         setReturnsHistory(data.summary.returnsHistory || []);
-        if (data.summary.contracts && data.summary.contracts.length > 0) {
-          setContracts(data.summary.contracts);
-        } else {
-          populateFallbackContracts();
-        }
-        if (data.summary.activities && data.summary.activities.length > 0) {
-          setActivities(data.summary.activities);
-        } else {
-          populateFallbackActivities();
-        }
+        // HONESTY (DEBT PAID): empty endowment stays empty — fabricated tenant
+        // leases / sukuk trust deeds removed (see git history). No fake
+        // counterparties, no fake millions.
+        setContracts(data.summary.contracts || []);
+        setActivities(data.summary.activities || []);
       }
     } catch (err: any) {
       // No silent mock fallback: surface the failure with retry. Cached
@@ -241,138 +236,8 @@ export const InvestmentProjectsView: React.FC<InvestmentProjectsViewProps> = ({ 
     }
   };
 
-  const populateFallbackContracts = () => {
-    setContracts([
-      {
-        id: 'cnt-1',
-        project_id: '1',
-        contract_code: 'CNT-2025-010',
-        title_ar: 'عقد استئجار وتأجير المحلات التجارية والمكاتب - وقف البر',
-        title_en: 'Al-Birr Endowment Commercial Units Master Lease',
-        contract_type: 'TENANT_LEASE',
-        second_party_name: 'شركة سبأ للتجارة والمقاولات العامة',
-        second_party_type: 'TENANT',
-        value_yer: 45000000,
-        payment_frequency: 'ANNUAL',
-        start_date: '2025-01-01',
-        end_date: '2027-12-31',
-        status: 'ACTIVE',
-        notes_ar: 'عقد موثق ومقترن بضمانة بنكية ومحول لصالح كفالات الأيتام.'
-      },
-      {
-        id: 'cnt-2',
-        project_id: '2',
-        contract_code: 'CNT-2025-011',
-        title_ar: 'عقد تشغيل وصيانة معاصر الزيتون والمنظومة الشمسية',
-        title_en: 'Olive Press & Solar O&M Operating Agreement',
-        contract_type: 'OM_SERVICE',
-        second_party_name: 'مؤسسة الساحل الزراعية للتنمية',
-        second_party_type: 'OPERATOR',
-        value_yer: 12000000,
-        payment_frequency: 'QUARTERLY',
-        start_date: '2025-02-15',
-        end_date: '2026-02-14',
-        status: 'ACTIVE',
-        notes_ar: 'يتضمن صيانة دورية للخلايا الشمسية واستخلاص معاصر الزيتون البكر.'
-      },
-      {
-        id: 'cnt-3',
-        project_id: '3',
-        contract_code: 'CNT-2025-012',
-        title_ar: 'عقد امتياز توزيع مياه التحلية التجارية للمؤسسات والمستشفيات',
-        title_en: 'Commercial Water Wholesale Concession Agreement',
-        contract_type: 'TENANT_LEASE',
-        second_party_name: 'مجموعة النقاء للتوزيع والخدمات اللوجستية',
-        second_party_type: 'TENANT',
-        value_yer: 18000000,
-        payment_frequency: 'MONTHLY',
-        start_date: '2025-03-01',
-        end_date: '2026-02-28',
-        status: 'ACTIVE',
-        notes_ar: 'تخصيص 20% من الضخ اليومي مجاناً لمخيمات النازحين.'
-      },
-      {
-        id: 'cnt-4',
-        project_id: '4',
-        contract_code: 'CNT-2025-013',
-        title_ar: 'صك الوقفية والوصاية الشرعية لصكوك التنمية المستدامة',
-        title_en: 'Sovereign Sukuk Endowment Master Trust Deed',
-        contract_type: 'SUKUK_TRUST',
-        second_party_name: 'الهيئة العامة للأوقاف والرقابة الشرعية',
-        second_party_type: 'GOVERNMENT',
-        value_yer: 350000000,
-        payment_frequency: 'SEMI_ANNUAL',
-        start_date: '2024-01-01',
-        end_date: '2034-12-31',
-        status: 'ACTIVE',
-        notes_ar: 'صك سيادي معتمد بشرط عدم مساس الأصل وتوجيه الأرباح للإغاثة.'
-      }
-    ]);
-  };
+  /* HONESTY (DEBT PAID): fabricated fallback contracts/activities removed. Empty endowment stays empty. */
 
-  const populateFallbackActivities = () => {
-    setActivities([
-      {
-        id: 'act-1',
-        project_id: '2',
-        activity_code: 'ACT-INV-001',
-        title_ar: 'موسم جني الزيتون وتشغيل العصر البارد الأول',
-        title_en: 'Olive Harvest & First Cold Press Season',
-        activity_type: 'HARVEST_HARVESTING',
-        planned_date: '2025-09-01',
-        execution_date: '2025-09-10',
-        budget_allocated_yer: 8500000,
-        actual_cost_yer: 8100000,
-        status: 'COMPLETED',
-        assigned_lead: 'م. ناصر سعيد المعمري',
-        execution_notes_ar: 'تم إنتاج 12,000 ليتر زيت زيتون بكر ممتاز بتصنيف جودة عالية.'
-      },
-      {
-        id: 'act-2',
-        project_id: '3',
-        activity_code: 'ACT-INV-002',
-        title_ar: 'صيانة واستبدال أغشية التحلية التكتيكية لمحطة المياه',
-        title_en: 'Reverse Osmosis Filter Membrane Replacement',
-        activity_type: 'MAINTENANCE',
-        planned_date: '2025-10-15',
-        budget_allocated_yer: 4200000,
-        actual_cost_yer: 0,
-        status: 'SCHEDULED',
-        assigned_lead: 'م. أحمد سالم باثواب',
-        execution_notes_ar: 'فحص نسبة الأملاح المذابة TDS وضمان معايير الصحة العالمية.'
-      },
-      {
-        id: 'act-3',
-        project_id: '1',
-        activity_code: 'ACT-INV-003',
-        title_ar: 'مراجعة وتحصيل مستحقات الإيجارات الربع سنوية - وقف البر',
-        title_en: 'Quarterly Lease Rental Collection Audit',
-        activity_type: 'LEASE_COLLECTION',
-        planned_date: '2025-08-30',
-        execution_date: '2025-08-30',
-        budget_allocated_yer: 500000,
-        actual_cost_yer: 450000,
-        status: 'COMPLETED',
-        assigned_lead: 'د. عبدالحكيم السقاف',
-        execution_notes_ar: 'تم تحصيل 100% من المستحقات وإيداعها ببنك الوقف.'
-      },
-      {
-        id: 'act-4',
-        project_id: '4',
-        activity_code: 'ACT-INV-004',
-        title_ar: 'توزيع كوبونات عوائد الصكوك السيادية المعتمدة',
-        title_en: 'Sovereign Sukuk Coupon Distribution',
-        activity_type: 'SUKUK_DISBURSEMENT',
-        planned_date: '2025-07-01',
-        execution_date: '2025-07-02',
-        budget_allocated_yer: 21000000,
-        actual_cost_yer: 21000000,
-        status: 'COMPLETED',
-        assigned_lead: 'أ. سالم عبدالله العولقي',
-        execution_notes_ar: 'ترحيل العوائد مباشرة لحساب السلال الغذائية وكفالات الأيتام.'
-      }
-    ]);
-  };
 
   useEffect(() => {
     fetchInvestmentData();

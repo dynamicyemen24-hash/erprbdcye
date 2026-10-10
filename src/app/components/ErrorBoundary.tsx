@@ -2,6 +2,7 @@ import React, { ErrorInfo, ReactNode } from 'react';
 import { SYSTEM_NAME } from '../../core/utils';
 import { AlertTriangle, RefreshCw, ChevronDown, ChevronUp, Copy, Check, FileText } from 'lucide-react';
 
+import { logger } from '../../lib/logger';
 interface Props {
   children: ReactNode;
   domainName?: string;
@@ -32,7 +33,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("NexoraOS™ Domain Error Captured:", error, errorInfo);
+    logger.error("NexoraOS™ Domain Error Captured:", error, errorInfo);
     this.setState({ error, errorInfo });
   }
 

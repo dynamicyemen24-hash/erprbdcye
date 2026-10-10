@@ -303,7 +303,8 @@ import { StrategicCompassSymbol } from './common/SovereignSystemIcons';
 import { generateNumericCode } from '../lib/idGenerator';
 import { cn } from '../design-system/utils/cn';
 import { EnterpriseButton } from './common/EnterpriseButton';
-
+
+import { logger } from '../lib/logger';
 interface StrategicPlanningViewProps {
   lang: 'ar' | 'en';
   onNavigate?: (tab: string) => void;
@@ -377,7 +378,7 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         throw new Error(result.message || 'Failed to load strategic plan');
       }
     } catch (err: any) {
-      console.warn("Could not fetch strategic plan from database, using fallback data:", err.message);
+      logger.warn("Could not fetch strategic plan from database (no fallback data used — empty stays empty):", err.message);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -415,7 +416,7 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         showToast({ type: 'error', title: lang === 'ar' ? 'التخطيط الاستراتيجي' : 'Strategic Planning', message: lang === 'ar' ? 'حدث خطأ أثناء تحديث الهدف' : 'Failed to update goal' });
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       showToast({ type: 'warning', title: lang === 'ar' ? 'الاتصال بالخادم' : 'Server Connection', message: lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error' });
     }
   };
@@ -439,7 +440,7 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         showToast({ type: 'error', title: lang === 'ar' ? 'التخطيط الاستراتيجي' : 'Strategic Planning', message: lang === 'ar' ? 'فشل إنشاء الهدف الاستراتيجي' : 'Failed to create goal' });
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       showToast({ type: 'warning', title: lang === 'ar' ? 'الاتصال بالخادم' : 'Server Connection', message: lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error' });
     }
   };
@@ -463,7 +464,7 @@ export const StrategicPlanningView: React.FC<StrategicPlanningViewProps> = ({ la
         showToast({ type: 'error', title: lang === 'ar' ? 'تحليل SWOT' : 'SWOT Analysis', message: lang === 'ar' ? 'فشل إضافة عنصر SWOT' : 'Failed to add SWOT item' });
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       showToast({ type: 'warning', title: lang === 'ar' ? 'الاتصال بالخادم' : 'Server Connection', message: lang === 'ar' ? 'خطأ في الاتصال بالخادم' : 'Server connection error' });
     }
   };

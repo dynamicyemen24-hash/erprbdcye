@@ -46,6 +46,10 @@ import {
   Zap
 } from 'lucide-react';
 import { printHTML } from '../../lib/printUtils';
+import { useEffect } from 'react';
+import { useAppSettings } from '../../shared/settings/useAppSettings';
+import { HELPER_TOOL_REGISTRY } from '../../core/registry/helperToolRegistry';
+import { PermissionGate } from '../PermissionGate';
 
 interface HelperToolsPanelProps {
   lang: 'ar' | 'en';
@@ -77,6 +81,9 @@ export default function HelperToolsPanel({ lang, initialTool, onClose }: HelperT
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeTool, setActiveTool] = useState<ToolId>(initialTool || 'sphere');
+  // Unified settings (single consumer API) + per-tool production linkage.
+  const appSettings = useAppSettings();
+  const activeLinkage = HELPER_TOOL_REGISTRY[activeTool as keyof typeof HELPER_TOOL_REGISTRY];
 
 // Simplified tool titles for end-user familiarity
   const toolsList: ToolMetadata[] = useMemo(() => [
@@ -603,13 +610,54 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
   const [fxTo, setFxTo] = useState<string>('YER_SANAA');
   const [fxCopied, setFxCopied] = useState<boolean>(false);
 
-  const [ratesConfig] = useState<Record<string, number>>({
-    USD: 1,
-    SAR: 0.266,
-    EUR: 1.08,
-    YER_SANAA: 0.00187,
-    YER_ADEN: 0.000465
-  });
+  // Live FX: settings-driven base, exchange-rate API override — never a literal.
+  const [liveFxOverride, setLiveFxOverride] = useState<Record<string, number> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token');
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const [usd, sar] = await Promise.all([
+          fetch('/api/v2/finance/exchange-rate?from=USD&to=YER', { headers }).then(r => (r.ok ? r.json() : null)).catch(() => null),
+          fetch('/api/v2/finance/exchange-rate?from=SAR&to=YER', { headers }).then(r => (r.ok ? r.json() : null)).catch(() => null),
+        ]);
+        const pick = (v: any): number | null => {
+          const n = Number(v?.data?.rate ?? v?.rate ?? v?.data ?? NaN);
+          return Number.isFinite(n) && n > 0 ? n : null;
+        };
+        const usdYer = pick(usd);
+        const sarYer = pick(sar);
+        if (!cancelled && (usdYer || sarYer)) {
+          setLiveFxOverride(prev => ({
+            ...(prev ?? {}),
+            ...(usdYer ? { USD_YER_LIVE: usdYer } : {}),
+            ...(sarYer ? { SAR_YER_LIVE: sarYer } : {}),
+          }));
+        }
+      } catch { /* settings fallback stays */ }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const ratesConfig: Record<string, number> = useMemo(() => {
+    const usdYer = liveFxOverride?.USD_YER_LIVE ?? appSettings.fx.USD_YER;
+    void liveFxOverride?.SAR_YER_LIVE;
+    void appSettings.fx.SAR_YER;
+    const sanaa = 1 / usdYer;
+    return {
+      USD: 1,
+      SAR: 0.266,
+      EUR: 1.08,
+      YER_SANAA: sanaa,
+      // Aden premium (~4x Sanaa) preserved from the legacy table until a
+      // dedicated Aden fixing is published to system_settings.
+      YER_ADEN: sanaa / 4,
+    };
+  }, [liveFxOverride, appSettings.fx]);
 
   const convertFx = useCallback((amount: number, from: string, to: string) => {
     const fromRate = ratesConfig[from] || 1;
@@ -923,6 +971,22 @@ const [activeChecklist, setActiveChecklist] = useState<'distribution' | 'audit' 
           </button>
         </div>
       </div>
+
+      {/* PRODUCTION LINKAGE STRIP — every tool declares permission/settings/DB */}
+      {activeLinkage && (
+        <PermissionGate perm={activeLinkage.permission} mode="fallback" fallback={
+          <p role="alert" className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+            {isRtl ? 'هذه الأداة تتطلب صلاحية غير ممنوحة لك — العرض للاطلاع فقط' : 'This tool requires a permission you do not hold — view only'}
+          </p>
+        }>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 px-3 py-2 text-[10px] font-mono text-slate-500 dark:text-zinc-400" aria-label={isRtl ? 'ارتباط الأداة بالإنتاج' : 'Tool production linkage'}>
+            <span>{isRtl ? 'الصلاحية' : 'perm'}: <strong className="text-emerald-600 dark:text-emerald-400">{activeLinkage.permission}</strong></span>
+            <span>{isRtl ? 'الإعدادات' : 'settings'}: {activeLinkage.settingsKeys.join(', ') || '—'}</span>
+            <span>{isRtl ? 'الجداول' : 'tables'}: {activeLinkage.dbTables.join(', ') || (isRtl ? 'محلي فقط' : 'local only')}</span>
+            <span>{isRtl ? 'الواجهة' : 'api'}: {activeLinkage.api.join(' · ') || '—'}</span>
+          </div>
+        </PermissionGate>
+      )}
 
       {/* QUICK SEARCH & TOOL TABS BAR */}
       <div className="space-y-3">

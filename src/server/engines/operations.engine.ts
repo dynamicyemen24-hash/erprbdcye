@@ -6,7 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext } from '../core/helpers';
-import logger from '../core/logger';
+import logger, { toLogMeta } from '../core/logger';
 
 export class ActivityEngine {
   static async list(orgId: string, pagination: PaginationParams = {}, filters?: {
@@ -211,7 +211,7 @@ export class ResourceAllocationEngine {
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
       [data.organizationId, data.projectId || null, data.activityId || null,
        data.resourceName, data.resourceType, data.allocatedHours, data.allocationDate]
-    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
+    ).catch((err: any) => { logger.error('[Engine] Query failed:', { meta: toLogMeta(err.message) }); return null; });
   }
 }
 

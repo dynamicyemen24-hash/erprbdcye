@@ -232,10 +232,11 @@ static async postVoucher(entry: VoucherEntry, auth: AuthContext) {
         }
       }
 
-      // Get or verify fiscal year
+      // Get or verify fiscal year (live schema: openness is `is_closed`,
+      // there is no `status` column on fiscal_years)
       const fy = await client.query(
-        `SELECT id, status FROM fiscal_years
-         WHERE organization_id = $1 AND status = 'open'
+        `SELECT id, is_closed FROM fiscal_years
+         WHERE organization_id = $1 AND is_closed = FALSE
          AND ((
            start_date <= CURRENT_DATE AND end_date >= CURRENT_DATE
          ) OR id = $2)
@@ -243,7 +244,7 @@ static async postVoucher(entry: VoucherEntry, auth: AuthContext) {
         [entry.organizationId, entry.fiscalYearId || null]
       );
       const fiscalYearId = fy.rows[0]?.id || entry.fiscalYearId || null;
-      if (!fiscalYearId || !fy.rows[0] || fy.rows[0].status !== 'open') {
+      if (!fiscalYearId || !fy.rows[0] || fy.rows[0].is_closed === true) {
         throw new Error('لا يمكن ترحيل القيد دون سنة مالية مفتوحة');
       }
 
@@ -473,9 +474,9 @@ static async postVoucher(entry: VoucherEntry, auth: AuthContext) {
         coa.name_ar,
         coa.name_en,
         coa.account_type,
-        COALESCE(SUM(tl.debit), 0) as total_debit,
-        COALESCE(SUM(tl.credit), 0) as total_credit,
-        (COALESCE(SUM(tl.debit), 0) - COALESCE(SUM(tl.credit), 0)) as net_balance
+        COALESCE(SUM(tl.debit_amount), 0) as total_debit,
+        COALESCE(SUM(tl.credit_amount), 0) as total_credit,
+        (COALESCE(SUM(tl.debit_amount), 0) - COALESCE(SUM(tl.credit_amount), 0)) as net_balance
        FROM chart_of_accounts coa
        LEFT JOIN transaction_lines tl ON tl.account_id = coa.id
        LEFT JOIN transactions t ON t.id = tl.transaction_id AND t.status = 'POSTED'
@@ -596,7 +597,7 @@ static async postVoucher(entry: VoucherEntry, auth: AuthContext) {
     return paginatedQuery(
       `SELECT t.*, u.name as created_by_name
        FROM transactions t
-       LEFT JOIN users u ON u.id = t.created_by_id
+       LEFT JOIN users u ON u.id = t.created_by
        WHERE ${where}`,
       `SELECT COUNT(*) FROM transactions t WHERE ${where}`,
       params,
@@ -626,12 +627,29 @@ static async postVoucher(entry: VoucherEntry, auth: AuthContext) {
 
 // ─── Fiscal Year Management ────────────────────────────
 
+/**
+ * Live `fiscal_years` columns: id, organization_id, name, start_date, end_date,
+ * is_closed, closed_at, closed_by, security_level, ... There is NO `status` and
+ * NO `year_number` column. Both fields below are DERIVED from the live columns
+ * for callers that still expect them — they are never written to the database.
+ */
+function withDerivedFiscalYearFields(row: Record<string, unknown>): Record<string, unknown> {
+  const startDate = row.start_date == null ? null : new Date(String(row.start_date));
+  const yearNumber = startDate && !Number.isNaN(startDate.getTime()) ? startDate.getFullYear() : null;
+  return {
+    ...row,
+    status: row.is_closed ? 'closed' : 'open',
+    year_number: yearNumber,
+  };
+}
+
 export class FiscalYearService {
   static async list(orgId: string) {
-    return queryMany(
-      'SELECT * FROM fiscal_years WHERE organization_id = $1 ORDER BY year_number DESC',
+    const rows = await queryMany<Record<string, unknown>>(
+      'SELECT * FROM fiscal_years WHERE organization_id = $1 ORDER BY start_date DESC',
       [orgId]
     );
+    return rows.map(withDerivedFiscalYearFields);
   }
 
   static async create(orgId: string, data: {
@@ -652,12 +670,15 @@ export class FiscalYearService {
         throw new Error('Fiscal year overlaps with existing period');
       }
 
+      // Live columns only: `name` (not name_ar), `is_closed` (not status),
+      // no `year_number` column exists.
       const result = await client.query(
-        `INSERT INTO fiscal_years (organization_id, year_number, name_ar, start_date, end_date, status)
-         VALUES ($1, $2, $3, $4, $5, 'open') RETURNING *`,
-        [orgId, data.yearNumber, data.nameAr, data.startDate, data.endDate]
+        `INSERT INTO fiscal_years (organization_id, name, start_date, end_date, is_closed)
+         VALUES ($1, $2, $3, $4, FALSE) RETURNING *`,
+        [orgId, data.nameAr || String(data.yearNumber), data.startDate, data.endDate]
       );
-      return result.rows[0];
+      const created = result.rows[0] as Record<string, unknown> | undefined;
+      return created ? withDerivedFiscalYearFields(created) : created;
     });
   }
 
@@ -665,22 +686,25 @@ export class FiscalYearService {
    * Close fiscal year - carry forward balances
    */
   static async close(fiscalYearId: string, auth: AuthContext) {
+    // Tenant scoping: the org id comes from the authenticated context
+    // (routes derive it with extractTenantId — helpers.ts).
+    const orgId = auth.orgId;
     return await transaction(async (client) => {
       const fy = await client.query(
-        `SELECT * FROM fiscal_years WHERE id = $1 AND status = 'open'`,
-        [fiscalYearId]
+        `SELECT * FROM fiscal_years WHERE id = $1 AND organization_id = $2 AND is_closed = FALSE`,
+        [fiscalYearId, orgId]
       );
       if (fy.rows.length === 0) {
         throw new Error('Fiscal year not found or already closed');
       }
 
-      const year = fy.rows[0];
+      const year = fy.rows[0] as Record<string, unknown>;
+      // Derived from start_date — fiscal_years has no `year_number` column.
+      const startDate = year.start_date == null ? null : new Date(String(year.start_date));
+      const yearNumber = startDate && !Number.isNaN(startDate.getTime()) ? startDate.getFullYear() : 0;
 
-      // Mark as closing
-      await client.query(
-        `UPDATE fiscal_years SET status = 'closing' WHERE id = $1`,
-        [fiscalYearId]
-      );
+      // NOTE: live fiscal_years has no intermediate 'closing' status — openness
+      // is a single boolean (`is_closed`), so the year flips once, at the end.
 
       // Get all accounts with balances
       const accounts = await client.query(
@@ -730,23 +754,23 @@ export class FiscalYearService {
             accountId: retainedEarnings.rows[0].id,
             debit: surplus < 0 ? Math.abs(surplus) : 0,
             credit: surplus > 0 ? surplus : 0,
-            description: `Year ${year.year_number} net surplus/deficit`,
+            description: `Year ${yearNumber} net surplus/deficit`,
           });
         }
       }
 
       // Post closing voucher
       if (closingLines.length > 0) {
-        const closingNumber = `CLS-${year.year_number}`;
+        const closingNumber = `CLS-${yearNumber}`;
         await client.query(
           `INSERT INTO transactions
            (organization_id, transaction_number, transaction_date, posting_date,
-            transaction_type, description, total_debit, total_credit, status, created_by_id)
+            transaction_type, description, total_debit, total_credit, status, created_by)
            VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE, 'ADJUSTMENT', $3, $4, $5, 'POSTED', $6)`,
           [
             year.organization_id,
             closingNumber,
-            `Fiscal Year ${year.year_number} Closing`,
+            `Fiscal Year ${yearNumber} Closing`,
             totalRevenue + totalExpense,
             totalRevenue + totalExpense,
             auth.userId,
@@ -754,15 +778,17 @@ export class FiscalYearService {
         );
       }
 
-      // Close the year
+      // Close the year (live columns: is_closed / closed_at / closed_by —
+      // tenant-scoped to the authenticated organization)
       await client.query(
-        `UPDATE fiscal_years SET status = 'closed' WHERE id = $1`,
-        [fiscalYearId]
+        `UPDATE fiscal_years SET is_closed = TRUE, closed_at = now(), closed_by = $2
+         WHERE id = $1 AND organization_id = $3 AND is_closed = FALSE`,
+        [fiscalYearId, auth.userId, orgId]
       );
 
       return {
         fiscalYearId,
-        yearNumber: year.year_number,
+        yearNumber,
         totalRevenue,
         totalExpenses: totalExpense,
         netSurplusDeficit: surplus,

@@ -39,14 +39,24 @@ export const CHART_COLORS = {
 } as const;
 
 // ─── Z-Index Layers ────────────────────────────────────
+// Mirrors the governance scale in src/index.css (`--z-*`):
+// sticky(10) < dropdown(20) < popover(30) < tooltip(40) < drawer(50)
+//   < dialog(60) < command(70) < critical(80) < toast(90) < skip-link(100).
+// Import this instead of hardcoding `z-40` / `z-50` in components.
 export const Z_INDEX = {
   BASE: 0,
-  DROPDOWN: 40,
-  STICKY: 50,
-  OVERLAY: 60,
-  MODAL: 70,
-  POPOVER: 75,
-  TOAST: 80,
+  STICKY: 10,
+  DROPDOWN: 20,
+  POPOVER: 30,
+  TOOLTIP: 40,
+  DRAWER: 50,
+  MODAL: 60,
+  DIALOG: 60,
+  COMMAND: 70,
+  OVERLAY: 80,
+  CRITICAL: 80,
+  TOAST: 90,
+  SKIP_LINK: 100,
 } as const;
 
 // ─── Date Formats ──────────────────────────────────────

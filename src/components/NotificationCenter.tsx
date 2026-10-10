@@ -18,7 +18,8 @@ import {
 
 import { useEnterprise } from '../core/context/EnterpriseContext';
 import { showToast } from './enterprise/EnterpriseToastContainer';
-
+
+import { logger } from '../lib/logger';
 interface NotificationCenterProps {
   lang: 'ar' | 'en';
   approvalRequests: any[];
@@ -80,7 +81,7 @@ export default function NotificationCenter({
         );
       }
     } catch (err) {
-      console.error('Error requesting notification permission:', err);
+      logger.error('Error requesting notification permission:', err);
     }
   };
 
@@ -124,7 +125,7 @@ export default function NotificationCenter({
         };
         new Notification(title, options);
       } catch (e) {
-        console.warn('Browser rejected notification dispatch (likely blocked inside sandboxed iframe). Falling back to rich in-app toast.', e);
+        logger.warn('Browser rejected notification dispatch (likely blocked inside sandboxed iframe). Falling back to rich in-app toast.', e);
       }
     }
 

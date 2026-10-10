@@ -15,6 +15,9 @@ import {
   computeFinancialAnalytics,
   RATIO_STATUS_STYLES,
 } from '../../core/ledger/financialAnalytics';
+import { PermissionGate } from '../../components/PermissionGate';
+import { PERMISSIONS } from '../../shared/permissions/permission-map';
+import { useAuditPrint } from '../../shared/audit/useAuditPrint';
 
 interface CFOExecutiveAuditSuiteProps {
   lang: 'ar' | 'en';
@@ -35,6 +38,7 @@ export default function CFOExecutiveAuditSuite({
 }: CFOExecutiveAuditSuiteProps) {
   const isRtl = lang === 'ar';
   const [selectedRole, setSelectedRole] = useState<RoleView>('cfo');
+  const auditPrint = useAuditPrint();
 
   const fmtMoney = (n: number) => (Number.isFinite(n) ? n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00');
 
@@ -118,13 +122,15 @@ export default function CFOExecutiveAuditSuite({
           </div>
         </div>
 
-        <button
-          onClick={() => window.print()}
-          className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-        >
-          <Printer className="w-4 h-4 text-emerald-600" />
-          <span>{isRtl ? 'طباعة تقرير التدقيق الرسمي' : 'Print Formal Audit Report'}</span>
-        </button>
+        <PermissionGate perm={PERMISSIONS.FINANCE_READ} mode="disabled">
+          <button
+            onClick={() => auditPrint({ domain: 'finance-audit', title: 'CFO Executive Audit Report', prefix: 'AUD', meta: { accounts: accounts.length, transactions: transactions.length } })}
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Printer className="w-4 h-4 text-emerald-600" />
+            <span>{isRtl ? 'طباعة تقرير التدقيق الرسمي' : 'Print Formal Audit Report'}</span>
+          </button>
+        </PermissionGate>
       </div>
 
       {/* STAKEHOLDER ROLE SELECTOR SWITCHER */}

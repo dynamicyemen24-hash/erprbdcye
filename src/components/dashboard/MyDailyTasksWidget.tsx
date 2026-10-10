@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
 
+import { logger } from '../../lib/logger';
 export interface DailyTask {
   id: string;
   titleAr: string;
@@ -123,7 +124,7 @@ function MyDailyTasksWidgetInner({ lang, currentUser }: MyDailyTasksWidgetProps)
       const saved = localStorage.getItem(`nexora_daily_tasks_${userEmail}`);
       if (saved) return JSON.parse(saved);
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
     return DEFAULT_TASKS;
   });
@@ -143,7 +144,7 @@ function MyDailyTasksWidgetInner({ lang, currentUser }: MyDailyTasksWidgetProps)
     try {
       localStorage.setItem(`nexora_daily_tasks_${userEmail}`, JSON.stringify(tasks));
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
   }, [tasks, userEmail]);
 

@@ -12,7 +12,11 @@ import {
   Globe, BarChart3, PieChart as PieIcon, LineChart as LineIcon,
   Building2, Shield, Cpu, Eye
 } from 'lucide-react';
-import { StatCard, Skeleton, ProgressBar, Badge, Alert, Tabs } from '../../shared/components';
+import { Badge } from '../../design-system/components/Badge';
+import { Skeleton, SkeletonCard } from '../../design-system/components/Skeleton';
+import { ProgressBar } from '../../design-system/components/ProgressBar';
+import { EnterpriseAlert } from '../../design-system/components/EnterpriseAlert';
+import { EnterpriseTabs } from '../../design-system/components/EnterpriseTabs';
 
 type Lang = 'ar' | 'en';
 type Theme = 'light' | 'dark';
@@ -124,10 +128,11 @@ export const UAMEXDashboardExperience: React.FC<UAMEXDashboardExperienceProps> =
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="success" size="sm" pulse lang={lang} icon={<Sparkles />}>
+                <Badge variant="success" size="sm" dot pulse>
+                  <Sparkles className="w-3 h-3" aria-hidden="true" />
                   {t('منصة ذكية', 'Intelligent Platform', lang)}
                 </Badge>
-                <Badge variant="warning" size="sm" lang={lang}>
+                <Badge variant="warning" size="sm" dot pulse>
                   {t('مباشر', 'LIVE', lang)}
                 </Badge>
               </div>
@@ -158,12 +163,12 @@ export const UAMEXDashboardExperience: React.FC<UAMEXDashboardExperienceProps> =
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         {/* Critical alert (conditional) */}
         <div className="mb-4">
-          <Alert
+          <EnterpriseAlert
             type="info"
             title={t('تحديثات ذكية متاحة', 'Smart updates available', lang)}
             titleAr={t('تحديثات ذكية متاحة', 'Smart updates available', lang)}
-            description={t('لديك 3 توصيات جديدة من المساعد الذكي لتحسين الأداء التشغيلي', 'You have 3 new AI recommendations to improve operational performance', lang)}
-            descriptionAr={t('لديك 3 توصيات جديدة من المساعد الذكي لتحسين الأداء التشغيلي', 'You have 3 new AI recommendations to improve operational performance', lang)}
+            message={t('لديك 3 توصيات جديدة من المساعد الذكي لتحسين الأداء التشغيلي', 'You have 3 new AI recommendations to improve operational performance', lang)}
+            messageAr={t('لديك 3 توصيات جديدة من المساعد الذكي لتحسين الأداء التشغيلي', 'You have 3 new AI recommendations to improve operational performance', lang)}
             dismissible
             lang={lang}
           />
@@ -172,7 +177,7 @@ export const UAMEXDashboardExperience: React.FC<UAMEXDashboardExperienceProps> =
         {/* KPIs Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {loading ? (
-            [1, 2, 3, 4].map(i => <Skeleton key={i} variant="card" height={140} />)
+            [1, 2, 3, 4].map(i => <div key={i} style={{ minHeight: 140 }}><SkeletonCard /></div>)
           ) : (
             kpis.map((kpi, i) => (
               <KPIWidget key={i} {...kpi} lang={lang} />
@@ -182,15 +187,15 @@ export const UAMEXDashboardExperience: React.FC<UAMEXDashboardExperienceProps> =
 
         {/* View tabs */}
         <div className="mb-4">
-          <Tabs
-            items={[
-              { id: 'overview', labelAr: t('النظرة العامة', 'Overview', lang), labelEn: 'Overview', icon: LayoutDashboard },
-              { id: 'finance', labelAr: t('المالية', 'Finance', lang), labelEn: 'Finance', icon: DollarSign },
-              { id: 'programs', labelAr: t('البرامج', 'Programs', lang), labelEn: 'Programs', icon: Target },
-              { id: 'operations', labelAr: t('العمليات', 'Operations', lang), labelEn: 'Operations', icon: Activity },
+          <EnterpriseTabs
+            tabs={[
+              { id: 'overview', label: 'Overview', labelAr: t('النظرة العامة', 'Overview', lang), icon: <LayoutDashboard className="w-4 h-4" aria-hidden="true" /> },
+              { id: 'finance', label: 'Finance', labelAr: t('المالية', 'Finance', lang), icon: <DollarSign className="w-4 h-4" aria-hidden="true" /> },
+              { id: 'programs', label: 'Programs', labelAr: t('البرامج', 'Programs', lang), icon: <Target className="w-4 h-4" aria-hidden="true" /> },
+              { id: 'operations', label: 'Operations', labelAr: t('العمليات', 'Operations', lang), icon: <Activity className="w-4 h-4" aria-hidden="true" /> },
             ]}
             activeTab={activeView}
-            onChange={v => setActiveView(v as any)}
+            onTabChange={v => setActiveView(v as any)}
             variant="pill"
             lang={lang}
           />
@@ -212,7 +217,8 @@ export const UAMEXDashboardExperience: React.FC<UAMEXDashboardExperienceProps> =
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="success" size="sm" lang={lang} icon={<TrendingUp />}>
+                  <Badge variant="success" size="sm">
+                    <TrendingUp className="w-3 h-3" aria-hidden="true" />
                     +18.4%
                   </Badge>
                 </div>

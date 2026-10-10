@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { getPool, queryWithRetry, getTableSchemaInfo } from '../../core/database';
 import { authenticateToken } from '../../middleware/auth.middleware';
+import { extractTenantId } from '../../core/helpers';
 import { isWhitelisted } from '../../core/constants';
 import { apiCache } from '../../core/cache';
-import logger from '../../core/logger';
+import logger, { toLogMeta } from '../../core/logger';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ const router = Router();
 router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => {
   res.setHeader('Cache-Control', 'private, max-age=15, stale-while-revalidate=45');
   const dbPool = getPool();
-  const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+  const tenantId = extractTenantId(req);
   // Tenant-scoped cache key: a GLOBAL key here served Org-A's aggregates to
   // Org-B (cross-tenant leak). Never cache tenant payloads under static keys.
   const cacheKey = `dashboard-stats:${tenantId}`;
@@ -114,9 +115,13 @@ router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => 
     };
 
     apiCache.set(cacheKey, responsePayload);
-    res.json(responsePayload);
+    // The 30s request-timeout middleware may already have answered (408) on
+    // a cold database — answering twice crashes with ERR_HTTP_HEADERS_SENT
+    // (unhandled rejection). Never write after the timeout did.
+    if (!res.headersSent) res.json(responsePayload);
   } catch (err: any) {
     logger.warn(`Error fetching dashboard stats: ${err.message}`, { context: 'dashboard' });
+    if (res.headersSent) return;
     res.json({
       counts: { organizations: 0, programs: 0, projects: 0, users: 0, currencies: 0, beneficiaries: 0, sponsorships: 0, commitments: 0, obligations: 0 },
       financials: { totalProgramBudget: 0, totalDonations: 0, totalExpenses: 0, netPosition: 0 },
@@ -136,7 +141,7 @@ router.get('/dashboard-stats', authenticateToken, async (req: any, res: any) => 
 // GET /api/nexora-consolidated-kpis — Consolidated KPIs from stored procedure
 router.get('/nexora-consolidated-kpis', authenticateToken, async (req: any, res: any) => {
   res.setHeader('Cache-Control', 'private, max-age=15, stale-while-revalidate=45');
-  const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+  const tenantId = extractTenantId(req);
   // Tenant-scoped key: the payload is per-organization since the procedure
   // takes p_org_id. A global key would leak one tenant's KPIs to another.
   const cacheKey = `consolidated-kpis:${tenantId}`;
@@ -209,10 +214,10 @@ router.get('/reports/domain-kpis', authenticateToken, async (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=45');
   try {
     const [progRes, prjRes, benRes, sponRes, kpiRes] = await Promise.all([
-      queryWithRetry(`SELECT COUNT(*) as cnt, COALESCE(SUM(budget), 0) as total_budget FROM programs WHERE deleted_at IS NULL`).catch((err: any) => { console.error('[Dashboard] Query failed:', err.message); return { rows: [{ cnt: '0', total_budget: '0' }] }; }),
-      queryWithRetry(`SELECT COUNT(*) as cnt, COALESCE(SUM(budget), 0) as total_budget FROM projects WHERE deleted_at IS NULL`).catch((err: any) => { console.error('[Dashboard] Query failed:', err.message); return { rows: [{ cnt: '0', total_budget: '0' }] }; }),
-      queryWithRetry(`SELECT COUNT(*) as cnt FROM beneficiaries WHERE deleted_at IS NULL`).catch((err: any) => { console.error('[Dashboard] Query failed:', err.message); return { rows: [{ cnt: '0' }] }; }),
-      queryWithRetry(`SELECT COUNT(*) as cnt, COALESCE(SUM(total_amount), 0) as total_pledged FROM sponsorships WHERE deleted_at IS NULL`).catch((err: any) => { console.error('[Dashboard] Query failed:', err.message); return { rows: [{ cnt: '0', total_pledged: '0' }] }; }),
+      queryWithRetry(`SELECT COUNT(*) as cnt, COALESCE(SUM(budget), 0) as total_budget FROM programs WHERE deleted_at IS NULL`).catch((err: any) => { logger.error('[Dashboard] Query failed:', { meta: toLogMeta(err.message) }); return { rows: [{ cnt: '0', total_budget: '0' }] }; }),
+      queryWithRetry(`SELECT COUNT(*) as cnt, COALESCE(SUM(budget), 0) as total_budget FROM projects WHERE deleted_at IS NULL`).catch((err: any) => { logger.error('[Dashboard] Query failed:', { meta: toLogMeta(err.message) }); return { rows: [{ cnt: '0', total_budget: '0' }] }; }),
+      queryWithRetry(`SELECT COUNT(*) as cnt FROM beneficiaries WHERE deleted_at IS NULL`).catch((err: any) => { logger.error('[Dashboard] Query failed:', { meta: toLogMeta(err.message) }); return { rows: [{ cnt: '0' }] }; }),
+      queryWithRetry(`SELECT COUNT(*) as cnt, COALESCE(SUM(total_amount), 0) as total_pledged FROM sponsorships WHERE deleted_at IS NULL`).catch((err: any) => { logger.error('[Dashboard] Query failed:', { meta: toLogMeta(err.message) }); return { rows: [{ cnt: '0', total_pledged: '0' }] }; }),
       queryWithRetry(`SELECT * FROM v_advanced_business_kpis LIMIT 1`).catch(() => ({ rows: [] }))
     ]);
 
@@ -455,7 +460,7 @@ router.post('/reports/execute', authenticateToken, async (req: any, res: any) =>
 router.get('/predictive-analytics', authenticateToken, async (req: any, res) => {
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const tenantId = extractTenantId(req);
     const budgetRes = await dbPool.query('SELECT COALESCE(SUM(budget), 450000000) as total_budget FROM programs WHERE deleted_at IS NULL AND "organization_id" = $1', [tenantId]);
     const totalBudget = parseFloat(budgetRes.rows[0]?.total_budget || '450000000');
 

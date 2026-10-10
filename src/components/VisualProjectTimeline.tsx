@@ -30,7 +30,8 @@ import { Project, Program, ProjectMilestone } from '../types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
-
+
+import { logger } from '../lib/logger';
 interface VisualProjectTimelineProps {
   projects: Project[];
   programs?: Program[];
@@ -60,7 +61,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {
-      console.error('Error loading milestones:', e);
+      logger.error('Error loading milestones:', e);
     }
     return generateDefaultMilestones(projects);
   });
@@ -76,7 +77,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
       const updated = [...prev, ...newGenerated];
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) { console.error('[Timeline] Failed to save milestones to localStorage:', e); }
+      } catch (e) { logger.error('[Timeline] Failed to save milestones to localStorage:', e); }
       return updated;
     });
   }, [projects]);
@@ -86,7 +87,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
     setMilestones(updated);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) { console.error('[Timeline] Failed to save milestones to localStorage:', e); }
+    } catch (e) { logger.error('[Timeline] Failed to save milestones to localStorage:', e); }
   };
 
   // Helper to generate default 4 milestones per project based on start_date / end_date
@@ -258,7 +259,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
         if (parsed && typeof parsed === 'object') return parsed;
       }
     } catch (e) {
-      console.error('Error loading heatmap state:', e);
+      logger.error('Error loading heatmap state:', e);
     }
     return generateDefaultAllocations(projects, timeColumns);
   });
@@ -286,7 +287,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
     setResourceAllocations(updatedMap);
     try {
       localStorage.setItem(HEATMAP_STORAGE_KEY, JSON.stringify(updatedMap));
-    } catch (e) { console.error('[Timeline] Failed to save heatmap allocations to localStorage:', e); }
+    } catch (e) { logger.error('[Timeline] Failed to save heatmap allocations to localStorage:', e); }
   };
 
   // Toggle allocation level for a specific project cell
@@ -541,7 +542,7 @@ export const VisualProjectTimeline: React.FC<VisualProjectTimelineProps> = ({
         onRefreshProjects();
       }
     } catch (err) {
-      console.error('Failed to sync project timeline dates:', err);
+      logger.error('Failed to sync project timeline dates:', err);
     }
   };
 

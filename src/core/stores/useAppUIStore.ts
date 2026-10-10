@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS } from '../../lib/constants';
 
+import { logger } from '../../lib/logger';
 export type AppLanguage = 'ar' | 'en';
 export type AppTheme = 'light' | 'dark' | 'system';
 export type LayoutDensity = 'compact' | 'comfortable' | 'spacious';
@@ -28,7 +29,7 @@ export function useAppUIStore() {
       const saved = localStorage.getItem(STORAGE_KEYS.DENSITY);
       if (saved === 'compact' || saved === 'comfortable' || saved === 'spacious') return saved;
     } catch (e) {
-      console.error('[LayoutDensity] Failed to read density:', e);
+      logger.error('[LayoutDensity] Failed to read density:', e);
     }
     return 'comfortable';
   });
@@ -38,7 +39,7 @@ export function useAppUIStore() {
       localStorage.setItem(STORAGE_KEYS.DENSITY, layoutDensity);
       document.documentElement.setAttribute('data-density', layoutDensity);
     } catch (e) {
-      console.error('[LayoutDensity] Failed to save density:', e);
+      logger.error('[LayoutDensity] Failed to save density:', e);
     }
   }, [layoutDensity]);
 
@@ -71,7 +72,7 @@ export function useAppUIStore() {
     try {
       localStorage.setItem('uamex_home_experience_mode', homeExperienceMode);
     } catch (error) {
-      console.error('[ExperienceMode] Failed to persist home mode:', error);
+      logger.error('[ExperienceMode] Failed to persist home mode:', error);
     }
   }, [homeExperienceMode]);
 

@@ -1,4 +1,8 @@
-// NexoraOS™ Export Helpers — delegates to the enterprise export engine
+// NexoraOS™ Export Helpers — thin proxy to the enterprise export engine.
+// Pure helpers live in `src/helpers/`; I/O stays in `src/core/export`.
+// This file remains ONLY as a backward-compatible re-export path
+// (`shared/utils` → here → `core/export`). New code: import the engine
+// (`core/export`) or pure builders (`helpers/`) directly.
 export async function fireCelebrationConfetti() {
   try {
     const confettiModule = await import('canvas-confetti');

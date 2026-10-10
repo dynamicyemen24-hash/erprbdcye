@@ -5,7 +5,8 @@ import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import { Spinner } from '../../design-system/components/Spinner';
 import { logAuditEvent } from '../../lib/audit';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
+
+import { logger } from '../../lib/logger';
 interface UserBiometricConfig {
   id: string;
   name: string;
@@ -80,7 +81,7 @@ export default function BiometricSecuritySettingsView({ lang, currentUser }: { l
         }));
       setAttempts(authEvents);
     } catch (err) {
-      console.error('[BiometricSecurity] Failed to load live data:', err);
+      logger.error('[BiometricSecurity] Failed to load live data:', err);
       setUsersError(isAr ? 'تعذر الاتصال بقاعدة البيانات.' : 'Failed to connect to the database.');
       setUsers([]);
     } finally {

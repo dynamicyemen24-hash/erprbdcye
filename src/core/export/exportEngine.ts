@@ -6,6 +6,7 @@
 
 import type { PrintColumn, PrintConfig } from './printEngine';
 
+import { logger } from '../../lib/logger';
 export type ExportFormat = 'pdf' | 'excel' | 'csv' | 'json' | 'print';
 
 export interface ExportOptions {
@@ -124,7 +125,7 @@ export async function exportToExcel(
 
     return { success: true, format: 'excel', fileName: `${fn}.xlsx`, timestamp: new Date() };
   } catch (err: any) {
-    console.error('[ExportEngine] Excel export failed:', err);
+    logger.error('[ExportEngine] Excel export failed:', err);
     return { success: false, format: 'excel', fileName: options.fileName, timestamp: new Date(), error: err.message };
   }
 }
@@ -172,7 +173,7 @@ export async function exportToCSV(
 
     return { success: true, format: 'csv', fileName: `${fn}.csv`, timestamp: new Date() };
   } catch (err: any) {
-    console.error('[ExportEngine] CSV export failed:', err);
+    logger.error('[ExportEngine] CSV export failed:', err);
     return { success: false, format: 'csv', fileName: options.fileName, timestamp: new Date(), error: err.message };
   }
 }
@@ -209,7 +210,7 @@ export async function exportToJSON(
 
     return { success: true, format: 'json', fileName: `${fn}.json`, timestamp: new Date() };
   } catch (err: any) {
-    console.error('[ExportEngine] JSON export failed:', err);
+    logger.error('[ExportEngine] JSON export failed:', err);
     return { success: false, format: 'json', fileName: options.fileName, timestamp: new Date(), error: err.message };
   }
 }

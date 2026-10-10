@@ -6,6 +6,7 @@
  */
 
 import crypto from 'crypto';
+import logger, { toLogMeta } from '../core/logger';
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest, extractTenantId } from './auth.middleware';
 import { getDatabasePool } from '../services/db.service';
@@ -62,7 +63,7 @@ async function logPolicyViolation(
       }),
     ]);
   } catch (err) {
-    console.error('[PolicyMiddleware] Failed to log violation to audit:', err);
+    logger.error('[PolicyMiddleware] Failed to log violation to audit:', { meta: toLogMeta(err) });
   }
 }
 
@@ -87,7 +88,7 @@ export function extractEnvironmentMode(
   if (mode === 'training') {
     const userRole = req.user?.role ?? '';
     if (!allowedTrainingRoles.includes(userRole)) {
-      console.warn(
+      logger.warn(
         `[PolicyMiddleware] Non-admin user '${req.user?.id || 'unknown'}' attempted to set training mode — forcing production`
       );
       return 'production';
@@ -235,7 +236,7 @@ export function requirePolicyEnforcement(
 
       next();
     } catch (err) {
-      console.error('[PolicyMiddleware] Enforcement error:', err);
+      logger.error('[PolicyMiddleware] Enforcement error:', { meta: toLogMeta(err) });
       // Don't block on middleware errors - log and continue
       next();
     }

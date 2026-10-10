@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
 
+import { logger } from '../../lib/logger';
 interface OperationalPoliciesProps {
   lang: 'ar' | 'en';
   sysSettings: Record<string, any>;
@@ -258,7 +259,7 @@ export const OperationalPoliciesSettings: React.FC<OperationalPoliciesProps> = (
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
-      console.error('Failed to save policies:', err);
+      logger.error('Failed to save policies:', err);
     } finally {
       setSaving(false);
     }

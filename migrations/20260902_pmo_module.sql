@@ -712,27 +712,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_pmo_projects_updated
+CREATE OR REPLACE TRIGGER trg_pmo_projects_updated
     BEFORE UPDATE ON pmo_projects
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER trg_pmo_wbs_updated
+CREATE OR REPLACE TRIGGER trg_pmo_wbs_updated
     BEFORE UPDATE ON pmo_wbs_elements
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER trg_pmo_activities_updated
+CREATE OR REPLACE TRIGGER trg_pmo_activities_updated
     BEFORE UPDATE ON pmo_schedule_activities
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER trg_pmo_risks_updated
+CREATE OR REPLACE TRIGGER trg_pmo_risks_updated
     BEFORE UPDATE ON pmo_risks
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER trg_pmo_issues_updated
+CREATE OR REPLACE TRIGGER trg_pmo_issues_updated
     BEFORE UPDATE ON pmo_issues
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER trg_pmo_changes_updated
+CREATE OR REPLACE TRIGGER trg_pmo_changes_updated
     BEFORE UPDATE ON pmo_change_requests
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -762,7 +762,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_pmo_risks_score
+CREATE OR REPLACE TRIGGER trg_pmo_risks_score
     BEFORE INSERT OR UPDATE ON pmo_risks
     FOR EACH ROW EXECUTE FUNCTION calculate_risk_score();
 
@@ -783,9 +783,11 @@ ALTER TABLE pmo_portfolios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pmo_programs ENABLE ROW LEVEL SECURITY;
 
 -- Policy examples (implement based on tenant_id)
+DROP POLICY IF EXISTS pmo_tenant_isolation_projects ON pmo_projects;
 CREATE POLICY pmo_tenant_isolation_projects ON pmo_projects
     FOR ALL USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
 
+DROP POLICY IF EXISTS pmo_tenant_isolation_risks ON pmo_risks;
 CREATE POLICY pmo_tenant_isolation_risks ON pmo_risks
     FOR ALL USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
 

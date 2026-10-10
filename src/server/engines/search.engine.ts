@@ -129,7 +129,16 @@ export interface RecommendationContext {
 
 // ─── SQL snippets (re-used across engines) ───────────────
 
-const SEARCHABLE_TABLES: Record<SearchableDomain, {
+/**
+ * Lookup table for searchable domains.
+ *
+ * Deliberately `Partial`: a domain may have no backing table in the current
+ * deployment (e.g. `voucher` → `journal_vouchers`, which does not exist in the
+ * live database). Every consumer already does `if (!cfg) …`, so an unmapped
+ * domain degrades to an empty/skipped result instead of issuing SQL against a
+ * missing table and throwing.
+ */
+const SEARCHABLE_TABLES: Partial<Record<SearchableDomain, {
   table: string;
   title: string[];
   subtitle?: string[];
@@ -137,7 +146,7 @@ const SEARCHABLE_TABLES: Record<SearchableDomain, {
   url: string;          // router URL prefix
   filterable?: string[]; // columns usable as facets
   has_org_id?: boolean;
-}> = {
+}>> = {
   project:            { table: 'projects',              title: ['name_ar', 'name_en', 'project_code'], url: '/projects',           has_org_id: true,  filterable: ['status_code', 'category_code'] },
   program:            { table: 'programs',              title: ['name_ar', 'name_en', 'code'],         url: '/portfolio/programs', has_org_id: true },
   activity:           { table: 'activities',            title: ['name_ar', 'name_en'],                  url: '/operations/activities', has_org_id: true, filterable: ['status_code'] },
@@ -154,7 +163,9 @@ const SEARCHABLE_TABLES: Record<SearchableDomain, {
   inventory:          { table: 'inventory_items',       title: ['name_ar', 'name_en', 'sku'],            url: '/inventory/items', has_org_id: true },
   warehouse:          { table: 'warehouses',            title: ['name_ar', 'name_en', 'code'],           url: '/inventory/warehouses', has_org_id: true },
   account:            { table: 'chart_of_accounts',     title: ['name_ar', 'name_en', 'account_code'],   url: '/finance/coa',     has_org_id: true, filterable: ['account_type'] },
-  voucher:            { table: 'journal_vouchers',      title: ['voucher_number', 'description'],        url: '/finance/vouchers', has_org_id: true, filterable: ['status', 'voucher_type'] },
+  // NOTE: 'voucher' intentionally has no entry — its table (`journal_vouchers`)
+  // does not exist in the live DB. Unmapped domains are skipped by every
+  // consumer below (indexRecord / reindexOrg / liveSearch / getFacets).
   invoice:            { table: 'sales_invoices',        title: ['invoice_number', 'description'],        url: '/sales/invoices',  has_org_id: true, filterable: ['payment_status'] },
   donation:           { table: 'donations',             title: ['donation_number', 'donor_name'],        url: '/funding/donations', has_org_id: true, filterable: ['payment_method'] },
   revenue:            { table: 'revenue_records',       title: ['record_number', 'description'],         url: '/finance/revenue', has_org_id: true, filterable: ['status'] },

@@ -6,10 +6,15 @@ import { DraftActionBar } from '../pro/DraftActionBar';
 import { PrintDocument } from '../pro/PrintDocument';
 
 describe('MetricTile', () => {
-  it('renders label, value and unit with an accessible name', () => {
+  it('exposes its visible content to assistive technology instead of overriding it', () => {
+    // The tile used to set `aria-label="<label> <value> <unit>"`, which REPLACED
+    // the element's content for screen readers — silently discarding the delta,
+    // the caption and the freshness state (WCAG 1.3.1). Label, value and unit
+    // are already visible text, so the correct contract is "no aria-label".
     render(<MetricTile label="المصروفات" labelEn="Expenses" value="1,250,000" unit="YER" lang="en" />);
     const tile = screen.getByRole('group');
-    expect(tile.getAttribute('aria-label')).toContain('Expenses');
+    expect(tile.getAttribute('aria-label')).toBeNull();
+    expect(screen.getByText('Expenses')).toBeTruthy();
     expect(screen.getByText('1,250,000')).toBeTruthy();
     expect(screen.getByText('YER')).toBeTruthy();
   });
@@ -42,7 +47,7 @@ describe('MetricTile', () => {
   it('shows a skeleton instead of values while loading', () => {
     const { container } = render(<MetricTile label="Loading" value="999" loading />);
     expect(screen.queryByText('999')).toBeNull();
-    expect(container.querySelector('[data-slot="skeleton"], .animate-pulse')).toBeTruthy();
+    expect(container.querySelector('[data-slot="skeleton"], .animate-pulse, .animate-shimmer')).toBeTruthy();
   });
 
   it('is clickable only when onClick is provided', () => {
@@ -54,10 +59,41 @@ describe('MetricTile', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it('announces freshness state', () => {
-    render(<MetricTile label="Live metric" value="1" freshness="live" />);
-    const dotTitle = screen.getByTitle('محدّث مباشرة');
-    expect(dotTitle.className).toContain('bg-emerald-500');
+  it('announces freshness as text, not by colour alone', () => {
+    // WCAG 1.4.1 (Level A). The dot used to carry the state through `title`,
+    // which screen readers do not reliably announce and keyboard users cannot
+    // reach. The state now exists as real text and as a distinct shape.
+    render(<MetricTile label="Live metric" value="1" freshness="live" lang="ar" />);
+    expect(screen.getByText('محدّث مباشرة')).toBeTruthy();
+    const dot = screen.getByTestId('metric-freshness');
+    expect(dot.getAttribute('data-freshness')).toBe('live');
+    expect(dot.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('gives each freshness state a distinct shape so it reads without colour', () => {
+    const shapes = (['live', 'stale', 'error'] as const).map((state) => {
+      const { unmount } = render(
+        <MetricTile label="M" value="1" freshness={state} lang="en" />
+      );
+      const cls = screen.getByTestId('metric-freshness').className;
+      unmount();
+      return cls;
+    });
+    // WCAG 1.4.1: shape must differ, not only hue.
+    expect(new Set(shapes).size).toBe(3);
+  });
+
+  it('links the spoken state to the tile via aria-describedby', () => {
+    render(<MetricTile label="Metric" value="7" freshness="stale" lang="en" />);
+    const tile = screen.getByRole('group');
+    const describedBy = tile.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    expect(screen.getByText('Stale')).toBeTruthy();
+  });
+
+  it('states the failure explicitly rather than leaving a stale number unmarked', () => {
+    render(<MetricTile label="Metric" value="7" freshness="error" lang="en" />);
+    expect(screen.getByText('Update failed')).toBeTruthy();
   });
 });
 

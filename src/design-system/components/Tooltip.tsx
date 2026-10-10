@@ -93,10 +93,11 @@ export interface TooltipContentProps {
 }
 
 const sideClasses: Record<TooltipSide, string> = {
-  top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-  bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-  left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-  right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+  top: 'bottom-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 mb-2',
+  bottom: 'top-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 mt-2',
+  // Logical sides: `left` == `end` in RTL, `right` == `start` in RTL.
+  left: 'end-full top-1/2 -translate-y-1/2 me-2',
+  right: 'start-full top-1/2 -translate-y-1/2 ms-2',
 };
 
 export function TooltipContent({ children, side = 'top', className }: TooltipContentProps) {
@@ -108,7 +109,7 @@ export function TooltipContent({ children, side = 'top', className }: TooltipCon
       role="tooltip"
       aria-describedby={triggerId}
       className={cn(
-        'absolute z-50 px-3 py-1.5 text-xs font-medium text-white bg-zinc-900 dark:bg-zinc-700 rounded-lg shadow-lg whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95',
+        'absolute z-tooltip px-3 py-1.5 text-xs font-medium text-white bg-zinc-900 dark:bg-zinc-700 rounded-lg shadow-lg whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95',
         sideClasses[side],
         className
       )}

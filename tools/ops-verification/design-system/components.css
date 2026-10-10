@@ -1,0 +1,122 @@
+/* Design System Components – Sab Spec (Mobile-First & Cross-Browser) */
+/* -------------------------------------------------
+   Reusable component styles based on the variables
+   defined in variables.css (import it first).
+   Mobile-first, cross-browser compatible, tap-target safe.
+   ------------------------------------------------- */
+
+/* --- Buttons ------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  padding: var(--button-padding-vertical) var(--button-padding-horizontal);
+  border-radius: var(--button-border-radius);
+  background-color: var(--color-button-bg);
+  color: var(--color-button-text);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+  user-select: none;
+  /* Touch-friendly: already min-height: 44px set in variables.css */
+}
+
+.btn:hover {
+  background-color: var(--color-button-bg-hover);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-brand-primary-dark);
+  outline-offset: 2px;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* --- Primary variant ------------------------------------------------- */
+.btn--primary {
+  background-color: var(--color-button-bg);
+  color: var(--color-button-text);
+}
+
+.btn--primary:hover {
+  background-color: var(--color-button-bg-hover);
+}
+
+/* --- Secondary variant (optional) ------------------------------------------------- */
+.btn--secondary {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-text-secondary);
+}
+
+.btn--secondary:hover {
+  background-color: var(--color-bg-elevated);
+}
+
+/* --- Disabled state ------------------------------------------------- */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--color-bg-elevated) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+/* --- Workspace container ------------------------------------------------- */
+.workspace {
+  font-family: var(--font-family-base);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--workspace-border-radius);
+  box-shadow: var(--workspace-shadow);
+  padding: var(--workspace-padding);
+  margin-bottom: var(--space-5);
+  /* Mobile: full width; Desktop: max-width constraint */
+  width: 100%;
+  max-width: clamp(320px, 80vw, 1200px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.workspace__title {
+  margin-top: 0;
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-title-primary);
+}
+
+.workspace__content {
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+/* --- Responsive: stack on small screens ------------------------------------------------- */
+@media (max-width: 480px) {
+  .workspace {
+    margin-top: var(--space-3);
+  }
+}
+
+/* --- Contrast Utilities (optional) --- */
+.contrast-check {
+  /* Ensure a minimum 4.5:1 contrast ratio when foreground/background are applied */
+  /* Example: .btn { background: var(--color-button-bg); color: var(--color-button-text); } */
+}
+
+/* --- Focus-visible polyfill for older browsers (optional) --- */
+@supports (not (:focus-visible)) {
+  .btn:focus {
+    outline: 2px solid var(--color-brand-primary-dark);
+    outline-offset: 2px;
+  }
+}
+
+/* -------------------------------------------------
+   End of components.css
+   ------------------------------------------------- */

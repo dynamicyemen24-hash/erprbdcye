@@ -48,7 +48,8 @@ import { User as UserType } from '../types';
 import { useResumeIntelligence } from '../core/services/resumeIntelligence';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { Spinner } from '../design-system/components/Spinner';
-
+
+import { logger } from '../lib/logger';
 interface LoginViewProps {
   users: UserType[];
   onLoginSuccess: (user: { id: string; email: string; name: string; role: string }) => void;
@@ -321,7 +322,7 @@ export default function LoginView({
         if (parsed && (parsed.email || parsed.id)) setCachedUser(parsed);
       }
     } catch (e) {
-      console.error('[Login] Failed to parse cached user from localStorage:', e);
+      logger.error('[Login] Failed to parse cached user from localStorage:', e);
     }
   }, []);
 

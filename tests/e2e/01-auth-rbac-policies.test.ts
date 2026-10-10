@@ -141,8 +141,18 @@ describe('E2E: Authentication Lifecycle', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should logout with valid token', async () => {
+      // Fresh token (DEBT PAID): logging out burns the token server-side
+      // (revocation blacklist, 24h). Using the shared TOKENS.* fixtures here
+      // would poison every later suite that reuses them with 401s.
+      const fresh = generateToken({
+        id: uniqueId('logout-user'),
+        email: `logout-${Date.now()}@nexora.test`,
+        role: 'USER',
+        org_id: ORG,
+        security_level: 2,
+      });
       const res = await api.post('/api/auth/logout', {}, {
-        token: TOKENS.user,
+        token: fresh,
       });
       expect(res.status).toBeLessThan(500);
     });
@@ -155,8 +165,17 @@ describe('E2E: Authentication Lifecycle', () => {
 
   describe('POST /api/auth/logout-all', () => {
     it('should revoke all sessions', async () => {
+      // Fresh token (same reason as above): `logout-all` revokes every
+      // token of the calling user — never burn a shared fixture.
+      const freshAdmin = generateToken({
+        id: uniqueId('logout-admin'),
+        email: `logout-admin-${Date.now()}@nexora.test`,
+        role: 'ADMIN',
+        org_id: ORG,
+        security_level: 4,
+      });
       const res = await api.post('/api/auth/logout-all', {}, {
-        token: TOKENS.admin,
+        token: freshAdmin,
       });
       expect(res.status).toBeLessThan(500);
     });

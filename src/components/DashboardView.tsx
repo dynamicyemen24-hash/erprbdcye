@@ -16,6 +16,7 @@ import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
 
+import { logger } from '../lib/logger';
 // Error Boundary for graceful crash recovery
 class DashboardErrorBoundary extends Component<
   { children: ReactNode; lang: 'ar' | 'en' },
@@ -30,7 +31,7 @@ class DashboardErrorBoundary extends Component<
   }
   componentDidCatch(error: Error, info: ErrorInfo) {
     if (process.env.NODE_ENV !== 'production') {
-      console.error('[Dashboard Error]:', error, info.componentStack);
+      logger.error('[Dashboard Error]:', error, info.componentStack);
     }
   }
   render() {

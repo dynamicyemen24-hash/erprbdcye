@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import logger, { toLogMeta } from '../core/logger';
 
 /**
  * Generate a unique trace ID (32 hex chars — OpenTelemetry compatible).
@@ -122,11 +123,12 @@ export function requestTracing(req: Request, res: Response, next: NextFunction):
 
     // Log slow requests
     if (duration > 5000) {
-      console.warn(`[SLOW REQUEST] ${req.method} ${req.path} took ${duration}ms`, {
+      logger.warn(`[SLOW REQUEST] ${req.method} ${req.path} took ${duration}ms`, {
+        meta: toLogMeta({
         traceId,
         spanId,
         statusCode: res.statusCode,
-      });
+      }) });
     }
 
     // Set final Server-Timing header
@@ -171,7 +173,7 @@ export function createChildSpan(
 
       // Log span (in production, this would go to a tracing backend)
       if (status === 'ERROR' || duration > 1000) {
-        console.log('[SPAN]', JSON.stringify(span));
+        logger.info('[SPAN]', { meta: toLogMeta(JSON.stringify(span)) });
       }
     },
   };

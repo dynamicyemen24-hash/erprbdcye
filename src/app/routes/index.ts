@@ -9,8 +9,18 @@ export interface RouteDefinition {
   isSecure?: boolean;
 }
 
+/**
+ * Categorized route REGISTRY (DEBT PAID).
+ * Navigation TRUTH is `TAB_CONFIG` (App + TabContentRenderer drive rendering);
+ * this registry MUST mirror every `ActiveTab` with its NEB domain + category —
+ * it previously missed 4 live tabs (`workspaces`, `hr_dashboard`,
+ * `third-party-network`, `admin_control_center`). The co-located truth test
+ * guards uniqueness + coverage of all known tabs: add any new tab HERE when
+ * it gains a `TAB_CONFIG` entry.
+ */
 export const ROUTE_DEFINITIONS: RouteDefinition[] = [
   { id: 'dashboard', domainCode: 'NEB-01', labelAr: 'لوحة التحكم القيادية', labelEn: 'Executive Dashboard', category: 'core' },
+  { id: 'workspaces', domainCode: 'NEB-01..15', labelAr: 'مساحات العمل التخصصية للأدوار', labelEn: 'Role Workspaces Hub', category: 'core' },
   { id: 'strategic_planning', domainCode: 'NEB-01', labelAr: 'التخطيط الاستراتيجي والأداء', labelEn: 'Strategic Planning & Performance', category: 'core' },
   { id: 'control_panel', domainCode: 'NEB-01', labelAr: 'مركز القيادة الموحد', labelEn: 'Unified Control Center', category: 'core' },
   { id: 'domains', domainCode: 'NEB-01', labelAr: 'مركز النطاقات المؤسسية', labelEn: 'Domain Center', category: 'core' },
@@ -39,12 +49,16 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
 
   { id: 'reports', domainCode: 'NEB-11', labelAr: 'التقارير وقياس الأثر', labelEn: 'Reports & Analytics', category: 'analytics' },
   { id: 'business_intelligence', domainCode: 'NEB-13', labelAr: 'ذكاء الأعمال', labelEn: 'Business Intelligence', category: 'analytics' },
+  { id: 'search', domainCode: 'NEB-12', labelAr: 'البحث المؤسسي الشامل', labelEn: 'Enterprise Search Center', category: 'analytics' },
   { id: 'docs', domainCode: 'NEB-11', labelAr: 'المكتبة والسياسات', labelEn: 'Documentation & Policies', category: 'analytics' },
 
   { id: 'users', domainCode: 'NEB-12', labelAr: 'المستخدمين والصلاحيات', labelEn: 'Users & Roles', category: 'settings' },
   { id: 'settings', domainCode: 'NEB-12', labelAr: 'إعدادات المنظومة', labelEn: 'System Settings', category: 'settings' },
   { id: 'audit', domainCode: 'NEB-12', labelAr: 'سجلات التدقيق الأمني', labelEn: 'Security Audit Logs', category: 'settings', isSecure: true },
   { id: 'backup', domainCode: 'NEB-12', labelAr: 'النسخ الاحتياطي والتعافي', labelEn: 'Backup & Recovery', category: 'settings' },
+  { id: 'admin_control_center', domainCode: 'NEB-12', labelAr: 'مركز التحكم', labelEn: 'Admin Control Center', category: 'settings' },
+  { id: 'hr_dashboard', domainCode: 'NEB-09', labelAr: 'لوحة إدارة الموارد البشرية', labelEn: 'HR Management Dashboard', category: 'operations' },
+  { id: 'third-party-network', domainCode: 'NEB-14', labelAr: 'شبكة الأطراف ومطالبات التجار', labelEn: 'Third-Party Network & Claims', category: 'operations' },
   { id: 'sales', domainCode: 'NEB-15', labelAr: 'المبيعات والإيرادات', labelEn: 'Sales & Revenue', category: 'operations' },
   { id: 'communications', domainCode: 'NEB-11', labelAr: 'الاتصالات المؤسسية', labelEn: 'Communications', category: 'operations' },
 ];

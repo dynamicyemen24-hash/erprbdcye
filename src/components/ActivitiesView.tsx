@@ -61,7 +61,8 @@ import { ErrorState } from '../design-system/components/ErrorState';
 import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
-
+
+import { logger } from '../lib/logger';
 // ==================== SECTOR & ACTIVITY TYPES TAXONOMY ====================
 export interface ActivitySector {
   id: string;
@@ -360,7 +361,7 @@ export default function ActivitiesView({
     if (ok) {
       setActivities(data);
     } else {
-      console.warn('[Activities] Engine fetch failed — showing live empty state:', error);
+      logger.warn('[Activities] Engine fetch failed — showing live empty state:', error);
       setActivities([]);
       if (error) setFetchError(true);
     }
@@ -418,7 +419,7 @@ export default function ActivitiesView({
       });
       onRefresh();
     } catch (err) {
-      console.error('Error toggling task status:', err);
+      logger.error('Error toggling task status:', err);
     }
   };
 
@@ -453,37 +454,69 @@ export default function ActivitiesView({
       });
       onRefresh();
     } catch (err) {
-      console.error('Error adding task:', err);
+      logger.error('Error adding task:', err);
     }
   };
 
-  // Verify GPS Simulator
+  // Verify GPS from the real device sensor. Fabricated coordinates must never
+  // be written to enterprise records — denial/failure leaves data untouched.
+  const [gpsError, setGpsError] = useState<string | null>(null);
   const handleVerifyGPS = async (activity: Activity) => {
     setIsVerifyingGPS(true);
-    setTimeout(async () => {
-      const coords = `15.35${Math.floor(1000 + Math.random() * 9000)}° N, 44.19${Math.floor(1000 + Math.random() * 9000)}° E`;
+    setGpsError(null);
+    const persist = async (coords: string) => {
+      const prevMetadata = activity.metadata || {};
       const updatedMetadata = {
-        ...(activity.metadata || {}),
+        ...prevMetadata,
         gps_coordinates: coords,
-        gps_verified_at: new Date().toISOString()
+        gps_verified_at: new Date().toISOString(),
+        gps_source: 'device-gps',
       };
-
       const updatedActivity = { ...activity, metadata: updatedMetadata };
       setSelectedActivity(updatedActivity);
       setActivities(prev => prev.map(a => a.id === activity.id ? updatedActivity : a));
-      setIsVerifyingGPS(false);
-
       try {
-        await fetch(`/api/tables/activities/${activity.id}`, {
+        let auth = '';
+        try {
+          const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token') || '';
+          if (token) auth = `Bearer ${token}`;
+        } catch { /* storage unavailable */ }
+        const res = await fetch(`/api/tables/activities/${activity.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ metadata: updatedMetadata })
+          headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: auth } : {}) },
+          body: JSON.stringify({ metadata: updatedMetadata }),
         });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         onRefresh();
       } catch (err) {
-        console.error('Error verifying GPS:', err);
+        // Revert the optimistic update: unverified data must not linger.
+        setSelectedActivity(activity);
+        setActivities(prev => prev.map(a => (a.id === activity.id ? activity : a)));
+        setGpsError(isRtl ? 'فشل حفظ التوثيق الجغرافي' : 'Failed to persist geotag');
+        logger.error('Error verifying GPS:', err);
+      } finally {
+        setIsVerifyingGPS(false);
       }
-    }, 600);
+    };
+    try {
+      if (!('geolocation' in navigator)) {
+        setGpsError(isRtl ? 'المتصفح لا يدعم تحديد الموقع' : 'Geolocation is not supported by this browser');
+        setIsVerifyingGPS(false);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { void persist(`${pos.coords.latitude.toFixed(6)}° N, ${pos.coords.longitude.toFixed(6)}° E`); },
+        (geoErr) => {
+          setGpsError(geoErr.message || (isRtl ? 'تعذر قراءة الموقع' : 'Could not read device location'));
+          setIsVerifyingGPS(false);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+      );
+    } catch (err) {
+      setGpsError(isRtl ? 'تعذر قراءة الموقع' : 'Could not read device location');
+      setIsVerifyingGPS(false);
+      logger.error('Error verifying GPS:', err);
+    }
   };
 
   // Upload Photo Proof Simulator
@@ -509,7 +542,7 @@ export default function ActivitiesView({
         });
         onRefresh();
       } catch (err) {
-        console.error('Error adding photo evidence:', err);
+        logger.error('Error adding photo evidence:', err);
       }
     }, 600);
   };
@@ -595,7 +628,7 @@ export default function ActivitiesView({
         setPolicyViolations(err.violations);
         setErrorMessage(err.primaryMessage);
       } else {
-        console.error('Error creating activity:', err);
+        logger.error('Error creating activity:', err);
       }
     }
   };
@@ -628,7 +661,7 @@ export default function ActivitiesView({
     try {
       localStorage.setItem('nexora_field_financial_disbursements', JSON.stringify(updated));
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     }
 
     // Update disbursed_budget in state
@@ -677,7 +710,7 @@ export default function ActivitiesView({
     try {
       localStorage.setItem('nexora_field_material_requests', JSON.stringify(updated));
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     }
 
     enterpriseBus.notifyStateSync('NEB-09_INVENTORY', 'MATERIAL_REQUISITION_CREATED', newReq);
@@ -1120,7 +1153,7 @@ export default function ActivitiesView({
                             setPolicyViolations(e.violations);
                             setErrorMessage(e.primaryMessage);
                           } else {
-                            console.error(e);
+                            logger.error(e);
                           }
                         }
                       }}
@@ -1478,10 +1511,12 @@ export default function ActivitiesView({
                         : isGpsVerified 
                         ? (isRtl ? 'إعادة التوثيق' : 'Re-verify')
                         : (isRtl ? 'توثيق الـ GPS' : 'Verify Location')}
-                    </button>
+                      </button>
+                    </div>
+                    {gpsError && (
+                      <p className="text-[10px] font-bold text-red-600 dark:text-red-400 pt-2">{gpsError}</p>
+                    )}
                   </div>
-                </div>
-
                 {/* Media Evidence Hub */}
                 <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-zinc-900">
                   <h4 className="text-[10px] text-slate-400 uppercase font-black tracking-wider">

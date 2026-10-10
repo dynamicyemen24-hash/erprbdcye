@@ -468,9 +468,9 @@ export class ThreeWayMatchEngine {
         try {
           const txNumber = generateTxNumber('PUR');
           const txRes = await client.query(
-            `INSERT INTO transactions
+             `INSERT INTO transactions
              (organization_id, transaction_number, transaction_date, posting_date,
-              transaction_type, description, reference_no, total_debit, total_credit, status, created_by_id)
+              transaction_type, description, reference_number, total_debit, total_credit, status, created_by)
              VALUES ($1, $2, CURRENT_DATE, CURRENT_DATE, 'PURCHASE', $3, $4, $5, $5, 'POSTED', $6)
              RETURNING id`,
             [
@@ -486,24 +486,27 @@ export class ThreeWayMatchEngine {
           if (txRes && txRes.rows && txRes.rows.length > 0) {
             const txId = txRes.rows[0].id;
             const expAccount = await client.query(
-              "SELECT id FROM chart_of_accounts WHERE account_type = 'EXPENSE' OR account_code LIKE '5%' LIMIT 1"
+              "SELECT id, account_code FROM chart_of_accounts WHERE account_type = 'EXPENSE' OR account_code LIKE '5%' LIMIT 1"
             );
             const apAccount = await client.query(
-              "SELECT id FROM chart_of_accounts WHERE account_type = 'LIABILITY' OR account_code LIKE '2%' LIMIT 1"
+              "SELECT id, account_code FROM chart_of_accounts WHERE account_type = 'LIABILITY' OR account_code LIKE '2%' LIMIT 1"
             );
 
             const expAccId = expAccount?.rows?.[0]?.id || null;
             const apAccId = apAccount?.rows?.[0]?.id || null;
+            const expAccCode = expAccount?.rows?.[0]?.account_code || null;
+            const apAccCode = apAccount?.rows?.[0]?.account_code || null;
 
             if (expAccId && apAccId) {
               await client.query(
                 `INSERT INTO transaction_lines
-                 (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description, project_id)
-                 VALUES ($1, $2, 1, $3, $4, 0, $5, $6, $7)`,
+                 (transaction_id, organization_id, line_number, account_id, account_code, debit_amount, credit_amount, currency_code, description, project_id)
+                 VALUES ($1, $2, 1, $3, $4, $5, 0, $6, $7, $8)`,
                 [
                   txId,
                   purchaseOrder.organization_id,
                   expAccId,
+                  expAccCode,
                   data.invoiceAmount,
                   purchaseOrder.currency_code || 'USD',
                   `Procurement Expense - PO #${purchaseOrder.po_number || poId}`,
@@ -513,12 +516,13 @@ export class ThreeWayMatchEngine {
 
               await client.query(
                 `INSERT INTO transaction_lines
-                 (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description, project_id)
-                 VALUES ($1, $2, 2, $3, 0, $4, $5, $6, $7)`,
+                 (transaction_id, organization_id, line_number, account_id, account_code, debit_amount, credit_amount, currency_code, description, project_id)
+                 VALUES ($1, $2, 2, $3, $4, 0, $5, $6, $7, $8)`,
                 [
                   txId,
                   purchaseOrder.organization_id,
                   apAccId,
+                  apAccCode,
                   data.invoiceAmount,
                   purchaseOrder.currency_code || 'USD',
                   `Accounts Payable Vendor - PO #${purchaseOrder.po_number || poId}`,

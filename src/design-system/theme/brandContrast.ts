@@ -58,7 +58,7 @@ function mixWith(hex: string, target: 'black' | 'white', ratio: number): string 
  * `background`; otherwise the nearest mix toward black/white that does.
  * Unparseable input is returned unchanged (caller keeps its own fallback).
  */
-export function ensureMinContrast(hex: string, background: string, minRatio = 3): string {
+export function ensureMinContrast(hex: string, background: string, minRatio = 4.5): string {
   if (!normalizeHex(hex) || !normalizeHex(background)) return hex;
   if (contrastRatio(hex, background) >= minRatio) return hex;
 

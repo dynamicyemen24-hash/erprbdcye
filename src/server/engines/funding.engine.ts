@@ -6,7 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext, generateCode } from '../core/helpers';
-import logger from '../core/logger';
+import logger, { toLogMeta } from '../core/logger';
 
 // ─── Donors ────────────────────────────────────────────
 
@@ -257,7 +257,7 @@ export class PartnerAgreementEngine {
       [data.organizationId, data.partnerId, requireField(data.agreementNumber, 'agreementNumber'),
        requireField(data.titleAr, 'titleAr'), optionalString(data.titleEn),
        data.startDate, data.endDate, data.value || 0]
-    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
+    ).catch((err: any) => { logger.error('[Engine] Query failed:', { meta: toLogMeta(err.message) }); return null; });
   }
 }
 
@@ -272,7 +272,7 @@ export class UtilizationReportEngine {
     const grants = await queryMany(
       `SELECT g.*, d.name_ar as donor_name,
         (SELECT COALESCE(SUM(gi.received_amount), 0) FROM grant_installments gi WHERE gi.grant_id = g.id) as total_received,
-        (SELECT COALESCE(SUM(t.total_debit), 0) FROM transactions t WHERE t.reference_no = g.grant_number AND t.transaction_type = 'PAYMENT') as total_spent
+        (SELECT COALESCE(SUM(t.total_debit), 0) FROM transactions t WHERE t.reference_number = g.grant_number AND t.transaction_type = 'PAYMENT') as total_spent
        FROM grants g LEFT JOIN donors d ON d.id = g.donor_id
        WHERE ${where}`, params
     );

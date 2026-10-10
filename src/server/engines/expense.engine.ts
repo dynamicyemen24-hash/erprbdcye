@@ -1799,10 +1799,11 @@ export class ExpenseBatchEngine {
 
       const txRes = await client.query(
         `INSERT INTO transactions (organization_id, transaction_number, transaction_type, transaction_date,
-          source_record_type, source_record_id, description, total_amount, posted_by, status)
-         VALUES ($1,$2,'EXPENSE','BATCH',$3,$4,$5,$6,$7,'POSTED')
+          reference_type, reference_id, description, total_debit, total_credit, posted_by, status)
+         VALUES ($1,$2,'EXPENSE',$3,$4,$5,$6,$7,$7,$8,'POSTED')
           RETURNING id`,
-        [orgId, txNumber, 'expense_batch', batchId, `ترحيل دفعة مصروفات ${batchRes.batch_number}`, batchRes.total_amount, auth.userId]
+        [orgId, txNumber, batchRes.batch_date, 'expense_batch', batchId,
+          `ترحيل دفعة مصروفات ${batchRes.batch_number}`, batchRes.total_amount, auth.userId]
       );
 
       const txId = txRes.rows[0].id;

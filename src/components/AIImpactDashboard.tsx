@@ -22,6 +22,7 @@ import AIResourceOptimizer from '../features/projects/AIResourceOptimizer';
 import { IPSASComplianceAuditLedger } from '../features/audit';
 import { useDashboardLayout } from '../hooks/useDashboardLayout';
 
+import { logger } from '../lib/logger';
 interface AIImpactDashboardProps {
   projects: any[];
   lang: 'ar' | 'en';
@@ -50,7 +51,7 @@ class AIErrorBoundary extends React.Component<{
   }
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     if (process.env.NODE_ENV !== 'production') {
-      console.error(`[AI Panel Error] ${this.props.panelName || 'Unknown'}:`, error, info.componentStack);
+      logger.error(`[AI Panel Error] ${this.props.panelName || 'Unknown'}:`, error, info.componentStack);
     }
   }
   render() {

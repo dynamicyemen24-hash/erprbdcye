@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Wrench, Calendar, AlertTriangle } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
 
+import { logger } from '../../lib/logger';
 interface MaintenanceForecast {
   id: string;
   assetCode: string;
@@ -76,7 +77,7 @@ export default function PredictiveMaintenanceView({ lang }: { lang: 'ar' | 'en' 
 
         setForecasts(items);
       } catch (err) {
-        console.error('[PredictiveMaintenance] Failed to load:', err);
+        logger.error('[PredictiveMaintenance] Failed to load:', err);
         if (!cancelled) setError(lang === 'ar' ? 'تعذر تحميل بيانات الأصول.' : 'Failed to load asset data.');
       } finally {
         if (!cancelled) setLoading(false);

@@ -1,4 +1,5 @@
 import express from 'express';
+import logger, { toLogMeta } from '../core/logger';
 import { IPSASFinanceService } from '../services/finance.service';
 import { recordAuditLog } from '../services/audit.service';
 import { requireFinancePolicy } from '../middleware/policy.middleware';
@@ -23,7 +24,7 @@ financeRouter.get('/trial-balance', async (req: any, res) => {
     const report = await IPSASFinanceService.getTrialBalance(orgId);
     res.json(report);
   } catch (err: any) {
-    console.error('[Finance]', err);
+    logger.error('[Finance]', { meta: toLogMeta(err) });
     res.status(500).json({ error: 'Failed to generate trial balance' });
   }
 });
@@ -36,7 +37,7 @@ financeRouter.get('/balance-sheet', async (req: any, res) => {
     const report = await IPSASFinanceService.getBalanceSheet(orgId);
     res.json(report);
   } catch (err: any) {
-    console.error('[Finance]', err);
+    logger.error('[Finance]', { meta: toLogMeta(err) });
     res.status(500).json({ error: 'Failed to generate balance sheet' });
   }
 });
@@ -49,7 +50,7 @@ financeRouter.get('/income-statement', async (req: any, res) => {
     const report = await IPSASFinanceService.getIncomeStatement(orgId);
     res.json(report);
   } catch (err: any) {
-    console.error('[Finance]', err);
+    logger.error('[Finance]', { meta: toLogMeta(err) });
     res.status(500).json({ error: 'Failed to generate income statement' });
   }
 });
@@ -98,7 +99,7 @@ financeRouter.post('/vouchers', requireFinancePolicy('CREATE'), async (req: any,
 
     res.status(201).json({ status: 'success', data: posted });
   } catch (err: any) {
-    console.error('[Finance]', err);
+    logger.error('[Finance]', { meta: toLogMeta(err) });
     res.status(400).json({ error: 'Failed to post voucher' });
   }
 });

@@ -68,6 +68,8 @@ import ConsolidatedStatementsTab from '../features/finance/ConsolidatedStatement
 import FinanceOperationsControlBar from '../features/finance/FinanceOperationsControlBar';
 import ReverseEntryModal from '../features/finance/ReverseEntryModal';
 import UnifiedRevenueEngineTab from './finance/UnifiedRevenueEngineTab';
+import UnifiedExpenseEngineTab from './finance/UnifiedExpenseEngineTab';
+import RevenueAdvancedTab from './finance/RevenueAdvancedTab';
 import DataExchangeHub from './DataExchangeHub';
 import { EnterpriseToolStrip } from './EnterpriseToolStrip';
 import { ModuleShell } from './enterprise/ModuleShell';
@@ -82,7 +84,8 @@ import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { Pagination } from '../design-system/components/Pagination';
 import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
 import { EnterpriseButton } from './common/EnterpriseButton';
-
+
+import { logger } from '../lib/logger';
 interface FinanceViewProps {
   currencies: Currency[];
   lang: 'ar' | 'en';
@@ -90,7 +93,7 @@ interface FinanceViewProps {
   onNavigate?: (tab: string) => void;
 }
 
-type FinanceSubTab = 'coa' | 'cost_centers' | 'lineage' | 'opening_balances' | 'data_exchange' | 'entry' | 'payment_vouchers' | 'receipt_vouchers' | 'document_workflow' | 'ledger' | 'statement_query' | 'statements' | 'closings' | 'ai_parser' | 'bi_analytics' | 'governance_settings' | 'procurement' | 'currency_conversion' | 'budget_variance' | 'management_accounting' | 'e_invoicing' | 'batch_automation' | 'cfo_audit_suite' | 'endowment_governance' | 'consolidated_statements' | 'revenue_engine';
+type FinanceSubTab = 'coa' | 'cost_centers' | 'lineage' | 'opening_balances' | 'data_exchange' | 'entry' | 'payment_vouchers' | 'receipt_vouchers' | 'document_workflow' | 'ledger' | 'statement_query' | 'statements' | 'closings' | 'ai_parser' | 'bi_analytics' | 'governance_settings' | 'procurement' | 'currency_conversion' | 'budget_variance' | 'management_accounting' | 'e_invoicing' | 'batch_automation' | 'cfo_audit_suite' | 'endowment_governance' | 'consolidated_statements' | 'revenue_engine' | 'expense_engine' | 'revenue_advanced';
 
 export default function FinanceView({ currencies, lang, onRefresh, onNavigate }: FinanceViewProps) {
   const [activeSubTab, setActiveSubTab] = useState<FinanceSubTab>('coa');
@@ -220,7 +223,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
         setActivities(actData || []);
       }
     } catch (err) {
-      console.warn('[Finance] Live data fetch failed — showing empty state (no stale snapshot):', err);
+      logger.warn('[Finance] Live data fetch failed — showing empty state (no stale snapshot):', err);
       setFetchError(true);
     } finally {
       setLoading(false);
@@ -419,7 +422,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       `);
       printDoc.close();
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     }
   };
 
@@ -582,6 +585,8 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
       <div className="flex flex-wrap gap-2 bg-slate-100 dark:bg-zinc-900/60 p-2 rounded-2xl overflow-x-auto border border-slate-200 dark:border-zinc-800">
         {[
           { id: 'revenue_engine', label: lang === 'ar' ? 'محرك الإيرادات الموحد (NEB-15)' : 'Unified Revenue Engine (NEB-15)', icon: TrendingUp },
+          { id: 'expense_engine', label: lang === 'ar' ? 'محرك المصروفات الموحد (NEB-10)' : 'Unified Expense Engine (NEB-10)', icon: TrendingDown },
+          { id: 'revenue_advanced', label: lang === 'ar' ? 'الإيرادات المتقدمة: دفعات وجداول وسقوف (NEB-15)' : 'Advanced Revenue: Batches, Schedules & Caps (NEB-15)', icon: Layers },
           { id: 'coa', label: lang === 'ar' ? 'دليل الحسابات' : 'Chart of Accounts', icon: FolderTree },
           { id: 'cost_centers', label: lang === 'ar' ? 'مراكز التكلفة ومحاسبة الأنشطة' : 'Cost Centers & Activity OS', icon: Calculator },
           { id: 'lineage', label: lang === 'ar' ? 'سلسلة التتبع والتكامل المؤسسي' : 'Cross-Entity Lineage & Traceability', icon: GitCommit },
@@ -622,7 +627,7 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
             return ['cost_centers', 'lineage', 'management_accounting', 'budget_variance', 'endowment_governance', 'currency_conversion'].includes(tab.id);
           }
           if (accountingPillar === 'automation') {
-            return ['e_invoicing', 'batch_automation', 'ai_parser', 'procurement', 'governance_settings'].includes(tab.id);
+            return ['e_invoicing', 'batch_automation', 'ai_parser', 'procurement', 'governance_settings', 'revenue_engine', 'expense_engine', 'revenue_advanced'].includes(tab.id);
           }
           return true;
         }).map((tab) => {
@@ -649,6 +654,16 @@ export default function FinanceView({ currencies, lang, onRefresh, onNavigate }:
           lang={lang}
           projects={projects}
         />
+      )}
+
+      {/* SUBTAB 0b: UNIFIED EXPENSE ENGINE (NEB-10) — records, categories, petty cash, recurring (was orphan) */}
+      {activeSubTab === 'expense_engine' && (
+        <UnifiedExpenseEngineTab lang={lang} />
+      )}
+
+      {/* SUBTAB 0c: ADVANCED REVENUE (NEB-15) — batches, schedules & funding caps (was orphan) */}
+      {activeSubTab === 'revenue_advanced' && (
+        <RevenueAdvancedTab lang={lang} />
       )}
 
       {/* SUBTAB 1: CHART OF ACCOUNTS HIERARCHICAL TREEVIEW */}

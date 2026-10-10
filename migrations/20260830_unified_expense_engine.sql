@@ -501,25 +501,25 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_expense_categories_updated_at BEFORE UPDATE ON expense_categories
+CREATE OR REPLACE TRIGGER update_expense_categories_updated_at BEFORE UPDATE ON expense_categories
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_expense_records_updated_at BEFORE UPDATE ON expense_records
+CREATE OR REPLACE TRIGGER update_expense_records_updated_at BEFORE UPDATE ON expense_records
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_expense_payment_schedules_updated_at BEFORE UPDATE ON expense_payment_schedules
+CREATE OR REPLACE TRIGGER update_expense_payment_schedules_updated_at BEFORE UPDATE ON expense_payment_schedules
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_petty_cash_floats_updated_at BEFORE UPDATE ON petty_cash_floats
+CREATE OR REPLACE TRIGGER update_petty_cash_floats_updated_at BEFORE UPDATE ON petty_cash_floats
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_petty_cash_requests_updated_at BEFORE UPDATE ON petty_cash_requests
+CREATE OR REPLACE TRIGGER update_petty_cash_requests_updated_at BEFORE UPDATE ON petty_cash_requests
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_recurring_expense_templates_updated_at BEFORE UPDATE ON recurring_expense_templates
+CREATE OR REPLACE TRIGGER update_recurring_expense_templates_updated_at BEFORE UPDATE ON recurring_expense_templates
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_expense_batches_updated_at BEFORE UPDATE ON expense_batches
+CREATE OR REPLACE TRIGGER update_expense_batches_updated_at BEFORE UPDATE ON expense_batches
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ═══════════════════════════════════════════════════════════════════════════════

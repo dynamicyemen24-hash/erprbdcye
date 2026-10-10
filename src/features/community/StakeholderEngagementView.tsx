@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, MessageSquare, Heart, AlertTriangle } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
 
+import { logger } from '../../lib/logger';
 interface Stakeholder {
   id: string;
   name: string;
@@ -81,7 +82,7 @@ export default function StakeholderEngagementView({ lang }: { lang: 'ar' | 'en' 
 
         setStakeholders([...donorStakeholders, ...partnerStakeholders]);
       } catch (err) {
-        console.error('[StakeholderEngagement] Failed to load:', err);
+        logger.error('[StakeholderEngagement] Failed to load:', err);
         if (!cancelled) {
           setError(lang === 'ar' ? 'تعذر تحميل بيانات أصحاب المصلحة.' : 'Failed to load stakeholder data.');
         }

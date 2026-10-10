@@ -370,7 +370,7 @@ export default function CurrenciesView({ currencies, loading, onRefresh, lang }:
                     required 
                     value={symbol}
                     onChange={(e) => setSymbol(e.target.value)}
-                    placeholder="e.g. $, €"
+                    placeholder="e.g. ر.ي, $, ﷼"
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:bg-white outline-none font-bold"
                   />
                 </div>

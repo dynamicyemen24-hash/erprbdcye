@@ -58,6 +58,13 @@ import { ErrorState } from '../../design-system/components/ErrorState';
 import { Spinner } from '../../design-system/components/Spinner';
 import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from '../common/EnterpriseButton';
+import FundingWorkspaceView from '../FundingWorkspaceView';
+import AssetsWorkspaceView from '../AssetsWorkspaceView';
+import CommunityWorkspaceView from '../CommunityWorkspaceView';
+import ServiceDeliveryWorkspaceView from '../ServiceDeliveryWorkspaceView';
+import IntegrationStatusPanel from '../IntegrationStatusPanel';
+import { WORKSPACE_OPERATIONAL_MAP } from '../../config/workspaceRegistry';
+import { REPORT_WORKSPACE_REGISTRY } from '../../config/reportWorkspaceRegistry';
 
 export type WorkspaceRoleKey = SharedWorkspaceRoleKey;
 
@@ -225,7 +232,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
     }
   });
   const [programsSubTab, setProgramsSubTab] = useState<'projects' | 'programs'>('projects');
-  const [beneficiarySubTab, setBeneficiarySubTab] = useState<'sponsorships' | 'cases'>('sponsorships');
+  const [beneficiarySubTab, setBeneficiarySubTab] = useState<'sponsorships' | 'cases' | 'service_delivery'>('sponsorships');
   const [inspectingRecord, setInspectingRecord] = useState<any | null>(null);
 
   // Database Tables Sourced Live from the Backend (no static snapshot)
@@ -432,20 +439,29 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
     instantPrint(html);
   };
 
-  // Parallel Role Workspaces Tabs Definition
+  // Parallel Role Workspaces Tabs Definition — SAP-style, 100% NEB coverage (18 workspaces).
+  // SAP parity: FI/CO→finance • GM→funding • MM→procurement • EWM→inventory • AA→assets
+  // HCM→hr/community • PS/PPM→portfolio/programs • PM→operations/field_tasks • CRM→beneficiaries
+  // SD→sales • DMS→knowledge • BASIS→integration • BI→strategy/meal • GRC→admin
   const WORKSPACE_TABS: { key: WorkspaceRoleKey; titleAr: string; titleEn: string; code: string; icon: any; count: number }[] = WORKSPACE_ROLE_KEYS.map(key => {
     const definitions: Record<WorkspaceRoleKey, { titleAr: string; titleEn: string; code: string; icon: any; count: number }> = {
       strategy: { titleAr: 'لوحة القيادة الاستراتيجية والأداء', titleEn: 'Strategic Cockpit', code: 'NEB-01', icon: StrategicCompassSymbol, count: 10 },
-      programs: { titleAr: 'المحافظ والبرامج والمشاريع', titleEn: 'Portfolios & Projects', code: 'NEB-03/04', icon: ProjectLifecycleSymbol, count: projects.length },
+      portfolio: { titleAr: 'المحفظة الاستثمارية والمواءمة', titleEn: 'Portfolio Intelligence', code: 'NEB-02', icon: Layers, count: projects.length },
+      programs: { titleAr: 'البرامج والمشاريع', titleEn: 'Programs & Projects', code: 'NEB-03/04', icon: ProjectLifecycleSymbol, count: projects.length },
       operations: { titleAr: 'الأنشطة الميدانية وهيكل العمل', titleEn: 'Field Activities & WBS', code: 'NEB-05', icon: WBSActivityTreeSymbol, count: activities.length },
       field_tasks: { titleAr: 'المهام الميدانية والتنفيذ اليومي', titleEn: 'Field Tasks & Dispatch', code: 'NEB-05', icon: CheckCircle2, count: activities.length },
-      beneficiaries: { titleAr: 'الرعاية والمستفيدين والأيتام', titleEn: 'Social Welfare & Orphans', code: 'NEB-06/07', icon: Heart, count: sponsorships.length },
+      beneficiaries: { titleAr: 'المستفيدون وخدمات الرعاية', titleEn: 'Beneficiaries & Services', code: 'NEB-06', icon: Heart, count: beneficiaries.length },
+      community: { titleAr: 'التطوع واللجان المجتمعية', titleEn: 'Volunteers & Community', code: 'NEB-07', icon: Users, count: sponsorships.length },
+      funding: { titleAr: 'التمويل والمانحون والمنح', titleEn: 'Funding & Donors', code: 'NEB-08', icon: Award, count: projects.length },
       finance: { titleAr: 'المالية والرقابة المحاسبية IPSAS', titleEn: 'Finance & IPSAS Ledger', code: 'NEB-10', icon: Coins, count: accounts.length },
       procurement: { titleAr: 'المشتريات والمناقصات P2P', titleEn: 'Procurement & Tenders', code: 'NEB-14', icon: Box, count: projects.length },
-      inventory: { titleAr: 'المخزون والمستودعات', titleEn: 'Inventory & Warehouses', code: 'NEB-09', icon: Warehouse, count: warehouses.length + inventory.length },
+      inventory: { titleAr: 'المخزون والمستودعات', titleEn: 'Inventory & Warehouses', code: 'NEB-05/09', icon: Warehouse, count: warehouses.length + inventory.length },
+      assets: { titleAr: 'الأصول الثابتة والإهلاك', titleEn: 'Fixed Assets & Depreciation', code: 'NEB-09', icon: Building2, count: inventory.length },
       sales: { titleAr: 'المبيعات والإيرادات', titleEn: 'Sales & Revenue', code: 'NEB-15', icon: TrendingUp, count: 0 },
-      meal: { titleAr: 'الرقابة والتقييم والجودة MEAL', titleEn: 'MEAL & Accountability', code: 'NEB-13', icon: ShieldCheck, count: 9 },
-      admin: { titleAr: 'الحوكمة والصلاحيات', titleEn: 'Governance & Access', code: 'NEB-09', icon: OrgHierarchySymbol, count: users.length },
+      knowledge: { titleAr: 'المعرفة والوثائق والاتصالات', titleEn: 'Knowledge & Communications', code: 'NEB-11', icon: FileText, count: 0 },
+      integration: { titleAr: 'التكامل والمزامنة IATI', titleEn: 'Integration & Sync', code: 'NEB-12', icon: Globe, count: 0 },
+      meal: { titleAr: 'الرقابة والتقييم والجودة MEAL', titleEn: 'MEAL & Accountability', code: 'NEB-01/13', icon: ShieldCheck, count: 9 },
+      admin: { titleAr: 'الحوكمة والصلاحيات', titleEn: 'Governance & Access', code: 'NEB-12', icon: OrgHierarchySymbol, count: users.length },
       hr: { titleAr: 'الموارد البشرية وشؤون الموظفين', titleEn: 'Human Resources', code: 'NEB-09', icon: Users, count: users.length }
     };
     const definition = definitions[key];
@@ -456,16 +472,22 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
     .sort((a, b) => Number(favoriteWorkspaces.includes(b.key)) - Number(favoriteWorkspaces.includes(a.key)));
   const quickActions: Partial<Record<WorkspaceRoleKey, { labelAr: string; labelEn: string; tab: ActiveTab }[]>> = {
     strategy: [{ labelAr: 'فتح التخطيط الاستراتيجي', labelEn: 'Open strategic planning', tab: 'strategic_planning' }],
+    portfolio: [{ labelAr: 'فتح ذكاء المحفظة', labelEn: 'Open portfolio intelligence', tab: 'portfolio_intelligence' }],
     programs: [{ labelAr: 'فتح المشاريع', labelEn: 'Open projects', tab: 'projects' }, { labelAr: 'فتح البرامج', labelEn: 'Open programs', tab: 'programs' }],
     operations: [{ labelAr: 'فتح سجل الأنشطة', labelEn: 'Open activities', tab: 'activities' }],
     field_tasks: [{ labelAr: 'فتح توزيع الموارد', labelEn: 'Open resource allocation', tab: 'allocations' }, { labelAr: 'فتح السيناريوهات', labelEn: 'Open scenarios', tab: 'scenarios' }],
-    beneficiaries: [{ labelAr: 'فتح المستفيدين', labelEn: 'Open beneficiaries', tab: 'beneficiaries' }],
-    finance: [{ labelAr: 'فتح المالية', labelEn: 'Open finance', tab: 'finance' }],
-    procurement: [{ labelAr: 'فتح المشتريات', labelEn: 'Open procurement', tab: 'procurement' }],
+    beneficiaries: [{ labelAr: 'فتح المستفيدين', labelEn: 'Open beneficiaries', tab: 'beneficiaries' }, { labelAr: 'فتح الكفالات', labelEn: 'Open sponsorships', tab: 'sponsorships' }],
+    community: [{ labelAr: 'فتح المستفيدين', labelEn: 'Open beneficiaries', tab: 'beneficiaries' }, { labelAr: 'فتح ذكاء الأعمال المجتمعي', labelEn: 'Open community BI', tab: 'business_intelligence' }],
+    funding: [{ labelAr: 'فتح العقود والشراكات', labelEn: 'Open contracts', tab: 'contracts' }, { labelAr: 'فتح التعهدات', labelEn: 'Open commitments', tab: 'commitments_obligations' }],
+    finance: [{ labelAr: 'فتح المالية', labelEn: 'Open finance', tab: 'finance' }, { labelAr: 'فتح الاعتمادات', labelEn: 'Open approvals', tab: 'approvals' }],
+    procurement: [{ labelAr: 'فتح المشتريات', labelEn: 'Open procurement', tab: 'procurement' }, { labelAr: 'فتح شبكة الأطراف', labelEn: 'Open third-party network', tab: 'third-party-network' }],
     inventory: [{ labelAr: 'فتح المخزون', labelEn: 'Open inventory', tab: 'inventory' }],
-    sales: [{ labelAr: 'فتح المبيعات والإيرادات', labelEn: 'Open sales & revenue', tab: 'sales' }],
-    meal: [{ labelAr: 'فتح التقارير', labelEn: 'Open reports', tab: 'reports' }],
-    admin: [{ labelAr: 'فتح المستخدمين', labelEn: 'Open users', tab: 'users' }],
+    assets: [{ labelAr: 'فتح المخزون والأصول', labelEn: 'Open inventory & assets', tab: 'inventory' }, { labelAr: 'فتح ذكاء الأصول', labelEn: 'Open asset intelligence', tab: 'business_intelligence' }],
+    sales: [{ labelAr: 'فتح المبيعات والإيرادات', labelEn: 'Open sales & revenue', tab: 'sales' }, { labelAr: 'فتح الاستثمارات', labelEn: 'Open investments', tab: 'investments' }],
+    knowledge: [{ labelAr: 'فتح الوثائق', labelEn: 'Open docs', tab: 'docs' }, { labelAr: 'فتح الاتصالات', labelEn: 'Open communications', tab: 'communications' }],
+    integration: [{ labelAr: 'فتح مركز التحكم', labelEn: 'Open control center', tab: 'admin_control_center' }, { labelAr: 'فتح الأنظمة', labelEn: 'Open domains', tab: 'domains' }],
+    meal: [{ labelAr: 'فتح التقارير', labelEn: 'Open reports', tab: 'reports' }, { labelAr: 'فتح ذكاء الأعمال', labelEn: 'Open BI', tab: 'business_intelligence' }],
+    admin: [{ labelAr: 'فتح المستخدمين', labelEn: 'Open users', tab: 'users' }, { labelAr: 'فتح التدقيق', labelEn: 'Open audit', tab: 'audit' }],
     hr: [{ labelAr: 'فتح الموارد البشرية', labelEn: 'Open HR', tab: 'hr_dashboard' }]
   };
   const toggleWorkspaceFavorite = (key: WorkspaceRoleKey) => {
@@ -1086,6 +1108,13 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
                 >
                   المستفيدين المعتمدين ({filteredBeneficiaries.length})
                 </EnterpriseButton>
+                <EnterpriseButton
+                  onClick={() => setBeneficiarySubTab('service_delivery')}
+                  variant={beneficiarySubTab === 'service_delivery' ? 'primary' : 'ghost'}
+                  size="xs"
+                >
+                  تسليم الخدمات والتوزيع (NEB-06)
+                </EnterpriseButton>
               </div>
 
               <EnterpriseButton
@@ -1099,6 +1128,9 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
             </div>
           </div>
 
+          {beneficiarySubTab === 'service_delivery' ? (
+            <ServiceDeliveryWorkspaceView lang={lang} onNavigate={onNavigateToTab as any} />
+          ) : (
           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm overflow-x-auto">
             <table className="w-full text-xs text-right border-collapse">
               <thead>
@@ -1127,6 +1159,7 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
 
@@ -1289,6 +1322,102 @@ export const InstitutionalRoleWorkspaces: React.FC<InstitutionalRoleWorkspacesPr
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ═══════════ NEB-08: FUNDING & DONORS (GM) — Full e2e workspace ═══════════ */}
+      {selectedWorkspace === 'funding' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <FundingWorkspaceView lang={lang} onNavigate={onNavigateToTab as any} />
+        </div>
+      )}
+
+      {/* ═══════════ NEB-02: PORTFOLIO (PPM/CO) — linked to existing intelligence ═══════════ */}
+      {selectedWorkspace === 'portfolio' && (
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-indigo-500/10 text-indigo-600 rounded-xl border border-indigo-500/30"><Layers className="w-6 h-6" /></div>
+              <div>
+                <span className="px-2 py-0.5 bg-indigo-500/15 text-indigo-600 rounded text-[10px] font-black font-mono">NEB-02 • PPM/CO</span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">{isRtl ? 'المحفظة الاستثمارية والمواءمة الاستراتيجية' : 'Portfolio Intelligence & Alignment'}</h3>
+                <p className="text-[11px] text-slate-500">{isRtl ? 'العائد والمخاطر والمعايير — مربوط بشاشة ذكاء المحفظة' : 'Return, risks & benchmarks — linked to portfolio intelligence screen'}</p>
+              </div>
+            </div>
+            {onNavigateToTab && (
+              <div className="flex gap-2">
+                <EnterpriseButton variant="primary" size="sm" onClick={() => onNavigateToTab('portfolio_intelligence')}><BarChart3 className="w-3.5 h-3.5" /><span>{isRtl ? 'فتح ذكاء المحفظة' : 'Open portfolio intelligence'}</span></EnterpriseButton>
+                <EnterpriseButton variant="secondary" size="sm" onClick={() => onNavigateToTab('strategic_planning')}><Target className="w-3.5 h-3.5" /><span>{isRtl ? 'التخطيط الاستراتيجي' : 'Strategic planning'}</span></EnterpriseButton>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800"><div className="text-[10px] font-bold text-slate-500">{isRtl ? 'المشاريع' : 'Projects'}</div><div className="text-xl font-black font-mono">{projects.length}</div></div>
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800"><div className="text-[10px] font-bold text-slate-500">{isRtl ? 'البرامج' : 'Programs'}</div><div className="text-xl font-black font-mono">{programs.length}</div></div>
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800"><div className="text-[10px] font-bold text-slate-500">SAP</div><div className="text-xl font-black font-mono">PPM/CO</div></div>
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800"><div className="text-[10px] font-bold text-slate-500">{isRtl ? 'التقرير' : 'Report'}</div><div className="text-[11px] font-black text-emerald-600">{REPORT_WORKSPACE_REGISTRY.find((r) => r.id === 'portfolio')?.documentAr}</div></div>
+          </div>
+          <div className="text-[10px] font-mono text-slate-400">DB: {(WORKSPACE_OPERATIONAL_MAP.portfolio.dbTables || []).join(', ')} • API: {(WORKSPACE_OPERATIONAL_MAP.portfolio.apiEndpoints || []).join(' • ')}</div>
+        </div>
+      )}
+
+      {/* ═══════════ NEB-09/AA: FIXED ASSETS — full e2e workspace ═══════════ */}
+      {selectedWorkspace === 'assets' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <AssetsWorkspaceView lang={lang} onNavigate={onNavigateToTab as any} />
+        </div>
+      )}
+
+      {/* ═══════════ NEB-07: COMMUNITY & VOLUNTEERS (HCM) — full e2e workspace ═══════════ */}
+      {selectedWorkspace === 'community' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <CommunityWorkspaceView lang={lang} onNavigate={onNavigateToTab as any} />
+        </div>
+      )}
+
+      {/* ═══════════ NEB-11: KNOWLEDGE & COMMUNICATIONS (DMS) ═══════════ */}
+      {selectedWorkspace === 'knowledge' && (
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-cyan-500/10 text-cyan-600 rounded-xl border border-cyan-500/30"><FileText className="w-6 h-6" /></div>
+              <div>
+                <span className="px-2 py-0.5 bg-cyan-500/15 text-cyan-600 rounded text-[10px] font-black font-mono">NEB-11 • DMS</span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">{isRtl ? 'المعرفة والأرشيف والاتصالات الرسمية' : 'Knowledge, Archive & Official Communications'}</h3>
+              </div>
+            </div>
+            {onNavigateToTab && (
+              <div className="flex gap-2">
+                <EnterpriseButton variant="primary" size="sm" onClick={() => onNavigateToTab('docs')}><FileText className="w-3.5 h-3.5" /><span>{isRtl ? 'فتح الوثائق' : 'Open docs'}</span></EnterpriseButton>
+                <EnterpriseButton variant="secondary" size="sm" onClick={() => onNavigateToTab('communications')}><Zap className="w-3.5 h-3.5" /><span>{isRtl ? 'الاتصالات' : 'Communications'}</span></EnterpriseButton>
+              </div>
+            )}
+          </div>
+          <div className="text-[10px] font-mono text-slate-400">DB: {(WORKSPACE_OPERATIONAL_MAP.knowledge.dbTables || []).join(', ')}</div>
+        </div>
+      )}
+
+      {/* ═══════════ NEB-12: INTEGRATION & SYNC (BASIS) ═══════════ */}
+      {selectedWorkspace === 'integration' && (
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-sky-500/10 text-sky-600 rounded-xl border border-sky-500/30"><Globe className="w-6 h-6" /></div>
+              <div>
+                <span className="px-2 py-0.5 bg-sky-500/15 text-sky-600 rounded text-[10px] font-black font-mono">NEB-12 • BASIS</span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">{isRtl ? 'التكامل الرقمي والمزامنة دون اتصال' : 'Digital Integration & Offline Sync'}</h3>
+                <p className="text-[11px] text-slate-500">{isRtl ? 'API والويبهوكس وIATI والمزامنة — مربوط بمركز التحكم' : 'APIs, webhooks, IATI & sync — linked to control center'}</p>
+              </div>
+            </div>
+            {onNavigateToTab && (
+              <div className="flex gap-2">
+                <EnterpriseButton variant="primary" size="sm" onClick={() => onNavigateToTab('admin_control_center')}><Compass className="w-3.5 h-3.5" /><span>{isRtl ? 'مركز التحكم' : 'Control center'}</span></EnterpriseButton>
+                <EnterpriseButton variant="secondary" size="sm" onClick={() => onNavigateToTab('domains')}><Compass className="w-3.5 h-3.5" /><span>{isRtl ? 'الأنظمة' : 'Domains'}</span></EnterpriseButton>
+              </div>
+            )}
+          </div>
+          <IntegrationStatusPanel lang={lang} />
+          <div className="text-[10px] font-mono text-slate-400">DB: {(WORKSPACE_OPERATIONAL_MAP.integration.dbTables || []).join(', ')}</div>
         </div>
       )}
 

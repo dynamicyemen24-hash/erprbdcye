@@ -196,8 +196,7 @@ export function Drawer({
     <DrawerContext.Provider value={{ open, setOpen: close, position, dir: direction }}>
       {isVisible && createPortal(
         <div
-          className={cn('fixed inset-0', animState === 'exiting' && 'pointer-events-none')}
-          style={{ zIndex: 50 }}
+          className={cn('fixed inset-0 z-drawer', animState === 'exiting' && 'pointer-events-none')}
           role="dialog"
           aria-modal="true"
           aria-label={ariaLabel}

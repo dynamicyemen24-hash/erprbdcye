@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import logger, { toLogMeta } from '../core/logger';
 
 export interface Migration { id: string; name: string; up: string; down: string; checksum: string; }
 export interface MigrationStatus { id: string; name: string; appliedAt: Date; durationMs: number; }
@@ -40,14 +41,14 @@ export async function runPendingMigrations(db: any): Promise<MigrationStatus[]> 
       await db.query("INSERT INTO schema_migrations (migration_id, name, checksum, duration_ms) VALUES ($1, $2, $3, $4)", [migration.id, migration.name, migration.checksum, Date.now() - start]);
       await db.query('COMMIT');
       results.push({ id: migration.id, name: migration.name, appliedAt: new Date(), durationMs: Date.now() - start });
-      console.log(`[MIGRATOR] Applied: ${migration.name} (${Date.now() - start}ms)`);
+      logger.info(`[MIGRATOR] Applied: ${migration.name} (${Date.now() - start}ms)`);
     } catch (error: any) {
       await db.query('ROLLBACK');
-      console.error(`[MIGRATOR] Failed: ${migration.name}:`, error.message);
+      logger.error(`[MIGRATOR] Failed: ${migration.name}:`, { meta: toLogMeta(error.message) });
       break;
     }
   }
-  if (results.length === 0) console.log('[MIGRATOR] No pending migrations');
+  if (results.length === 0) logger.info('[MIGRATOR] No pending migrations');
   return results;
 }
 
@@ -66,10 +67,10 @@ export async function rollbackMigrations(db: any, count: number = 1): Promise<st
           await db.query("DELETE FROM schema_migrations WHERE migration_id = $1", [row.migration_id]);
           await db.query('COMMIT');
           rolledBack.push(row.migration_id);
-          console.log(`[MIGRATOR] Rolled back: ${row.migration_id}`);
+          logger.info(`[MIGRATOR] Rolled back: ${row.migration_id}`);
         } catch (error: any) {
           await db.query('ROLLBACK');
-          console.error(`[MIGRATOR] Rollback failed: ${row.migration_id}:`, error.message);
+          logger.error(`[MIGRATOR] Rollback failed: ${row.migration_id}:`, { meta: toLogMeta(error.message) });
         }
       }
     }

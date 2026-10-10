@@ -47,6 +47,10 @@ export function smartCompression(options: CompressionOptions = {}) {
 
       const buffer = Buffer.from(jsonStr);
 
+      // Contract fix (DEBT PAID): the compressed path called the raw sender
+      // with a Buffer and no Content-Type, so Express labeled every large
+      // JSON payload `application/octet-stream` (API-contract E2E caught it).
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.setHeader('Content-Encoding', encoding!);
       res.setHeader('Vary', 'Accept-Encoding');
 

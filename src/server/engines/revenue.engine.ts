@@ -896,20 +896,23 @@ export class RevenueBatchEngine {
       const txNumber = generateTxNumber('REV-BATCH');
       const txRes = await client.query(
         `INSERT INTO transactions (organization_id, transaction_number, transaction_date,
-          description, total_amount, currency_code, status, created_by)
-         VALUES ($1,$2,$3,$4,$5,$6,'POSTED',$7) RETURNING id`,
+          transaction_type, description, total_debit, total_credit,
+          is_posted, posted_at, posted_by, status, created_by)
+         VALUES ($1,$2,$3,'REVENUE_RECOGNITION',$4,$5,$5,TRUE,NOW(),$6,'POSTED',$6) RETURNING id`,
         [orgId, txNumber, batch.batch_date, `دفعة إيرادات ${batch.batch_number} — ${batch.description || ''}`,
-         batch.total_amount, batch.currency_code, auth.userId]
+         batch.total_amount, auth.userId]
       );
       const transactionId = txRes.rows[0].id;
 
       for (const e of entries) {
         await client.query(
-          `INSERT INTO transaction_lines (transaction_id, account_id, debit_amount, credit_amount,
-            project_id, activity_id, description, currency_code, exchange_rate, amount_base)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
-          [transactionId, e.account_id, e.debit_amount, e.credit_amount,
-           e.project_id, e.activity_id, e.description || '', e.currency_code, e.exchange_rate, e.amount_base]
+          `INSERT INTO transaction_lines (transaction_id, organization_id, line_number,
+            account_id, account_code, debit_amount, credit_amount,
+            project_id, activity_id, description, currency_code)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+          [transactionId, orgId, e.sequence_number, e.account_id, e.account_code,
+           e.debit_amount, e.credit_amount,
+           e.project_id, e.activity_id, e.description || '', e.currency_code]
         );
       }
 

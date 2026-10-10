@@ -161,14 +161,13 @@ export function Modal({
   const variantStyle = VARIANT_STYLES[variant];
 
   return (
-    <ModalContext.Provider value={{ open, setOpen: close, closeOnOverlayClick, closeOnEscape, size, variant, zIndex: 50, titleId, descriptionId }}>
+    <ModalContext.Provider value={{ open, setOpen: close, closeOnOverlayClick, closeOnEscape, size, variant, zIndex: 60, titleId, descriptionId }}>
       {isVisible && createPortal(
         <div
           className={cn(
-            'fixed inset-0 flex items-center justify-center p-4',
+            'fixed inset-0 z-dialog flex items-center justify-center p-4',
             animState === 'exiting' && 'pointer-events-none'
           )}
-          style={{ zIndex: 50 }}
           role={dialogRole}
           aria-modal="true"
           aria-labelledby={titleId}

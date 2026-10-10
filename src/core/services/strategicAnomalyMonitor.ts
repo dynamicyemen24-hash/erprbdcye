@@ -2,6 +2,7 @@
 import { LedgerEntry } from '../ledger/types';
 import { Project, ProjectMilestone } from '../types/projects';
 
+import { logger } from '../../lib/logger';
 export interface StrategicAnomaly {
   id: string;
   projectId: string;
@@ -24,7 +25,7 @@ export async function checkStrategicAnomalies(
     const data = await response.json();
     return data.anomalies || [];
   } catch (err) {
-    console.error("Error in checkStrategicAnomalies:", err);
+    logger.error("Error in checkStrategicAnomalies:", err);
     return [];
   }
 }

@@ -11,8 +11,10 @@ import { printHTML, createPrintDocument } from '../../lib/printUtils';
 import { generateShortId, generateNumericCode } from '../../lib/idGenerator';
 import { Spinner } from '../../design-system/components/Spinner';
 import { EnterpriseButton } from '../common/EnterpriseButton';
+import { resolveTenantId } from '../../shared/tenant/resolveTenantId';
 import { tafqeetArabicRials } from '../../core/security/financialSafetyGuardian';
-
+
+import { logger } from '../../lib/logger';
 interface ProcurementTabProps {
   accounts: Account[];
   projects: Project[];
@@ -179,7 +181,7 @@ export default function ProcurementTab({
           }
         }
       } catch (e) {
-        console.error('Error fetching procurement data:', e);
+        logger.error('Error fetching procurement data:', e);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -504,7 +506,7 @@ export default function ProcurementTab({
           reference_number: settlementForm.reference_number || poCode,
           branch_code: 'HQ',
           security_level: 2,
-          organization_id: '00000000-0000-0000-0000-000000000001',
+          organization_id: organizations[0]?.id || resolveTenantId(),
           is_posted: true
         })
       });
@@ -518,7 +520,7 @@ export default function ProcurementTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transaction_id: txResult.id,
-          organization_id: '00000000-0000-0000-0000-000000000001',
+          organization_id: organizations[0]?.id || resolveTenantId(),
           line_number: 1,
           account_id: expAcc?.id,
           account_code: expAcc?.account_code,
@@ -538,7 +540,7 @@ export default function ProcurementTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transaction_id: txResult.id,
-          organization_id: '00000000-0000-0000-0000-000000000001',
+          organization_id: organizations[0]?.id || resolveTenantId(),
           line_number: 2,
           account_id: payAcc?.id,
           account_code: payAcc?.account_code,
@@ -591,7 +593,7 @@ export default function ProcurementTab({
       });
 
     } catch (err: any) {
-      console.error('Error posting procurement journal:', err);
+      logger.error('Error posting procurement journal:', err);
       setMessage({
         type: 'error',
         text: isRtl ? 'حدث خطأ أثناء الاتصال بقاعدة البيانات لترحيل القيد المالي.' : `Database ledger posting failure: ${err.message}`

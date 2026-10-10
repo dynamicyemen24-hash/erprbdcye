@@ -3,6 +3,7 @@ import { generateNumericCode } from './idGenerator';
 import { tafqeetArabicRials } from '../core/security/financialSafetyGuardian';
 import { SYSTEM_NAME } from '../core/utils';
 
+import { logger } from './logger';
 export function safeArray<T = any>(input: any): T[] {
   if (Array.isArray(input)) return input;
   if (input && typeof input === 'object') {
@@ -744,7 +745,7 @@ export async function generateAndDownloadPDF(htmlContent: string, filename: stri
 
     pdf.save(`${filename}.pdf`);
   } catch (err) {
-    console.error('Failed to generate PDF canvas, falling back to direct print:', err);
+    logger.error('Failed to generate PDF canvas, falling back to direct print:', err);
     if (document.body.contains(container)) {
       document.body.removeChild(container);
     }
@@ -804,7 +805,7 @@ export function printPDFHTML(htmlContent: string): void {
           iframe.contentWindow?.focus();
           iframe.contentWindow?.print();
         } catch (e) {
-          console.warn('[printPDFHTML] Iframe print fallback:', e);
+          logger.warn('[printPDFHTML] Iframe print fallback:', e);
           const w = window.open('', '_blank');
           if (w) {
             w.document.write(htmlContent);
@@ -823,7 +824,7 @@ export function printPDFHTML(htmlContent: string): void {
       return;
     }
   } catch (err) {
-    console.error('[printPDFHTML] Iframe creation error:', err);
+    logger.error('[printPDFHTML] Iframe creation error:', err);
   }
 
   // 2. Direct window fallback

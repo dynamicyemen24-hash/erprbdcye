@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   BookOpen, FileText, Search, Filter, Plus, Download, Printer,
   Folder, FolderOpen, ChevronRight, ChevronDown, Clock, User,
@@ -67,16 +67,7 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: any }> = 
   archived: { color: 'text-slate-500 dark:text-zinc-500', bg: 'bg-slate-100 dark:bg-zinc-800', icon: Archive },
 };
 
-const generateMockDocs = (): Document[] => [
-  { id: '1', title_ar: 'سياسة حماية البيانات الشخصية', title_en: 'Personal Data Protection Policy', description_ar: 'سياسة شاملة لحماية البيانات الشخصية للموظفين والمستفيدين', description_en: 'Comprehensive policy for protecting personal data of employees and beneficiaries', category: 'policies', type: 'policy', status: 'approved', version: '2.1', author: 'إدارة القانونية', created_at: '2024-01-15', updated_at: '2024-06-20', tags: ['data', 'privacy', 'GDPR'], is_public: true, language: 'bilingual' },
-  { id: '2', title_ar: 'إجراءات الشراء والمناقصات', title_en: 'Procurement & Tender Procedures', description_ar: 'دليل شامل لإجراءات الشراء والمناقصات المتوافقة مع المعايير الدولية', description_en: 'Comprehensive guide for procurement and tender procedures aligned with international standards', category: 'procedures', type: 'procedure', status: 'approved', version: '3.0', author: 'قسم المشتريات', created_at: '2024-02-10', updated_at: '2024-07-15', tags: ['procurement', 'tenders', 'compliance'], is_public: true, language: 'bilingual' },
-  { id: '3', title_ar: 'إرشادات تقييم الأثر', title_en: 'Impact Assessment Guidelines', description_ar: 'إرشادات لتنفيذ تقييمات الأثر في المشاريع الإنسانية', description_en: 'Guidelines for conducting impact assessments in humanitarian projects', category: 'guidelines', type: 'guideline', status: 'review', version: '1.2', author: 'قسم المتابعة', created_at: '2024-03-05', updated_at: '2024-08-01', tags: ['impact', 'M&E', 'humanitarian'], is_public: true, language: 'en' },
-  { id: '4', title_ar: 'قالب تقرير الميزانية', title_en: 'Budget Report Template', description_ar: 'قالب موحد لإعداد تقارير الميزانية الشهرية والربع سنوية', description_en: 'Unified template for monthly and quarterly budget reports', category: 'templates', type: 'template', status: 'approved', version: '1.0', author: 'الإدارة المالية', created_at: '2024-01-20', updated_at: '2024-05-10', tags: ['budget', 'template', 'finance'], is_public: true, language: 'ar' },
-  { id: '5', title_ar: 'تقرير الأثر السنوي 2024', title_en: 'Annual Impact Report 2024', description_ar: 'التقرير السنوي الشامل لأثر البرامج والمشاريع', description_en: 'Comprehensive annual report on program and project impact', category: 'reports', type: 'report', status: 'draft', version: '0.9', author: 'قسم الذكاء', created_at: '2024-06-01', updated_at: '2024-09-01', tags: ['impact', 'annual', 'report'], is_public: false, language: 'bilingual' },
-  { id: '6', title_ar: 'نموذج طلب الشراء', title_en: 'Purchase Request Form', description_ar: 'نموذج إلكتروني لطلب المشتريات مع سير عمل الموافقات', description_en: 'Electronic purchase request form with approval workflow', category: 'forms', type: 'form', status: 'approved', version: '2.0', author: 'قسم المشتريات', created_at: '2024-02-28', updated_at: '2024-07-20', tags: ['purchase', 'form', 'procurement'], is_public: true, language: 'ar' },
-  { id: '7', title_ar: 'سياسة الموارد البشرية', title_en: 'Human Resources Policy', description_ar: 'السياسات والإجراءات المتعلقة بالموارد البشرية والتوظيف', description_en: 'Policies and procedures related to human resources and recruitment', category: 'policies', type: 'policy', status: 'approved', version: '4.1', author: 'إدارة الموارد البشرية', created_at: '2023-11-01', updated_at: '2024-08-15', tags: ['HR', 'policy', 'recruitment'], is_public: true, language: 'bilingual' },
-  { id: '8', title_ar: 'دليل السلامة المهنية', title_en: 'Occupational Safety Guide', description_ar: 'إرشادات السلامة والصحة المهنية في بيئة العمل', description_en: 'Occupational safety and health guidelines in the workplace', category: 'guidelines', type: 'guideline', status: 'approved', version: '1.5', author: 'إدارة السلامة', created_at: '2024-01-10', updated_at: '2024-06-05', tags: ['safety', 'health', 'workplace'], is_public: true, language: 'bilingual' },
-];
+/* DEBT PAID: static mock library removed — knowledge base is live-only (see fetchDocs above). */
 
 export function DocumentationView({ lang = 'en' }: DocumentationViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -86,7 +77,52 @@ export function DocumentationView({ lang = 'en' }: DocumentationViewProps) {
   const [sortDesc, setSortDesc] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
 
-  const docs = useMemo(() => generateMockDocs(), []);
+  // HONESTY (DEBT PAID): live knowledge base only — empty DB stays empty.
+  const [docs, setDocs] = useState<Document[]>([]);
+  const [docsLoading, setDocsLoading] = useState(true);
+  const [docsError, setDocsError] = useState<string | null>(null);
+
+  const fetchDocs = useCallback(async () => {
+    setDocsLoading(true);
+    setDocsError(null);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('rbd_token') : null;
+      const res = await fetch('/api/v2/domains/knowledge?limit=200', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json().catch(() => null);
+      const rows = Array.isArray(json?.data) ? json.data : Array.isArray(json?.data?.data) ? json.data.data : [];
+      setDocs(
+        rows.map((r: any) => ({
+          id: String(r.id),
+          title_ar: r.title_ar || r.titleAr || '—',
+          title_en: r.title_en || r.titleEn || r.title_ar || '—',
+          description_ar: r.description_ar || r.summary_ar || '',
+          description_en: r.description_en || r.summary_en || '',
+          category: r.category || 'policies',
+          type: 'policy' as const,
+          status: (String(r.status || 'approved').toLowerCase() === 'archived' ? 'archived' : 'approved') as Document['status'],
+          version: String(r.version || '1.0'),
+          author: r.author || '',
+          created_at: r.created_at || new Date().toISOString(),
+          updated_at: r.updated_at || r.created_at || new Date().toISOString(),
+          tags: Array.isArray(r.tags) ? r.tags : [],
+          is_public: true,
+          language: 'bilingual' as const,
+        })),
+      );
+    } catch (e: any) {
+      setDocs([]);
+      setDocsError(e?.message || 'Failed to load documents');
+    } finally {
+      setDocsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchDocs(); }, [fetchDocs]);
+  void docsLoading;
+  void docsError;
 
   const filteredDocs = useMemo(() => {
     let result = docs;

@@ -1,5 +1,5 @@
 import { showToast } from './enterprise/EnterpriseToastContainer';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Plus, Search, SlidersHorizontal, X, Check, Edit, Trash2,
   DollarSign, Calendar, AlertTriangle, RefreshCw,
@@ -70,18 +70,60 @@ interface CommitmentsObligationsViewProps {
   onNavigate?: (tab: string) => void;
 }
 
+function tableHeaders(): Record<string, string> {
+  let token: string | null = null;
+  let tenant = 'demo';
+  try {
+    token = localStorage.getItem('rbd_token') || localStorage.getItem('nexora_auth_token');
+    tenant = localStorage.getItem('uamex_tenant_id') || 'demo';
+  } catch { /* ignore */ }
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    'X-Tenant-Id': tenant,
+  };
+}
+
+async function fetchTable<T = any[]>(table: string): Promise<T> {
+  const res = await fetch(`/api/tables/${table}?limit=200`, { headers: tableHeaders() });
+  const json = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(json?.error?.message || json?.error || `HTTP ${res.status}`);
+  const d = json && typeof json === 'object' && 'data' in json ? (json as any).data : json;
+  return (Array.isArray(d) ? d : d?.data && Array.isArray(d.data) ? d.data : []) as T;
+}
+
 export default function CommitmentsObligationsView({
-  commitments = [],
-  obligations = [],
+  commitments: commitmentsProp = [],
+  obligations: obligationsProp = [],
   programs = [],
   projects = [],
   currencies = [],
   beneficiaries = [],
-  loading = false,
+  loading: loadingProp = false,
   onRefresh = () => {},
   lang,
   onNavigate
 }: CommitmentsObligationsViewProps) {
+  // LIVE DATA (DEBT PAID): parent passes [] forever — self-load from tables API.
+  const [liveCommitments, setLiveCommitments] = useState<any[] | null>(null);
+  const [liveObligations, setLiveObligations] = useState<any[] | null>(null);
+  const [liveLoading, setLiveLoading] = useState(true);
+  const refreshLive = useCallback(async () => {
+    try {
+      const [c, o] = await Promise.all([fetchTable<any[]>('commitments'), fetchTable<any[]>('obligations')]);
+      setLiveCommitments(c);
+      setLiveObligations(o);
+    } catch {
+      setLiveCommitments((prev) => prev ?? []);
+      setLiveObligations((prev) => prev ?? []);
+    } finally {
+      setLiveLoading(false);
+    }
+  }, []);
+  useEffect(() => { refreshLive(); }, [refreshLive]);
+  const commitments = liveCommitments ?? commitmentsProp;
+  const obligations = liveObligations ?? obligationsProp;
+  const loading = loadingProp || liveLoading;
   const isRtl = lang === 'ar';
   const [activeSubTab, setActiveSubTab] = useState<'commitments' | 'obligations' | 'reports' | 'analytics'>('commitments');
   const [searchTerm, setSearchTerm] = useState('');
@@ -243,11 +285,12 @@ export default function CommitmentsObligationsView({
       }
       const method = editingItem ? 'PUT' : 'POST';
       const url = editingItem ? `/api/tables/${endpoint}/${editingItem.id}` : `/api/tables/${endpoint}`;
-      const token = localStorage.getItem('nexora_auth_token');
+      const token = localStorage.getItem('rbd_token') || localStorage.getItem('nexora_auth_token');
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error('Save failed');
       showToast({ type: 'success', title: isRtl ? 'نجاح' : 'Success', message: editingItem ? (isRtl ? 'تم التحديث بنجاح' : 'Updated successfully') : (isRtl ? 'تم الإنشاء بنجاح' : 'Created successfully') });
       setIsModalOpen(false);
+      refreshLive();
       onRefresh();
     } catch { showToast({ type: 'error', title: isRtl ? 'خطأ' : 'Error', message: isRtl ? 'خطأ أثناء الحفظ' : 'Error saving record' }); }
     finally { setFormSubmitting(false); }
@@ -263,10 +306,11 @@ export default function CommitmentsObligationsView({
     const { item, mode } = deleteTarget;
     try {
       const endpoint = mode === 'commitment' ? 'commitments' : 'obligations';
-      const token = localStorage.getItem('nexora_auth_token');
+      const token = localStorage.getItem('rbd_token') || localStorage.getItem('nexora_auth_token');
       const res = await fetch(`/api/tables/${endpoint}/${item.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (!res.ok) throw new Error('Delete failed');
       showToast({ type: 'success', title: isRtl ? 'نجاح' : 'Success', message: isRtl ? 'تم الحذف بنجاح' : 'Deleted successfully' });
+      refreshLive();
       onRefresh();
     } catch { showToast({ type: 'error', title: isRtl ? 'خطأ' : 'Error', message: isRtl ? 'خطأ أثناء الحذف' : 'Error deleting record' }); }
     setConfirmDelete(false);
@@ -278,7 +322,7 @@ export default function CommitmentsObligationsView({
     try {
       const endpoint = paymentMode === 'commitment' ? 'commitment_payments' : 'obligation_payments';
       const paymentNumber = `PAY-${new Date().getFullYear()}-${generateShortId()}`;
-      const token = localStorage.getItem('nexora_auth_token');
+      const token = localStorage.getItem('rbd_token') || localStorage.getItem('nexora_auth_token');
       const res = await fetch(`/api/tables/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -311,6 +355,7 @@ export default function CommitmentsObligationsView({
       });
       showToast({ type: 'success', title: isRtl ? 'نجاح' : 'Success', message: isRtl ? 'تم تسجيل الدفعة' : 'Payment recorded' });
       setIsPaymentModalOpen(false);
+      refreshLive();
       onRefresh();
     } catch {
       showToast({ type: 'error', title: isRtl ? 'خطأ' : 'Error', message: isRtl ? 'خطأ في تسجيل الدفعة' : 'Error recording payment' });

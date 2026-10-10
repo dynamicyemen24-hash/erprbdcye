@@ -10,7 +10,8 @@ import {
   LayoutGrid, List, Calendar, BarChart3, FileText, Users,
   ArrowUpDown, Eye, Edit, Trash2, Send, CheckCircle2
 } from 'lucide-react';
-import { Badge, Skeleton } from '../../shared/components';
+import { Badge } from '../../design-system/components/Badge';
+import { Skeleton, SkeletonCard } from '../../design-system/components/Skeleton';
 
 type Lang = 'ar' | 'en';
 type Theme = 'light' | 'dark';
@@ -173,7 +174,7 @@ export function UAMEXWorkspaceShell<T extends Record<string, any>>({
               )}
               <div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="primary" size="xs" lang={lang}>{domainCode}</Badge>
+                  <Badge variant="success" size="sm">{domainCode}</Badge>
                   <h1 className="text-xl font-black text-slate-900 dark:text-white">
                     {t(titleAr, titleEn)}
                   </h1>
@@ -291,8 +292,10 @@ export function UAMEXWorkspaceShell<T extends Record<string, any>>({
       <div className="p-4 sm:p-6">
         {loading ? (
           <div className="space-y-3">
-            <Skeleton variant="text" lines={2} />
-            <Skeleton variant="card" height={200} />
+            <Skeleton lines={2} />
+            <div style={{ minHeight: 200 }}>
+              <SkeletonCard />
+            </div>
           </div>
         ) : filteredData.length === 0 ? (
           <div className="text-center py-16">

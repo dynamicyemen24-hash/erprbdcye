@@ -1,3 +1,10 @@
+/**
+ * LEGACY policy-engine gate (kept for `PolicyButton` call sites).
+ * CANONICAL permission gate: `src/components/PermissionGate.tsx` (`perm` +
+ * shared `permission-map`). New code MUST use the canonical gate; this file
+ * stays only until its ~5 `PolicyButton` call sites migrate. Session subject
+ * must always come from `usePermissions()` — never `useState(3/'admin')`.
+ */
 import React, { useMemo } from 'react';
 import { policyEngine, type PolicyAction, type PolicyDecision } from './enterprisePolicyEngine';
 

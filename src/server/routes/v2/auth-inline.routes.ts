@@ -20,15 +20,19 @@ const ACCESS_TOKEN_EXPIRY = (serverConfig.jwtExpiresIn || '1h') as any;
 const REFRESH_TOKEN_EXPIRY = (serverConfig.jwtRefreshExpiresIn || '7d') as any;
 const BCRYPT_ROUNDS = serverConfig.bcryptRounds || 12;
 
+// Budgets are env-overridable for load/e2e environments; production defaults
+// (5 registrations / 10 logins per 15-min window) are unchanged. This mirrors
+// the env-driven `config.rateLimit` used by the server-wide limiters —
+// hardcoded per-route budgets meant the E2E suite tripped its own guard.
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX ?? 5),
   message: { error: 'Too many registration attempts. Please wait.' }
 });
 
 const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: Number(process.env.AUTH_LOGIN_RATE_LIMIT_MAX ?? 10),
   message: { error: 'Too many login attempts. Please wait 15 minutes.' }
 });
 

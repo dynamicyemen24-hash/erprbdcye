@@ -12,6 +12,7 @@ import {
 import { persistenceService } from '../services/persistence';
 import { performanceMonitor } from '../telemetry/performanceMonitor';
 
+import { logger } from '../../lib/logger';
 export interface NexoraDataState {
   programs: Program[];
   projects: Project[];
@@ -46,6 +47,44 @@ export interface NexoraDataState {
 
 // In-memory global singleton cache for instant hook re-hydration across component boundaries
 let inMemoryGlobalCache: NexoraDataState | null = null;
+
+// ─── Snapshot pub/sub (DEBT PAID: one network source for table slices) ──────
+// `useNexoraData` (mounted in `App`) owns fetching. Facade hooks such as
+// `useLiveEnterpriseTables` subscribe here instead of re-fetching the same
+// `/api/tables/*` slices. Listeners are notified on every cache commit;
+// emitting inside a `setData` updater may fire twice under StrictMode, which
+// is harmless (same snapshot object, idempotent `setState` downstream).
+type NexoraSnapshotListener = (snap: NexoraDataState) => void;
+const nexoraSnapshotListeners = new Set<NexoraSnapshotListener>();
+
+function commitNexoraSnapshot(snap: NexoraDataState): NexoraDataState {
+  inMemoryGlobalCache = snap;
+  nexoraSnapshotListeners.forEach((fn) => {
+    try {
+      fn(snap);
+    } catch {
+      /* a listener must never break the store */
+    }
+  });
+  return snap;
+}
+
+/**
+ * Read the latest app-wide table snapshot WITHOUT mounting the prefetch
+ * hook. Returns `null` before the first commit (facades must render their
+ * honest loading state in that case).
+ */
+export function readNexoraSnapshot(): NexoraDataState | null {
+  return inMemoryGlobalCache;
+}
+
+/** Subscribe to snapshot commits. The returned function unsubscribes. */
+export function subscribeNexoraSnapshot(fn: NexoraSnapshotListener): () => void {
+  nexoraSnapshotListeners.add(fn);
+  return () => {
+    nexoraSnapshotListeners.delete(fn);
+  };
+}
 
 interface EndpointConfig {
   key: keyof NexoraDataState;
@@ -140,21 +179,21 @@ export function useNexoraData(lang: 'ar' | 'en') {
       try {
         const cached = await persistenceService.get<any>('view_models', 'nexora_full_state_v2');
         if (cached && isSubscribed) {
-          console.log('[GlobalPrefetch] Warmed up cache from IndexedDB persistence layer.');
+          logger.log('[GlobalPrefetch] Warmed up cache from IndexedDB persistence layer.');
           const warmedState = {
             ...cached,
             loading: false,
             isCacheWarmed: true,
             prefetchProgress: 100
           };
-          inMemoryGlobalCache = warmedState;
+          commitNexoraSnapshot(warmedState);
           setData(prev => ({
             ...prev,
             ...warmedState
           }));
         }
       } catch (err) {
-        console.warn('[Persistence] Failed to load offline cache startup state:', err);
+        logger.warn('[Persistence] Failed to load offline cache startup state:', err);
       }
     }
     loadCachedData();
@@ -251,8 +290,7 @@ export function useNexoraData(lang: 'ar' | 'en') {
           isCacheWarmed: true,
           prefetchedModules: { ...modulesWarmed }
         };
-        inMemoryGlobalCache = updated;
-        return updated;
+        return commitNexoraSnapshot(updated);
       });
 
       // Phase 2: Tier 2 Operational Modules (Background Idle Scheduling)
@@ -277,8 +315,7 @@ export function useNexoraData(lang: 'ar' | 'en') {
             prefetchedModules: { ...modulesWarmed }
           };
 
-          inMemoryGlobalCache = finalState;
-          return finalState;
+          return commitNexoraSnapshot(finalState);
         });
 
         // Warm up client persistence IndexedDB cache (TTL 30 min)
@@ -294,7 +331,7 @@ export function useNexoraData(lang: 'ar' | 'en') {
       }, 500);
 
     } catch (err: any) {
-      console.warn('[GlobalPrefetch] Non-blocking prefetch note:', err);
+      logger.warn('[GlobalPrefetch] Non-blocking prefetch note:', err);
       setData(prev => ({
         ...prev,
         loading: false,
@@ -309,7 +346,7 @@ export function useNexoraData(lang: 'ar' | 'en') {
     fetchAllData();
 
     const handleOnline = () => {
-      console.log('[useNexoraData] Network re-established. Silently syncing enterprise data...');
+      logger.log('[useNexoraData] Network re-established. Silently syncing enterprise data...');
       fetchAllData(true);
     };
 
@@ -372,8 +409,7 @@ export function useNexoraData(lang: 'ar' | 'en') {
           [moduleKey]: true
         }
       };
-      inMemoryGlobalCache = updated;
-      return updated;
+      return commitNexoraSnapshot(updated);
     });
   }, []);
 

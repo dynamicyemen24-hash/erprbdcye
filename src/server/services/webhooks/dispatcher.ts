@@ -1,5 +1,6 @@
 import { WebhookEvent, EventPayload } from './types';
 import crypto from 'crypto';
+import logger, { toLogMeta } from '../../core/logger';
 
 type EventHandler = (payload: EventPayload) => Promise<void>;
 
@@ -24,7 +25,7 @@ class WebhookDispatcher {
     
     results.forEach((result, i) => {
       if (result.status === 'rejected') {
-        console.error(`[WEBHOOK] Handler ${i} failed for ${event}:`, result.reason);
+        logger.error(`[WEBHOOK] Handler ${i} failed for ${event}:`, { meta: toLogMeta(result.reason) });
       }
     });
 

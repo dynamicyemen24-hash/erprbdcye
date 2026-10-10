@@ -41,6 +41,9 @@ import {
 import HRDocumentGeneratorModal from '../hr/HRDocumentGeneratorModal';
 import { ModuleShell } from '../../components/enterprise/ModuleShell';
 import { PolicyButton } from '../../core/security/PermissionGate';
+import { PermissionGate } from '../../components/PermissionGate';
+import { PERMISSIONS } from '../../shared/permissions/permission-map';
+import { usePermissions } from '../../shared/permissions/usePermissions';
 import { OrgHierarchySymbol } from '../../components/common/SovereignSystemIcons';
 
 interface HRManagementWorkspaceProps {
@@ -58,13 +61,22 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [workforceCategory, setWorkforceCategory] = useState<WorkforceCategory>('all');
 
-  // Security State
-  const [securityLevel] = useState(3);
-  const [userRole] = useState('admin');
+  // Security State — REAL session subject (never hardcoded).
+  // PolicyButton still takes level/role props, so we derive them from the
+  // signed-in session; unauthenticated sessions fail closed (level 0).
+  const { subject } = usePermissions();
+  const securityLevel = Number(subject?.security_level ?? 0) || 0;
+  const userRole = String(subject?.role ?? 'VIEWER');
 
   // Modal State
   const [showDocModal, setShowDocModal] = useState(false);
   const [selectedStaffForDoc, setSelectedStaffForDoc] = useState<any>(null);
+  const [showOnboardModal, setShowOnboardModal] = useState(false);
+  const [onboardName, setOnboardName] = useState('');
+  const [onboardType, setOnboardType] = useState('permanent');
+  const [onboardDept, setOnboardDept] = useState('');
+  const [onboarding, setOnboarding] = useState(false);
+  const [onboardError, setOnboardError] = useState<string | null>(null);
 
   // Master HR Data State
   const [staffList, setStaffList] = useState<any[]>([]);
@@ -97,6 +109,46 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
     fetchHRData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Productive onboarding: POST /api/tables/hr_staff (HR_WRITE, level>=2 enforced server-side).
+  const handleOnboardSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!onboardName.trim()) {
+      setOnboardError(isRtl ? 'اسم الموظف مطلوب' : 'Staff name is required');
+      return;
+    }
+    setOnboarding(true);
+    setOnboardError(null);
+    try {
+      const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch('/api/tables/hr_staff', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          full_name_ar: onboardName.trim(),
+          name: onboardName.trim(),
+          employment_type: onboardType,
+          department_code: onboardDept.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || (isRtl ? 'تعذر إنشاء سجل الموظف' : 'Failed to create staff record'));
+      }
+      setShowOnboardModal(false);
+      setOnboardName('');
+      setOnboardDept('');
+      setOnboardType('permanent');
+      showToast({ type: 'success', title: isRtl ? 'تم تعيين الموظف' : 'Workforce onboarded', message: isRtl ? 'تم حفظ سجل الموظف في قاعدة البيانات' : 'Staff record saved to database' });
+      await fetchHRData();
+    } catch (err: any) {
+      setOnboardError(err?.message || (isRtl ? 'فشل الحفظ' : 'Save failed'));
+    } finally {
+      setOnboarding(false);
+    }
+  };
 
   // Filtered staff list with workforce category filter
   const filteredStaff = staffList.filter(staff => {
@@ -191,12 +243,13 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
             {isRtl ? 'تحديث البيانات' : 'Refresh Data'}
           </EnterpriseButton>
 
+          <PermissionGate perm={PERMISSIONS.HR_WRITE} mode="disabled">
           <PolicyButton
             action="create"
             domain="hr"
             securityLevel={securityLevel}
             userRole={userRole}
-            onClick={() => showToast({ type: 'info', title: isRtl ? 'تعيين الكوادر' : 'Workforce Onboarding', message: isRtl ? 'جاري فتح نافذة استكمال بيانات الموظف والمتطوع الجديد...' : 'Opening Employee Onboarding Gateway...' })}
+            onClick={() => setShowOnboardModal(true)}
             className=""
           >
             <EnterpriseButton
@@ -207,8 +260,52 @@ export default function HRManagementWorkspace({ lang, onNavigate }: HRManagement
               {isRtl ? 'تعيين موظف / متطوع' : 'Onboard Workforce'}
             </EnterpriseButton>
           </PolicyButton>
+          </PermissionGate>
         </div>
       </div>
+
+      {/* ONBOARDING MODAL — productive, DB-backed */}
+      {showOnboardModal && (
+        <div className="fixed inset-0 z-dialog flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={isRtl ? 'تعيين موظف جديد' : 'Onboard workforce'}>
+          <form onSubmit={handleOnboardSubmit} className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 shadow-2xl">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white">{isRtl ? 'تعيين موظف / متطوع جديد' : 'Onboard workforce'}</h3>
+            <label className="block space-y-1 text-xs font-bold text-slate-700 dark:text-zinc-300">
+              <span>{isRtl ? 'الاسم الكامل' : 'Full name'}</span>
+              <input
+                value={onboardName}
+                onChange={(e) => setOnboardName(e.target.value)}
+                placeholder={isRtl ? 'مثال: م. أحمد المعمري' : 'e.g. Ahmed Al-Maamari'}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs outline-none focus:border-emerald-500"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block space-y-1 text-xs font-bold text-slate-700 dark:text-zinc-300">
+                <span>{isRtl ? 'الفئة' : 'Category'}</span>
+                <select value={onboardType} onChange={(e) => setOnboardType(e.target.value)} className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs">
+                  <option value="permanent">{isRtl ? 'كادر دائم' : 'Permanent'}</option>
+                  <option value="volunteer">{isRtl ? 'متطوع' : 'Volunteer'}</option>
+                  <option value="cooperator">{isRtl ? 'متعاون' : 'Cooperator'}</option>
+                  <option value="delegate">{isRtl ? 'مندوب' : 'Delegate'}</option>
+                  <option value="consultant">{isRtl ? 'استشاري' : 'Consultant'}</option>
+                </select>
+              </label>
+              <label className="block space-y-1 text-xs font-bold text-slate-700 dark:text-zinc-300">
+                <span>{isRtl ? 'رمز القسم' : 'Dept code'}</span>
+                <input value={onboardDept} onChange={(e) => setOnboardDept(e.target.value)} placeholder="HR-01" className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs font-mono" />
+              </label>
+            </div>
+            {onboardError && <p role="alert" className="text-[11px] font-bold text-rose-600">{onboardError}</p>}
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button type="button" onClick={() => setShowOnboardModal(false)} className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
+                {isRtl ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button type="submit" disabled={onboarding} className="px-4 py-2 text-xs font-black rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50">
+                {onboarding ? (isRtl ? 'جاري الحفظ...' : 'Saving...') : (isRtl ? 'حفظ في قاعدة البيانات' : 'Save to database')}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* WORKFORCE CATEGORY SELECTOR BAR */}
       <div className="p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl flex items-center justify-between gap-4 overflow-x-auto text-xs font-bold">

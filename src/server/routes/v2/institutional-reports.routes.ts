@@ -14,6 +14,7 @@ import {
   getGrantReceivablesFollowUp,
 } from '../../services/accountant-workbench.service';
 import { auditNebCoverage } from '../../governance/neb-registry';
+import { buildReportEnvelope } from '../../services/institutional-branding.service';
 import { getDatabasePool } from '../../services/db.service';
 import { AuthenticatedRequest, requirePermission } from '../../middleware/auth.middleware';
 import { PERMISSIONS } from '../../../shared/permissions/permission-map';
@@ -83,6 +84,30 @@ router.use(async (req: AuthenticatedRequest, res: Response, next: NextFunction) 
 
 function effectiveBranchOf(req: AuthenticatedRequest): string | null {
   return (req as AuthenticatedRequest & { branchScope?: BranchScope }).branchScope?.effective ?? requestedBranchOf(req);
+}
+
+/**
+ * Institutional envelope (contract debt paid): every report under this
+ * router carries lang/dir/titleAr/titleEn/header via the SAME builder the
+ * engines use (`buildReportEnvelope`). Four endpoints previously returned
+ * bare service payloads (no lang/dir), breaking the Arabic-first contract.
+ */
+async function enveloped(
+  req: AuthenticatedRequest,
+  titleAr: string,
+  titleEn: string,
+  standard: string,
+  report: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  const lang = (req.query.lang as string | undefined) ?? undefined;
+  const envelope = await buildReportEnvelope(extractTenantId(req), {
+    titleAr,
+    titleEn,
+    standard,
+    branchCode: effectiveBranchOf(req) ?? undefined,
+    lang,
+  });
+  return { ...envelope, ...report };
 }
 
 function filtersOf(req: AuthenticatedRequest) {
@@ -169,7 +194,7 @@ router.get('/period-close', async (req: AuthenticatedRequest, res: Response) => 
 
 router.get('/neb-coverage', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    successResponse(res, auditNebCoverage());
+    successResponse(res, await enveloped(req, 'تغطية النطاقات المؤسسية', 'NEB Domain Coverage', 'NEB-01..15', auditNebCoverage() as unknown as Record<string, unknown>));
   } catch (err: unknown) {
     errorResponse(res, (err as Error).message);
   }
@@ -202,7 +227,7 @@ router.get('/unposted-worklist', requireFinanceRead, async (req: AuthenticatedRe
       fiscalYearId: req.query.fiscalYearId as string | undefined,
       branchCode: effectiveBranchOf(req) ?? undefined,
     });
-    successResponse(res, list);
+    successResponse(res, await enveloped(req, 'قائمة القيود غير المرحلة', 'Unposted Worklist', 'IPSAS', list as Record<string, unknown>));
   } catch (err: unknown) {
     errorResponse(res, (err as Error).message);
   }
@@ -210,7 +235,7 @@ router.get('/unposted-worklist', requireFinanceRead, async (req: AuthenticatedRe
 
 router.get('/vendor-aging', requireFinanceRead, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    successResponse(res, await getVendorAging(extractTenantId(req)));
+    successResponse(res, await enveloped(req, 'أعمار ذمم الموردين', 'Vendor Aging', 'IPSAS', await getVendorAging(extractTenantId(req)) as Record<string, unknown>));
   } catch (err: unknown) {
     errorResponse(res, (err as Error).message);
   }
@@ -219,7 +244,7 @@ router.get('/vendor-aging', requireFinanceRead, async (req: AuthenticatedRequest
 router.get('/grant-receivables', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const dueSoonDays = Number(req.query.dueSoonDays) || 45;
-    successResponse(res, await getGrantReceivablesFollowUp(extractTenantId(req), dueSoonDays));
+    successResponse(res, await enveloped(req, 'متابعة المنح المستحقة', 'Grant Receivables Follow-up', 'IPSAS', await getGrantReceivablesFollowUp(extractTenantId(req), dueSoonDays) as Record<string, unknown>));
   } catch (err: unknown) {
     errorResponse(res, (err as Error).message);
   }

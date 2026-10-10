@@ -29,7 +29,9 @@ export interface AuthenticatedRequest extends Request {
 
 /**
  * Verifies JWT Bearer token on every protected /api route.
- * Public paths: /api/auth/*, /api/health/*, /api/gemini/*
+ * Public paths: /api/auth/*, /api/health/*, /api/docs/*,
+ * /api/exchange-rates/live (AI routes such as /api/gemini/* REQUIRE auth —
+ * they spend metered model quota and must never be anonymous).
  */
 export const authenticateToken = (
   req: AuthenticatedRequest,
@@ -45,9 +47,11 @@ export const authenticateToken = (
   const publicPrefixes = [
     '/api/auth',
     '/api/health',
+    '/api/docs',
     '/api/exchange-rates/live',
     '/api/v2/auth',
     '/api/v2/health',
+    '/api/v2/docs',
     '/api/v2/exchange-rates/live',
   ];
   if (publicPrefixes.some(p => req.path.startsWith(p))) {
@@ -63,10 +67,13 @@ export const authenticateToken = (
 
   jwt.verify(token, serverConfig.jwtSecret, { algorithms: ['HS256'] }, (err: any, decoded: any) => {
     if (err) {
+      // RFC 6750 §3.1: ANY authentication failure (expired, malformed,
+      // wrong-secret, `none` algorithm) is 401, never 403 — 403 is reserved
+      // for authenticated-but-forbidden (see `requirePermission`).
       if (err.name === 'TokenExpiredError') {
         res.status(401).json({ error: 'Access Denied: Token Expired. Please login again.' });
       } else {
-        res.status(403).json({ error: 'Access Denied: Invalid Token' });
+        res.status(401).json({ error: 'Access Denied: Invalid Token' });
       }
       return;
     }

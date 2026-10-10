@@ -12,6 +12,26 @@ import { apiCache } from '../../core/cache';
 import logger from '../../core/logger';
 import { enforceAllPolicies, type PolicyContext, type PolicyViolation } from '../../services/policyEngine';
 import { authenticateToken } from '../../middleware/auth.middleware';
+import { extractTenantId } from '../../core/helpers';
+import { PERMISSIONS, resolvePermissions, type PermissionKey } from '../../../shared/permissions/permission-map';
+
+/** Sensitive reads: table → required READ permission (fails closed, read-open elsewhere). */
+const SENSITIVE_READ_PERMISSIONS: Record<string, PermissionKey> = {
+  users: PERMISSIONS.USERS_READ,
+  roles: PERMISSIONS.USERS_READ,
+  role_permissions: PERMISSIONS.USERS_READ,
+  user_roles: PERMISSIONS.USERS_READ,
+  user_org_memberships: PERMISSIONS.USERS_READ,
+  organizations: PERMISSIONS.SETTINGS_READ,
+  organization_settings: PERMISSIONS.SETTINGS_READ,
+  system_settings: PERMISSIONS.SETTINGS_READ,
+  hr_staff: PERMISSIONS.HR_READ,
+  transactions: PERMISSIONS.FINANCE_READ,
+  transaction_lines: PERMISSIONS.FINANCE_READ,
+  journal_entries: PERMISSIONS.FINANCE_READ,
+  chart_of_accounts: PERMISSIONS.FINANCE_READ,
+  audit_logs: PERMISSIONS.AUDIT_READ,
+};
 import { validateBody } from '../../middleware/validation.middleware';
 import { createCommitmentSchema, createObligationSchema } from '../../validators/schemas';
 import { serverConfig } from '../../config/index';
@@ -87,6 +107,51 @@ const SENSITIVE_TABLES = ['users', 'roles', 'role_permissions', 'user_roles', 'u
 
 const SENSITIVE_RESPONSE_FIELDS = ['password_hash', 'totp_secret', 'refresh_token'];
 
+/**
+ * Postgres → HTTP contract (SaaS reliability standard).
+ * Client-caused DB errors MUST surface as 4xx (never 500): duplicates → 409,
+ * missing/invalid references and values → 400. Only genuine server-side
+ * faults (bad SQL, missing schema objects, connection loss) stay 500.
+ * Returns null when the error carries no PG code (non-DB failure → 500).
+ */
+function pgErrorToHttp(err: any): { status: number; code: string; message: string; messageAr: string } | null {
+  const pgCode = String(err?.code || '');
+  if (!pgCode) return null;
+  if (pgCode === '23505') {
+    return { status: 409, code: 'DUPLICATE_RECORD', message: 'Record already exists (unique constraint).', messageAr: 'السجل موجود مسبقاً (قيد التفرد).' };
+  }
+  if (pgCode === '23502') {
+    return { status: 400, code: 'MISSING_REQUIRED_FIELD', message: 'A required field is missing.', messageAr: 'حقل مطلوب مفقود.' };
+  }
+  if (pgCode === '23503') {
+    return { status: 400, code: 'REFERENCE_NOT_FOUND', message: 'Referenced record does not exist.', messageAr: 'السجل المرجعي غير موجود.' };
+  }
+  if (pgCode === '23514' || pgCode === '22000' || pgCode === '22P02' || pgCode === '22001' || pgCode === '22003' || pgCode === '22007') {
+    return { status: 400, code: 'INVALID_INPUT', message: 'Invalid input value.', messageAr: 'قيمة مدخلة غير صالحة.' };
+  }
+  return null;
+}
+
+/** Log + answer pattern for table write failures (single choke point). */
+function answerTableWriteError(res: any, table: string, op: string, err: any): void {
+  // pgCode is logged separately: serializers often drop non-enumerable
+  // error fields, which once hid a missing-code bug behind generic 500s.
+  logger.error(`Error ${op} ${table} [pgCode=${String(err?.code ?? 'none')}]`, {
+    context: 'tables',
+    error: err,
+  });
+  const mapped = pgErrorToHttp(err);
+  if (mapped) {
+    res.status(mapped.status).json({
+      success: false,
+      error: { code: mapped.code, message: mapped.message, messageAr: mapped.messageAr },
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+  res.status(500).json({ error: 'Internal Server Error' });
+}
+
 // ─── Schema Route (mounted at /api/schema via server.ts) ──
 export const schemaRouter = Router();
 
@@ -122,9 +187,23 @@ router.get('/:table', authenticateToken, async (req: any, res: any) => {
     return res.status(403).json({ error: `Table '${table}' is not in the whitelist.` });
   }
 
+  // Permission linkage: sensitive tables require their READ permission.
+  // Non-sensitive tables stay read-open (dashboard/ops), matching the client matrix.
+  const requiredRead = SENSITIVE_READ_PERMISSIONS[table];
+  if (requiredRead) {
+    const perms = resolvePermissions(req.user);
+    if (!perms.has(requiredRead)) {
+      return res.status(403).json({
+        error: `Access Denied: missing permission: ${requiredRead}`,
+        code: 'PERMISSION_DENIED',
+        missing: [requiredRead],
+      });
+    }
+  }
+
   try {
     const dbPool = getPool();
-    const tenantId = req.user?.org_id || '00000000-0000-0000-0000-000000000001';
+    const tenantId = extractTenantId(req);
 
     const { hasOrgCol, hasDeletedAt, hasCreatedAt } = await getTableSchemaInfo(dbPool, table);
 
@@ -375,8 +454,7 @@ router.post('/:table', authenticateToken, async (req: any, res: any) => {
     }
     res.status(201).json(createdRecord);
   } catch (err: any) {
-    logger.error(`Error inserting into ${table}`, { context: 'tables', error: err });
-    res.status(500).json({ error: "Internal Server Error" });
+    answerTableWriteError(res, table, 'inserting into', err);
   }
 });
 
@@ -528,8 +606,7 @@ router.put('/:table/:id', authenticateToken, async (req: any, res: any) => {
     }
     res.json(updatedRecord);
   } catch (err: any) {
-    logger.error(`Error updating table ${table}`, { context: 'tables', error: err });
-    res.status(500).json({ error: "Internal Server Error" });
+    answerTableWriteError(res, table, 'updating', err);
   }
 });
 
@@ -635,8 +712,7 @@ router.delete('/:table/:id', authenticateToken, async (req: any, res: any) => {
     }
     res.json({ message: "Record deleted successfully", deletedRecord });
   } catch (err: any) {
-    logger.error(`Error deleting from table ${table}`, { context: 'tables', error: err });
-    res.status(500).json({ error: "Internal Server Error" });
+    answerTableWriteError(res, table, 'deleting from', err);
   }
 });
 

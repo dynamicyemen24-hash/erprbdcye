@@ -7,9 +7,35 @@
 
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+// Load the SAME secrets the server boots with (DEBT PAID): vitest does NOT
+// populate process.env from .env, so without this the harness signed every
+// static token with the fallback dev secret while the server verified with
+// the real one — every `TOKENS.*` call 401'd. `config()` never overrides
+// already-set variables, so CI-provided secrets keep precedence.
+dotenv.config();
 
 // ─── Configuration ────────────────────────────────────────────
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+// Namespaced + sanitized (DEBT PAID): the generic `BASE_URL` env key is
+// polluted by the toolchain itself (Vite/Vitest resolve it to the app `base`,
+// i.e. the literal string `"/"`), which made EVERY live test fail with
+// `TypeError: Invalid URL`. The harness now reads `NEXORA_E2E_BASE_URL` and
+// accepts only absolute http(s) URLs, falling back to the local server.
+//
+// E2E SERVER BUDGETS: the suite fires 1000+ requests from one IP, which
+// trips the production rate budgets (general 100 / api 200 / auth 5-20 per
+// window) with 429s that mask every assertion behind them. Boot the target
+// server with raised budgets (production defaults stay untouched):
+//   RATE_LIMIT_GENERAL=10000 RATE_LIMIT_API=10000 RATE_LIMIT_AUTH=10000
+//   RATE_LIMIT_EXPORT=1000 AUTH_RATE_LIMIT_MAX=1000 AUTH_LOGIN_RATE_LIMIT_MAX=1000
+function resolveBaseUrl(): string {
+  const fallback = 'http://localhost:3000';
+  const raw = (process.env.NEXORA_E2E_BASE_URL || '').trim();
+  if (/^https?:\/\/[^/]+/.test(raw)) return raw.replace(/\/+$/, '');
+  return fallback;
+}
+const BASE_URL = resolveBaseUrl();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const TEST_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -49,8 +75,14 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const { body, token, query, headers: extraHeaders } = options;
 
+    // Browser realism (DEBT PAID): real browsers always send Origin/Referer
+    // and the server's CSRF guard rejects header-less clients with 403 —
+    // which masked every validation assertion behind a CSRF failure.
+    // Caller-provided headers still win via spread order.
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      Origin: this.baseUrl,
+      Referer: `${this.baseUrl}/`,
       ...extraHeaders,
     };
 

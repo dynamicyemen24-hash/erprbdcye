@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import logger, { toLogMeta } from '../../core/logger';
 import { emailConfig, EmailConfig } from './config';
 import { renderTemplate, EmailTemplateType } from './templates';
 
@@ -26,10 +27,10 @@ export async function sendEmail(to: string, templateType: EmailTemplateType, dat
       subject: template.subject,
       html: template.html,
     });
-    console.log(`[EMAIL] Sent to ${to}: ${templateType} (${info.messageId || 'console'})`);
+    logger.info(`[EMAIL] Sent to ${to}: ${templateType} (${info.messageId || 'console'})`);
     return { success: true, messageId: info.messageId };
   } catch (error: any) {
-    console.error(`[EMAIL] Failed to send to ${to}:`, error.message);
+    logger.error(`[EMAIL] Failed to send to ${to}:`, { meta: toLogMeta(error.message) });
     return { success: false, error: error.message };
   }
 }

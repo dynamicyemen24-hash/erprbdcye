@@ -64,8 +64,8 @@ export class FXRevaluationEngine {
         coa.name_ar,
         coa.account_type,
         tl.currency_code,
-        COALESCE(SUM(tl.debit - tl.credit), 0) as net_foreign_balance,
-        COALESCE(SUM((tl.debit - tl.credit) * COALESCE(tl.exchange_rate, 1)), 0) as book_value_usd
+        COALESCE(SUM(tl.debit_amount - tl.credit_amount), 0) as net_foreign_balance,
+        COALESCE(SUM((tl.debit_amount - tl.credit_amount) * COALESCE(tl.exchange_rate, 1)), 0) as book_value_usd
       FROM transaction_lines tl
       JOIN chart_of_accounts coa ON coa.id = tl.account_id
       JOIN transactions t ON t.id = tl.transaction_id
@@ -74,7 +74,7 @@ export class FXRevaluationEngine {
         AND tl.currency_code IS NOT NULL
         AND tl.currency_code != $3
       GROUP BY coa.id, coa.account_code, coa.name_ar, coa.account_type, tl.currency_code
-      HAVING COALESCE(SUM(tl.debit - tl.credit), 0) != 0;
+      HAVING COALESCE(SUM(tl.debit_amount - tl.credit_amount), 0) != 0;
     `;
 
     let rows: any[] = [];
@@ -190,7 +190,7 @@ export class FXRevaluationEngine {
       const txRes = await client.query(
         `INSERT INTO transactions
          (organization_id, transaction_number, transaction_date, posting_date,
-          transaction_type, description, reference_no, total_debit, total_credit, status, created_by_id)
+          transaction_type, description, reference_number, total_debit, total_credit, status, created_by)
          VALUES ($1, $2, $3, $3, 'ADJUSTMENT', $4, $5, $6, $6, 'POSTED', $7)
          RETURNING id`,
         [
@@ -225,13 +225,13 @@ export class FXRevaluationEngine {
           // Gain: Debit Account, Credit FX Gain Account
           await client.query(
             `INSERT INTO transaction_lines
-             (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description)
+             (transaction_id, organization_id, line_number, account_id, debit_amount, credit_amount, currency_code, description)
              VALUES ($1, $2, $3, $4, $5, 0, 'USD', $6)`,
             [txId, orgId, lineIdx++, item.accountId, item.unrealizedGainLossUSD, `FX Revaluation Gain - ${item.nameAr}`]
           );
           await client.query(
             `INSERT INTO transaction_lines
-             (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description)
+             (transaction_id, organization_id, line_number, account_id, debit_amount, credit_amount, currency_code, description)
              VALUES ($1, $2, $3, $4, 0, $5, 'USD', $6)`,
             [txId, orgId, lineIdx++, gainAccId, item.unrealizedGainLossUSD, `Unrealized FX Gain - ${item.currencyCode}`]
           );
@@ -240,13 +240,13 @@ export class FXRevaluationEngine {
           const lossAmt = Math.abs(item.unrealizedGainLossUSD);
           await client.query(
             `INSERT INTO transaction_lines
-             (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description)
+             (transaction_id, organization_id, line_number, account_id, debit_amount, credit_amount, currency_code, description)
              VALUES ($1, $2, $3, $4, $5, 0, 'USD', $6)`,
             [txId, orgId, lineIdx++, lossAccId, lossAmt, `Unrealized FX Loss - ${item.currencyCode}`]
           );
           await client.query(
             `INSERT INTO transaction_lines
-             (transaction_id, organization_id, line_number, account_id, debit, credit, currency_code, description)
+             (transaction_id, organization_id, line_number, account_id, debit_amount, credit_amount, currency_code, description)
              VALUES ($1, $2, $3, $4, 0, $5, 'USD', $6)`,
             [txId, orgId, lineIdx++, item.accountId, lossAmt, `FX Revaluation Adjustment - ${item.nameAr}`]
           );

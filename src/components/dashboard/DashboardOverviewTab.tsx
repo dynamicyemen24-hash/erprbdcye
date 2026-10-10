@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
+import {
   Building2, AlertTriangle, Users, Target, Sliders,
   Briefcase, ArrowLeft, ArrowRight, BarChart3, Map, Cpu, ShieldCheck,
-  Coins, Heart, Box, ShoppingCart, TrendingUp, Activity
+  Coins, Heart, Box, ShoppingCart, TrendingUp, Activity, BookOpen, Globe
 } from 'lucide-react';
 import { ExecutiveDecisionQueue } from './ExecutiveDecisionQueue';
 import { KPICard } from './KPICard';
@@ -117,14 +117,20 @@ export const DashboardOverviewTab: React.FC<DashboardOverviewTabProps> = ({
 
   const roleWorkspacesList: { key: WorkspaceRoleKey; titleAr: string; titleEn: string; count: string; subAr: string; icon: React.ElementType; color: string }[] = [
     { key: 'strategy', titleAr: 'القيادة والحوكمة', titleEn: 'Leadership', count: 'معتمد', subAr: 'مؤشرات الإدارة العليا', icon: ShieldCheck, color: 'text-amber-500' },
+    { key: 'portfolio', titleAr: 'المحفظة الاستثمارية', titleEn: 'Portfolio', count: 'NEB-02', subAr: 'العائد والمخاطر والمواءمة', icon: Briefcase, color: 'text-blue-600' },
     { key: 'finance', titleAr: 'الإدارة المالية والمحاسبة', titleEn: 'Finance', count: 'محدث', subAr: 'دليل الحسابات والقيود', icon: Coins, color: 'text-emerald-500' },
+    { key: 'funding', titleAr: 'التمويل والمانحون', titleEn: 'Funding & Donors', count: 'NEB-08', subAr: 'المنح والأقساط والتقارير', icon: Heart, color: 'text-rose-600' },
     { key: 'programs', titleAr: 'إدارة البرامج والمشاريع', titleEn: 'Programs', count: 'جارية', subAr: 'المشاريع والخطط الميدانية', icon: Briefcase, color: 'text-blue-500' },
     { key: 'operations', titleAr: 'الأنشطة الميدانية', titleEn: 'Field Activities', count: `${projects.length}`, subAr: 'الأنشطة المرتبطة بالمشاريع', icon: Activity, color: 'text-cyan-500' },
     { key: 'field_tasks', titleAr: 'توزيع المهام الميدانية', titleEn: 'Field Tasks', count: 'يومي', subAr: 'التكليف والمتابعة اليومية', icon: Target, color: 'text-sky-500' },
     { key: 'beneficiaries', titleAr: 'الرعاية وكفالات الأيتام', titleEn: 'Welfare', count: 'شامل', subAr: 'المستفيدون والأيتام المكفولون', icon: Heart, color: 'text-rose-500' },
+    { key: 'community', titleAr: 'التطوع والمجتمع', titleEn: 'Community', count: 'NEB-07', subAr: 'المتطوعون واللجان والعضوية', icon: Users, color: 'text-teal-500' },
     { key: 'procurement', titleAr: 'المشتريات والمناقصات', titleEn: 'Procurement', count: 'P2P', subAr: 'طلبات الشراء والموردون', icon: ShoppingCart, color: 'text-orange-500' },
     { key: 'inventory', titleAr: 'المخزون والمستودعات', titleEn: 'Inventory', count: 'مركزي', subAr: 'الأصناف والحركات والمستودعات', icon: Box, color: 'text-lime-600' },
+    { key: 'assets', titleAr: 'الأصول الثابتة', titleEn: 'Fixed Assets', count: 'NEB-09', subAr: 'السجل والإهلاك والجرد', icon: Box, color: 'text-stone-500' },
     { key: 'sales', titleAr: 'المبيعات والإيرادات', titleEn: 'Sales & Revenue', count: 'NEB-15', subAr: 'تنمية الموارد والتحصيل', icon: TrendingUp, color: 'text-violet-500' },
+    { key: 'knowledge', titleAr: 'المعرفة والوثائق', titleEn: 'Knowledge', count: 'NEB-11', subAr: 'الأرشيف والسياسات والمذكرات', icon: BookOpen, color: 'text-cyan-600' },
+    { key: 'integration', titleAr: 'التكامل والمزامنة', titleEn: 'Integration', count: 'NEB-12', subAr: 'API والمزامنة وIATI', icon: Globe, color: 'text-sky-600' },
     { key: 'meal', titleAr: 'الرقابة وتقييم الجودة', titleEn: 'Quality Assurance', count: 'مطابق', subAr: 'معايير الجودة والمساءلة', icon: TrendingUp, color: 'text-indigo-500' },
     { key: 'admin', titleAr: 'إدارة النظام والأمان', titleEn: 'Governance & Access', count: 'مؤمن', subAr: 'الصلاحيات والتدقيق', icon: ShieldCheck, color: 'text-purple-500' },
     { key: 'hr', titleAr: 'الموارد البشرية', titleEn: 'Human Resources', count: 'كادر', subAr: 'الملفات والحضور والتكليف', icon: Users, color: 'text-fuchsia-500' }

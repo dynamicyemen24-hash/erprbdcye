@@ -1,5 +1,19 @@
+/**
+ * Canonical SYNC-STATUS channel (DEBT PAID).
+ * Outbound sync has exactly TWO owners — one queue each, different jobs:
+ *   - THIS file (`syncService`): generic request queue + `getSyncStatus` /
+ *     `forceSync` for status widgets (`OfflineSyncStatusWidget`,
+ *     `OfflineSyncView`). Job = "is the pipe clear?".
+ *   - `offlineSyncMachine`: idempotent TRANSACTIONAL queue (Local → Queue →
+ *     Sync → Verify → Commit) for domain writes (`MobileFieldForm`). Job =
+ *     "did my write land exactly once?".
+ * The retired `core/offline/offlineSyncManager` + `useOfflineSyncVault`
+ * (second/third queues, zero consumers) were deleted — a second queue is a
+ * split-brain hazard, not a backup (cf. SAP MDG single-queue principle).
+ */
 import { generateId } from '../../lib/idGenerator';
 
+import { logger } from '../../lib/logger';
 export interface OfflineTask {
   id: string;
   url?: string;
@@ -105,7 +119,7 @@ class OfflineSyncManager {
            this.removeTask(task.id);
         }
       } catch (err) {
-        console.error('Failed to sync task:', task, err);
+        logger.error('Failed to sync task:', task, err);
         break; 
       }
     }

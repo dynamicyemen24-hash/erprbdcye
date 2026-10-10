@@ -36,6 +36,7 @@ export type ActiveTab =
   | 'sales'
   | 'procurement'
   | 'business_intelligence'
+  | 'search'
   | 'communications'
   | 'commitments_obligations'
   | 'admin_control_center';

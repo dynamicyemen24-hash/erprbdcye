@@ -6,7 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext } from '../core/helpers';
-import logger from '../core/logger';
+import logger, { toLogMeta } from '../core/logger';
 
 export class HREngine {
   static async listStaff(orgId: string, pagination: PaginationParams = {}, filters?: {
@@ -103,7 +103,7 @@ export class AttendanceEngine {
       `INSERT INTO attendance_records (staff_id, clock_in, location)
        VALUES ($1, $2, $3) RETURNING *`,
       [staffId, data.timestamp || new Date().toISOString(), optionalString(data.location)]
-    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
+    ).catch((err: any) => { logger.error('[Engine] Query failed:', { meta: toLogMeta(err.message) }); return null; });
   }
 
   static async clockOut(attendanceId: string, data: { timestamp?: string }) {
@@ -112,7 +112,7 @@ export class AttendanceEngine {
         hours_worked = EXTRACT(EPOCH FROM ($1::timestamp - clock_in::timestamp)) / 3600
        WHERE id = $2 AND clock_out IS NULL RETURNING *`,
       [data.timestamp || new Date().toISOString(), attendanceId]
-    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
+    ).catch((err: any) => { logger.error('[Engine] Query failed:', { meta: toLogMeta(err.message) }); return null; });
   }
 
   static async getStaffAttendance(staffId: string, startDate?: string, endDate?: string) {
@@ -136,7 +136,7 @@ export class LeaveEngine {
       `INSERT INTO leave_requests (staff_id, leave_type, start_date, end_date, reason, status)
        VALUES ($1,$2,$3,$4,$5,'PENDING') RETURNING *`,
       [data.staffId, data.leaveType, data.startDate, data.endDate, optionalString(data.reason)]
-    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
+    ).catch((err: any) => { logger.error('[Engine] Query failed:', { meta: toLogMeta(err.message) }); return null; });
   }
 
   static async approveLeave(leaveId: string, approvedBy: string, notes?: string) {
@@ -144,7 +144,7 @@ export class LeaveEngine {
       `UPDATE leave_requests SET status = 'APPROVED', approved_by = $1, review_notes = $2
        WHERE id = $3 AND status = 'PENDING' RETURNING *`,
       [approvedBy, optionalString(notes), leaveId]
-    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
+    ).catch((err: any) => { logger.error('[Engine] Query failed:', { meta: toLogMeta(err.message) }); return null; });
   }
 
   static async rejectLeave(leaveId: string, rejectedBy: string, reason?: string) {
@@ -152,7 +152,7 @@ export class LeaveEngine {
       `UPDATE leave_requests SET status = 'REJECTED', approved_by = $1, review_notes = $2
        WHERE id = $3 AND status = 'PENDING' RETURNING *`,
       [rejectedBy, optionalString(reason), leaveId]
-    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
+    ).catch((err: any) => { logger.error('[Engine] Query failed:', { meta: toLogMeta(err.message) }); return null; });
   }
 
   static async getStaffLeaves(staffId: string) {

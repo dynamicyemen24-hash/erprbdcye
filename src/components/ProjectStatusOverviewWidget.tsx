@@ -34,7 +34,8 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, Legend, Cartes
 import ExportToolsModal from './ExportToolsModal';
 import { EnterpriseButton } from './common/EnterpriseButton';
 import { Spinner } from '../design-system/components/Spinner';
-
+
+import { logger } from '../lib/logger';
 interface ProjectStatusOverviewWidgetProps {
   projects: Project[];
   lang: 'ar' | 'en';
@@ -64,7 +65,7 @@ export default function ProjectStatusOverviewWidget({
     setArchivedProjectIds(updated);
     try {
       localStorage.setItem('nexora_archived_project_ids', JSON.stringify(updated));
-    } catch (e) { console.error('[Archive] Failed to save archived project IDs to localStorage:', e); }
+    } catch (e) { logger.error('[Archive] Failed to save archived project IDs to localStorage:', e); }
   };
 
   const unarchiveProject = (projectId: string) => {
@@ -72,7 +73,7 @@ export default function ProjectStatusOverviewWidget({
     setArchivedProjectIds(updated);
     try {
       localStorage.setItem('nexora_archived_project_ids', JSON.stringify(updated));
-    } catch (e) { console.error('[Archive] Failed to save archived project IDs to localStorage:', e); }
+    } catch (e) { logger.error('[Archive] Failed to save archived project IDs to localStorage:', e); }
   };
 
   const activeDashboardProjects = React.useMemo(() => {
@@ -94,7 +95,7 @@ export default function ProjectStatusOverviewWidget({
     setIsExpanded(nextState);
     try {
       localStorage.setItem('nexora_project_widget_expanded', String(nextState));
-    } catch (e) { console.error('[Widget] Failed to save widget expanded state to localStorage:', e); }
+    } catch (e) { logger.error('[Widget] Failed to save widget expanded state to localStorage:', e); }
   };
 
   const [insights, setInsights] = useState<string | null>(() => {
@@ -123,39 +124,23 @@ export default function ProjectStatusOverviewWidget({
       return `### 📊 ملخص التحليل الاستراتيجي للمحفظة الميدانية
 * **استقرار وكفاءة المحفظة:** تضم المحفظة **${count} مشاريع معتمدة**، بمتوسط إنجاز ميداني يبلغ **${avgProgress}%** وموازنة كلية مخصصة قدرها **${totalBudget.toLocaleString()} ريال يمني**.
 * **مؤشرات التنفيذ الميداني:** هناك **${onTrack} مشاريع متقدمة** تسير وفق الجدول الزمني المعتمد، و**${inProgress} مشاريع قيد التنفيذ النشط** تلبي المعايير الميدانية.
-* **كفاءة الاستهداف الإنساني:** يبلغ إجمالي المستهدفين الموثقين بالمحفظة **${totalTarget > 0 ? totalTarget.toLocaleString() : '14,200+'} مستفيد** موزعين على المحافظات ذات الأولوية.
-* **الامتثال وضمان الجودة:** كافة بنود الصرف مطابقة للمعايير الإنسانية المعتمدة (CHS) وضوابط الحوكمة المؤسسية لجمعية رُحماء بينهم.`;
+* **كفاءة الاستهداف الإنساني:** ${totalTarget > 0 ? `يبلغ إجمالي المستهدفين الموثقين بالمحفظة **${totalTarget.toLocaleString()} مستفيد** موزعين على المحافظات ذات الأولوية.` : `لا توجد أرقام استهداف موثقة في بيانات المشاريع الحالية — تُعرض الأرقام الموثقة فقط.`}
+* **المرجعية المعيارية:** المعايير الإنسانية (CHS) وضوابط الحوكمة المؤسسية هي مرجعية التقييم المعتمدة (وليست نتيجة تدقيق).`;
     } else {
       return `### 📊 Strategic Portfolio Performance Diagnostics
 * **Portfolio Health & Velocity:** Managing **${count} active projects** with an overall average progress of **${avgProgress}%** and total allocated budget of **${totalBudget.toLocaleString()} YER**.
 * **Milestone Progress Index:** **${onTrack} projects on track** exceeding scheduled milestones, and **${inProgress} projects in active field execution**.
-* **Humanitarian Reach:** Direct target reach encompasses **${totalTarget > 0 ? totalTarget.toLocaleString() : '14,200+'} verified beneficiaries** across priority operational districts.
-* **Standards & Compliance:** Operational execution fully aligns with Core Humanitarian Standards (CHS) and institutional governance policies.`;
+* **Humanitarian Reach:** ${totalTarget > 0 ? `Direct target reach encompasses **${totalTarget.toLocaleString()} verified beneficiaries** across priority operational districts.` : `No documented target figures in current project data — only documented numbers are shown.`}
+* **Standards Reference:** Core Humanitarian Standards (CHS) and governance controls are the evaluation reference (not an audit outcome).`;
     }
   };
 
-  const generateFallbackFinancialAudits = (projects: any[]): any[] => {
-    return projects.slice(0, 3).map((p, idx) => {
-      const progress = parseFloat(p.progress_percent) || 0;
-      return {
-        projectId: p.id,
-        severity: idx === 1 ? 'warning' : 'info',
-        issueType: idx === 1 ? 'burn_rate' : 'spending_pattern',
-        variancePercent: idx === 1 ? 8 : 3,
-        reasonAr: idx === 1 
-          ? `وتيرة الصرف المالي للمشروع تتطلب استكمال مطابقة فواتير المرحلة الأخيرة.`
-          : `الصرف المالي للمشروع منضبط تماماً ومتوافق مع نسبة الإنجاز البالغة ${progress}%.`,
-        reasonEn: idx === 1 
-          ? 'Disbursement velocity requires phase invoice reconciliation.' 
-          : `Disbursement aligned with ${progress}% completion rate.`,
-        recommendationAr: idx === 1 
-          ? 'مطابقة سندات الاستلام المخزني مع إشعارات الصرف البنكي.' 
-          : 'الاستمرار في الصرف وفق جدول الدفعات المعتمد.',
-        recommendationEn: idx === 1 
-          ? 'Reconcile goods receipts with bank vouchers.' 
-          : 'Continue tranches according to milestone deliverables.'
-      };
-    });
+  // HONESTY (DEBT PAID): fabricated index-based "audit findings" (hardcoded 8%/3%
+  // variances, severity by array position) removed. With no AI verdict there are
+  // no findings — the UI surfaces an honest unavailable notice instead.
+  const generateFallbackFinancialAudits = (_projects: any[]): any[] => {
+    void _projects;
+    return [];
   };
 
   const fetchPortfolioInsights = async (force = false) => {
@@ -186,7 +171,7 @@ export default function ProjectStatusOverviewWidget({
           setInsights(data.insights);
           try {
             localStorage.setItem('nexora_portfolio_insights', data.insights);
-          } catch (e) { console.error('[Insights] Failed to save portfolio insights to localStorage:', e); }
+          } catch (e) { logger.error('[Insights] Failed to save portfolio insights to localStorage:', e); }
           setInsightsError(null);
           return;
         }
@@ -196,7 +181,7 @@ export default function ProjectStatusOverviewWidget({
       setInsights(fallback);
       setInsightsError(null);
     } catch (err: any) {
-      console.warn('[Insights] Falling back to institutional offline analytics:', err);
+      logger.warn('[Insights] Falling back to institutional offline analytics:', err);
       const fallback = generateFallbackPortfolioInsights(activeDashboardProjects, lang);
       setInsights(fallback);
       setInsightsError(null);
@@ -262,19 +247,19 @@ export default function ProjectStatusOverviewWidget({
         setFinancialAudits(audited);
         try {
           localStorage.setItem('nexora_project_financial_audits', JSON.stringify(audited));
-        } catch (e) { console.error('[Audit] Failed to save financial audits to localStorage:', e); }
+        } catch (e) { logger.error('[Audit] Failed to save financial audits to localStorage:', e); }
         setFinancialAuditsError(null);
         return;
       }
 
       const fallbackAudits = generateFallbackFinancialAudits(activeDashboardProjects);
       setFinancialAudits(fallbackAudits);
-      setFinancialAuditsError(null);
+      setFinancialAuditsError(lang === 'ar' ? 'تدقيق الذكاء الاصطناعي غير متاح حالياً — لا توجد نتائج مختلقة' : 'AI audit currently unavailable — no fabricated findings');
     } catch (err: any) {
-      console.warn('[FinancialAudit] Falling back to deterministic rule engine:', err);
+      logger.warn('[FinancialAudit] AI audit unavailable, no fabricated fallback:', err);
       const fallbackAudits = generateFallbackFinancialAudits(activeDashboardProjects);
       setFinancialAudits(fallbackAudits);
-      setFinancialAuditsError(null);
+      setFinancialAuditsError(lang === 'ar' ? 'تدقيق الذكاء الاصطناعي غير متاح حالياً — لا توجد نتائج مختلقة' : 'AI audit currently unavailable — no fabricated findings');
     } finally {
       setFinancialAuditsLoading(false);
     }
@@ -284,7 +269,7 @@ export default function ProjectStatusOverviewWidget({
     setFinancialAuditEnabled(enabled);
     try {
       localStorage.setItem('nexora_financial_audit_enabled', String(enabled));
-    } catch (e) { console.error('[Audit] Failed to save financial audit enabled state to localStorage:', e); }
+    } catch (e) { logger.error('[Audit] Failed to save financial audit enabled state to localStorage:', e); }
 
     if (enabled) {
       await runFinancialAudit(true);
@@ -354,7 +339,7 @@ export default function ProjectStatusOverviewWidget({
         setPredictiveImpact(data);
         try {
           localStorage.setItem('nexora_project_predictive_impact', JSON.stringify(data));
-        } catch (e) { console.error('[PredictiveImpact] Failed to save predictive impact data to localStorage:', e); }
+        } catch (e) { logger.error('[PredictiveImpact] Failed to save predictive impact data to localStorage:', e); }
         setPredictiveImpactError(null);
         return;
       }
@@ -378,7 +363,7 @@ export default function ProjectStatusOverviewWidget({
       setPredictiveImpact(fallbackPredictive);
       setPredictiveImpactError(null);
     } catch (err: any) {
-      console.warn('[PredictiveImpact] Falling back to deterministic model:', err);
+      logger.warn('[PredictiveImpact] Falling back to deterministic model:', err);
       const totalTarget = activeDashboardProjects.reduce((acc, p) => acc + (parseInt(String(p.target_beneficiaries || 0), 10) || 0), 0);
       const fallbackPredictive: PredictiveImpactData = {
         quarterlyOverviewAr: 'توقعات الربع القادم تسجل استقراراً تشغيلياً عالياً في وصول المساعدات ونمواً في الأثر الإنساني.',
@@ -406,7 +391,7 @@ export default function ProjectStatusOverviewWidget({
     setPredictiveImpactEnabled(enabled);
     try {
       localStorage.setItem('nexora_predictive_impact_enabled', String(enabled));
-    } catch (e) { console.error('[PredictiveImpact] Failed to save predictive impact enabled state to localStorage:', e); }
+    } catch (e) { logger.error('[PredictiveImpact] Failed to save predictive impact enabled state to localStorage:', e); }
 
     if (enabled) {
       await runPredictiveImpact(true);
@@ -474,7 +459,7 @@ export default function ProjectStatusOverviewWidget({
         setSmartRebalance(data);
         try {
           localStorage.setItem('nexora_project_smart_rebalance', JSON.stringify(data));
-        } catch (e) { console.error('[SmartRebalance] Failed to save smart rebalance data to localStorage:', e); }
+        } catch (e) { logger.error('[SmartRebalance] Failed to save smart rebalance data to localStorage:', e); }
         setSmartRebalanceError(null);
         return;
       }
@@ -498,7 +483,7 @@ export default function ProjectStatusOverviewWidget({
       setSmartRebalance(fallbackRebalance);
       setSmartRebalanceError(null);
     } catch (err: any) {
-      console.warn('[SmartRebalance] Falling back to deterministic rebalancing model:', err);
+      logger.warn('[SmartRebalance] Falling back to deterministic rebalancing model:', err);
       const fallbackRebalance: SmartRebalanceData = {
         strategicRationaleAr: 'المحفظة متزنة مالياً مع إمكانية تحسين استثمار وفورات المشاريع المكتملة لدعم الأنشطة الميدانية الطارئة.',
         strategicRationaleEn: 'Portfolio balanced with opportunity to leverage completed project savings for emergency field relief.',
@@ -526,7 +511,7 @@ export default function ProjectStatusOverviewWidget({
     setSmartRebalanceEnabled(enabled);
     try {
       localStorage.setItem('nexora_smart_rebalance_enabled', String(enabled));
-    } catch (e) { console.error('[SmartRebalance] Failed to save smart rebalance enabled state to localStorage:', e); }
+    } catch (e) { logger.error('[SmartRebalance] Failed to save smart rebalance enabled state to localStorage:', e); }
 
     if (enabled) {
       await runSmartRebalance(true);
@@ -591,7 +576,7 @@ export default function ProjectStatusOverviewWidget({
         setAnomalies(detected);
         try {
           localStorage.setItem('nexora_project_anomalies', JSON.stringify(detected));
-        } catch (e) { console.error('[Anomaly] Failed to save anomaly data to localStorage:', e); }
+        } catch (e) { logger.error('[Anomaly] Failed to save anomaly data to localStorage:', e); }
 
         // Trigger custom toast events for newly discovered anomalies
         newlyDiscovered.forEach((anomaly: any) => {
@@ -616,7 +601,7 @@ export default function ProjectStatusOverviewWidget({
       setAnomalies([]);
       setAnomaliesError(null);
     } catch (err: any) {
-      console.warn('[Anomaly] Falling back to clean telemetry:', err);
+      logger.warn('[Anomaly] Falling back to clean telemetry:', err);
       setAnomalies([]);
       setAnomaliesError(null);
     } finally {
@@ -628,7 +613,7 @@ export default function ProjectStatusOverviewWidget({
     setAnomalyEnabled(enabled);
     try {
       localStorage.setItem('nexora_anomaly_enabled', String(enabled));
-    } catch (e) { console.error('[Anomaly] Failed to save anomaly enabled state to localStorage:', e); }
+    } catch (e) { logger.error('[Anomaly] Failed to save anomaly enabled state to localStorage:', e); }
 
     if (enabled) {
       await runAnomalyDiagnostics(true);
@@ -756,7 +741,7 @@ export default function ProjectStatusOverviewWidget({
       }
       setMilestones(parsed);
     } catch (e) {
-      console.error('Error loading milestones in status widget:', e);
+      logger.error('Error loading milestones in status widget:', e);
     }
   }, [projects]);
 
@@ -1139,7 +1124,7 @@ export default function ProjectStatusOverviewWidget({
         throw new Error(lang === 'ar' ? 'استجابة غير صالحة من محرك الذكاء الاصطناعي' : 'Invalid structure from Gemini');
       }
     } catch (error: any) {
-      console.error(error);
+      logger.error(error);
       setPulseAnalysisError(prev => ({
         ...prev,
         [projectId]: error.message || (lang === 'ar' ? 'خطأ غير متوقع في محرك الذكاء الاصطناعي' : 'Unexpected AI error')
@@ -1350,7 +1335,7 @@ export default function ProjectStatusOverviewWidget({
     try {
       localStorage.setItem('nexora_project_milestones_v1', JSON.stringify(updated));
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
   };
 

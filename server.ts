@@ -235,6 +235,66 @@ app.use(rateLimitHeaders);
 // CSRF Protection — validates Origin/Referer on state-changing requests
 app.use(csrfProtection);
 
+// ─── Global authentication (SaaS hardening) ──────────────────────────
+// Authenticate BEFORE deep inspection (sanitization/validation) so an
+// unauthenticated caller always gets 401 — never a validation oracle, and
+// metered routes (AI, exports) can never run anonymously. Public paths are
+// skipped inside the gate; per-route guards stay as defense-in-depth.
+// NOTE: mounted here (not beside the routes below) on purpose — position in
+// this file IS the security order. Defined here (not at the old §1121 site)
+// because `const` cannot be referenced before initialization (TDZ).
+// ─── LEGACY: Inline authenticateToken ────────────────────────
+// Deliberate duplicate of src/server/middleware/auth.middleware.ts:
+// retained for the inline routes defined in this file.
+// NEW routes (e.g. V2) MUST use the canonical import from auth.middleware.ts.
+const authenticateToken = (req: any, res: any, next: any) => {
+  // Only apply to /api paths
+  if (!req.path.startsWith('/api')) {
+    return next();
+  }
+
+  // Allow CORS preflight to pass through unauthenticated
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
+  // Exclude public paths (req.path starts with '/api'). OpenAPI docs stay
+  // public (integration consumers fetch the spec anonymously); AI routes
+  // such as /api/gemini/* REQUIRE auth — they spend metered model quota.
+  if (
+    req.path.startsWith('/api/auth') ||
+    req.path.startsWith('/api/health') ||
+    req.path.startsWith('/api/docs') ||
+    req.path.startsWith('/api/exchange-rates') ||
+    req.path.startsWith('/api/v2/auth') ||
+    req.path.startsWith('/api/v2/health') ||
+    req.path.startsWith('/api/v2/docs') ||
+    req.path.startsWith('/api/v2/exchange-rates')
+  ) {
+    return next();
+  }
+
+  const token: string | null = getRequestToken(req);
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access Denied: Missing Authentication Token' });
+  }
+
+  jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }, (err: any, user: any) => {
+    if (err) {
+      if (process.env.NODE_ENV !== 'production') {
+        logger.error(`JWT Verify Error: ${err.message}`, { context: 'auth' });
+      }
+      // RFC 6750 §3.1: any authentication failure is 401; 403 is reserved
+      // for authenticated-but-forbidden (permission layer).
+      return res.status(401).json({ error: 'Access Denied: Invalid or Expired Token' });
+    }
+    req.user = user;
+    next();
+  });
+};
+app.use(authenticateToken);
+
 // Request timeout (30s default) — prevents hanging queries
 app.use(timeoutMiddleware(30000));
 
@@ -246,6 +306,24 @@ app.use(deduplicationMiddleware({ windowMs: 1000, maxAge: 5000 }));
 
 // Security hardening (input sanitization, SQL injection detection, XSS prevention)
 app.use(securityMiddleware());
+
+// OS-root guard (SaaS hardening): `..` sequences are normalized away by most
+// HTTP clients before they reach us, so `isPathTraversal` cannot see them —
+// yet `/etc/passwd` then falls through to the SPA shell with a 200, which
+// reads as "traversal accepted". No legitimate web route starts at an OS
+// root, so deny them explicitly with 400 (caught by E2E path-traversal suite).
+app.use((req: any, res: any, next: any) => {
+  let raw = req.path || '';
+  try {
+    raw = decodeURIComponent(raw);
+  } catch {
+    return res.status(400).json({ success: false, error: { code: 'INVALID_PATH' } });
+  }
+  if (/^\/(etc|proc|sys|root|boot|dev|windows|winnt)(\/|$)/i.test(raw) || /^[a-zA-Z]:(\/|$)/.test(raw)) {
+    return res.status(400).json({ success: false, error: { code: 'INVALID_PATH' } });
+  }
+  next();
+});
 
 // IP blocklist check
 app.use(ipBlocklistMiddleware());
@@ -287,16 +365,19 @@ app.use(outputSecurityMiddleware());
 // Distributed Rate Limiting (Redis sliding-window, in-memory fallback).
 // Survives restarts and works across replicas — unlike the previous
 // per-process express-rate-limit tiers.
+// All budgets below are env-overridable (E2E/load); production defaults are
+// unchanged. Hardcoded per-route budgets previously made the platform trip
+// its own guards under legitimate load (incl. the E2E suite from one IP).
 const apiLimiter = createDistributedRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 300, // Limit each IP to 300 requests per windowMs
+  maxRequests: Number(process.env.RATE_LIMIT_GENERAL_API_MAX ?? 300), // Limit each IP per windowMs
   keyPrefix: 'rl:api',
   message: { ar: 'طلبات كثيرة جداً. يرجى المحاولة لاحقاً.', en: 'Too many requests from this IP, please try again after 15 minutes' },
 });
 
 const authLimiter = createDistributedRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 20, // Limit each IP to 20 login/auth requests per window
+  maxRequests: Number(process.env.RATE_LIMIT_AUTH ?? 20), // Limit each IP to login/auth requests per window
   keyPrefix: 'rl:auth',
   blockDuration: 15 * 60 * 1000,
   message: { ar: 'محاولات مصادقة كثيرة. يرجى الانتظار.', en: 'Too many authentication attempts, please try again later' },
@@ -312,7 +393,7 @@ app.use((req, res, next) => {
 // AI API Rate Limiter — prevents unbounded AI cost exposure
 const aiLimiter = createDistributedRateLimiter({
   windowMs: 60 * 1000, // 1 minute
-  maxRequests: 30, // 30 AI requests per minute
+  maxRequests: Number(process.env.RATE_LIMIT_AI_PER_MIN ?? 30), // AI requests per minute
   keyPrefix: 'rl:ai',
   message: { ar: 'تم تجاوز حد طلبات الذكاء الاصطناعي.', en: 'AI request rate limit exceeded. Max 30 per minute.' },
 });
@@ -1072,53 +1153,13 @@ import { serverConfig } from './src/server/config/index';
 const JWT_SECRET = serverConfig.jwtSecret;
 const JWT_REFRESH_SECRET = serverConfig.jwtRefreshSecret;
 
-// ─── LEGACY: Inline authenticateToken ────────────────────────
-// This duplicates src/server/middleware/auth.middleware.ts:authenticateToken.
-// Retained for backward-compatibility with inline routes defined below.
+// ─── Inline authenticateToken: DEFINITION MOVED ─────────────────
+// Lives just above its mount (after CSRF protection) because `const`
+// declarations cannot be referenced before initialization (TDZ) — the mount
+// must run early in the security order. See below.
+// (Deliberate duplicate of src/server/middleware/auth.middleware.ts:
+// retained for the inline routes defined in this file.)
 // NEW routes (e.g. V2) MUST use the canonical import from auth.middleware.ts.
-const authenticateToken = (req: any, res: any, next: any) => {
-  // Only apply to /api paths
-  if (!req.path.startsWith('/api')) {
-    return next();
-  }
-
-  // Allow CORS preflight to pass through unauthenticated
-  if (req.method === 'OPTIONS') {
-    return next();
-  }
-
-  // Exclude public paths (req.path starts with '/api')
-  if (
-    req.path.startsWith('/api/auth') ||
-    req.path.startsWith('/api/health') ||
-    req.path.startsWith('/api/exchange-rates') ||
-    req.path.startsWith('/api/v2/auth') ||
-    req.path.startsWith('/api/v2/health') ||
-    req.path.startsWith('/api/v2/exchange-rates')
-  ) {
-    return next();
-  }
-
-  const token: string | null = getRequestToken(req);
-
-  if (!token) {
-    return res.status(401).json({ error: 'Access Denied: Missing Authentication Token' });
-  }
-
-  jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }, (err: any, user: any) => {
-    if (err) {
-      if (process.env.NODE_ENV !== 'production') {
-        logger.error(`JWT Verify Error: ${err.message}`, { context: 'auth' });
-      }
-      return res.status(403).json({ error: 'Access Denied: Invalid or Expired Token' });
-    }
-    req.user = user;
-    next();
-  });
-};
-
-// Apply globally to the express app before routes
-app.use(authenticateToken);
 
 // Propagate the verified JWT org claim through AsyncLocalStorage so the
 // database layer can scope FORCE RLS policies per request.
@@ -1128,14 +1169,14 @@ app.use('/api', tenantContextMiddleware);
 // Rate Limiters for write operations and sensitive endpoints (distributed)
 const apiWriteRateLimiter = createDistributedRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 50,
+  maxRequests: Number(process.env.RATE_LIMIT_WRITE_MAX ?? 50),
   keyPrefix: 'rl:write',
   message: { ar: 'تم تجاوز حد عمليات الكتابة.', en: 'Write rate limit exceeded. Max 50 writes per 15 minutes.' },
 });
 
 const sensitiveOpsRateLimiter = createDistributedRateLimiter({
   windowMs: 15 * 60 * 1000,
-  maxRequests: 5,
+  maxRequests: Number(process.env.RATE_LIMIT_SENSITIVE_MAX ?? 5),
   keyPrefix: 'rl:sensitive',
   blockDuration: 15 * 60 * 1000,
   message: { ar: 'تم تجاوز حد العمليات الحساسة.', en: 'Sensitive operation rate limit exceeded. Max 5 per 15 minutes.' },

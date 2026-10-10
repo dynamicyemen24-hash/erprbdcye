@@ -6,7 +6,8 @@ import {
   Building, BookOpen, Zap, Eye, History, Bookmark, Lightbulb, Globe
 } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
-
+
+import { logger } from '../../lib/logger';
 // ─── Types ───────────────────────────────────────────────
 
 type SearchableDomain =
@@ -175,7 +176,7 @@ export default function UnifiedSearchEngineTab({ lang }: UnifiedSearchEngineTabP
       });
       setResults(r);
     } catch (err: any) {
-      console.error('[Search] failed:', err);
+      logger.error('[Search] failed:', err);
       setResults(null);
     } finally {
       setLoading(false);
@@ -216,7 +217,7 @@ export default function UnifiedSearchEngineTab({ lang }: UnifiedSearchEngineTabP
       setSavedSearches(list);
       setShowSaveDialog(false);
     } catch (err: any) {
-      console.error('Save failed', err);
+      logger.error('Save failed', err);
     }
   };
 
@@ -224,7 +225,7 @@ export default function UnifiedSearchEngineTab({ lang }: UnifiedSearchEngineTabP
     try {
       await api(`/search/saved/${id}`, { method: 'DELETE' });
       setSavedSearches(prev => prev.filter(s => s.id !== id));
-    } catch (err) { console.error(err); }
+    } catch (err) { logger.error(err); }
   };
 
   const pinSaved = async (s: SavedSearch) => {
@@ -235,7 +236,7 @@ export default function UnifiedSearchEngineTab({ lang }: UnifiedSearchEngineTabP
       });
       const list = await api('/search/saved?includePublic=true');
       setSavedSearches(list);
-    } catch (err) { console.error(err); }
+    } catch (err) { logger.error(err); }
   };
 
   const loadSaved = (s: SavedSearch) => {

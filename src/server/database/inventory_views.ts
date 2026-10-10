@@ -5,7 +5,7 @@
  */
 
 import pg from 'pg';
-import { logger } from '../core/logger';
+import { logger, toLogMeta } from '../core/logger';
 
 const VIEW_STATEMENTS: string[] = [
   // 1) المخزون الحالي الموحد (الرصيد × الصنف × المخزن)
@@ -130,6 +130,6 @@ if (isDirectRun) {
   const { config } = await import('dotenv');
   config();
   runInventoryViews()
-    .then(() => { console.log('INVENTORY_VIEWS_OK'); process.exit(0); })
-    .catch((e: unknown) => { console.error('INVENTORY_VIEWS_FAILED', e); process.exit(1); });
+    .then(() => { logger.info('INVENTORY_VIEWS_OK'); process.exit(0); })
+    .catch((e: unknown) => { logger.error('INVENTORY_VIEWS_FAILED', { meta: toLogMeta(e) }); process.exit(1); });
 }

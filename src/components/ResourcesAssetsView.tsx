@@ -45,7 +45,8 @@ import { generateNumericCode, generateShortId } from '../lib/idGenerator';
 import { Spinner } from '../design-system/components/Spinner';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
 import { EnterpriseButton } from './common/EnterpriseButton';
-
+
+import { logger } from '../lib/logger';
 interface ResourcesAssetsViewProps {
   users: User[];
   roles: Role[];
@@ -265,145 +266,13 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
   const [toastNotification, setToastNotification] = useState<string | null>(null);
 
   // Payroll records state
-  const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>([
-    {
-      id: 'pr-1',
-      userId: 'u-1',
-      employeeNameAr: 'م. عبدالرحمن الصهباني',
-      employeeNameEn: 'Eng. Abdulrahman Al-Sahbani',
-      department: 'Operations & Field',
-      basicSalary: 350000,
-      fieldAllowance: 75000,
-      hazardAllowance: 50000,
-      deductions: 15000,
-      netPayout: 460000,
-      currency: 'YER',
-      status: 'DISBURSED',
-      payoutDate: '2026-08-01'
-    },
-    {
-      id: 'pr-2',
-      userId: 'u-2',
-      employeeNameAr: 'أ. فاطمة أحمد العريقي',
-      employeeNameEn: 'Ms. Fatima Ahmed Al-Ariqi',
-      department: 'Beneficiaries & Services',
-      basicSalary: 320000,
-      fieldAllowance: 60000,
-      hazardAllowance: 30000,
-      deductions: 12000,
-      netPayout: 398000,
-      currency: 'YER',
-      status: 'DISBURSED',
-      payoutDate: '2026-08-01'
-    },
-    {
-      id: 'pr-3',
-      userId: 'u-3',
-      employeeNameAr: 'د. صالح محسن باحويرث',
-      employeeNameEn: 'Dr. Saleh Mohsen Bahuwait',
-      department: 'AI & Impact',
-      basicSalary: 450000,
-      fieldAllowance: 50000,
-      hazardAllowance: 20000,
-      deductions: 20000,
-      netPayout: 500000,
-      currency: 'YER',
-      status: 'PROCESSING',
-      payoutDate: '2026-08-25'
-    }
-  ]);
+  const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>([]);
 
   // Custodianship items state (عهد الموظفين)
-  const [custodianshipItems, setCustodianshipItems] = useState<CustodianshipItem[]>([
-    {
-      id: 'cust-1',
-      itemCode: 'AST-IT-101',
-      nameAr: 'حاسوب محمول Dell Latitude 5530',
-      nameEn: 'Dell Latitude 5530 Laptop',
-      category: 'IT_LAPTOP',
-      assignedUserId: 'u-1',
-      assignedUserNameAr: 'م. عبدالرحمن الصهباني',
-      assignedUserNameEn: 'Eng. Abdulrahman Al-Sahbani',
-      assignedDate: '2025-03-15',
-      serialNumber: 'DL-5530-98821',
-      condition: 'EXCELLENT',
-      status: 'ASSIGNED'
-    },
-    {
-      id: 'cust-2',
-      itemCode: 'AST-VEH-04',
-      nameAr: 'سيارة دفع رباعي تويوتا لاندكروزر',
-      nameEn: 'Toyota Land Cruiser 4x4 Field Vehicle',
-      category: 'VEHICLE',
-      assignedUserId: 'u-1',
-      assignedUserNameAr: 'م. عبدالرحمن الصهباني',
-      assignedUserNameEn: 'Eng. Abdulrahman Al-Sahbani',
-      assignedDate: '2025-01-10',
-      serialNumber: 'TY-LC-2024-441',
-      condition: 'GOOD',
-      status: 'ASSIGNED'
-    },
-    {
-      id: 'cust-3',
-      itemCode: 'AST-COM-12',
-      nameAr: 'جهاز اتصال فضائي ثريا SatPhone',
-      nameEn: 'Thuraya Satellite Phone',
-      category: 'COMMUNICATION',
-      assignedUserId: 'u-2',
-      assignedUserNameAr: 'أ. فاطمة أحمد العريقي',
-      assignedUserNameEn: 'Ms. Fatima Ahmed Al-Ariqi',
-      assignedDate: '2025-06-20',
-      serialNumber: 'TH-SAT-88219',
-      condition: 'EXCELLENT',
-      status: 'ASSIGNED'
-    }
-  ]);
+  const [custodianshipItems, setCustodianshipItems] = useState<CustodianshipItem[]>([]);
 
   // Volunteer records state (سجل المتطوعين والمهام الميدانية)
-  const [volunteerRecords, setVolunteerRecords] = useState<VolunteerRecord[]>([
-    {
-      id: 'vol-1',
-      nameAr: 'مختار سالم باعشن',
-      nameEn: 'Mukhtar Salem Baashen',
-      email: 'mukhtar.vol@rohmaab.org',
-      phone: '+967 733 123 456',
-      regionAr: 'مأرب - المركز الرئيسي',
-      regionEn: 'Marib - Central',
-      skills: ['التنسيق الميداني', 'توزيع السلال الغذائية', 'الإسعافات الأولية'],
-      totalHours: 340,
-      activeTasks: 4,
-      status: 'ACTIVE',
-      joinedDate: '2024-02-10'
-    },
-    {
-      id: 'vol-2',
-      nameAr: 'أروى محمد القدسي',
-      nameEn: 'Arwa Mohammed Al-Qudsi',
-      email: 'arwa.vol@rohmaab.org',
-      phone: '+967 711 987 654',
-      regionAr: 'تعز - القطاع الجنوبي',
-      regionEn: 'Taiz - Southern Sector',
-      skills: ['التوعية المجتمعية', 'الرصد والتقييم M&E', 'إعداد التقارير'],
-      totalHours: 280,
-      activeTasks: 2,
-      status: 'ON_MISSION',
-      joinedDate: '2024-05-15'
-    },
-    {
-      id: 'vol-3',
-      nameAr: 'سليمان ناصر الحاشدي',
-      nameEn: 'Sulaiman Nasser Al-Hashidi',
-      email: 'sulaiman.vol@rohmaab.org',
-      phone: '+967 777 456 789',
-      regionAr: 'إب - قطاع المرتفعات',
-      regionEn: 'Ibb - Highlands Sector',
-      skills: ['اللوجستيات ونقل المساعدات', 'إدارة المستودعات', 'الصيانة الميدانية'],
-      totalHours: 410,
-      activeTasks: 3,
-      status: 'ACTIVE',
-      joinedDate: '2023-11-20'
-    }
-  ]);
+  const [volunteerRecords, setVolunteerRecords] = useState<VolunteerRecord[]>([]);
   
   // Backends & fallback data
   const [warehouses, setWarehouses] = useState<WarehouseData[]>([]);
@@ -488,40 +357,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
   });
 
   // Stock Movement Audit History Log State
-  const [stockMovements, setStockMovements] = useState<StockMovementLog[]>([
-    {
-      id: 'sm-1',
-      date: new Date().toISOString().substring(0, 10),
-      time: '11:30',
-      itemId: 'inv-1',
-      itemNameAr: 'سلال غذائية متكاملة (دقيق، أرز، زيت، سكر)',
-      itemNameEn: 'Complete Relief Food Baskets',
-      type: 'RECEIVE',
-      qty: 500,
-      unitAr: 'سلة',
-      warehouseNameAr: 'المستودع المركزي - مأرب الرئيسي',
-      warehouseNameEn: 'Central Warehouse - Marib HQ',
-      refNo: 'GRN-2026-088',
-      notes: 'توريد من منحة مركز الملك سلمان للإغاثة',
-      user: 'أمين المستودع'
-    },
-    {
-      id: 'sm-2',
-      date: new Date().toISOString().substring(0, 10),
-      time: '09:15',
-      itemId: 'inv-2',
-      itemNameAr: 'وجبات تغذية جافة مخصصة للأطفال والأمهات',
-      itemNameEn: 'Dry Nutritional Meals (Infant & Mother)',
-      type: 'DISBURSE',
-      qty: 1200,
-      unitAr: 'وجبة',
-      warehouseNameAr: 'مستودع الساحل الغربي - الحديدة',
-      warehouseNameEn: 'West Coast Warehouse - Al Hudaydah',
-      refNo: 'SARF-2026-104',
-      notes: 'صرف عاجل لمخيم النازحين بمديرية الخوخة',
-      user: 'مدير اللوجستيات'
-    }
-  ]);
+  const [stockMovements, setStockMovements] = useState<StockMovementLog[]>([]);
 
   // Modal for Fixed Asset
   const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
@@ -582,7 +418,7 @@ export default function ResourcesAssetsView({ users, roles, loading, onRefresh, 
         setFixedAssets([]);
       }
     } catch (err) {
-      console.error('Error fetching inventory and assets tables:', err);
+      logger.error('Error fetching inventory and assets tables:', err);
       setWarehouses([]);
       setInventoryItems([]);
       setFixedAssets([]);

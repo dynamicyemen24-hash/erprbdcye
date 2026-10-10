@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
+import { logger } from '../../lib/logger';
 // Enterprise Telemetry Metrics Definitions
 export interface TelemetryMetric {
   id: string;
@@ -43,7 +44,7 @@ class NexoraPerformanceMonitor {
       try {
         listener(metric);
       } catch (e) {
-        console.error('Error in telemetry subscriber:', e);
+        logger.error('Error in telemetry subscriber:', e);
       }
     });
   }
@@ -137,7 +138,7 @@ class NexoraPerformanceMonitor {
 
     // Development Console Log (Stylized & Filtered to be non-intrusive)
     if (process.env.NODE_ENV !== 'production' && metric.value > 200) {
-      console.log(
+      logger.log(
         `%c[Telemetry Warning] Slow Operation detected: ${metric.name} took ${metric.value}ms`,
         'color: #d97706; font-weight: bold; font-family: monospace;'
       );
@@ -225,7 +226,7 @@ class NexoraPerformanceMonitor {
       clsObserver.observe({ type: 'layout-shift', buffered: true });
 
     } catch (e) {
-      console.warn('Web Vitals Observability not fully supported on this engine:', e);
+      logger.warn('Web Vitals Observability not fully supported on this engine:', e);
     }
   }
 
@@ -267,7 +268,7 @@ class NexoraPerformanceMonitor {
             });
           }
         } catch (e) {
-          console.error('Error measuring core document speed:', e);
+          logger.error('Error measuring core document speed:', e);
         }
       }, 0);
     });

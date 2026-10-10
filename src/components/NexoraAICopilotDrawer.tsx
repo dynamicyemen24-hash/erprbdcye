@@ -38,7 +38,8 @@ import { UAMEX_AI_MODEL_TIERS, UAMEX_AI_CONSTITUTION } from '../core/ai/UAMEXAIC
 import { showToast } from './enterprise/EnterpriseToastContainer';
 import { EnterpriseButton } from './common/EnterpriseButton';
 import { Spinner } from '../design-system/components/Spinner';
-
+
+import { logger } from '../lib/logger';
 interface NexoraAICopilotDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -171,7 +172,7 @@ export default function NexoraAICopilotDrawer({
       setResult(data);
       if (!forcedPrompt) setPrompt('');
     } catch (err: any) {
-      console.error('UAMEX AI Copilot Error:', err);
+      logger.error('UAMEX AI Copilot Error:', err);
       setError(err.message || (isRtl ? 'تعذر الاتصال بمحرك يوماكس إي آي' : 'Failed to connect to UAMEX AI Engine'));
     } finally {
       setLoading(false);

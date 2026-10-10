@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger';
 // Enterprise API Service Layer for NexoraOS™ (Multi-tenant High Performance REST/Data Engine)
 
 export interface ApiRequestOptions extends RequestInit {
@@ -23,7 +24,7 @@ export class EnterpriseApiService {
         }
       }
       token = localStorage.getItem('rbd_token') || '';
-    } catch (e) { console.error('[NexoraOS] EnterpriseApiService: Failed to read auth headers from localStorage', e); }
+    } catch (e) { logger.error('[NexoraOS] EnterpriseApiService: Failed to read auth headers from localStorage', e); }
 
     let envMode = 'production';
     try {

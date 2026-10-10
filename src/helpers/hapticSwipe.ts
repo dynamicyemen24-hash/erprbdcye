@@ -168,17 +168,9 @@ export function triggerHaptic(
 
   try {
     return navigator.vibrate(patterns[type]);
-  } catch (error) {
-    if (
-      typeof console !== 'undefined' &&
-      typeof console.debug === 'function'
-    ) {
-      console.debug(
-        'NexoraOS™: Haptic feedback unavailable.',
-        error
-      );
-    }
-
+  } catch {
+    // Best-effort haptic: failure needs no log. Helpers stay I/O-free
+    // apart from their own feature surface (see `helpers/index.ts` rule).
     return false;
   }
 }

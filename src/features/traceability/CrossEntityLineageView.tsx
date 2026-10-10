@@ -26,6 +26,18 @@ import {
 } from 'lucide-react';
 import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import { printHTML, createPrintDocument, getCustomFooterHTML } from '../../lib/printUtils';
+import { PermissionGate } from '../../components/PermissionGate';
+import { PERMISSIONS } from '../../shared/permissions/permission-map';
+import { buildPrintReference } from '../../shared/audit/useAuditPrint';
+
+function auditHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token');
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  } catch { /* ignore */ }
+  return headers;
+}
 
 interface CrossEntityLineageViewProps {
   lang: 'ar' | 'en';
@@ -215,14 +227,27 @@ export default function CrossEntityLineageView({
     });
   }, [traces, searchTerm, selectedArchetypeFilter]);
 
-  // Official A4 Print of Lineage Trace
-  const handlePrintLineageDossier = (record: LineageTraceRecord) => {
+  // Official A4 Print of Lineage Trace — audited with a reference number.
+  const handlePrintLineageDossier = async (record: LineageTraceRecord) => {
+    const reference = buildPrintReference('LNX');
+    try {
+      await fetch('/api/tables/audit_logs', {
+        method: 'POST',
+        headers: auditHeaders(),
+        body: JSON.stringify({
+          action: 'PRINT:lineage-dossier',
+          table_name: 'lineage_dossier',
+          record_id: reference,
+          details: JSON.stringify({ trace: record.id, project: record.project_code, reference }),
+        }),
+      });
+    } catch { /* print must not be blocked */ }
     const documentHTML = `
       <div style="font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif; direction: rtl; text-align: right; color: #0f172a; padding: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double #059669; padding-bottom: 12px; margin-bottom: 16px;">
           <div style="display: flex; align-items: center; gap: 14px;">
-            <img src="/UAMEX_ERPLOGO.png" style="height: 52px; object-fit: contain;" />
-            <img src="/LogoRohamaab.png" style="height: 52px; object-fit: contain;" />
+            <img src="/UAMEX_ERPLOGO.png" alt="UAMEX ERP logo" style="height: 52px; object-fit: contain;" />
+            <img src="/LogoRohamaab.png" alt="Rohamaab organization emblem" style="height: 52px; object-fit: contain;" />
             <div>
               <h2 style="margin: 0; font-size: 16px; font-weight: 800; color: #059669;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
               <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">نظام يو امكس المؤسسي الشامل - وثيقة التدقيق والتكامل المؤسسي الشامل (End-to-End Lineage Dossier)</p>
@@ -382,13 +407,15 @@ export default function CrossEntityLineageView({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePrintLineageDossier(selectedTrace)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-black transition-all cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>{isRtl ? 'طباعة وثيقة التدقيق والتتبع A4' : 'Print Lineage Dossier'}</span>
-            </button>
+            <PermissionGate perm={PERMISSIONS.AUDIT_READ} mode="disabled">
+              <button
+                onClick={() => handlePrintLineageDossier(selectedTrace)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-black transition-all cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>{isRtl ? 'طباعة وثيقة التدقيق والتتبع A4' : 'Print Lineage Dossier'}</span>
+              </button>
+            </PermissionGate>
           </div>
         </div>
 
@@ -480,13 +507,15 @@ export default function CrossEntityLineageView({
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">{isRtl ? 'سلسلة التتبع الشاملة للعملية' : 'End-to-End Lineage Chain'}</span>
                 <h3 className="text-sm font-black text-slate-900 dark:text-white">{selectedTrace.project_title_ar}</h3>
               </div>
-              <button
-                onClick={() => handlePrintLineageDossier(selectedTrace)}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer text-emerald-600"
-                title={isRtl ? 'طباعة وثيقة التدقيق والتكامل' : 'Print'}
-              >
-                <Printer className="w-4 h-4" />
-              </button>
+              <PermissionGate perm={PERMISSIONS.AUDIT_READ} mode="disabled">
+                <button
+                  onClick={() => handlePrintLineageDossier(selectedTrace)}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer text-emerald-600"
+                  title={isRtl ? 'طباعة وثيقة التدقيق والتكامل' : 'Print'}
+                >
+                  <Printer className="w-4 h-4" />
+                </button>
+              </PermissionGate>
             </div>
 
             {/* The 10 Layer Chain */}

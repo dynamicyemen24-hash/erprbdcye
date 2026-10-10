@@ -6,7 +6,7 @@
 import { query, queryOne, queryMany, transaction } from '../core/database';
 import { PaginationParams, PaginatedResult } from '../core/types';
 import { paginatedQuery, requireField, optionalString, auditLog, AuthContext } from '../core/helpers';
-import logger from '../core/logger';
+import logger, { toLogMeta } from '../core/logger';
 
 export class VolunteerEngine {
   static async list(orgId: string, pagination: PaginationParams = {}, filters?: {
@@ -135,7 +135,7 @@ export class CommitteeEngine {
       `INSERT INTO committee_members (committee_id, volunteer_id, role, join_date)
        VALUES ($1,$2,$3,$4) RETURNING *`,
       [committeeId, data.volunteerId, optionalString(data.role), data.joinDate || new Date().toISOString()]
-    ).catch((err: any) => { console.error('[Engine] Query failed:', err.message); return null; });
+    ).catch((err: any) => { logger.error('[Engine] Query failed:', { meta: toLogMeta(err.message) }); return null; });
   }
 
   static async getMembers(committeeId: string) {

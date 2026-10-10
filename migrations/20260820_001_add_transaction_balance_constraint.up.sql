@@ -2,6 +2,9 @@
 -- Ensures total_debit = total_credit for IPSAS compliance
 -- Reference: NEXORA_TECHNICAL_DEBT_REGISTER.md TD-005
 
-ALTER TABLE transactions
-ADD CONSTRAINT chk_transaction_balance
-CHECK (total_debit = total_credit);
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_transaction_balance') THEN
+    ALTER TABLE transactions ADD CONSTRAINT chk_transaction_balance CHECK (total_debit = total_credit);
+  END IF;
+END $$;

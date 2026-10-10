@@ -36,6 +36,12 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   size?: BadgeSize;
   /** Leading status dot, hidden from the accessibility tree. */
   dot?: boolean;
+  /**
+  * Ping animation on the dot for live states (adopted from the retired
+  * `shared/components` Badge so the "LIVE" pill genuinely pulses).
+  * Requires `dot` — without a dot there is nothing to animate.
+  */
+  pulse?: boolean;
   /** Announced instead of the visual text when the visible text is ambiguous. */
   srLabel?: string;
 }
@@ -90,6 +96,7 @@ export function Badge({
   variant = 'neutral',
   size = 'sm',
   dot,
+  pulse = false,
   srLabel,
   className,
   children,
@@ -107,7 +114,15 @@ export function Badge({
       )}
       {...rest}
     >
-      {dot && <span aria-hidden="true" className={cn('rounded-full shrink-0', DOT[size], v.dot)} />}
+      {dot &&
+        (pulse ? (
+          <span className="relative flex" aria-hidden="true">
+            <span className={cn('rounded-full shrink-0', DOT[size], v.dot)} />
+            <span className={cn('absolute inset-0 rounded-full animate-ping', DOT[size], v.dot)} />
+          </span>
+        ) : (
+          <span aria-hidden="true" className={cn('rounded-full shrink-0', DOT[size], v.dot)} />
+        ))}
       {srLabel ? (
         <>
           <span aria-hidden="true">{children}</span>

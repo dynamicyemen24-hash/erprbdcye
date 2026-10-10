@@ -7,9 +7,18 @@
 
 import React from 'react';
 import { cn } from '../utils/cn';
+import type { CardVariant, CardPadding } from './Card';
 
-export type CardVariant = 'default' | 'elevated' | 'outlined' | 'glass';
-export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
+/**
+ * Historic aliases (DEBT PAID). The canonical `CardVariant`/`CardPadding`
+ * (see `./Card`) already cover this component's old vocabulary
+ * (default/elevated/outlined/glass) plus `Card`'s (raised/flush), so the
+ * second declaration — and the `as` cast at the barrel — are removed.
+ * These aliases stay only so any out-of-tree import keeps compiling.
+ * @deprecated Import `CardVariant`/`CardPadding` from the design system root.
+ */
+export type EnterpriseCardVariant = CardVariant;
+export type EnterpriseCardPadding = CardPadding;
 
 export interface EnterpriseCardProps {
   children: React.ReactNode;
@@ -27,6 +36,8 @@ export interface EnterpriseCardProps {
 
 const VARIANT_CLASSES: Record<CardVariant, string> = {
   default: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/50 shadow-sm',
+  raised: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/50 shadow-md',
+  flush: 'bg-white dark:bg-zinc-900 border border-transparent shadow-none',
   elevated: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/50 shadow-lg',
   outlined: 'bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-700',
   glass: 'bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm',

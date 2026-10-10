@@ -4,6 +4,15 @@
  *
  * Usage:
  *   import { EnterpriseButton, EnterpriseStatusBadge, EnterpriseKPICard } from '@/components/common';
+ *
+ * OWNERSHIP (DEBT PAID): generic primitives live in `src/design-system/`
+ * (`Alert/Badge/Card/ConfirmDialog/EmptyState/Skeleton/...`). The
+ * `Enterprise*` names below are kept ONLY where they carry a contract the
+ * canonicals don't cover — collapsible+`ai` banner, explicit
+ * open/onConfirm/onCancel dialog, hints+dual-CTA empty state, unit/trend/
+ * progress/footer KPI card, in-`<tbody>` table shimmer. All render through
+ * Design System motion, buttons, and closed palettes; the `enterpriseTokens`
+ * render dependency is gone.
  */
 
 // ── Core Design System ────────────────────────────────────────────────────────

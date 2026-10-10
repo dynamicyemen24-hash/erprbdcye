@@ -27,7 +27,8 @@ import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { Pagination } from '../design-system/components/Pagination';
 import { showToast } from './enterprise/EnterpriseToastContainer';
 import { useDebouncedValue } from '../design-system/hooks/useDebouncedValue';
-
+
+import { logger } from '../lib/logger';
 // ─── Type Definitions ────────────────────────────────────────────────────────
 
 export interface Tender {
@@ -510,7 +511,7 @@ function BidEvaluationModal({ open, onClose, bid, lang, onSave }: BidEvaluationM
     try {
       await apiEvaluateBid(bid.id, { technicalScore, financialScore, complianceScore, notesAr, notesEn });
       onSave(); onClose();
-    } catch (e: any) { console.error(e); } finally { setLoading(false); }
+    } catch (e: any) { logger.error(e); } finally { setLoading(false); }
   };
 
   return (

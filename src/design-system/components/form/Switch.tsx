@@ -28,6 +28,8 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
     const switchId = id || fallbackId;
     const config = sizeConfig[size];
 
+    const ariaLabel = displayLabel ? (lang === 'ar' ? displayLabel : displayLabel) : undefined;
+
     return (
       <label htmlFor={switchId} className={cn('inline-flex items-center gap-2 cursor-pointer', props.disabled && 'opacity-50 cursor-not-allowed', className)}>
         <span className="relative inline-flex">
@@ -37,6 +39,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
             id={switchId}
             role="switch"
             aria-checked={props.checked}
+            aria-label={ariaLabel}
             className="peer sr-only"
             {...props}
           />

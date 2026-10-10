@@ -84,7 +84,7 @@ export function MobileLayout({ tabs, activeTab, onTabChange, children, lang = 'a
       </div>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 inset-x-0 z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-200 dark:border-zinc-800 safe-area-inset-bottom" role="tablist">
+      <nav className="fixed bottom-0 inset-x-0 z-sticky bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-200 dark:border-zinc-800 safe-area-inset-bottom" role="tablist">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
           {tabs.map((tab) => {
             const isActive = tab.id === activeTab;

@@ -16,7 +16,6 @@ import {
   Minimize2,
   Table as TableIcon
 } from 'lucide-react';
-import { enterpriseTokens } from '../../../core/theme/enterpriseDesignTokens';
 import { normalizeArabicText } from '../../../core/utils/arabicSearch';
 import { showToast } from '../EnterpriseToastContainer';
 import { Spinner } from '../../../design-system/components/Spinner';

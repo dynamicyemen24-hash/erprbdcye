@@ -39,11 +39,11 @@ const STROKE_MAP: Record<ProgressRingSize, number> = {
 };
 
 const COLOR_MAP: Record<ProgressRingVariant, { stroke: string; text: string; track: string }> = {
-  primary: { stroke: '#059669', text: 'text-emerald-600 dark:text-emerald-400', track: '#d1fae5' },
-  accent: { stroke: '#d97706', text: 'text-amber-600 dark:text-amber-400', track: '#fef3c7' },
-  success: { stroke: '#10b981', text: 'text-emerald-600 dark:text-emerald-400', track: '#d1fae5' },
-  danger: { stroke: '#ef4444', text: 'text-red-600 dark:text-red-400', track: '#fee2e2' },
-  info: { stroke: '#3b82f6', text: 'text-blue-600 dark:text-blue-400', track: '#dbeafe' },
+  primary: { stroke: 'var(--brand-primary, #059669)', text: 'text-emerald-600 dark:text-emerald-400', track: 'var(--ux-success-light, #d1fae5)' },
+  accent: { stroke: 'var(--brand-accent, #d97706)', text: 'text-amber-600 dark:text-amber-400', track: 'var(--ux-warning-light, #fef3c7)' },
+  success: { stroke: 'var(--ux-success, #10b981)', text: 'text-emerald-600 dark:text-emerald-400', track: 'var(--ux-success-light, #d1fae5)' },
+  danger: { stroke: 'var(--ux-danger, #ef4444)', text: 'text-red-600 dark:text-red-400', track: 'var(--ux-danger-light, #fee2e2)' },
+  info: { stroke: 'var(--ux-info, #3b82f6)', text: 'text-blue-600 dark:text-blue-400', track: 'var(--ux-info-light, #dbeafe)' },
 };
 
 export function ProgressRing({

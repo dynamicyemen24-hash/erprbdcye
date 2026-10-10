@@ -77,9 +77,9 @@ export function MenuContent({ children, align = 'start', className }: MenuConten
   if (!open) return null;
 
   const alignClasses = {
-    start: 'left-0',
-    center: 'left-1/2 -translate-x-1/2',
-    end: 'right-0',
+    start: 'start-0',
+    center: 'start-1/2 -translate-x-1/2 rtl:translate-x-1/2',
+    end: 'end-0',
   };
 
   return (
@@ -87,7 +87,7 @@ export function MenuContent({ children, align = 'start', className }: MenuConten
       ref={ref}
       role="menu"
       className={cn(
-        'absolute top-full mt-1 z-50 min-w-[12rem] py-1 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 animate-in fade-in zoom-in-95',
+        'absolute top-full mt-1 z-dropdown min-w-[12rem] py-1 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 animate-in fade-in zoom-in-95',
         alignClasses[align],
         className
       )}
@@ -115,7 +115,7 @@ export function MenuItem({ children, onClick, disabled = false, danger = false, 
       disabled={disabled}
       onClick={() => { if (!disabled) { onClick?.(); close(); } }}
       className={cn(
-        'flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors',
+        'flex items-center gap-2 w-full px-3 py-2 text-sm text-start transition-colors',
         'focus-visible:outline-none focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700',
         danger ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20' : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700',
         disabled && 'opacity-50 cursor-not-allowed',

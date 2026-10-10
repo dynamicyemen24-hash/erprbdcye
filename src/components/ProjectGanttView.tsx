@@ -32,7 +32,8 @@ import { Project, Program } from '../core/types';
 import { triggerHaptic } from '../helpers/hapticSwipe';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
-
+
+import { logger } from '../lib/logger';
 export interface GanttPhase {
   id: string;
   projectId: string;
@@ -119,7 +120,7 @@ export default function ProjectGanttView({
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {
-      console.error('Error loading Gantt phases:', e);
+      logger.error('Error loading Gantt phases:', e);
     }
     return enginePhasesFor(projects);
   });
@@ -133,7 +134,7 @@ export default function ProjectGanttView({
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {
-      console.error('Error loading resource allocations:', e);
+      logger.error('Error loading resource allocations:', e);
     }
     return generateDefaultAllocations(projects);
   });
@@ -149,7 +150,7 @@ export default function ProjectGanttView({
       const updated = [...prev, ...newGenerated];
       try {
         localStorage.setItem(STORAGE_KEY_GANTT_PHASES, JSON.stringify(updated));
-      } catch (e) { console.error('[Gantt] Failed to save default phases to localStorage:', e); }
+      } catch (e) { logger.error('[Gantt] Failed to save default phases to localStorage:', e); }
       return updated;
     });
 
@@ -162,7 +163,7 @@ export default function ProjectGanttView({
       const updated = [...prev, ...newGenerated];
       try {
         localStorage.setItem(STORAGE_KEY_GANTT_ALLOCATIONS, JSON.stringify(updated));
-      } catch (e) { console.error('[Gantt] Failed to save default allocations to localStorage:', e); }
+      } catch (e) { logger.error('[Gantt] Failed to save default allocations to localStorage:', e); }
       return updated;
     });
 
@@ -199,7 +200,7 @@ export default function ProjectGanttView({
       if (!changed) return prev;
       try {
         localStorage.setItem(STORAGE_KEY_GANTT_PHASES, JSON.stringify(next));
-      } catch (e) { console.error('[Gantt] Failed to save engine phases:', e); }
+      } catch (e) { logger.error('[Gantt] Failed to save engine phases:', e); }
       return next;
     });
   }, [engineSchedules, projects]);
@@ -336,7 +337,7 @@ export default function ProjectGanttView({
     try {
       localStorage.setItem(STORAGE_KEY_GANTT_PHASES, JSON.stringify(updated));
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
     setTimeout(() => setRedrawCounter(prev => prev + 1), 150);
   };
@@ -347,7 +348,7 @@ export default function ProjectGanttView({
     try {
       localStorage.setItem(STORAGE_KEY_GANTT_ALLOCATIONS, JSON.stringify(updated));
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
     setTimeout(() => setRedrawCounter(prev => prev + 1), 150);
   };
@@ -660,7 +661,7 @@ export default function ProjectGanttView({
         const newEnd = new Date(newStart.getTime() + 30 * 86400000);
         defaultStart = newStart.toISOString().substring(0, 10);
         defaultEnd = newEnd.toISOString().substring(0, 10);
-      } catch (e) { console.error('[Gantt] Failed to compute next phase dates:', e); }
+      } catch (e) { logger.error('[Gantt] Failed to compute next phase dates:', e); }
     }
 
     const newPhase: GanttPhase = {

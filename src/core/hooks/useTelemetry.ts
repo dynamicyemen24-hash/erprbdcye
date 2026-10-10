@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 
+import { logger } from '../../lib/logger';
 export function useTelemetry(componentName: string, active: boolean = true) {
   const mountTime = useRef<number>(Date.now());
 
@@ -10,14 +11,14 @@ export function useTelemetry(componentName: string, active: boolean = true) {
     
     // In a real enterprise app, send to DataDog, New Relic, or internal telemetry API
     if (duration > 1000) {
-      console.warn(`[Nexora Telemetry] ⚠️ Slow render detected in ${componentName}: ${duration}ms`);
+      logger.warn(`[Nexora Telemetry] ⚠️ Slow render detected in ${componentName}: ${duration}ms`);
     } else {
-      console.debug(`[Nexora Telemetry] ⚡ ${componentName} mounted in ${duration}ms`);
+      logger.debug(`[Nexora Telemetry] ⚡ ${componentName} mounted in ${duration}ms`);
     }
 
     return () => {
       const unmountDuration = Date.now() - mountTime.current;
-      console.debug(`[Nexora Telemetry] 🛑 ${componentName} unmounted after ${unmountDuration}ms`);
+      logger.debug(`[Nexora Telemetry] 🛑 ${componentName} unmounted after ${unmountDuration}ms`);
     };
   }, [componentName, active]);
 }

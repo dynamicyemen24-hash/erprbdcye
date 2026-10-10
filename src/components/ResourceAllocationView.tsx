@@ -37,7 +37,8 @@ import { generateShortId } from '../lib/idGenerator';
 import { cn } from '../design-system/utils/cn';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { Spinner } from '../design-system/components/Spinner';
-
+
+import { logger } from '../lib/logger';
 interface Allocation {
   id: string;
   projectId: string;
@@ -128,7 +129,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
         });
       setAllocations(mapped);
     } catch (err) {
-      console.error('[ResourceAllocation] Failed to load live allocations:', err);
+      logger.error('[ResourceAllocation] Failed to load live allocations:', err);
       setAllocations([]);
       setAllocFetchError(true);
     } finally {
@@ -596,7 +597,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
       const createdItem: Allocation = { ...createdBase, id: saved?.id || `alloc-${Date.now()}` };
       setAllocations(prev => [createdItem, ...prev]);
     } catch (err) {
-      console.error('[ResourceAllocation] Create failed:', err);
+      logger.error('[ResourceAllocation] Create failed:', err);
       setFormError(isRtl ? 'تعذر الحفظ في قاعدة البيانات. تحقق من الاتصال وأعد المحاولة.' : 'Failed to persist allocation to the database. Check connectivity and retry.');
       setFormSubmitting(false);
       return;
@@ -638,7 +639,7 @@ export default function ResourceAllocationView({ projects = [], users = [], lang
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (err) {
-      console.error('[ResourceAllocation] Delete failed:', err);
+      logger.error('[ResourceAllocation] Delete failed:', err);
       setSuccessToast(isRtl ? 'تعذر حذف التخصيص من قاعدة البيانات.' : 'Failed to delete allocation from the database.');
       setTimeout(() => setSuccessToast(null), 4000);
       setConfirmDelete(false);

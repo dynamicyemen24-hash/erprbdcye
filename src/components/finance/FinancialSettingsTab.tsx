@@ -30,7 +30,8 @@ import { PolicyViolationAlert } from '../helpers/PolicyViolationAlert';
 import { ConfirmDialog } from '../../design-system/components/ConfirmDialog';
 import { Spinner } from '../../design-system/components/Spinner';
 import { EnterpriseButton } from '../common/EnterpriseButton';
-
+
+import { logger } from '../../lib/logger';
 interface FinancialSettingsTabProps {
   currencies: Currency[];
   lang: 'ar' | 'en';
@@ -151,7 +152,7 @@ export default function FinancialSettingsTab({
       try {
         setPolicies(JSON.parse(saved));
       } catch (e) {
-        console.error('Failed to parse saved policies, using default CPA standards.');
+        logger.error('Failed to parse saved policies, using default CPA standards.');
       }
     }
   }, []);

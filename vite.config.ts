@@ -2,6 +2,17 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
+import pkg from './package.json';
+
+/**
+ * The application version, read from package.json at BUILD time.
+ *
+ * WHY: the literal used to be copied by hand into `core/updates.ts` and into
+ * the global status footer, where the two copies drifted apart (4.0.0 vs
+ * 2.4.0-Enterprise). One user-visible build number is now impossible to
+ * disagree with itself — there is no second literal to update.
+ */
+const APP_VERSION: string = (pkg as { version?: string }).version ?? '0.0.0-dev';
 
 export default defineConfig(() => {
   const isHmrDisabled = process.env.DISABLE_HMR === 'true';
@@ -13,6 +24,8 @@ export default defineConfig(() => {
     define: {
       'process.env.GOOGLE_MAPS_PLATFORM_KEY': JSON.stringify(process.env.GOOGLE_MAPS_PLATFORM_KEY || ''),
       'process.env.VITE_CACHE_VERSION': JSON.stringify(cacheVersion),
+      // Single source of truth for the build number — see src/core/version.ts.
+      __APP_VERSION__: JSON.stringify(APP_VERSION),
     },
     resolve: {
       alias: {

@@ -17,6 +17,17 @@ import {
 } from 'lucide-react';
 import { EnterpriseButton } from '../../components/common/EnterpriseButton';
 import { Spinner } from '../../design-system/components/Spinner';
+import { PermissionGate } from '../../components/PermissionGate';
+import { PERMISSIONS } from '../../shared/permissions/permission-map';
+
+function authHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token');
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  } catch { /* ignore */ }
+  return headers;
+}
 
 interface OfflineFieldAppEngineProps {
   lang: 'ar' | 'en';
@@ -35,11 +46,21 @@ interface QueuedRecord {
 export default function OfflineFieldAppEngine({ lang }: OfflineFieldAppEngineProps) {
   const isRtl = lang === 'ar';
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [queuedItems, setQueuedItems] = useState<QueuedRecord[]>([
-    { id: 'Q-101', type: 'BENEFICIARY_AID', beneficiaryName: 'علي بن أحمد الكبسي', nationalId: '102938475', aidType: 'سلة غذائية رمضانية', timestamp: '2026-08-13 13:10', status: 'QUEUED' },
-    { id: 'Q-102', type: 'VOLUNTEER_ATTENDANCE', beneficiaryName: 'د. خالد العماري (متطوع)', nationalId: '998877665', aidType: 'بصمة دوام ميداني', timestamp: '2026-08-13 13:14', status: 'QUEUED' },
-  ]);
+  // HONESTY (DEBT PAID): queue is user-created only, persisted locally.
+  // Empty device stays empty — no fabricated beneficiary names/IDs.
+  const [queuedItems, setQueuedItems] = useState<QueuedRecord[]>(() => {
+    try {
+      const raw = localStorage.getItem('nexora_field_queue_v1');
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('nexora_field_queue_v1', JSON.stringify(queuedItems)); } catch { /* ignore */ }
+  }, [queuedItems]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -54,17 +75,45 @@ export default function OfflineFieldAppEngine({ lang }: OfflineFieldAppEnginePro
     };
   }, []);
 
-  const triggerManualSync = () => {
+  // Productive sync: POST each QUEUED record to field_tasks (activities:write),
+  // marking items SYNCED only on 2xx. Offline-first queue stays intact on failure.
+  const triggerManualSync = async () => {
     if (!isOnline) {
       showToast({ type: 'warning', title: isRtl ? 'تعذر المزامنة' : 'Sync Unavailable', message: isRtl ? 'لا يمكن المزامنة حالياً - الجهاز غير متصل بالشبكة.' : 'Cannot sync - device is currently offline.' });
       return;
     }
 
     setIsSyncing(true);
-    setTimeout(() => {
-      setQueuedItems(prev => prev.map(item => ({ ...item, status: 'SYNCED' })));
-      setIsSyncing(false);
-    }, 2000);
+    setSyncError(null);
+    const pending = queuedItems.filter(i => i.status === 'QUEUED');
+    let synced = 0;
+    const failed: string[] = [];
+    for (const item of pending) {
+      try {
+        const res = await fetch('/api/tables/field_tasks', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            title: `${item.type}:${item.id}`,
+            beneficiary_name: item.beneficiaryName,
+            national_id: item.nationalId,
+            aid_type: item.aidType,
+            occurred_at: item.timestamp,
+          }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        synced += 1;
+        setQueuedItems(prev => prev.map(p => (p.id === item.id ? { ...p, status: 'SYNCED' as const } : p)));
+      } catch {
+        failed.push(item.id);
+      }
+    }
+    setIsSyncing(false);
+    if (failed.length > 0) {
+      setSyncError(isRtl ? `تعذر مزامنة ${failed.join('، ')} — ستبقى في الطابور` : `Failed to sync ${failed.join(', ')} — kept queued`);
+    } else if (synced > 0) {
+      showToast({ type: 'success', title: isRtl ? 'تمت المزامنة' : 'Sync complete', message: isRtl ? `تمت مزامنة ${synced} سجلات إلى قاعدة البيانات` : `Synced ${synced} records to database` });
+    }
   };
 
   return (
@@ -97,16 +146,22 @@ export default function OfflineFieldAppEngine({ lang }: OfflineFieldAppEnginePro
           </div>
         </div>
 
-        <EnterpriseButton
-          onClick={triggerManualSync}
-          disabled={isSyncing || !isOnline}
-          variant="primary"
-          size="md"
-          icon={<Spinner size="sm" />}
-        >
-          {isRtl ? 'مزامنة السجلات الميدانية الآن' : 'Sync Field Logs Now'}
-        </EnterpriseButton>
+        <PermissionGate perm={PERMISSIONS.ACTIVITIES_WRITE} mode="disabled">
+          <EnterpriseButton
+            onClick={triggerManualSync}
+            disabled={isSyncing || !isOnline}
+            variant="primary"
+            size="md"
+            icon={<Spinner size="sm" />}
+          >
+            {isRtl ? 'مزامنة السجلات الميدانية الآن' : 'Sync Field Logs Now'}
+          </EnterpriseButton>
+        </PermissionGate>
       </div>
+
+      {syncError && (
+        <p role="alert" className="text-[11px] font-bold text-rose-600 dark:text-rose-400">{syncError}</p>
+      )}
 
       {/* QUEUED OFFLINE TRANSACTIONS STREAM */}
       <div className="p-5 bg-slate-50 dark:bg-zinc-950/60 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-4">

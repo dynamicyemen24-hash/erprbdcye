@@ -42,7 +42,8 @@ import { Project } from '../../types';
 import { printHTML } from '../../lib/printUtils';
 import { generateShortId } from '../../lib/idGenerator';
 import { Spinner } from '../../design-system/components/Spinner';
-
+
+import { logger } from '../../lib/logger';
 interface EInvoicingEngineTabProps {
   accounts: Account[];
   transactions: Transaction[];
@@ -153,7 +154,7 @@ export default function EInvoicingEngineTab({
       const mapped = (Array.isArray(rows) ? rows : []).map((r: any, i: number, arr: any[]) => mapRowToInvoice(r, i, arr));
       setInvoices(mapped);
     } catch (err) {
-      console.error('[EInvoicing] Failed to load e-invoices:', err);
+      logger.error('[EInvoicing] Failed to load e-invoices:', err);
       setInvError(isRtl ? 'تعذر الاتصال بسجل الفواتير الإلكترونية.' : 'Failed to connect to the e-invoice ledger.');
     } finally {
       setInvLoading(false);
@@ -316,7 +317,7 @@ export default function EInvoicingEngineTab({
       const saved = await res.json();
       savedId = saved?.id || saved?.data?.id || null;
     } catch (err) {
-      console.error('[EInvoicing] Failed to persist e-invoice:', err);
+      logger.error('[EInvoicing] Failed to persist e-invoice:', err);
       showToast({ type: 'error', title: isRtl ? 'الفاتورة الإلكترونية' : 'E-Invoicing', message: isRtl ? 'تعذر حفظ الفاتورة الإلكترونية في قاعدة البيانات.' : 'Failed to persist the e-invoice to the database.' });
       setFormSubmitting(false);
       return;

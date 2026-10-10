@@ -25,7 +25,8 @@ import {
 import { Spinner } from '../../design-system/components/Spinner';
 import { createPrintDocument } from '../../lib/printUtils';
 import { tafqeetArabicRials } from '../../core/security/financialSafetyGuardian';
-
+
+import { logger } from '../../lib/logger';
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -247,7 +248,7 @@ export default function UnifiedExpenseEngineTab({ lang = 'ar' }: UnifiedExpenseE
       const data = await res.json();
       if (data.success) setCategories(data.data || []);
     } catch (err: any) {
-      console.error('Failed to fetch categories:', err);
+      logger.error('Failed to fetch categories:', err);
     }
   }, [authHeader]);
 
@@ -257,7 +258,7 @@ export default function UnifiedExpenseEngineTab({ lang = 'ar' }: UnifiedExpenseE
       const data = await res.json();
       if (data.success) setIntelligence(data.data);
     } catch (err: any) {
-      console.error('Failed to fetch intelligence:', err);
+      logger.error('Failed to fetch intelligence:', err);
     }
   }, [authHeader]);
 
@@ -384,7 +385,7 @@ export default function UnifiedExpenseEngineTab({ lang = 'ar' }: UnifiedExpenseE
         <div class="max-w-4xl mx-auto bg-white border-2 border-slate-300 rounded-2xl p-8 shadow-xl relative min-h-[260mm]">
           <!-- Watermark Background -->
           <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-            <img src="/LogoRohamaab.png" class="w-96 h-96 object-contain" />
+            <img src="/LogoRohamaab.png" alt="" aria-hidden="true" class="w-96 h-96 object-contain" />
           </div>
 
           <!-- Official Header Letterhead -->
@@ -1322,7 +1323,7 @@ function CreateExpenseModal({ categories, onClose, onSuccess, t, isRtl }: any) {
         onSuccess();
       }
     } catch (err) {
-      console.error('Failed to create expense:', err);
+      logger.error('Failed to create expense:', err);
     } finally {
       setSubmitting(false);
     }

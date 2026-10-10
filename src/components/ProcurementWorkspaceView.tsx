@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   ShoppingCart, Plus, Search, Trash2, Eye, Printer, Building, Layers, 
   Activity, CheckCircle2, XCircle, Clock, ArrowRight, CheckCircle, 
@@ -20,6 +20,7 @@ import ProcurementTab from './finance/ProcurementTab';
 import VendorRecommendationEngineView from '../features/procurement/VendorRecommendationEngineView';
 import VendorPerformanceAnalyticsView from '../features/procurement/VendorPerformanceAnalyticsView';
 import ProcurementForecastingView from '../features/procurement/ProcurementForecastingView';
+import TenderWorkspaceView from './TenderWorkspaceView';
 import { ActiveTab } from '../core/types/dashboard';
 import { PermissionGate } from './PermissionGate';
 import { PERMISSIONS } from '../shared/permissions/permission-map';
@@ -90,132 +91,51 @@ export default function ProcurementWorkspaceView({
   onNavigate
 }: ProcurementWorkspaceViewProps) {
   const isRtl = lang === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'core_p2p' | 'vendors' | 'forecasting' | 'ai_recommendation' | 'analytics' | 'forms'>('core_p2p');
+  const [activeSubTab, setActiveSubTab] = useState<'core_p2p' | 'tenders' | 'vendors' | 'forecasting' | 'ai_recommendation' | 'analytics' | 'forms'>('core_p2p');
   const [searchVendorQuery, setSearchVendorQuery] = useState('');
   // Debounced vendor search — grid re-filters 300ms after typing stops
   const debouncedVendorQuery = useDebouncedValue(searchVendorQuery, 300);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [isRegisterVendorModalOpen, setIsRegisterVendorModalOpen] = useState(false);
 
-  // Initial Real-World Vendor Directory for Rohama'a Baynahum Charity
-  const [vendors, setVendors] = useState<VendorProfile[]>([
-    {
-      id: 'vnd-1',
-      code: 'VND-001',
-      name_ar: 'مؤسسة البركة للتوريدات الغذائية والإغاثية',
-      name_en: 'Al-Baraka Relief & Food Supplies Est.',
-      category: 'سلال غذائية وطوارئ',
-      tax_number: 'TX-992014-YE',
-      commercial_reg: 'CR-104820',
-      contact_person: 'م. أحمد صالح الحبيشي',
-      phone: '+967 777 123 456',
-      email: 'sales@albaraka-ye.com',
-      rating: 4.9,
-      status: 'QUALIFIED',
-      total_orders_count: 14,
-      total_spent_yer: 42850000,
-      address: 'صنعاء - شارع الستين الجنوبي'
-    },
-    {
-      id: 'vnd-2',
-      code: 'VND-002',
-      name_ar: 'شركة الخليج لحفر وتأهيل آبار المياه ومضخات الطاقة',
-      name_en: 'Gulf Boreholes & Solar Water Pumps Co.',
-      category: 'معدات مياه وحفر آبار',
-      tax_number: 'TX-883011-YE',
-      commercial_reg: 'CR-205912',
-      contact_person: 'م. فؤاد عبدالكريم',
-      phone: '+967 771 987 654',
-      email: 'projects@gulfwater-ye.com',
-      rating: 4.8,
-      status: 'QUALIFIED',
-      total_orders_count: 8,
-      total_spent_yer: 68400000,
-      address: 'ذمار - الدائري الغربي'
-    },
-    {
-      id: 'vnd-3',
-      code: 'VND-003',
-      name_ar: 'مجموعة الأمل اللوجستية للنقل والشحن الإغاثي',
-      name_en: 'Al-Amal Logistics & Humanitarian Transport',
-      category: 'نقل وشحن إغاثي',
-      tax_number: 'TX-440192-YE',
-      commercial_reg: 'CR-330194',
-      contact_person: 'أ. طارق الشميري',
-      phone: '+967 733 554 433',
-      email: 'ops@alamal-logistics.ye',
-      rating: 4.2,
-      status: 'QUALIFIED',
-      total_orders_count: 19,
-      total_spent_yer: 19500000,
-      address: 'صنعاء - الحصبة'
-    },
-    {
-      id: 'vnd-4',
-      code: 'VND-004',
-      name_ar: 'الرواد للتجهيزات والمستلزمات الطبية والدوائية',
-      name_en: 'Al-Rowad Medical & Pharma Supplies',
-      category: 'أدوية ومستلزمات طبية',
-      tax_number: 'TX-773012-YE',
-      commercial_reg: 'CR-440281',
-      contact_person: 'د. وليد الحمادي',
-      phone: '+967 775 889 900',
-      email: 'info@alrowad-med.com',
-      rating: 4.6,
-      status: 'QUALIFIED',
-      total_orders_count: 6,
-      total_spent_yer: 24700000,
-      address: 'إب - شارع العدين'
-    },
-    {
-      id: 'vnd-5',
-      code: 'VND-005',
-      name_ar: 'المنار للتوريدات الهندسية ومواد البناء والترميم',
-      name_en: 'Al-Manar Engineering & Construction Materials',
-      category: 'مواد بناء وتأهيل',
-      tax_number: 'TX-662019-YE',
-      commercial_reg: 'CR-551029',
-      contact_person: 'م. هيثم القدسي',
-      phone: '+967 772 334 455',
-      email: 'contracts@almanar-const.ye',
-      rating: 3.8,
-      status: 'UNDER_REVIEW',
-      total_orders_count: 3,
-      total_spent_yer: 11200000,
-      address: 'تعز - الحوبان'
-    }
-  ]);
+  // HONESTY (DEBT PAID): live vendor registry only - empty DB stays empty.
+  // Previous hardcoded directory (fake phones/spend) removed; see git history.
+  const [vendors, setVendors] = useState<VendorProfile[]>([]);
 
-  // Live register from /api/operational/vendors — seed above acts only as the
-  // offline/error fallback (kept marked 'local' so operators know the source).
+  // Live vendor registry (DEBT PAID): /api/tables/vendors (tenant-bound).
+  // NOTE: legacy /api/operational/vendors never existed backend-side, so the
+  // directory silently fell back to hardcoded demo rows. Empty stays empty.
   const [vendorSource, setVendorSource] = useState<'live' | 'local'>('local');
   const [vendorsLoading, setVendorsLoading] = useState(true);
+  const [vendorsError, setVendorsError] = useState<string | null>(null);
+
+  const fetchVendors = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token') || '';
+      let tenant = 'demo';
+      try { tenant = localStorage.getItem('uamex_tenant_id') || 'demo'; } catch { /* ignore */ }
+      const res = await fetch('/api/tables/vendors?limit=200', {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), 'X-Tenant-Id': tenant },
+      });
+      if (res.status === 401 || res.status === 403) return;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const rows = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+      setVendors(rows.map(mapVendorRow));
+      setVendorSource('live');
+      setVendorsError(null);
+    } catch (e: any) {
+      setVendorsError(e?.message || 'Failed to load vendors');
+    } finally {
+      setVendorsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      try {
-        const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token') || '';
-        const res = await fetch('/api/operational/vendors', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        if (cancelled) return;
-        if (res.status === 401 || res.status === 403) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        const rows = json?.data;
-        if (Array.isArray(rows)) {
-          setVendors(rows.map(mapVendorRow));
-          setVendorSource('live');
-        }
-      } catch {
-        /* network/server failure → keep seed, source stays 'local' */
-      } finally {
-        if (!cancelled) setVendorsLoading(false);
-      }
-    })();
+    (async () => { if (!cancelled) await fetchVendors(); })();
     return () => { cancelled = true; };
-  }, []);
+  }, [fetchVendors]);
 
   // Form for registering a new vendor
   const [newVendorForm, setNewVendorForm] = useState({
@@ -230,7 +150,9 @@ export default function ProcurementWorkspaceView({
     address: ''
   });
 
-  const handleCreateVendor = (e: React.FormEvent) => {
+  const [registeringVendor, setRegisteringVendor] = useState(false);
+
+  const handleCreateVendor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newVendorForm.name_ar) {
       showToast({
@@ -241,44 +163,60 @@ export default function ProcurementWorkspaceView({
       return;
     }
 
-    const newVnd: VendorProfile = {
-      id: `vnd-${Date.now()}`,
-      code: `VND-00${vendors.length + 1}`,
-      name_ar: newVendorForm.name_ar,
-      name_en: newVendorForm.name_en || newVendorForm.name_ar,
-      category: newVendorForm.category,
-      tax_number: newVendorForm.tax_number || 'TX-PENDING',
-      commercial_reg: newVendorForm.commercial_reg || 'CR-PENDING',
-      contact_person: newVendorForm.contact_person,
-      phone: newVendorForm.phone,
-      email: newVendorForm.email,
-      rating: 5.0,
-      status: 'QUALIFIED',
-      total_orders_count: 0,
-      total_spent_yer: 0,
-      address: newVendorForm.address
-    };
-
-    setVendors(prev => [newVnd, ...prev]);
-    setIsRegisterVendorModalOpen(false);
-    showToast({
-      type: 'success',
-      title: isRtl ? 'تسجيل الموردين' : 'Vendor registry',
-      message: isRtl
-        ? `تم اعتماد المورد «${newVnd.name_ar}» برمز ${newVnd.code}`
-        : `Vendor "${newVnd.name_en}" qualified as ${newVnd.code}`,
-    });
-    setNewVendorForm({
-      name_ar: '',
-      name_en: '',
-      category: 'سلال غذائية وطوارئ',
-      tax_number: '',
-      commercial_reg: '',
-      contact_person: '',
-      phone: '',
-      email: '',
-      address: ''
-    });
+    // PERSIST (DEBT PAID): registration writes to the tenant-bound vendors
+    // table — previously local-only, lost on refresh.
+    setRegisteringVendor(true);
+    try {
+      const token = localStorage.getItem('rbd_token') || sessionStorage.getItem('rbd_token') || '';
+      let tenant = 'demo';
+      try { tenant = localStorage.getItem('uamex_tenant_id') || 'demo'; } catch { /* ignore */ }
+      const res = await fetch('/api/tables/vendors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), 'X-Tenant-Id': tenant },
+        body: JSON.stringify({
+          vendor_code: `VND-${Date.now().toString().slice(-6)}`,
+          name_ar: newVendorForm.name_ar,
+          name_en: newVendorForm.name_en || newVendorForm.name_ar,
+          vendor_type: 'GOODS',
+          tax_number: newVendorForm.tax_number || undefined,
+          contact_name: newVendorForm.contact_person || undefined,
+          contact_phone: newVendorForm.phone || undefined,
+          contact_email: newVendorForm.email || undefined,
+          governorate: newVendorForm.address || undefined,
+          status: 'ACTIVE',
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error?.message || json?.error || `HTTP ${res.status}`);
+      await fetchVendors();
+      setIsRegisterVendorModalOpen(false);
+      showToast({
+        type: 'success',
+        title: isRtl ? 'تسجيل الموردين' : 'Vendor registry',
+        message: isRtl
+          ? `تم اعتماد المورد «${newVendorForm.name_ar}»`
+          : `Vendor "${newVendorForm.name_en || newVendorForm.name_ar}" qualified`,
+      });
+      setNewVendorForm({
+        name_ar: '',
+        name_en: '',
+        category: 'سلال غذائية وطوارئ',
+        tax_number: '',
+        commercial_reg: '',
+        contact_person: '',
+        phone: '',
+        email: '',
+        address: ''
+      });
+    } catch (err: any) {
+      showToast({
+        type: 'error',
+        title: isRtl ? 'تسجيل الموردين' : 'Vendor registry',
+        message: err?.message || (isRtl ? 'تعذر حفظ المورد' : 'Failed to save vendor'),
+      });
+    } finally {
+      setRegisteringVendor(false);
+    }
   };
 
   // Filtered vendors
@@ -561,16 +499,18 @@ export default function ProcurementWorkspaceView({
           <div className="bg-black/20 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
             <span className="text-[10px] text-emerald-200 font-bold block">{isRtl ? 'زمن دورة التوريد P2P' : 'Avg. Cycle Time'}</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-xl font-black text-white font-mono">4.2</span>
-              <span className="text-[10px] text-emerald-300 font-bold">{isRtl ? 'أيام عمل' : 'Days'}</span>
+              {/* HONESTY: was hardcoded 4.2 days — no cycle-time source exists yet */}
+              <span className="text-xl font-black text-white font-mono">—</span>
+              <span className="text-[10px] text-emerald-300 font-bold">{isRtl ? 'لا توجد بيانات دورة موثقة' : 'No documented cycle data'}</span>
             </div>
           </div>
 
           <div className="bg-black/20 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
             <span className="text-[10px] text-emerald-200 font-bold block">{isRtl ? 'المطابقة الثلاثية وفحص الجودة' : '3-Way Match & QC'}</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-xl font-black text-emerald-400 font-mono">100%</span>
-              <span className="text-[10px] text-emerald-300 font-bold">{isRtl ? 'خالٍ من الفوارق' : 'Zero Variance'}</span>
+              {/* HONESTY: was hardcoded 100% — computed from match history below */}
+              <span className="text-xl font-black text-emerald-400 font-mono">—</span>
+              <span className="text-[10px] text-emerald-300 font-bold">{isRtl ? 'يُحتسب من سجل المطابقة' : 'Computed from match history'}</span>
             </div>
           </div>
         </div>
@@ -581,6 +521,7 @@ export default function ProcurementWorkspaceView({
         <div className="flex flex-wrap items-center gap-1.5">
           {[
             { id: 'core_p2p', labelAr: 'دورة المشتريات P2P المتكاملة', labelEn: 'Core P2P Operations', icon: ShoppingCart },
+            { id: 'tenders', labelAr: 'المناقصات والترسية', labelEn: 'Tenders & Awards', icon: FileCheck },
             { id: 'vendors', labelAr: 'سجل وتأهيل الموردين', labelEn: 'Vendor Registry & Vetting', icon: Building2 },
             { id: 'forecasting', labelAr: 'التنبؤ باحتياجات المشاريع والمخزون', labelEn: 'Procurement Forecasting', icon: Package },
             { id: 'ai_recommendation', labelAr: 'محرك الترشيح الذكي (AI)', labelEn: 'AI Vendor Recommendation', icon: Sparkles },
@@ -630,6 +571,18 @@ export default function ProcurementWorkspaceView({
             organizations={organizations}
             lang={lang}
             onRefresh={onRefresh || (() => {})}
+          />
+        </div>
+      )}
+
+      {/* SUBTAB 1b: TENDERS & AWARDS BOARD (was orphan — zero mounts) */}
+      {activeSubTab === 'tenders' && (
+        <div className="animate-fade-in">
+          <TenderWorkspaceView
+            projects={projects}
+            lang={lang}
+            onRefresh={onRefresh || (() => {})}
+            onNavigate={onNavigate}
           />
         </div>
       )}
@@ -687,6 +640,12 @@ export default function ProcurementWorkspaceView({
               </PermissionGate>
             </div>
           </div>
+
+          {vendorsError && vendors.length === 0 && !vendorsLoading && (
+            <div className="mb-3 text-[11px] font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2">
+              {isRtl ? `تعذر تحميل السجل الحي (${vendorsError}) — تحقق من الاتصال ثم حدث` : `Live registry unreachable (${vendorsError}) — check connection then refresh`}
+            </div>
+          )}
 
           {/* Vendors Grid */}
           {filteredVendors.length === 0 ? (
@@ -1035,9 +994,10 @@ export default function ProcurementWorkspaceView({
 
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition-all cursor-pointer"
+                  disabled={registeringVendor}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {isRtl ? 'حفظ واعتماد المورد' : 'Save & Qualify Vendor'}
+                  {registeringVendor ? (isRtl ? 'جارٍ الحفظ...' : 'Saving...') : (isRtl ? 'حفظ واعتماد المورد' : 'Save & Qualify Vendor')}
                 </button>
               </div>
             </form>

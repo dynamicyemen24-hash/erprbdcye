@@ -98,14 +98,16 @@ export function recordSecurityEvent(params: {
     eventStore.pop();
   }
 
-  // Log based on severity
-  const logFn = params.severity === 'CRITICAL' || params.severity === 'HIGH'
-    ? logger.error
+  // Log based on severity. NOTE: call the method ON `logger` — extracting
+  // it (`const f = logger.info; f(...)`) loses `this` and throws inside
+  // `write` (this exact bug 500'd every logout: "reading 'write'").
+  const level = params.severity === 'CRITICAL' || params.severity === 'HIGH'
+    ? 'error'
     : params.severity === 'MEDIUM'
-    ? logger.warn
-    : logger.info;
+    ? 'warn'
+    : 'info';
 
-  logFn(`[SECURITY] ${params.eventType}: ${params.severity}`, {
+  logger[level](`[SECURITY] ${params.eventType}: ${params.severity}`, {
     context: 'security-event',
     meta: {
       eventId: event.id,

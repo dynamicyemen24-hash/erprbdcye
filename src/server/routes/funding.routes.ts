@@ -5,6 +5,7 @@
  */
 
 import express from 'express';
+import logger, { toLogMeta } from '../core/logger';
 import { getDatabasePool, withTransaction } from '../services/db.service';
 import { recordAuditLog } from '../services/audit.service';
 import {
@@ -49,7 +50,7 @@ fundingRouter.get('/donors', async (req: any, res) => {
     const result = await pool.query(sql, params);
     res.json({ status: 'ok', data: result.rows, count: result.rowCount });
   } catch (err: any) {
-    console.error('[NEB-08] GET /donors error:', err.message);
+    logger.error('[NEB-08] GET /donors error:', { meta: toLogMeta(err.message) });
     res.status(500).json({ error: 'Failed to fetch donors' });
   }
 });
@@ -79,7 +80,7 @@ fundingRouter.post('/donors', requireSecurityLevel(2), requireDonorPolicy('CREAT
     res.status(201).json({ status: 'ok', data: result.rows[0] });
   } catch (err: any) {
     if (err.constraint === 'donors_donor_code_key') return res.status(409).json({ error: 'Donor code already exists' });
-    console.error('[NEB-08] POST /donors error:', err.message);
+    logger.error('[NEB-08] POST /donors error:', { meta: toLogMeta(err.message) });
     res.status(500).json({ error: 'Failed to create donor' });
   }
 });

@@ -4,6 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+import logger, { toLogMeta } from '../../core/logger';
 import { getPool, closePool } from '../../core/database';
 import { getClient } from '../../redis/client';
 import os from 'os';
@@ -286,25 +287,25 @@ router.get('/metrics', async (req: Request, res: Response) => {
 // ─── Graceful Shutdown ─────────────────────────────────
 
 export async function gracefulShutdown(signal: string) {
-  console.log(`\n[SHUTDOWN] Received ${signal}. Starting graceful shutdown...`);
+  logger.info(`\n[SHUTDOWN] Received ${signal}. Starting graceful shutdown...`);
 
   const shutdownTimeout = 30000; // 30 seconds max
 
   const forceExit = setTimeout(() => {
-    console.error('[SHUTDOWN] Forced exit after timeout');
+    logger.error('[SHUTDOWN] Forced exit after timeout');
     process.exit(1);
   }, shutdownTimeout);
 
   try {
     // Close database pool
     await closePool();
-    console.log('[SHUTDOWN] Database pool closed');
+    logger.info('[SHUTDOWN] Database pool closed');
 
     clearTimeout(forceExit);
-    console.log('[SHUTDOWN] Graceful shutdown complete');
+    logger.info('[SHUTDOWN] Graceful shutdown complete');
     process.exit(0);
   } catch (err) {
-    console.error('[SHUTDOWN] Error during shutdown:', err);
+    logger.error('[SHUTDOWN] Error during shutdown:', { meta: toLogMeta(err) });
     process.exit(1);
   }
 }

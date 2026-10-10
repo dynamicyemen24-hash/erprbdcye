@@ -129,7 +129,7 @@ export interface AvatarGroupProps {
 export function AvatarGroup({ items, max = 5, size = 'md', lang = 'ar', className }: AvatarGroupProps) {
   const visible = items.slice(0, max);
   const remaining = items.length - max;
-  const overlapClasses = '-me-2 rtl:-me-0 rtl:-ml-2';
+  const overlapClasses = '-me-2';
 
   return (
     <div className={cn('flex items-center', className)}>

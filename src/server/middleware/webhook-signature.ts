@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import logger from '../core/logger';
 
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || process.env.WEBHOOK_HMAC_SECRET;
 
@@ -17,7 +18,7 @@ export function verifyWebhookSignature(req: Request, res: Response, next: NextFu
   if (!WEBHOOK_SECRET) {
     // If no secret configured, skip verification (dev mode)
     if (process.env.NODE_ENV === 'production') {
-      console.error('[SECURITY] WEBHOOK_SECRET not configured — rejecting webhook in production');
+      logger.error('[SECURITY] WEBHOOK_SECRET not configured — rejecting webhook in production');
       res.status(503).json({ error: 'Webhook verification not configured' });
       return;
     }

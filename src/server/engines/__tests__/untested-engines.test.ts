@@ -69,6 +69,9 @@ vi.mock('../../core/logger', () => ({
     error: vi.fn(),
     debug: vi.fn(),
   },
+  // Mirrors the real `toLogMeta` shape without importing the module (which
+  // would construct a real `Logger` + filesystem side effects on import).
+  toLogMeta: (value: unknown) => ({ detail: value }),
 }));
 
 // ─── Mock Config ───────────────────────────────────────

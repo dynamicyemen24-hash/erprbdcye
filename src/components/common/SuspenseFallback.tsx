@@ -7,6 +7,7 @@ interface SuspenseFallbackProps {
 
 const SuspenseFallbackInner: React.FC<SuspenseFallbackProps> = ({ label, height = 'min-h-[200px]' }) => (
   <div className={`flex items-center justify-center ${height}`}>
+    {/* `pulse` is a first-class Design System motion (`Skeleton` variant) — kept deliberately for the branded lazy-load fallback. */}
     <div className="animate-pulse space-y-4 w-full max-w-md px-4">
       <div className="h-4 bg-emerald-200/50 dark:bg-emerald-800/30 rounded w-3/4" />
       <div className="h-4 bg-emerald-200/30 dark:bg-emerald-800/20 rounded w-1/2" />

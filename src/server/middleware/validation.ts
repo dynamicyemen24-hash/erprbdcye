@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { z, ZodSchema, ZodError } from 'zod';
+import logger, { toLogMeta } from '../core/logger';
 
 // ═══════════════════════════════════════════════════════════════════
 // XSS Sanitization
@@ -178,11 +179,12 @@ export function validate(config: ValidationConfig) {
         detectSuspiciousInput(req.query) ||
         detectSuspiciousInput(req.params);
       if (suspicious) {
-        console.error('[SECURITY] SQL injection attempt detected', {
+        logger.error('[SECURITY] SQL injection attempt detected', {
+          meta: toLogMeta({
           ip: req.ip,
           path: req.path,
           method: req.method,
-        });
+        }) });
         res.status(400).json({ error: 'Invalid input detected' });
         return;
       }

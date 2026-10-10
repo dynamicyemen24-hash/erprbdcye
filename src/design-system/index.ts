@@ -94,20 +94,18 @@ export { Page, PageHeader, PageSection, PageActions, PageGrid, type PageProps, t
 // ─── Loading / Progress ────────────────────────────────────
 export { Spinner, SpinnerOverlay, type SpinnerProps, type SpinnerSize, type SpinnerVariant, type SpinnerOverlayProps } from './components/Spinner';
 export { ProgressRing, type ProgressRingProps, type ProgressRingSize, type ProgressRingVariant } from './components/ProgressRing';
+export { ProgressBar, type ProgressBarProps, type ProgressVariant, type ProgressStatus } from './components/ProgressBar';
 export { Skeleton, SkeletonCard, SkeletonTable, SkeletonKPI, SkeletonChart, type SkeletonProps, type SkeletonVariant, type SkeletonShape } from './components/Skeleton';
 
 // ─── Enterprise Display ─────────────────────────────────────
+// `CardVariant`/`CardPadding` are declared ONCE in `./components/Card` and
+// re-used by `EnterpriseCard` — no alias cast needed anymore.
 export {
   EnterpriseCard,
   EnterpriseStat,
   type EnterpriseCardProps,
-  // Aliased: both this component and the canonical `Card` define a
-  // CardVariant/CardPadding pair. Exporting them under the same name would be
-  // a duplicate identifier. No consumer outside the design system imports
-  // either name, so the alias documents which type belongs to which card
-  // without breaking any call site.
-  type CardVariant as EnterpriseCardVariant,
-  type CardPadding as EnterpriseCardPadding,
+  type EnterpriseCardVariant,
+  type EnterpriseCardPadding,
   type EnterpriseStatProps,
 } from './components/EnterpriseCard';
 export { EnterpriseTabs, TabPanel, type EnterpriseTabsProps, type Tab, type TabPanelProps } from './components/EnterpriseTabs';
@@ -117,6 +115,12 @@ export { EnterpriseAlert, type EnterpriseAlertProps, type AlertType } from './co
 export { AccessibilityProvider, useAccessibility, type AccessibilityProviderProps, type AccessibilityContextValue } from './components/AccessibilityProvider';
 export { MobileLayout, type MobileLayoutProps, type MobileTab } from './components/MobileLayout';
 export { PrintLayout, type PrintLayoutProps } from './components/PrintLayout';
+
+// ─── New Shell Components ──────────────────────────────────
+export { OfflineBanner } from './components/OfflineBanner';
+export { Sidebar } from './components/Sidebar';
+export { TopBar } from './components/TopBar';
+export { Footer } from './components/Footer';
 
 // ─── Form Primitives ───────────────────────────────────────
 // ─── Actions ────────────────────────────────────────────────
@@ -143,6 +147,7 @@ export {
   type CardProps,
   type CardVariant,
   type CardPadding,
+  type CardStatus,
 } from './components/Card';
 
 export { FormField, type FormFieldProps } from './components/form/FormField';

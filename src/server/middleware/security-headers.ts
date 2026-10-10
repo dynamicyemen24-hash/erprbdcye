@@ -5,6 +5,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import logger, { toLogMeta } from '../core/logger';
 
 /**
  * Generate a cryptographically secure nonce for CSP inline scripts.
@@ -128,6 +129,6 @@ export function worldClassSecurityHeaders(req: Request, res: Response, next: Nex
  */
 export function cspReportHandler(req: Request, res: Response): void {
   const report = req.body;
-  console.error('[CSP VIOLATION]', JSON.stringify(report, null, 2));
+  logger.error('[CSP VIOLATION]', { meta: toLogMeta(JSON.stringify(report, null, 2)) });
   res.status(204).end();
 }

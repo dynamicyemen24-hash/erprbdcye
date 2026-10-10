@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { triggerHaptic } from '../../helpers/hapticSwipe';
 import { persistenceService } from '../../core/services/persistence';
-
+
+import { logger } from '../../lib/logger';
 export interface ShortcutDefinition {
   id: string;
   categoryAr: string;
@@ -163,7 +164,7 @@ export const CustomizableShortcutsModal: React.FC<CustomizableShortcutsModalProp
           })));
         }
       } catch (err) {
-        console.warn('[Shortcuts] Load error:', err);
+        logger.warn('[Shortcuts] Load error:', err);
       }
     }
     loadSaved();

@@ -25,6 +25,23 @@ export interface PeriodCloseChecklist {
 
 const CLOSED_STATUSES = new Set(['CLOSED', 'LOCKED', 'HARD_CLOSED', 'ARCHIVED']);
 
+/**
+ * Live `fiscal_years` has no `status` column: openness is the `is_closed`
+ * boolean (with `closed_at` as its timestamp). Rows that do not carry that
+ * column (legacy / mocked rows) fall back to their raw `status` value so no
+ * caller breaks; the database path always reads `is_closed`.
+ */
+function fiscalYearIsClosed(row: Record<string, unknown>): boolean {
+  if ('is_closed' in row) return Boolean(row.is_closed);
+  return CLOSED_STATUSES.has(String(row.status ?? '').toUpperCase());
+}
+
+function fiscalYearState(row: Record<string, unknown> | null | undefined): string {
+  if (!row) return 'UNKNOWN';
+  if ('is_closed' in row) return row.is_closed ? 'CLOSED' : 'OPEN';
+  return String(row.status ?? 'UNKNOWN');
+}
+
 export async function getPeriodCloseChecklist(
   orgId: string,
   fiscalYearId: string
@@ -33,13 +50,14 @@ export async function getPeriodCloseChecklist(
   const blockers: string[] = [];
 
   const year = (await pool.query(
-    `SELECT id, year_number, status FROM fiscal_years WHERE id = $1 AND organization_id = $2`,
+    `SELECT id, name, start_date, end_date, is_closed, closed_at
+       FROM fiscal_years WHERE id = $1 AND organization_id = $2`,
     [fiscalYearId, orgId]
   ).then((r) => r.rows[0] as Record<string, unknown> | undefined).catch(() => undefined)) ?? null;
 
-  const fiscalYearStatus = String(year?.status ?? 'UNKNOWN');
+  const fiscalYearStatus = fiscalYearState(year);
   if (!year) blockers.push('FISCAL_YEAR_NOT_FOUND');
-  else if (CLOSED_STATUSES.has(fiscalYearStatus.toUpperCase())) blockers.push('FISCAL_YEAR_ALREADY_CLOSED');
+  else if (fiscalYearIsClosed(year)) blockers.push('FISCAL_YEAR_ALREADY_CLOSED');
 
   const trial = await IPSASFinanceService.getTrialBalance(orgId).catch(() => null);
   const summary = (trial?.summary ?? {}) as { isBalanced?: boolean; totalDebit?: number; totalCredit?: number; variance?: number };
@@ -76,10 +94,10 @@ export async function getPeriodCloseChecklist(
 export async function assertPeriodOpen(orgId: string, fiscalYearId: string): Promise<void> {
   const pool = getDatabasePool();
   const row = await pool.query(
-    `SELECT status FROM fiscal_years WHERE id = $1 AND organization_id = $2`,
+    `SELECT id, is_closed, closed_at FROM fiscal_years WHERE id = $1 AND organization_id = $2`,
     [fiscalYearId, orgId]
   ).then((r) => r.rows[0] as Record<string, unknown> | undefined);
-  if (row && CLOSED_STATUSES.has(String(row.status || '').toUpperCase())) {
-    throw new Error(`Fiscal year is closed (${row.status}); posting is blocked`);
+  if (row && fiscalYearIsClosed(row)) {
+    throw new Error(`Fiscal year is closed (${fiscalYearState(row)}); posting is blocked`);
   }
 }

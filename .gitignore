@@ -2,6 +2,7 @@ node_modules/
 build/
 dist/
 coverage/
+logs/
 .DS_Store
 *.log
 .env*
@@ -62,6 +63,16 @@ tc3.txt
 batch16.sql
 bun.lock
 load-test.js
+# Agent verification/probe outputs at repo root (never commit logs)
+*_out.txt
+*_output.txt
+test-*.txt
+test_*.txt
+typecheck_*.txt
+lint_*.txt
+build_*.txt
+final_*.txt
+tc*.txt
 
 # Playwright
 /test-results/
@@ -70,3 +81,4 @@ load-test.js
 /playwright/.cache/
 
 .vercel
+.gsee/

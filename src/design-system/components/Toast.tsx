@@ -207,20 +207,14 @@ interface ToastContainerProps {
 }
 
 function ToastContainer({ position, toasts, onRemove }: ToastContainerProps) {
-  const { direction } = useDirection();
-  const isRtl = direction === 'rtl';
-
+  // Logical `end` side == physical right in LTR and left in RTL, so one class
+  // covers both directions with no string-replace mirroring.
   const positionClasses: Record<ToastPosition, string> = {
-    'top-right': 'top-4 right-4',
-    'top-center': 'top-4 left-1/2 -translate-x-1/2',
-    'bottom-right': 'bottom-4 right-4',
-    'bottom-center': 'bottom-4 left-1/2 -translate-x-1/2',
+    'top-right': 'top-4 end-4',
+    'top-center': 'top-4 start-1/2 -translate-x-1/2 rtl:translate-x-1/2',
+    'bottom-right': 'bottom-4 end-4',
+    'bottom-center': 'bottom-4 start-1/2 -translate-x-1/2 rtl:translate-x-1/2',
   };
-
-  // Mirror for RTL
-  const rtlPosition = isRtl
-    ? position.replace('right', 'LEFT_PLACEHOLDER').replace('left', 'right').replace('LEFT_PLACEHOLDER', 'left') as ToastPosition
-    : position;
 
   if (toasts.length === 0) return null;
 
@@ -228,7 +222,7 @@ function ToastContainer({ position, toasts, onRemove }: ToastContainerProps) {
     <div
       className={cn(
         'fixed z-toast flex flex-col gap-2 w-full max-w-sm pointer-events-none',
-        positionClasses[isRtl ? rtlPosition : position]
+        positionClasses[position]
       )}
       aria-live="polite"
       aria-label="Notifications"
@@ -326,7 +320,13 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
         config.border,
         config.bg,
         'backdrop-blur-sm',
-        isExiting ? 'animate-out slide-out-to-right fade-out duration-200' : 'animate-in slide-in-from-right fade-in duration-300'
+        isExiting
+          ? isRtl
+            ? 'animate-out slide-out-to-left fade-out duration-200'
+            : 'animate-out slide-out-to-right fade-out duration-200'
+          : isRtl
+            ? 'animate-in slide-in-from-left fade-in duration-300'
+            : 'animate-in slide-in-from-right fade-in duration-300'
       )}
       role="alert"
       aria-live={ariaLive}

@@ -290,6 +290,59 @@ router.get('/utilization', async (req: AuthenticatedRequest, res: Response) => {
   catch (err: any) { errorResponse(res, err.message); }
 });
 
+// ── NEB-08 (completion): Grant installments / Partner agreements / Donor reports ──
+// These engines were imported but never exposed — e2e break (grant → installment → report).
+// Additive only: no existing route touched.
+
+router.get('/grants/:id/installments', async (req: AuthenticatedRequest, res: Response) => {
+  try { successResponse(res, await GrantInstallmentEngine.listByGrant(req.params.id)); }
+  catch (err: any) { errorResponse(res, err.message); }
+});
+
+router.post('/grants/:id/installments', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    successResponse(res, await GrantInstallmentEngine.create({
+      grantId: req.params.id,
+      organizationId: extractTenantId(req),
+      installmentNumber: Number(req.body.installmentNumber || req.body.installment_number || 1),
+      dueDate: String(req.body.dueDate || req.body.planned_date || req.body.due_date || new Date().toISOString().slice(0, 10)),
+      expectedAmount: Number(req.body.expectedAmount ?? req.body.planned_amount ?? req.body.amount ?? 0),
+      currencyCode: String(req.body.currencyCode || req.body.currency_code || 'USD'),
+    }), 201);
+  } catch (err: any) { errorResponse(res, err.message); }
+});
+
+router.post('/installments/:id/receive', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    successResponse(res, await GrantInstallmentEngine.receive(req.params.id, {
+      receivedAmount: Number(req.body.receivedAmount ?? req.body.received_amount ?? 0),
+      receivedDate: String(req.body.receivedDate || req.body.received_date || new Date().toISOString().slice(0, 10)),
+      receivedBy: String(req.user?.id || req.body.receivedBy || 'system'),
+      bankReference: req.body.bankReference || req.body.bank_reference,
+    }));
+  } catch (err: any) { errorResponse(res, err.message); }
+});
+
+router.get('/agreements', async (req: AuthenticatedRequest, res: Response) => {
+  try { successResponse(res, await PartnerAgreementEngine.list(extractTenantId(req))); }
+  catch (err: any) { errorResponse(res, err.message); }
+});
+
+router.post('/agreements', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    successResponse(res, await PartnerAgreementEngine.create({
+      organizationId: extractTenantId(req),
+      partnerId: String(req.body.partnerId || req.body.partner_id || req.body.partner_party_id || ''),
+      agreementNumber: String(req.body.agreementNumber || req.body.agreement_code || req.body.agreementCode || `AGR-${Date.now()}`),
+      titleAr: String(req.body.titleAr || req.body.title_ar || ''),
+      titleEn: req.body.titleEn || req.body.title_en,
+      startDate: String(req.body.startDate || req.body.start_date || new Date().toISOString().slice(0, 10)),
+      endDate: String(req.body.endDate || req.body.end_date || new Date().toISOString().slice(0, 10)),
+      value: Number(req.body.value ?? req.body.total_value ?? req.body.value_usd ?? 0),
+    }, auth(req)), 201);
+  } catch (err: any) { errorResponse(res, err.message); }
+});
+
 // ═══════════════════════════════════════════════════════════
 // NEB-09: Resources & Assets
 // ═══════════════════════════════════════════════════════════

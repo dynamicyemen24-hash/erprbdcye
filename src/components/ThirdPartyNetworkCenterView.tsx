@@ -32,7 +32,8 @@ import { printHTML } from '../lib/printUtils';
 import { ModuleShell } from './enterprise/ModuleShell';
 import { cn } from '../design-system/utils/cn';
 import { EnterpriseButton } from './common/EnterpriseButton';
-
+
+import { logger } from '../lib/logger';
 interface ThirdPartyNetworkCenterViewProps {
   lang: 'ar' | 'en';
   onNavigate?: (tab: string) => void;
@@ -89,7 +90,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
       setClaims(await getRows('third_party_claims'));
       setSettlements(await getRows('third_party_settlements'));
     } catch (err) {
-      console.error('[ThirdParty] Failed to load live records:', err);
+      logger.error('[ThirdParty] Failed to load live records:', err);
     } finally {
       setLoading(false);
     }
@@ -153,7 +154,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
       const saved = await res.json();
       savedClaim = (saved?.id || saved?.data?.id) ? { ...payload as any, id: saved.id || saved.data.id } : payload as ThirdPartyClaim;
     } catch (err) {
-      console.error('[ThirdParty] Claim persistence failed:', err);
+      logger.error('[ThirdParty] Claim persistence failed:', err);
       enterpriseBus.notifyToast({
         type: 'error',
         title: isRtl ? 'تعذر حفظ المطالبة' : 'Failed to save claim',
@@ -219,7 +220,7 @@ export default function ThirdPartyNetworkCenterView({ lang, onNavigate }: ThirdP
         message: isRtl ? `تم اعتماد وصرف مبلغ ${(claim.approved_amount || claim.claimed_amount).toLocaleString()} ${claim.currency_code} لصالح التاجر ${claim.merchant_name}.` : `Claim settled for ${claim.merchant_name}.`
       });
     } catch (err) {
-      console.error('[ThirdParty] Settlement persistence failed:', err);
+      logger.error('[ThirdParty] Settlement persistence failed:', err);
       enterpriseBus.notifyToast({
         type: 'error',
         title: isRtl ? 'تعذر تنفيذ التسوية' : 'Settlement failed',

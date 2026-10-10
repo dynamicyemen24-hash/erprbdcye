@@ -23,6 +23,8 @@ const config: Config = {
         dialog: '60',
         command: '70',
         critical: '80',
+        toast: '90',
+        'skip-link': '100',
       },
     },
   },

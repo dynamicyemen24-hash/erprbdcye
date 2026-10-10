@@ -92,7 +92,7 @@ const VARIANT_MAP: Record<ButtonVariant, string> = {
   danger:
     'bg-red-600 text-white shadow-sm shadow-red-500/25 hover:bg-red-700 hover:shadow-md active:bg-red-800 disabled:bg-red-400 disabled:shadow-none',
   accent:
-    'bg-amber-500 text-white shadow-sm shadow-amber-500/25 hover:bg-amber-600 hover:shadow-md active:bg-amber-700 disabled:bg-amber-300',
+    'bg-amber-500 text-amber-950 shadow-sm shadow-amber-500/25 hover:bg-amber-400 hover:shadow-md active:bg-amber-600 disabled:bg-amber-300 disabled:text-amber-800',
   ghost:
     'bg-transparent text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:text-zinc-400',
   outline:

@@ -62,7 +62,8 @@ import { Spinner } from '../design-system/components/Spinner';
 import { ConfirmDialog } from '../design-system/components/ConfirmDialog';
 import { EnterpriseButton } from './common/EnterpriseButton';
 import { readAuthToken } from '../shared/hooks/useApi';
-
+
+import { logger } from '../lib/logger';
 interface SettingsViewProps {
   organizations: Organization[];
   orgSettings: OrganizationSetting[];
@@ -70,15 +71,20 @@ interface SettingsViewProps {
   loading: boolean;
   onRefresh: () => void;
   lang: 'ar' | 'en';
+  setTheme?: (theme: 'light' | 'dark' | 'system') => void;
+  /** Real session subject — never a hardcoded admin. Threaded from App shell. */
+  currentUser?: { id?: string; email?: string; name?: string; role?: string } | null;
 }
 
-export default function SettingsView({ 
-  organizations, 
-  orgSettings, 
-  sysSettings, 
-  loading, 
-  onRefresh, 
-  lang 
+export default function SettingsView({
+  organizations,
+  orgSettings,
+  sysSettings,
+  loading,
+  onRefresh,
+  lang,
+  setTheme,
+  currentUser,
 }: SettingsViewProps) {
   const [activeSubTab, setActiveSubTab] = useState<'profile' | 'subscription' | 'domainPolicies' | 'system' | 'orgKeys' | 'masterData' | 'biometric' | 'totp' | 'devices' | 'integrations' | 'environment' | 'policies'>('profile');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -86,10 +92,12 @@ export default function SettingsView({
   const [updating, setUpdating] = useState(false);
 
   // Integrations & External Gateways States
+  // SECURITY (DEBT PAID): secrets are memory-only — never persisted to
+  // localStorage (XSS-readable). Non-secret routing config stays persisted.
   const [smsProvider, setSmsProvider] = useState<string>(() => localStorage.getItem('nexora_sms_provider') || 'whatsapp');
-  const [smsApiKey, setSmsApiKey] = useState<string>(() => localStorage.getItem('nexora_sms_api_key') || '');
+  const [smsApiKey, setSmsApiKey] = useState<string>('');
   const [smsSenderId, setSmsSenderId] = useState<string>(() => localStorage.getItem('nexora_sms_sender_id') || 'NexoraOS');
-  const [smsTestPhone, setSmsTestPhone] = useState<string>('967770000000');
+  const [smsTestPhone, setSmsTestPhone] = useState<string>('');
   const [smsTestMessage, setSmsTestMessage] = useState<string>('NexoraOS™ | تم تفعيل الربط السحابي لإرسال الإشعارات والتحقق الثنائي بنجاح.');
   const [smsTestLoading, setSmsTestLoading] = useState(false);
   const [smsTestResult, setSmsTestResult] = useState<any>(null);
@@ -97,8 +105,13 @@ export default function SettingsView({
   const [emailSmtpHost, setEmailSmtpHost] = useState<string>(() => localStorage.getItem('nexora_email_host') || 'smtp.sendgrid.net');
   const [emailSmtpPort, setEmailSmtpPort] = useState<string>(() => localStorage.getItem('nexora_email_port') || '587');
   const [emailSmtpUser, setEmailSmtpUser] = useState<string>(() => localStorage.getItem('nexora_email_user') || 'apikey');
-  const [emailSmtpPass, setEmailSmtpPass] = useState<string>(() => localStorage.getItem('nexora_email_pass') || '');
-  const [emailTestRecipient, setEmailTestRecipient] = useState<string>('admin@rohaama.org');
+  const [emailSmtpPass, setEmailSmtpPass] = useState<string>('');
+  // Identity (DEBT PAID): test recipient defaults to the signed-in user, never a hardcoded address.
+  const [emailTestRecipient, setEmailTestRecipient] = useState<string>(() => currentUser?.email || '');
+  useEffect(() => {
+    if (!emailTestRecipient && currentUser?.email) setEmailTestRecipient(currentUser.email);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.email]);
   const [emailTestSubject, setEmailTestSubject] = useState<string>('NexoraOS? System Gateway Test');
   const [emailTestLoading, setEmailTestLoading] = useState(false);
   const [emailTestResult, setEmailTestResult] = useState<any>(null);
@@ -248,6 +261,14 @@ export default function SettingsView({
     localStorage.setItem('nexora_biometric_enabled', String(biometricEnabled));
   }, [biometricEnabled]);
 
+  // One-time purge of legacy plaintext secrets (migrates old installs).
+  useEffect(() => {
+    try {
+      localStorage.removeItem('nexora_sms_api_key');
+      localStorage.removeItem('nexora_email_pass');
+    } catch { /* storage unavailable */ }
+  }, []);
+
   // Security Simulator state
   const [simLevel, setSimLevel] = useState<1 | 2 | 3 | 4>(2);
 
@@ -275,7 +296,7 @@ export default function SettingsView({
         setDbCodingSystems(await sysRes.json());
       }
     } catch (err) {
-      console.error('Error fetching database master data:', err);
+      logger.error('Error fetching database master data:', err);
     } finally {
       setLoadingDb(false);
     }
@@ -926,8 +947,9 @@ export default function SettingsView({
       setSmsTestResult(data);
       if (data.status === 'ok') {
         localStorage.setItem('nexora_sms_provider', smsProvider);
-        localStorage.setItem('nexora_sms_api_key', smsApiKey);
         localStorage.setItem('nexora_sms_sender_id', smsSenderId);
+        try { localStorage.removeItem('nexora_sms_api_key'); } catch { /* ignore */ }
+        setSmsApiKey('');
       }
     } catch (err: any) {
       setSmsTestResult({ status: 'error', message: err.message });
@@ -955,7 +977,8 @@ export default function SettingsView({
         localStorage.setItem('nexora_email_host', emailSmtpHost);
         localStorage.setItem('nexora_email_port', emailSmtpPort);
         localStorage.setItem('nexora_email_user', emailSmtpUser);
-        localStorage.setItem('nexora_email_pass', emailSmtpPass);
+        try { localStorage.removeItem('nexora_email_pass'); } catch { /* ignore */ }
+        setEmailSmtpPass('');
       }
     } catch (err: any) {
       setEmailTestResult({ status: 'error', message: err.message });
@@ -2533,15 +2556,15 @@ export default function SettingsView({
       )}
 
       {activeSubTab === 'biometric' && (
-        <BiometricSecuritySettingsView lang={lang} currentUser={{ email: 'admin@rohaama.org', name: 'Manager', role: 'admin' }} />
+        <BiometricSecuritySettingsView lang={lang} currentUser={currentUser ?? null} />
       )}
 
       {activeSubTab === 'totp' && (
-        <TOTPSecuritySettingsView lang={lang} currentUser={{ email: 'admin@rohaama.org', name: 'Manager', role: 'admin' }} />
+        <TOTPSecuritySettingsView lang={lang} currentUser={currentUser ?? null} />
       )}
 
       {activeSubTab === 'devices' && (
-        <TrustedDevicesView lang={lang} currentUser={{ email: 'admin@rohaama.org', name: 'Manager', role: 'admin' }} />
+        <TrustedDevicesView lang={lang} currentUser={currentUser ?? null} />
       )}
 
       {activeSubTab === 'integrations' && (
@@ -3093,7 +3116,7 @@ export default function SettingsView({
                       }),
                     });
                   } catch (err) {
-                    console.error(`Failed to save policy ${key}:`, err);
+                    logger.error(`Failed to save policy ${key}:`, err);
                   }
                 }
                 setSuccessMsg(lang === 'ar' ? 'تم حفظ السياسات التشغيلية بنجاح' : 'Operational policies saved successfully');

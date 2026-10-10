@@ -352,10 +352,10 @@ export function DatePicker({
       {open && (
         <>
           {/* Mobile: bottom sheet */}
-          <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-tooltip sm:hidden" onClick={() => setOpen(false)} />
           <div className={cn(
-            'fixed bottom-0 inset-x-0 z-50 bg-white dark:bg-zinc-900 rounded-t-2xl shadow-xl border-t border-zinc-200 dark:border-zinc-700 p-4 sm:absolute sm:bottom-auto sm:inset-x-auto sm:rounded-xl sm:shadow-lg sm:border sm:border-zinc-200 dark:sm:border-zinc-700 sm:z-50 sm:w-72 sm:mt-1.5',
-            isRtl ? 'sm:right-0' : 'sm:left-0'
+            'fixed bottom-0 inset-x-0 z-popover bg-white dark:bg-zinc-900 rounded-t-2xl shadow-xl border-t border-zinc-200 dark:border-zinc-700 p-4 sm:absolute sm:bottom-auto sm:inset-x-auto sm:rounded-xl sm:shadow-lg sm:border sm:border-zinc-200 dark:sm:border-zinc-700 sm:z-popover sm:w-72 sm:mt-1.5',
+            'sm:start-0'
           )} onClick={(e) => e.stopPropagation()}>
             {/* Month/Year nav */}
             <div className="flex items-center justify-between mb-3">

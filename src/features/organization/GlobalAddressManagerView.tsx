@@ -193,8 +193,8 @@ export default function GlobalAddressManagerView({
       <div style="font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif; direction: rtl; text-align: right; color: #0f172a; padding: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double #059669; padding-bottom: 12px; margin-bottom: 16px;">
           <div style="display: flex; align-items: center; gap: 14px;">
-            <img src="/UAMEX_ERPLOGO.png" style="height: 52px; object-fit: contain;" />
-            <img src="/LogoRohamaab.png" style="height: 52px; object-fit: contain;" />
+            <img src="/UAMEX_ERPLOGO.png" alt="UAMEX ERP logo" style="height: 52px; object-fit: contain;" />
+            <img src="/LogoRohamaab.png" alt="Rohamaab organization emblem" style="height: 52px; object-fit: contain;" />
             <div>
               <h2 style="margin: 0; font-size: 16px; font-weight: 800; color: #059669;">جمعية رُحماء بينهم للعمل الإنساني والتنمية</h2>
               <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">دليل التغطية الجغرافية والتقسيمات الإدارية والعناوين الدولية المعتمدة</p>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, AlertTriangle, Zap } from 'lucide-react';
 import { Spinner } from '../../design-system/components/Spinner';
 
+import { logger } from '../../lib/logger';
 interface ReorderAlert {
   id: string;
   item: string;
@@ -55,7 +56,7 @@ export default function ProcurementForecastingView({ lang }: { lang: 'ar' | 'en'
 
         setAlerts(items);
       } catch (err) {
-        console.error('[ProcurementForecasting] Failed to load:', err);
+        logger.error('[ProcurementForecasting] Failed to load:', err);
         if (!cancelled) setError(lang === 'ar' ? 'تعذر تحميل بيانات المخزون.' : 'Failed to load inventory data.');
       } finally {
         if (!cancelled) setLoading(false);

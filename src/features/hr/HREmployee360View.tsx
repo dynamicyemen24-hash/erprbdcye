@@ -1,6 +1,5 @@
-import { showToast } from '../../components/enterprise/EnterpriseToastContainer';
-import React from 'react';
-import { Users, Search, Printer } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Search, Printer, X } from 'lucide-react';
 import { EmptyState } from '../../design-system/components/EmptyState';
 import { EnterpriseSkeletonTable } from '../../components/common/EnterpriseSkeletonTable';
 
@@ -32,6 +31,8 @@ export default function HREmployee360View({
   onClearSearch
 }: HREmployee360ViewProps) {
   const isRtl = lang === 'ar';
+  // Productive 360: inline integrated record (real row data) instead of a toast.
+  const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6 animate-in fade-in duration-200">
@@ -83,7 +84,8 @@ export default function HREmployee360View({
               </tr>
             ) : filteredStaff.length > 0 ? (
               filteredStaff.map((staff, idx) => (
-                <tr key={staff.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40 transition-colors">
+                <React.Fragment key={staff.id ?? idx}>
+                <tr className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40 transition-colors">
                   <td className="p-3 font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full bg-emerald-600/10 border border-emerald-500/20 text-emerald-600 font-bold flex items-center justify-center">
                       {(staff.full_name_ar || staff.name || 'M')[0]}
@@ -131,13 +133,38 @@ export default function HREmployee360View({
                     </button>
 
                     <button
-                      onClick={() => showToast({ type: 'info', title: isRtl ? 'الملف الوظيفي الشامل 360' : 'Employee 360 View', message: isRtl ? `عرض السجل المتكامل لـ ${staff.full_name_ar || staff.name}` : `Viewing 360 record for ${staff.name}` })}
+                      onClick={() => setExpandedId(expandedId === (staff.id ?? idx) ? null : (staff.id ?? idx))}
+                      aria-expanded={expandedId === (staff.id ?? idx)}
                       className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
                     >
                       {isRtl ? '360' : '360'}
                     </button>
                   </td>
                 </tr>
+                {(expandedId === (staff.id ?? idx)) && (
+                  <tr key={`${staff.id ?? idx}-360`}>
+                    <td colSpan={6} className="p-3 bg-slate-50 dark:bg-zinc-950/60">
+                      <div className="rounded-xl border border-slate-200 dark:border-zinc-800 p-4 text-[11px] leading-relaxed text-slate-700 dark:text-zinc-300">
+                        <div className="flex items-center justify-between mb-2">
+                          <strong>{isRtl ? 'السجل المتكامل 360' : 'Integrated 360 record'} — {staff.full_name_ar || staff.name}</strong>
+                          <button onClick={() => setExpandedId(null)} aria-label={isRtl ? 'إغلاق السجل' : 'Close record'} className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-zinc-800">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
+                          <span>{isRtl ? 'الكود' : 'Code'}: {staff.employee_code || `EMP-2026-0${idx + 1}`}</span>
+                          <span>{isRtl ? 'الفئة' : 'Type'}: {staff.employment_type || 'permanent'}</span>
+                          <span>{isRtl ? 'القسم' : 'Dept'}: {staff.department_code || staff.department_name || '—'}</span>
+                          <span>{isRtl ? 'الحالة' : 'Status'}: {staff.status || 'active'}</span>
+                        </div>
+                        <button onClick={() => onOpenDocModal(staff)} className="mt-3 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold">
+                          {isRtl ? 'فتح العقد والوثائق' : 'Open contract & documents'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
               ))
             ) : (
               <tr>

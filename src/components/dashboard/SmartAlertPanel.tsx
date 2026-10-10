@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { WidgetFrame } from '../enterprise/widgets/WidgetFrame';
 
+import { logger } from '../../lib/logger';
 interface Project {
   id: string;
   program_id: string | null;
@@ -79,7 +80,7 @@ export function SmartAlertPanel({ lang, projects }: SmartAlertPanelProps) {
         setSpendByProject(agg);
         setLastSyncedAt(new Date());
       } catch (err) {
-        console.error('[SmartAlertPanel] Failed to load actual spend:', err);
+        logger.error('[SmartAlertPanel] Failed to load actual spend:', err);
       }
     };
     loadActualSpend();

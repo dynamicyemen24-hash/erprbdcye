@@ -28,10 +28,10 @@ export const ENVIRONMENT_MODES: Record<EnvironmentMode, EnvironmentModeConfig> =
   },
   training: {
     mode: 'training',
-    labelAr: 'بيئة التدريب',
-    labelEn: 'Training',
-    descriptionAr: 'بيانات تدريبية آمنة — لا تؤثر على البيانات الحقيقية. مثالية للموظفين الجدد وال.learn',
-    descriptionEn: 'Safe training data — does not affect live records. Ideal for new staff onboarding',
+    labelAr: 'بيئة التدريب (قراءة فقط)',
+    labelEn: 'Training (read-only)',
+    descriptionAr: 'وضع تدريب آمن للقراءة — الإنشاء والتعديل معطلان ولا توجد مجموعة بيانات تدريبية معزولة بعد',
+    descriptionEn: 'Safe read-only training mode — creates/edits are disabled and no isolated training dataset exists yet',
     color: 'text-amber-600 dark:text-amber-400',
     bgColor: 'bg-amber-500/10',
     borderColor: 'border-amber-500/30',
@@ -178,13 +178,18 @@ export const useEnvironmentMode = (): EnvironmentModeContextType => {
  * Utility hook: Returns filtered data based on current environment mode.
  * In production mode, returns all data.
  * In training mode, returns only records marked as training data (is_training = true).
- * Falls back to returning all data if the is_training field doesn't exist on the records.
+ *
+ * FAIL-CLOSED (DEBT PAID): no is_training column exists in the schema yet, so
+ * the old "backward compatible" path returned PRODUCTION records inside
+ * training mode — operators edited live books under an amber "safe" badge.
+ * Without the column, training mode now returns [] (never production rows).
  */
 export function useEnvironmentFilteredData<T extends Record<string, any>>(
   data: T[],
   options?: { includeMixed?: boolean }
 ): T[] {
   const { isTrainingMode } = useEnvironmentMode();
+  void options;
 
   return useMemo(() => {
     if (!data || data.length === 0) return data;
@@ -193,8 +198,8 @@ export function useEnvironmentFilteredData<T extends Record<string, any>>(
     const hasTrainingField = data.length > 0 && 'is_training' in data[0];
 
     if (!hasTrainingField) {
-      // No training field present — return all data as-is
-      // (backward compatible with existing data without the column)
+      // No isolation column — training mode must not expose production rows.
+      if (isTrainingMode) return [];
       return data;
     }
 
@@ -204,4 +209,30 @@ export function useEnvironmentFilteredData<T extends Record<string, any>>(
       return data.filter(r => r.is_training !== true);
     }
   }, [data, isTrainingMode]);
+}
+
+/**
+ * Write guard for operational workspaces (DEBT PAID): training mode has no
+ * isolated dataset, so every create/update/delete entry point must refuse
+ * with an honest message instead of writing production records.
+ */
+export function useTrainingWriteGuard(lang: 'ar' | 'en' = 'ar'): {
+  isTrainingMode: boolean;
+  blockMessage: string | null;
+  guard: () => boolean;
+} {
+  const { isTrainingMode } = useEnvironmentMode();
+  const blockMessage = isTrainingMode
+    ? lang === 'ar'
+      ? 'وضع التدريب للقراءة فقط — التعديل معطل لحماية السجلات الرسمية'
+      : 'Training is read-only — writes are disabled to protect official records'
+    : null;
+  return {
+    isTrainingMode,
+    blockMessage,
+    guard: () => {
+      if (!isTrainingMode) return true;
+      return false;
+    },
+  };
 }

@@ -24,7 +24,7 @@ import {
   Database,
   Layers,
 } from 'lucide-react';
-import { enterpriseTokens } from '../../core/theme/enterpriseDesignTokens';
+import { Button } from '../../design-system/components/Button';
 import { Spinner } from '../../design-system/components/Spinner';
 
 export interface ModuleShellProps {
@@ -177,15 +177,16 @@ export function ModuleShell({
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap shrink-0">
             {onRefresh && (
-              <button
-                type="button"
-                onClick={onRefresh}
-                className={enterpriseTokens.buttons.iconOnly}
+              <Button
+                variant="ghost"
+                size="sm"
+                iconOnly
+                label={isRtl ? 'تحديث البيانات' : 'Refresh Data'}
                 title={isRtl ? 'تحديث البيانات' : 'Refresh Data'}
-                aria-label={isRtl ? 'تحديث البيانات' : 'Refresh Data'}
+                onClick={onRefresh}
               >
-                <RefreshCw className="w-4 h-4" aria-label={isRtl ? 'تحديث' : 'Refresh'} />
-              </button>
+                <RefreshCw className="w-4 h-4" aria-hidden="true" />
+              </Button>
             )}
             {actions}
           </div>

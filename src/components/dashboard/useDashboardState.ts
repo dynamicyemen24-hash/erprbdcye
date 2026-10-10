@@ -3,6 +3,7 @@ import { DashboardPreset, SYSTEM_PRESETS } from './SmartCustomizationPanel';
 import { KPILayoutItem } from './types';
 import { getAvailableDashboardPresets, parseDashboardExperienceConfig } from '../../config/dashboardExperienceModes';
 
+import { logger } from '../../lib/logger';
 export function useDashboardState(currentUser: any, organizationSettings: any[] = [], subscriptionPlan?: string) {
   const [activeSubTab, setActiveSubTab] = React.useState<'overview' | 'performance' | 'readiness'>('overview');
   const [isCustomizerOpen, setIsCustomizerOpen] = React.useState(false);
@@ -34,7 +35,7 @@ export function useDashboardState(currentUser: any, organizationSettings: any[] 
       const savedPresets = localStorage.getItem(`nexora_dashboard_presets${userSuffix}`);
       let parsedCustom: DashboardPreset[] = [];
       if (savedPresets) {
-        try { parsedCustom = JSON.parse(savedPresets); } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to parse saved dashboard presets', e); }
+        try { parsedCustom = JSON.parse(savedPresets); } catch (e) { logger.error('[NexoraOS] useDashboardState: Failed to parse saved dashboard presets', e); }
       }
       const config = parseDashboardExperienceConfig(organizationSettings);
       const available = getAvailableDashboardPresets(subscriptionPlan, config, parsedCustom);
@@ -43,7 +44,7 @@ export function useDashboardState(currentUser: any, organizationSettings: any[] 
         const found = available.find(p => p.id === preferredId);
         if (found) return found;
       }
-    } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to load active dashboard preset', e); }
+    } catch (e) { logger.error('[NexoraOS] useDashboardState: Failed to load active dashboard preset', e); }
     return SYSTEM_PRESETS[0];
   });
 
@@ -65,7 +66,7 @@ export function useDashboardState(currentUser: any, organizationSettings: any[] 
     try {
       const userSuffix = currentUser?.id ? `_${currentUser.id}` : '_guest';
       localStorage.setItem(`nexora_active_preset_id${userSuffix}`, preset.id);
-    } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to persist active preset selection', e); }
+    } catch (e) { logger.error('[NexoraOS] useDashboardState: Failed to persist active preset selection', e); }
   };
 
   const handleSaveCustomPreset = (preset: DashboardPreset) => {
@@ -76,7 +77,7 @@ export function useDashboardState(currentUser: any, organizationSettings: any[] 
       const userSuffix = currentUser?.id ? `_${currentUser.id}` : '_guest';
       localStorage.setItem(`nexora_dashboard_presets${userSuffix}`, JSON.stringify(updated));
       localStorage.setItem(`nexora_active_preset_id${userSuffix}`, preset.id);
-    } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to persist custom preset', e); }
+    } catch (e) { logger.error('[NexoraOS] useDashboardState: Failed to persist custom preset', e); }
   };
 
   const handleDeletePreset = (id: string) => {
@@ -89,7 +90,7 @@ export function useDashboardState(currentUser: any, organizationSettings: any[] 
         setCurrentPreset(SYSTEM_PRESETS[0]);
         localStorage.setItem(`nexora_active_preset_id${userSuffix}`, SYSTEM_PRESETS[0].id);
       }
-    } catch (e) { console.error('[NexoraOS] useDashboardState: Failed to persist preset deletion', e); }
+    } catch (e) { logger.error('[NexoraOS] useDashboardState: Failed to persist preset deletion', e); }
   };
 
   const getSpacingClass = () => {

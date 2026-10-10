@@ -1,7 +1,8 @@
+import { logger } from './logger';
 // Web Vitals tracking
 export function reportWebVitals(metric: any) {
   if (metric.label === 'web-vital') {
-    console.log(`[WebVitals] ${metric.name}: ${metric.value} (${metric.rating})`);
+    logger.log(`[WebVitals] ${metric.name}: ${metric.value} (${metric.rating})`);
     if (navigator.sendBeacon) {
       navigator.sendBeacon('/api/metrics/web-vitals', JSON.stringify({
         name: metric.name,

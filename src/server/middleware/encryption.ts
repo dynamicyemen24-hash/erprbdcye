@@ -5,6 +5,7 @@
  */
 
 import crypto from 'crypto';
+import logger, { toLogMeta } from '../core/logger';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
@@ -15,7 +16,7 @@ const SALT_LENGTH = 32;
 const MASTER_KEY = process.env.FIELD_ENCRYPTION_KEY || process.env.JWT_SECRET;
 
 if (!MASTER_KEY) {
-  console.error('[SECURITY] FIELD_ENCRYPTION_KEY not set — field encryption disabled');
+  logger.error('[SECURITY] FIELD_ENCRYPTION_KEY not set — field encryption disabled');
 }
 
 /**
@@ -77,7 +78,7 @@ export function decryptField(ciphertext: string): string {
 
     return decrypted.toString('utf8');
   } catch (err: any) {
-    console.error('[ENCRYPTION] Decryption failed:', err.message);
+    logger.error('[ENCRYPTION] Decryption failed:', { meta: toLogMeta(err.message) });
     return ciphertext; // Return as-is if decryption fails
   }
 }

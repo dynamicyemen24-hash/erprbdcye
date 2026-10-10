@@ -51,7 +51,8 @@ import {
   Warehouse,
   FileCheck,
   ShoppingCart,
-  Server
+  Server,
+  Search
 } from 'lucide-react';
 import { BINexusSymbol } from './components/bi/BIIcons';
 import { Spinner } from './design-system/components/Spinner';
@@ -103,7 +104,7 @@ import {
   GlobalEnterpriseHeader,
   GlobalOperationalFooter
 } from './components';
-import { useNexoraData, useOrganizationBranding, performanceMonitor } from './core/hooks';
+import { useNexoraData, useOrganizationBranding, useDbHealth, performanceMonitor } from './core/hooks';
 import { useSessionTimeout } from './core/security/useSessionTimeout';
 import { SecureStorage } from './core/security/SecureStorage';
 import { useTelemetry } from './core/hooks/useTelemetry';
@@ -324,8 +325,8 @@ export default function App() {
   useEffect(() => {
     try {
       const root = document.documentElement;
-      const primary = ensureMinContrast(branding.primaryColor, branding.lightBg, 3);
-      const accent = ensureMinContrast(branding.accentColor, branding.lightBg, 3);
+      const primary = ensureMinContrast(branding.primaryColor, branding.lightBg, 4.5);
+      const accent = ensureMinContrast(branding.accentColor, branding.lightBg, 4.5);
       root.style.setProperty('--brand-primary', primary);
       root.style.setProperty('--brand-accent', accent);
       root.style.setProperty('--brand-dark-bg', branding.darkBg);
@@ -677,12 +678,18 @@ export default function App() {
     sales: { icon: Coins, title_ar: 'المبيعات والإيرادات وتنمية الموارد', title_en: 'Sales, Revenue & Fundraising OS', category_ar: 'تنمية الموارد', category_en: 'Fundraising' },
     procurement: { icon: ShoppingCart, title_ar: 'المشتريات والمناقصات (P2P)', title_en: 'Procurement & Tenders OS', category_ar: 'المشتريات والعقود', category_en: 'Procurement OS' },
     business_intelligence: { icon: BINexusSymbol, title_ar: 'نظام ذكاء الأعمال والأثر الدولي', title_en: 'Business Intelligence & Impact OS', category_ar: 'ذكاء الأثر الدولي', category_en: 'Business Intelligence' },
+    search: { icon: Search, title_ar: 'البحث المؤسسي الشامل', title_en: 'Enterprise Search Center', category_ar: 'البحث الشامل', category_en: 'Search' },
     communications: { icon: FileText, title_ar: 'الاتصال الإداري الذكي', title_en: 'Intelligent Communications', category_ar: 'الاتصال المؤسسي', category_en: 'Communications' },
     commitments_obligations: { icon: Handshake, title_ar: 'التعهدات والالتزامات', title_en: 'Commitments & Obligations', category_ar: 'العقود والشراكات', category_en: 'Contract OS' },
     admin_control_center: { icon: Server, title_ar: 'مركز التحكم', title_en: 'Admin Control Center', category_ar: 'الإدارة', category_en: 'Admin' }
   };
 
-  const dbConnected = !!serverStats;
+  // Database health now comes from the real readiness probe rather than from
+  // `!!serverStats`. That boolean was captured once at session start and stayed
+  // true through a full outage, so the footer kept claiming "Active & Secure"
+  // while the database was unreachable. See core/hooks/useDbHealth.ts.
+  const dbHealth = useDbHealth();
+  const dbConnected = dbHealth.state === 'healthy';
   const pendingApprovalsCount = approvalRequests.filter(r => r.status === 'pending').length;
 
   if (!authChecked) {
@@ -736,12 +743,13 @@ export default function App() {
         <NotificationBusBridge />
       </ToastProvider>
 
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-skip-link focus:bg-emerald-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
-      >
-        تخطي إلى المحتوى الرئيسي
-      </a>
+      {/* Skip link — mounted ONCE, by AccessibilityProvider.
+          This shell rendered a second copy at `focus:left-2` (a PHYSICAL
+          offset, so it landed on the wrong side in RTL) alongside the provider's
+          logical `focus:start-4`. Two links meant a screen reader announced
+          "skip to main content" twice before the user reached the content.
+          See AccessibilityProvider.tsx, which also moves focus programmatically
+          rather than relying on the fragment jump alone. */}
 
       {/* ULTRA-PROFESSIONAL GLOBAL PROGRESS BAR */}
       <NexoraTopProgressBar
@@ -787,8 +795,14 @@ export default function App() {
         onOpenSystemMap={() => setShowSystemMapModal(true)}
       />
 
-      {/* UPDATE AVAILABILITY BANNER */}
-      <UpdateBanner autoCheck={true} onDismiss={() => {}} />
+      {/* UPDATE AVAILABILITY BANNER — the single mount point.
+          It was previously mounted here AND inside UnifiedHomeWorkspace, so every
+          session ran two update checks and could stack two `fixed top-0` strips
+          over the header. It now renders only when a newer build genuinely exists
+          (see core/updates.ts) and carries the active language. */}
+      <div className="px-3 pt-2">
+        <UpdateBanner autoCheck lang={lang} />
+      </div>
 
       {/* LAYER 2: CONTEXT BREADCRUMB & UNIFIED RIBBON */}
       <UnifiedContextRibbon
@@ -937,6 +951,7 @@ export default function App() {
         dbConnected={dbConnected}
         totalRecordsCount={totalRecordsCount}
         orgName={orgName}
+        dbStatusDetail={dbHealth.detail ?? undefined}
       />
 
       {/* MODALS */}

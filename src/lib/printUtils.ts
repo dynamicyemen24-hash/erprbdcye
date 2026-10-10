@@ -86,7 +86,7 @@ export function getBrandingHTML(isPrint: boolean = false) {
   if (layout === 'centered') {
     headerHTML = `
       <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding-bottom: 20px; border-bottom: 3px double ${accentColor}; margin-bottom: 20px; font-family: sans-serif; position: relative; width: 100%;">
-        ${showLogo ? `<img src="${activeLogo}" style="width: 70px; height: 70px; margin-bottom: 10px; object-fit: contain;" />` : ''}
+        ${showLogo ? `<img src="${activeLogo}" alt="Organization logo" style="width: 70px; height: 70px; margin-bottom: 10px; object-fit: contain;" />` : ''}
         <h1 style="color: ${accentColor}; margin: 0 0 5px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">${title}</h1>
         <p style="color: #64748b; margin: 0; font-size: 13px; font-weight: 500;">${subtitle}</p>
         ${showDate ? `
@@ -100,7 +100,7 @@ export function getBrandingHTML(isPrint: boolean = false) {
     headerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid ${accentColor}; margin-bottom: 20px; font-family: sans-serif; width: 100%;">
         <div style="flex: 1; text-align: ${textDirection};">
-          ${showLogo ? `<img src="${activeLogo}" style="width: 60px; height: 60px; object-fit: contain;" />` : ''}
+          ${showLogo ? `<img src="${activeLogo}" alt="Organization logo" style="width: 60px; height: 60px; object-fit: contain;" />` : ''}
         </div>
         <div style="flex: 2; text-align: center;">
           <h1 style="color: ${accentColor}; margin: 0 0 4px 0; font-size: 20px; font-weight: 800;">${title}</h1>

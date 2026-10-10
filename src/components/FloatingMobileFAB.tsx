@@ -31,7 +31,8 @@ import { useEnterprise } from '../core/context/EnterpriseContext';
 import { EnterpriseButton } from './common/EnterpriseButton';
 import confetti from 'canvas-confetti';
 import { Spinner } from '../design-system/components/Spinner';
-
+
+import { logger } from '../lib/logger';
 interface FloatingMobileFABProps {
   onNavigate: (tab: any) => void;
 }
@@ -137,7 +138,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
          activeP = JSON.parse(storedProj);
          setActiveProject(activeP);
        } catch (e) {
-         console.error(e);
+         logger.error(e);
        }
      } else {
        setActiveProject(null);
@@ -148,7 +149,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
          activeB = JSON.parse(storedBen);
          setActiveBeneficiary(activeB);
        } catch (e) {
-         console.error(e);
+         logger.error(e);
        }
      } else {
        setActiveBeneficiary(null);
@@ -209,7 +210,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
          }
        }
      } catch (e) {
-       console.error("Error setting up voice note target lists:", e);
+       logger.error("Error setting up voice note target lists:", e);
      } finally {
        setLoadingRecords(false);
      }
@@ -230,7 +231,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
        if (voiceNoteRecognitionRef.current) {
          try {
             voiceNoteRecognitionRef.current.abort();
-          } catch (e) { console.error('[FAB] Failed to abort previous speech recognition:', e); }
+          } catch (e) { logger.error('[FAB] Failed to abort previous speech recognition:', e); }
        }
  
        const rec = new SpeechRecognition();
@@ -254,7 +255,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
        };
  
        rec.onerror = (event: any) => {
-         console.error('Voice Note recording error:', event.error);
+         logger.error('Voice Note recording error:', event.error);
          if (event.error === 'not-allowed') {
            setVoiceNoteError(isRtl ? 'تم رفض إذن الوصول للميكروفون' : 'Microphone access denied.');
          } else if (event.error !== 'no-speech') {
@@ -278,7 +279,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
      if (voiceNoteRecognitionRef.current) {
        try {
           voiceNoteRecognitionRef.current.stop();
-        } catch (e) { console.error('[FAB] Failed to stop voice note recording:', e); }
+        } catch (e) { logger.error('[FAB] Failed to stop voice note recording:', e); }
      }
      setIsRecordingVoiceNote(false);
      if (voiceNoteStatus === 'recording') {
@@ -363,7 +364,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
            spread: 60,
             origin: { y: 0.8 }
           });
-        } catch (e) { console.error('[FAB] Failed to trigger confetti:', e); }
+        } catch (e) { logger.error('[FAB] Failed to trigger confetti:', e); }
  
        window.dispatchEvent(new CustomEvent('nexora-refresh-data'));
  
@@ -372,7 +373,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
        }, 1500);
  
      } catch (err: any) {
-       console.error("Error saving voice note:", err);
+       logger.error("Error saving voice note:", err);
        setVoiceNoteStatus('error');
        setVoiceNoteError(err.message || (isRtl ? 'خطأ غير متوقع أثناء الحفظ' : 'An unexpected error occurred during save.'));
      }
@@ -541,7 +542,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
         try {
           recognitionRef.current.abort();
         } catch (e) {
-          console.error(e);
+          logger.error(e);
         }
       }
     };
@@ -555,7 +556,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
         setPastReports(JSON.parse(stored));
       }
     } catch (e) {
-      console.warn('Failed to load emergency reports from localStorage', e);
+      logger.warn('Failed to load emergency reports from localStorage', e);
     }
   }, [showEmergencyModal]);
 
@@ -576,7 +577,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
         }
       })
       .catch((err) => {
-        console.warn('Camera stream blocked or unavailable:', err);
+        logger.warn('Camera stream blocked or unavailable:', err);
         setCameraError(
           isRtl 
             ? 'تعذر الوصول المباشر للكاميرا. قد يكون ذلك بسبب صلاحيات الأمان في المتصفح. الرجاء استخدام تبويب "محاكي المسح الذكي" المباشر.'
@@ -634,7 +635,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
         try {
           recognitionRef.current.abort();
         } catch (e) {
-          console.warn('Abort error ignored:', e);
+          logger.warn('Abort error ignored:', e);
         }
       }
 
@@ -655,7 +656,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
       };
 
       rec.onerror = (event: any) => {
-        console.error('Speech recognition error event:', event.error);
+        logger.error('Speech recognition error event:', event.error);
         if (event.error === 'not-allowed') {
           setVoiceError(isRtl ? 'تم رفض إذن الوصول للميكروفون. يرجى تفعيل الصلاحية.' : 'Microphone access denied. Please enable permission.');
         } else if (event.error === 'no-speech') {
@@ -673,7 +674,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
       recognitionRef.current = rec;
       rec.start();
     } catch (e: any) {
-      console.error('Failed to start speech recognition', e);
+      logger.error('Failed to start speech recognition', e);
       setVoiceError(e.message || 'Error starting recognition');
       setIsListening(false);
     }
@@ -684,7 +685,7 @@ export default function FloatingMobileFAB({ onNavigate }: FloatingMobileFABProps
       try {
         recognitionRef.current.abort();
       } catch (e) {
-        console.error(e);
+        logger.error(e);
       }
     }
     setIsListening(false);
